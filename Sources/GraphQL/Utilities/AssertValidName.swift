@@ -12,7 +12,12 @@ public enum InvalidNameError : Error, CustomStringConvertible {
 }
 
 func assertValid(name: String) throws {
-    let regex = try NSRegularExpression(pattern: "^[_a-zA-Z][_a-zA-Z0-9]*$", options: [])
+    #if os(macOS)
+        let regex = try NSRegularExpression(pattern: "^[_a-zA-Z][_a-zA-Z0-9]*$", options: [])
+    #else
+        let regex = try RegularExpression(pattern: "^[_a-zA-Z][_a-zA-Z0-9]*$", options: [])
+    #endif
+
     let range = regex.rangeOfFirstMatch(in: name, options: [], range: NSRange(0..<name.characters.count))
 
     guard range.location != NSNotFound else {
