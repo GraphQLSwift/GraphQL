@@ -164,7 +164,7 @@ extension String {
     func slice(start: Int, end: Int) -> String {
         let startIndex = utf8.index(utf8.startIndex, offsetBy: start)
         let endIndex = utf8.index(utf8.startIndex, offsetBy: end)
-        var slice: [UInt8] = [] + utf8[startIndex..<endIndex]
+        var slice: [UInt8] = utf8[startIndex..<endIndex] + [0]
         return String(cString: &slice)
     }
 }
