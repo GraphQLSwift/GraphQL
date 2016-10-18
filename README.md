@@ -1,4 +1,4 @@
-# GraphQL
+# ![Logo](Images/logo.png) GraphQL 
 
 The Swift implementation for GraphQL, a query language for APIs created by Facebook.
 
