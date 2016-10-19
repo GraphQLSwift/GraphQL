@@ -46,16 +46,6 @@ final class ExecutionContext {
 }
 
 /**
- * The result of execution. `data` is the result of executing the
- * query, `errors` is null if no errors occurred, and is a
- * non-empty array if an error occurred.
- */
-enum GraphQLResult {
-  case data(Map)
-  case errors([GraphQLError])
-}
-
-/**
  * Implements the "Evaluating requests" section of the GraphQL specification.
  *
  * Returns a Promise that will eventually be resolved and never rejected.
@@ -63,7 +53,7 @@ enum GraphQLResult {
  * If the arguments to this func do not result in a legal execution context,
  * a GraphQLError will be thrown immediately explaining the invalid input.
  */
-func execute(schema: GraphQLSchema, documentAST: Document, rootValue: Map, contextValue: Map, variableValues: [String: Map] = [:], operationName: String? = nil) throws -> GraphQLResult {
+func execute(schema: GraphQLSchema, documentAST: Document, rootValue: Map, contextValue: Map, variableValues: [String: Map] = [:], operationName: String? = nil) throws -> Map {
 
     // If a valid context cannot be created due to incorrect arguments,
     // this will throw an error.
@@ -77,15 +67,15 @@ func execute(schema: GraphQLSchema, documentAST: Document, rootValue: Map, conte
     )
 
     do {
-        return .data(
-            try executeOperation(
-                exeContext: context,
-                operation: context.operation,
-                rootValue: rootValue
-            )
+        let data = try executeOperation(
+            exeContext: context,
+            operation: context.operation,
+            rootValue: rootValue
         )
+
+        return ["data": data]
     } catch let error as GraphQLError {
-        return .errors([error])
+        return ["error": [error].map]
     }
 }
 
@@ -455,7 +445,7 @@ func resolveField(exeContext: ExecutionContext, parentType: GraphQLObjectType, s
 
     // Get the resolve func, regardless of if its result is normal
     // or abrupt (error).
-    let result = resolve(source, args, context, info)
+    let result = try resolve(source, args, context, info)
     
     return try completeValueCatchingError(
         exeContext: exeContext,
@@ -686,7 +676,7 @@ func completeLeafValue(returnType: GraphQLLeafType, result: Map) throws -> Map {
  */
 func completeAbstractValue(exeContext: ExecutionContext, returnType: GraphQLAbstractType, fieldASTs: [Field], info: GraphQLResolveInfo, path: [IndexPathElement], result: Map) throws -> Map {
   let resolveRes = returnType.resolveType?(result, exeContext.contextValue, info) ??
-                      defaultResolveType(value: result, context: exeContext.contextValue, info: info, abstractType: returnType).map({ .object($0) })
+                      defaultResolveType(value: result, context: exeContext.contextValue, info: info, abstractType: returnType).map({ .type($0) })
 
     guard let resolveResult = resolveRes else {
         throw GraphQLError(
@@ -699,10 +689,10 @@ func completeAbstractValue(exeContext: ExecutionContext, returnType: GraphQLAbst
     var runtimeType: GraphQLType?
 
     switch resolveResult {
-    case .string(let name):
+    case .name(let name):
         runtimeType = exeContext.schema.getType(name: name)
-    case .object(let object):
-        runtimeType = object
+    case .type(let type):
+        runtimeType = type
     }
 
   guard let objectType = runtimeType as? GraphQLObjectType else {

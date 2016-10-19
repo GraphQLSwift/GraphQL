@@ -50,7 +50,7 @@ public final class GraphQLSchema {
     let mutationType: GraphQLObjectType?
     let subscriptionType: GraphQLObjectType?
     let directives: [GraphQLDirective]
-    let typeMap: TypeMap
+    var typeMap: TypeMap
     let implementations: [String: [GraphQLObjectType]]
     var possibleTypeMap: [String: [String: Bool]] = [:]
 
@@ -115,6 +115,8 @@ public final class GraphQLSchema {
                 }
             }
         }
+
+        try replaceTypeReferences(schema: self)
     }
 
     func getType(name: String) -> GraphQLNamedType? {
@@ -279,4 +281,48 @@ func assert(object: GraphQLObjectType, implementsInterface interface: GraphQLInt
     //      }
     //    });
     //  });
+}
+
+func replaceTypeReferences(schema: GraphQLSchema) throws {
+    schema.typeMap = try schema.typeMap.reduce([:]) { newTypeMap, type in
+        var newTypeMap = newTypeMap
+
+        if let fieldsContainer = type.value as? GraphQLFieldsContainer {
+            newTypeMap[type.key] = try fieldsContainer.replaceTypeReferences(typeMap: schema.typeMap)
+        } else {
+            newTypeMap[type.key] = type.value
+        }
+
+        return newTypeMap
+    }
+}
+
+func resolveTypeReference(type: GraphQLType, typeMap: TypeMap) throws -> GraphQLType {
+    if let type = type as? GraphQLTypeReference {
+        guard let resolvedType = typeMap[type.name] else {
+            throw GraphQLError(message: "Type \"\(type.name)\" not found in schema.")
+        }
+
+        return resolvedType
+    }
+
+    if let type = type as? GraphQLList {
+        return try type.replaceTypeReferences(typeMap: typeMap)
+    }
+
+    if let type = type as? GraphQLNonNull {
+        return try type.replaceTypeReferences(typeMap: typeMap)
+    }
+
+    return type
+}
+
+func resolveTypeReferences(types: [GraphQLType], typeMap: TypeMap) throws -> [GraphQLType] {
+    var resolvedTypes: [GraphQLType] = []
+
+    for type in types {
+        try resolvedTypes.append(resolveTypeReference(type: type, typeMap: typeMap))
+    }
+
+    return resolvedTypes
 }

@@ -16,20 +16,20 @@
 /// - throws: throws value description
 ///
 /// - returns: return value description
-func graphql(
+public func graphql(
     schema: GraphQLSchema,
     request: String,
     rootValue: Map = .null,
     contextValue: Map = .null,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) throws -> GraphQLResult {
+) throws -> Map {
     let source = Source(body: request, name: "GraphQL request")
     let documentAST = try parse(source: source)
     let validationErrors = try validate(schema: schema, ast: documentAST)
 
     guard validationErrors.isEmpty else {
-        return .errors(validationErrors)
+        return ["errors": validationErrors.map]
     }
 
     return try execute(

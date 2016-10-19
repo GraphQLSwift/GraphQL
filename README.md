@@ -6,6 +6,8 @@ The Swift implementation for GraphQL, a query language for APIs created by Faceb
 [![License][mit-badge]][mit-url]
 [![Slack][slack-badge]][slack-url]
 [![Travis][travis-badge]][travis-url]
+[![Codecov][codecov-badge]][codecov-url]
+[![Codebeat][codebeat-badge]][codebeat-url]
 
 Looking for help? Find resources [from the community](http://graphql.org/community/).
 
@@ -15,7 +17,7 @@ Looking for help? Find resources [from the community](http://graphql.org/communi
 An overview of GraphQL in general is available in the
 [README](https://github.com/facebook/graphql/blob/master/README.md) for the
 [Specification for GraphQL](https://github.com/facebook/graphql). That overview
-describes a simple set of GraphQL examples that exist as [Tests](Tests/)
+describes a simple set of GraphQL examples that exist as [tests](Tests/GraphQLTests/StarWarsTests/)
 in this repository. A good way to get started with this repository is to walk
 through that README and the corresponding tests in parallel.
 
@@ -55,18 +57,16 @@ let schema = try GraphQLSchema(
 ```
 
 This defines a simple schema with one type and one field, that resolves
-to a fixed value. A more complex example is included in the top
-level [Tests](Tests/) directory.
+to a fixed value. More complex examples are included in the [Tests](Tests/GraphQLTests/) directory.
 
 Then, serve the result of a query against that type schema.
 
 ```swift
 let query = "{ hello }"
-
 let result = try graphql(schema: schema, request: query)
 
 // Prints
-// data({"hello":"world"})
+// {"data":{"hello":"world"}}
 print(result)
 ```
 
@@ -76,11 +76,10 @@ it, reporting errors otherwise.
 
 ```swift
 let query = "{ boyhowdy }"
-
 let result = try graphql(schema: schema, request: query)
 
 // Prints
-// errors([Cannot query field "boyhowdy" on type "RootQueryType".])
+// {"errors":[{"message":"Cannot query field "boyhowdy" on type "RootQueryType"."}]}
 print(result)
 ```
 
@@ -97,3 +96,7 @@ This project is released under the MIT license. See [LICENSE](LICENSE) for detai
 [slack-url]: http://slack.zewo.io
 [travis-badge]: https://travis-ci.org/GraphQLSwift/GraphQL.svg?branch=master
 [travis-url]: https://travis-ci.org/GraphQLSwift/GraphQL
+[codecov-badge]: https://codecov.io/gh/GraphQLSwift/GraphQL/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/GraphQLSwift/GraphQL
+[codebeat-badge]: https://codebeat.co/badges/13293962-d1d8-4906-8e62-30a2cbb66b38
+[codebeat-url]: https://codebeat.co/projects/github-com-graphqlswift-graphql

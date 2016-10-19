@@ -4,7 +4,7 @@
  * and stack trace, it also includes information about the locations in a
  * GraphQL document and/or execution result that correspond to the Error.
  */
-struct GraphQLError : Error {
+public struct GraphQLError : Error {
 
     /**
      * A message describing the Error for debugging purposes.
@@ -65,7 +65,29 @@ struct GraphQLError : Error {
 }
 
 extension GraphQLError : CustomStringConvertible {
-    var description: String {
+    public var description: String {
         return message
+    }
+}
+
+extension GraphQLError : Equatable {
+    public var hashValue: Int {
+        return message.hashValue
+    }
+}
+
+public func == (lhs: GraphQLError, rhs: GraphQLError) -> Bool {
+    return lhs.hashValue == rhs.hashValue
+}
+
+extension GraphQLError : MapRepresentable {
+    public var map: Map {
+        var dictionary: [String: Map] = ["message": message.map]
+
+        if !path.isEmpty {
+            dictionary["path"] = path.map({ $0.map }).map
+        }
+
+        return .dictionary(dictionary)
     }
 }
