@@ -30,7 +30,6 @@ class HelloWorldTests : XCTestCase {
         ]]
 
         let result = try graphql(schema: schema, request: query)
-        print(result)
         XCTAssertEqual(result["errors"], expectedErrors)
     }
 }
