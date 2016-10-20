@@ -183,15 +183,14 @@ func parseOperationDefinition(lexer: Lexer) throws -> OperationDefinition {
  */
 func parseOperationType(lexer: Lexer) throws -> OperationType {
     let operationToken = try expect(lexer: lexer, kind: .name)
+
     switch operationToken.value! {
     case "query": return .query
     case "mutation": return .mutation
     // Note: subscription is an experimental non-spec addition.
     case "subscription": return .subscription
-    default: break
+    default: throw unexpected(lexer: lexer, atToken: operationToken)
     }
-
-    throw unexpected(lexer: lexer, atToken: operationToken)
 }
 
 /**
