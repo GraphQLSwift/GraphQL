@@ -113,6 +113,7 @@ extension StarWarsValidationTests {
             ("testHeroFieldsOnScalarQuery", testHeroFieldsOnScalarQuery),
             ("testDroidFieldOnCharacter", testDroidFieldOnCharacter),
             ("testDroidFieldInFragment", testDroidFieldInFragment),
-            ("testDroidFieldInInlineFragment", testDroidFieldInInlineFragment),        ]
+            ("testDroidFieldInInlineFragment", testDroidFieldInInlineFragment),
+        ]
     }
 }
