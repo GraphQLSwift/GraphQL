@@ -11,5 +11,5 @@ install:
   - eval "$(curl -sL https://raw.githubusercontent.com/Zewo/Zewo/master/Scripts/Travis/install.sh)"
 script:
   - bash <(curl -s https://raw.githubusercontent.com/Zewo/Zewo/master/Scripts/Travis/build-test.sh) GraphQL
-after_success:
+#after_success:
   - bash <(curl -s https://raw.githubusercontent.com/Zewo/Zewo/master/Scripts/Travis/report-coverage.sh)
