@@ -212,7 +212,7 @@ class ParserTests : XCTestCase {
                     "  }" +
                     "}"
 
-        let expected: Node = Document(
+        let expected = Document(
             definitions: [
                 OperationDefinition(
                     operation: .query,
