@@ -983,16 +983,17 @@ func skip(lexer: Lexer, kind: Token.Kind) throws -> Bool {
 @discardableResult
 func expect(lexer: Lexer, kind: Token.Kind) throws -> Token {
     let token = lexer.token
-    if token.kind == kind {
-        try lexer.advance()
-        return token
+
+    guard token.kind == kind else {
+        throw syntaxError(
+            source: lexer.source,
+            position: token.start,
+            description: "Expected \(kind), found \(getTokenDesc(token))"
+        )
     }
-    throw SyntaxError.unexpectedToken
-    //  throw syntaxError(
-    //    lexer.source,
-    //    token.start,
-    //    `Expected ${kind}, found ${getTokenDesc(token)}`
-    //  );
+
+    try lexer.advance()
+    return token
 }
 
 /**
@@ -1003,16 +1004,17 @@ func expect(lexer: Lexer, kind: Token.Kind) throws -> Token {
 @discardableResult
 func expectKeyword(lexer: Lexer, value: String) throws -> Token {
     let token = lexer.token
-    if token.kind == .name && token.value == value {
-        try lexer.advance()
-        return token
+
+    guard token.kind == .name && token.value == value else {
+        throw syntaxError(
+            source: lexer.source,
+            position: token.start,
+            description: "Expected \"\(value)\", found \(getTokenDesc(token))"
+        )
     }
-    throw SyntaxError.unexpectedToken
-    //  throw syntaxError(
-    //    lexer.source,
-    //    token.start,
-    //    `Expected "${value}", found ${getTokenDesc(token)}`
-    //  );
+
+    try lexer.advance()
+    return token
 }
 
 /**
@@ -1020,13 +1022,12 @@ func expectKeyword(lexer: Lexer, value: String) throws -> Token {
  * is encountered.
  */
 func unexpected(lexer: Lexer, atToken: Token? = nil) ->  Error { //GraphQLError {
-//    let token = atToken ?? lexer.token
-    return SyntaxError.unexpectedToken
-    //  return syntaxError(
-    //    lexer.source,
-    //    token.start,
-    //    `Unexpected ${getTokenDesc(token)}`
-    //  );
+    let token = atToken ?? lexer.token
+    return syntaxError(
+        source: lexer.source,
+        position: token.start,
+        description: "Unexpected \(getTokenDesc(token))"
+    )
 }
 
 /**
@@ -1035,13 +1036,19 @@ func unexpected(lexer: Lexer, atToken: Token? = nil) ->  Error { //GraphQLError 
  * and ends with a lex token of closeKind. Advances the parser
  * to the next lex token after the closing token.
  */
-func any<T>(lexer: Lexer, openKind: Token.Kind, closeKind: Token.Kind, parse: (Lexer) throws -> T) throws -> [T] {
+func any<T>(
+    lexer: Lexer,
+    openKind: Token.Kind,
+    closeKind: Token.Kind,
+    parse: (Lexer) throws -> T
+) throws -> [T] {
     try expect(lexer: lexer, kind: openKind)
     var nodes: [T] = []
+
     while try !skip(lexer: lexer, kind: closeKind) {
         nodes.append(try parse(lexer))
     }
-    
+
     return nodes
 }
 
@@ -1051,7 +1058,12 @@ func any<T>(lexer: Lexer, openKind: Token.Kind, closeKind: Token.Kind, parse: (L
  * and ends with a lex token of closeKind. Advances the parser
  * to the next lex token after the closing token.
  */
-func many<T>(lexer: Lexer, openKind: Token.Kind, closeKind: Token.Kind, parse: (Lexer) throws -> T) throws -> [T] {
+func many<T>(
+    lexer: Lexer,
+    openKind: Token.Kind,
+    closeKind: Token.Kind,
+    parse: (Lexer) throws -> T
+) throws -> [T] {
     try expect(lexer: lexer, kind: openKind)
     var nodes = [try parse(lexer)]
     while try !skip(lexer: lexer, kind: closeKind) {

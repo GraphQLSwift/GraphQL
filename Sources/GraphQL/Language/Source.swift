@@ -4,7 +4,7 @@
  * source files; for example, if the GraphQL input is in a file Foo.graphql,
  * it might be useful for name to be "Foo.graphql".
  */
-public struct Source {
+public struct Source : Equatable {
     let body: String
     let name: String
 
@@ -12,4 +12,9 @@ public struct Source {
         self.body = body
         self.name = name
     }
+}
+
+public func == (lhs: Source, rhs: Source) -> Bool {
+    return lhs.body == rhs.body &&
+           lhs.name == rhs.name
 }

@@ -23,7 +23,7 @@ public struct GraphQLError : Error {
      *
      * Enumerable, and appears in the result of JSON.stringify().
      */
-    let locations: [Location?]
+    let locations: [SourceLocation]
 
     /**
      * An array describing the JSON-path into the execution response which
@@ -41,13 +41,13 @@ public struct GraphQLError : Error {
     /**
      * The source GraphQL document corresponding to this error.
      */
-//    let source: Source
+    let source: Source?
 
     /**
      * An array of character offsets within the source GraphQL document
      * which correspond to this error.
      */
-//    let positions: [Int]
+    let positions: [Int]
 
     /**
      * The original error thrown from a field resolver during execution.
@@ -57,9 +57,29 @@ public struct GraphQLError : Error {
     public init(message: String, nodes: [Node] = [], source: Source? = nil, positions: [Int] = [],
                 path: [IndexPathElement] = [], originalError: Error? = nil) {
         self.message = message
-        self.locations = nodes.map({$0.loc})
-        self.path = path
         self.nodes = nodes
+
+        if let source = source {
+            self.source = source
+        } else if !nodes.isEmpty {
+            self.source = nodes[0].loc?.source
+        } else {
+            self.source = nil
+        }
+
+        if positions.isEmpty && !nodes.isEmpty {
+            self.positions = nodes.filter({ $0.loc != nil }).map({ $0.loc!.start })
+        } else {
+            self.positions = positions
+        }
+
+        if let source = source, !positions.isEmpty {
+            self.locations = positions.map({ getLocation(source: source, position: $0) })
+        } else {
+            self.locations = []
+        }
+
+        self.path = path
         self.originalError = originalError
     }
 }

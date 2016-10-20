@@ -168,7 +168,7 @@ protocol GraphQLWrapperType {
  *     let oddType = try ScalarType(name: "Odd", serialize: { $0 % 2 == 1 ? $0 : nil })
  *
  */
-public struct GraphQLScalarType : GraphQLType, GraphQLOutputType, CustomStringConvertible, GraphQLNullableType, GraphQLLeafType, GraphQLNamedType {
+public struct GraphQLScalarType : GraphQLType, GraphQLInputType, GraphQLOutputType, CustomStringConvertible, GraphQLNullableType, GraphQLLeafType, GraphQLNamedType {
     public let name: String
     let scalarDescription: String?
     let serialize: (Map) throws -> Map?

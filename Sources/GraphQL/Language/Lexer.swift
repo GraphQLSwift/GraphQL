@@ -93,59 +93,10 @@ final class Lexer {
     }
 }
 
-// Each kind of token.
-//const SOF = '<SOF>'
-//const EOF = '<EOF>'
-//const BANG = '!'
-//const DOLLAR = '$'
-//const PAREN_L = '('
-//const PAREN_R = ')'
-//const SPREAD = '...'
-//const COLON = ':'
-//const EQUALS = '='
-//const AT = '@'
-//const BRACKET_L = '['
-//const BRACKET_R = ']'
-//const BRACE_L = '{'
-//const PIPE = '|'
-//const BRACE_R = '}'
-//const NAME = 'Name'
-//const INT = 'Int'
-//const FLOAT = 'Float'
-//const STRING = 'String'
-//const COMMENT = 'Comment'
-
-/**
- * An exported enum describing the different kinds of tokens that the
- * lexer emits.
- */
-//export const TokenKind = {
-//  SOF,
-//  EOF,
-//  BANG,
-//  DOLLAR,
-//  PAREN_L,
-//  PAREN_R,
-//  SPREAD,
-//  COLON,
-//  EQUALS,
-//  AT,
-//  BRACKET_L,
-//  BRACKET_R,
-//  BRACE_L,
-//  PIPE,
-//  BRACE_R,
-//  NAME,
-//  INT,
-//  FLOAT,
-//  STRING,
-//  COMMENT
-//}
-
 /**
  * A helper function to describe a token as a string for debugging
  */
-func getTokenDesc(token: Token) -> String {
+func getTokenDesc(_ token: Token) -> String {
     if let value = token.value {
         return "\(token.kind) \"\(value)\""
     }
@@ -153,11 +104,11 @@ func getTokenDesc(token: Token) -> String {
     return "\(token.kind)"
 }
 
-//const slice = String.prototype.slice
-
 extension String {
     func charCode(at position: Int) -> UInt8? {
-        // TODO: calculate out of bounds and return nil
+        guard position < utf8.count else {
+            return nil
+        }
         return utf8[utf8.index(utf8.startIndex, offsetBy: position)]
     }
 
@@ -201,24 +152,8 @@ extension String {
 //  }
 //}
 
-//function printCharCode(code) {
-//  return (
-//    // NaN/undefined represents access beyond the end of the file.
-//    isNaN(code) ? EOF :
-//    // Trust JSON for ASCII.
-//    code < 0x007F ? JSON.stringify(String.fromCharCode(code)) :
-//    // Otherwise print the escaped form.
-//    `"\\u${('00' + code.toString(16).toUpperCase()).slice(-4)}"`
-//  )
-//}
-
-enum SyntaxError : Error {
-    case unexpectedCharacter
-    case invalidCharacter
-    case unexpectedEndOfFile
-    case invalidCharacterEscapeSequence
-    case unterminatedString
-    case unexpectedToken
+func character(_ code: UInt8) -> Character {
+  return Character(UnicodeScalar(code))
 }
 
 /**
@@ -249,22 +184,20 @@ func readToken(lexer: Lexer, prev: Token) throws -> Token {
     }
 
     guard let code = body.charCode(at: position) else {
-        throw SyntaxError.unexpectedEndOfFile
-        //  throw syntaxError(
-        //    source,
-        //    position,
-        //    `Unexpected character ${printCharCode(code)}.`
-        //  )
+        throw syntaxError(
+            source: source,
+            position: position,
+            description: "Unexpected character <EOF>."
+        )
     }
 
     // SourceCharacter
     if code < 0x0020 && code != 0x0009 && code != 0x000A && code != 0x000D {
-        throw SyntaxError.invalidCharacter
-//        throw syntaxError(
-//        source,
-//        position,
-//        `Invalid character ${printCharCode(code)}.`
-//        )
+        throw syntaxError(
+            source: source,
+            position: position,
+            description: "Invalid character \(character(code))."
+        )
     }
 
     switch code {
@@ -319,8 +252,7 @@ func readToken(lexer: Lexer, prev: Token) throws -> Token {
         )
     // .
     case 46:
-      if body.charCode(at: position + 1) == 46 &&
-          body.charCode(at: position + 2) == 46 {
+      if body.charCode(at: position + 1) == 46 && body.charCode(at: position + 2) == 46 {
         return Token(
             kind: .spread,
             start: position,
@@ -438,15 +370,14 @@ func readToken(lexer: Lexer, prev: Token) throws -> Token {
             prev: prev
         )
     default:
-        throw SyntaxError.unexpectedCharacter
-        //  throw syntaxError(
-        //    source,
-        //    position,
-        //    `Unexpected character ${printCharCode(code)}.`
-        //  )
-  }
+        break
+    }
 
-    throw SyntaxError.unexpectedCharacter
+    throw syntaxError(
+        source: source,
+        position: position,
+        description: "Unexpected character \(character(code))."
+    )
 }
 
 /**
@@ -460,8 +391,11 @@ func positionAfterWhitespace(body: String, startPosition: Int, lexer: Lexer) -> 
 
     while position < bodyLength {
         let code = body.charCode(at: position)
-        // tab | space | comma | BOM
-        if code == 9 || code == 32 || code == 44 { // || code == 0xFEFF {
+
+        // BOM
+        if code == 239 && body.charCode(at: position + 1) == 187 && body.charCode(at: position + 2) == 191 {
+            position += 3
+        } else if code == 9 || code == 32 || code == 44 { // tab | space | comma
             position += 1
         } else if code == 10 { // new line
             position += 1
@@ -524,96 +458,106 @@ func readComment(source: Source, start: Int, line: Int, col: Int, prev: Token) -
  * Float: -?(0|[1-9][0-9]*)(\.[0-9]+)?((E|e)(+|-)?[0-9]+)?
  */
 func readNumber(source: Source, start: Int, firstCode: UInt8, line: Int, col: Int, prev: Token) throws -> Token {
-  let body = source.body
-  var code = firstCode
+    let body = source.body
+    var code: UInt8? = firstCode
     var position = start
-  var isFloat = false
+    var isFloat = false
 
-  if code == 45 { // -
-    position += 1
-    // TODO: Check out of bounds
-    code = body.charCode(at: position)!
-  }
-
-  if code == 48 { // 0
-    position += 1
-    // TODO: Check out of bounds
-    code = body.charCode(at: position)!
-    if code >= 48 && code <= 57 {
-        throw SyntaxError.unexpectedCharacter
-//      throw syntaxError(
-//        source,
-//        position,
-//        `Invalid number, unexpected digit after 0: ${printCharCode(code)}.`
-//      )
-    }
-  } else {
-    position = try readDigits(source: source, start: position, firstCode: code)
-    // TODO: Check out of bounds
-    code = body.charCode(at: position)!
-  }
-
-  if (code == 46) { // .
-    isFloat = true
-    position += 1
-    // TODO: Check out of bounds
-    code = body.charCode(at: position)!
-    position = try readDigits(source: source, start: position, firstCode: code)
-    // TODO: Check out of bounds
-    code = body.charCode(at: position)!
-  }
-
-  if code == 69 || code == 101 { // E e
-    isFloat = true
-    position += 1
-    // TODO: Check out of bounds
-    code = body.charCode(at: position)!
-    if code == 43 || code == 45 { // + -
+    if let c = code, c == 45 { // -
         position += 1
-        // TODO: Check out of bounds
-      code = body.charCode(at: position)!
+        code = body.charCode(at: position)
     }
 
-    position = try readDigits(source: source, start: position, firstCode: code)
-  }
+    if let c = code, c == 48 { // 0
+        position += 1
+        code = body.charCode(at: position)
 
-  return Token(
-    kind: isFloat ? .float : .int,
-    start: start,
-    end: position,
-    line: line,
-    column: col,
-    value: body.slice(start: start, end: position),
-    prev: prev
-  )
+        if let c = code, c >= 48 && c <= 57 {
+            throw syntaxError(
+                source: source,
+                position: position,
+                description: "Invalid number, unexpected digit after 0: \(character(c))."
+            )
+        }
+    } else if let c = code {
+        position = try readDigits(source: source, start: position, firstCode: c)
+        code = body.charCode(at: position)
+    }
+
+    if let c = code, c == 46 { // .
+        isFloat = true
+        position += 1
+        code = body.charCode(at: position)
+
+        if let c = code {
+            position = try readDigits(source: source, start: position, firstCode: c)
+            code = body.charCode(at: position)
+        } else {
+            throw syntaxError(
+                source: source,
+                position: position,
+                description: "Invalid number, expected digit but got: <EOF>."
+            )
+        }
+    }
+
+    if let c = code, c == 69 || c == 101 { // E e
+        isFloat = true
+        position += 1
+        code = body.charCode(at: position)
+
+        if let c = code, c == 43 || c == 45 { // + -
+            position += 1
+            code = body.charCode(at: position)
+        }
+
+        if let c = code {
+            position = try readDigits(source: source, start: position, firstCode: c)
+        } else {
+            throw syntaxError(
+                source: source,
+                position: position,
+                description: "Invalid number, expected digit but got: <EOF>."
+            )
+        }
+    }
+
+    return Token(
+        kind: isFloat ? .float : .int,
+        start: start,
+        end: position,
+        line: line,
+        column: col,
+        value: body.slice(start: start, end: position),
+        prev: prev
+    )
 }
 
 /**
  * Returns the new position in the source after reading digits.
  */
 func readDigits(source: Source, start: Int, firstCode: UInt8) throws -> Int {
-  let body = source.body
-  var position = start
+    let body = source.body
+    var position = start
 
-  if firstCode >= 48 && firstCode <= 57 { // 0 - 9
-    while true {
-        position += 1
-        if let code = body.charCode(at: position), code >= 48 && code <= 57 { // 0 - 9
-            continue
-        } else {
-            break
+    if firstCode >= 48 && firstCode <= 57 { // 0 - 9
+        while true {
+            position += 1
+            if let code = body.charCode(at: position), code >= 48 && code <= 57 { // 0 - 9
+                continue
+            } else {
+                break
+            }
         }
+
+        return position
     }
 
-    return position
-  }
-
-    throw SyntaxError.unexpectedCharacter
-//  throw syntaxError(
-//    source,
-//    position,
-//    `Invalid number, expected digit but got: ${printCharCode(code)}.`
-//  )
+    throw syntaxError(
+        source: source,
+        position: position,
+        description: "Invalid number, expected digit but got: \(character(firstCode))."
+    )
 }
 
 /**
@@ -622,93 +566,91 @@ func readDigits(source: Source, start: Int, firstCode: UInt8) throws -> Int {
  * "([^"\\\u000A\u000D]|(\\(u[0-9a-fA-F]{4}|["\\/bfnrt])))*"
  */
 func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) throws -> Token {
-  let body = source.body
+    let body = source.body
     let bodyLength = body.utf8.count
-  var position = start + 1
-  var chunkStart = position
-    var code: UInt8? = 0
-  var value = ""
+    var position = start + 1
+    var chunkStart = position
+    var currentCode: UInt8? = 0
+    var value = ""
 
-  while position < bodyLength,
-        let c = body.charCode(at: position),
-        // not LineTerminator
-        (c != 0x000A && c != 0x000D &&
-        // not Quote (")
-        c != 34) {
+    while position < bodyLength {
+        currentCode = body.charCode(at: position)
 
-            code = c
-    // SourceCharacter
-    if (c < 0x0020 && c != 0x0009) {
-        throw SyntaxError.invalidCharacter
-//      throw syntaxError(
-//        source,
-//        position,
-//        `Invalid character within String: ${printCharCode(code)}.`
-//      )
-    }
-
-    position += 1
-
-    if code == 92 { // \
-      value += body.slice(start: chunkStart, end: position - 1)
-        guard let c = body.charCode(at: position) else {
-            throw SyntaxError.unexpectedEndOfFile
+        //                     not LineTerminator                  not Quote (")
+        guard let code = currentCode, code != 0x000A && code != 0x000D && code != 34 else {
+            break
         }
 
-        code = c
+        // SourceCharacter
+        if code < 0x0020 && code != 0x0009 {
+            throw syntaxError(
+                source: source,
+                position: position,
+                description: "Invalid character within String: \(character(code))."
+            )
+        }
 
-      switch c {
-        case 34: value += "\""
-        case 47: value += "/"
-        case 92: value += "\\"
-        // TODO: Check these escape values
-//        case 98: value += "\b"
-//        case 102: value += "\f"
-        case 110: value += "\n"
-        case 114: value += "\r"
-        case 116: value += "\t"
-        case 117: // u
-            // TODO: check out of bounds
-          let charCode = uniCharCode(
-            a: body.charCode(at: position + 1)!,
-            b: body.charCode(at: position + 2)!,
-            c: body.charCode(at: position + 3)!,
-            d: body.charCode(at: position + 4)!
-          )
+        position += 1
 
-          if charCode < 0 {
-            throw SyntaxError.invalidCharacterEscapeSequence
-//            throw syntaxError(
-//              source,
-//              position,
-//              'Invalid character escape sequence: ' +
-//              `\\u${body.slice(position + 1, position + 5)}.`
-//            )
-          }
+        if code == 92 { // \
+            value += body.slice(start: chunkStart, end: position - 1)
+            currentCode = body.charCode(at: position)
 
-          value += String(Character(UnicodeScalar(charCode)!))
-          position += 4
-        default:
-            throw SyntaxError.invalidCharacterEscapeSequence
-//          throw syntaxError(
-//            source,
-//            position,
-//            `Invalid character escape sequence: \\${String.fromCharCode(code)}.`
-//          )
-      }
-      position += 1
-      chunkStart = position
+            if let code = currentCode {
+                switch code {
+                case 34: value += "\""
+                case 47: value += "/"
+                case 92: value += "\\"
+                case 98: value += "\u{8}"
+                case 102: value += "\u{12}"
+                case 110: value += "\n"
+                case 114: value += "\r"
+                case 116: value += "\t"
+                case 117: // u
+                    let charCode = uniCharCode(
+                        a: body.charCode(at: position + 1)!,
+                        b: body.charCode(at: position + 2)!,
+                        c: body.charCode(at: position + 3)!,
+                        d: body.charCode(at: position + 4)!
+                    )
+
+                    if charCode < 0 {
+                        throw syntaxError(
+                            source: source,
+                            position: position,
+                            description:
+                            "Invalid character escape sequence: " +
+                            "\\u\(body.slice(start: position + 1, end: position + 5))."
+                        )
+                    }
+
+                    value += String(Character(UnicodeScalar(UInt32(charCode))!))
+                    position += 4
+                default:
+                    throw syntaxError(
+                        source: source,
+                        position: position,
+                        description: "Invalid character escape sequence: \\\(character(code))."
+                    )
+                }
+            }
+
+            position += 1
+            chunkStart = position
+        }
     }
-  }
 
-  if code != 34 { // quote (")
-    throw SyntaxError.unterminatedString
-//    throw syntaxError(source, position, 'Unterminated string.')
-  }
+    if currentCode != 34 { // quote (")
+        throw syntaxError(
+            source: source,
+            position: position,
+            description: "Unterminated string."
+        )
+    }
 
     value += body.slice(start: chunkStart, end: position)
 
-  return Token(
+    return Token(
         kind: .string,
         start: start,
         end: position + 1,
@@ -729,8 +671,8 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
  * This is implemented by noting that char2hex() returns -1 on error,
  * which means the result of ORing the char2hex() will also be negative.
  */
-func uniCharCode(a: UInt8, b: UInt8, c: UInt8, d: UInt8) -> UInt32 {
-  return UInt32(char2hex(a) << 12 | char2hex(b) << 8 | char2hex(c) << 4 | char2hex(d))
+func uniCharCode(a: UInt8, b: UInt8, c: UInt8, d: UInt8) -> Int {
+  return char2hex(a) << 12 | char2hex(b) << 8 | char2hex(c) << 4 | char2hex(d)
 }
 
 /**

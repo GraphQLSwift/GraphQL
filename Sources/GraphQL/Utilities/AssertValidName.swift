@@ -18,7 +18,7 @@ func assertValid(name: String) throws {
         let regex = try RegularExpression(pattern: "^[_a-zA-Z][_a-zA-Z0-9]*$", options: [])
     #endif
 
-    let range = regex.rangeOfFirstMatch(in: name, options: [], range: NSRange(0..<name.characters.count))
+    let range = regex.rangeOfFirstMatch(in: name, options: [], range: NSRange(0..<name.utf16.count))
 
     guard range.location != NSNotFound else {
         throw InvalidNameError.invalidName(name)
