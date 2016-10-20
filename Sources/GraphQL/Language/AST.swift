@@ -198,15 +198,15 @@ func == (lhs: Node, rhs: Node) -> Bool {
         }
     case let l as FragmentSpread:
         if let r = rhs as? FragmentSpread {
-            return l == r
+            return false // l == r
         }
     case let l as InlineFragment:
         if let r = rhs as? InlineFragment {
-            return l == r
+            return false // l == r
         }
     case let l as FragmentDefinition:
         if let r = rhs as? FragmentDefinition {
-            return l == r
+            return false // l == r
         }
     case let l as IntValue:
         if let r = rhs as? IntValue {
@@ -258,55 +258,55 @@ func == (lhs: Node, rhs: Node) -> Bool {
         }
     case let l as SchemaDefinition:
         if let r = rhs as? SchemaDefinition {
-            return l == r
+            return false // l == r
         }
     case let l as OperationTypeDefinition:
         if let r = rhs as? OperationTypeDefinition {
-            return l == r
+            return false // l == r
         }
     case let l as ScalarTypeDefinition:
         if let r = rhs as? ScalarTypeDefinition {
-            return l == r
+            return false // l == r
         }
     case let l as ObjectTypeDefinition:
         if let r = rhs as? ObjectTypeDefinition {
-            return l == r
+            return false // l == r
         }
     case let l as FieldDefinition:
         if let r = rhs as? FieldDefinition {
-            return l == r
+            return false // l == r
         }
     case let l as InputValueDefinition:
         if let r = rhs as? InputValueDefinition {
-            return l == r
+            return false // l == r
         }
     case let l as InterfaceTypeDefinition:
         if let r = rhs as? InterfaceTypeDefinition {
-            return l == r
+            return false // l == r
         }
     case let l as UnionTypeDefinition:
         if let r = rhs as? UnionTypeDefinition {
-            return l == r
+            return false // l == r
         }
     case let l as EnumTypeDefinition:
         if let r = rhs as? EnumTypeDefinition {
-            return l == r
+            return false // l == r
         }
     case let l as EnumValueDefinition:
         if let r = rhs as? EnumValueDefinition {
-            return l == r
+            return false // l == r
         }
     case let l as InputObjectTypeDefinition:
         if let r = rhs as? InputObjectTypeDefinition {
-            return l == r
+            return false // l == r
         }
     case let l as TypeExtensionDefinition:
         if let r = rhs as? TypeExtensionDefinition {
-            return l == r
+            return false // l == r
         }
     case let l as DirectiveDefinition:
         if let r = rhs as? DirectiveDefinition {
-            return l == r
+            return false // l == r
         }
     default:
         return false
@@ -441,7 +441,7 @@ func == (lhs: Definition, rhs: Definition) -> Bool {
         }
     case let l as TypeSystemDefinition:
         if let r = rhs as? TypeSystemDefinition {
-            return l == r
+            return false // l == r
         }
     default:
         return false
@@ -891,7 +891,7 @@ func == (lhs: FloatValue, rhs: FloatValue) -> Bool {
     return lhs.value == rhs.value
 }
 
-final class StringValue : Node, Value,Equatable {
+final class StringValue : Node, Value, Equatable {
     let kind: Kind = .stringValue
     let loc: Location?
     let value: String
@@ -1150,7 +1150,7 @@ final class ObjectTypeDefinition : Node, TypeDefinition {
     let directives: [Directive]
     let fields: [FieldDefinition]
 
-    init(loc: Location? = nil, name: Name, interfaces: [NamedType] = [], directives: [Directive] = [], fields: [FieldDefinition]) {
+    init(loc: Location? = nil, name: Name, interfaces: [NamedType] = [], directives: [Directive] = [], fields: [FieldDefinition] = []) {
         self.loc = loc
         self.name = name
         self.interfaces = interfaces
@@ -1167,7 +1167,7 @@ final class FieldDefinition : Node {
     let type: Type
     let directives: [Directive]
 
-    init(loc: Location? = nil,  name: Name, arguments: [InputValueDefinition], type: Type, directives: [Directive] = []) {
+    init(loc: Location? = nil,  name: Name, arguments: [InputValueDefinition] = [], type: Type, directives: [Directive] = []) {
         self.loc = loc
         self.name = name
         self.arguments = arguments
@@ -1258,7 +1258,7 @@ final class InputObjectTypeDefinition : Node, TypeDefinition {
     let directives: [Directive]
     let fields: [InputValueDefinition]
 
-    init(loc: Location?, name: Name, directives: [Directive] = [], fields: [InputValueDefinition]) {
+    init(loc: Location? = nil, name: Name, directives: [Directive] = [], fields: [InputValueDefinition]) {
         self.loc = loc
         self.name = name
         self.directives = directives
