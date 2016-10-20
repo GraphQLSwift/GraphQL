@@ -7,9 +7,9 @@
  */
 
 enum Episode : String {
-    case newHope = "A New Hope"
-    case empire = "The Empire Strikes Back"
-    case jedi = "Return of the Jedi"
+    case newHope = "NEWHOPE"
+    case empire = "EMPIRE"
+    case jedi = "JEDI"
 }
 
 protocol Character {

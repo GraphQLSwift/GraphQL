@@ -66,7 +66,7 @@ class StarWarsQueryTests : XCTestCase {
                 "friends": [
                     [
                         "name": "Luke Skywalker",
-                        "appearsIn": ["A New Hope", "The Empire Strikes Back", "Return of the Jedi"],
+                        "appearsIn": ["NEWHOPE", "EMPIRE", "JEDI"],
                         "friends": [
                             ["name": "Han Solo"],
                             ["name": "Leia Organa"],
@@ -76,7 +76,7 @@ class StarWarsQueryTests : XCTestCase {
                     ],
                     [
                         "name": "Han Solo",
-                        "appearsIn": ["A New Hope", "The Empire Strikes Back", "Return of the Jedi"],
+                        "appearsIn": ["NEWHOPE", "EMPIRE", "JEDI"],
                         "friends": [
                             ["name": "Luke Skywalker"],
                             ["name": "Leia Organa"],
@@ -85,7 +85,7 @@ class StarWarsQueryTests : XCTestCase {
                     ],
                     [
                         "name": "Leia Organa",
-                        "appearsIn": ["A New Hope", "The Empire Strikes Back", "Return of the Jedi"],
+                        "appearsIn": ["NEWHOPE", "EMPIRE", "JEDI"],
                         "friends": [
                             ["name": "Luke Skywalker"],
                             ["name": "Han Solo"],

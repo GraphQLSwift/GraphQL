@@ -238,29 +238,29 @@ func executeFieldsSerially(exeContext: ExecutionContext, parentType: GraphQLObje
  * for "read" mode.
  */
 func executeFields(exeContext: ExecutionContext, parentType: GraphQLObjectType, sourceValue: Map,
-  path: [IndexPathElement], fields: [String: [Field]]) throws -> Map {
+                   path: [IndexPathElement], fields: [String: [Field]]) throws -> Map {
     let finalResults: [String: Map] = try fields.reduce([:]) { results, field in
         var results = results
-      let fieldASTs = field.value
-      let fieldPath = path + [field.key] as [IndexPathElement]
+        let fieldASTs = field.value
+        let fieldPath = path + [field.key] as [IndexPathElement]
 
-      let result = try resolveField(
-        exeContext: exeContext,
-        parentType: parentType,
-        source: sourceValue,
-        fieldASTs: fieldASTs,
-        path: fieldPath
-      )
+        let result = try resolveField(
+            exeContext: exeContext,
+            parentType: parentType,
+            source: sourceValue,
+            fieldASTs: fieldASTs,
+            path: fieldPath
+        )
 
-      guard let r = result else {
-        return results
-      }
+        guard let r = result else {
+            return results
+        }
 
         results[field.key] = r
-
-      return results
+        
+        return results
     }
-
+    
     return .dictionary(finalResults)
 }
 
@@ -537,79 +537,79 @@ func completeValueWithLocatedError(exeContext: ExecutionContext, returnType: Gra
  * value by evaluating all sub-selections.
  */
 func completeValue(exeContext: ExecutionContext, returnType: GraphQLType, fieldASTs: [Field], info: GraphQLResolveInfo, path: [IndexPathElement], result: Map) throws -> Map? {
-  // If field type is NonNull, complete for inner type, and throw field error
-  // if result is null.
-  if let returnType = returnType as? GraphQLNonNull {
-    let completed = try completeValue(
-        exeContext: exeContext,
-        returnType: returnType.ofType,
-        fieldASTs: fieldASTs,
-        info: info,
-        path: path,
-        result: result
-    )
+    // If field type is NonNull, complete for inner type, and throw field error
+    // if result is null.
+    if let returnType = returnType as? GraphQLNonNull {
+        let completed = try completeValue(
+            exeContext: exeContext,
+            returnType: returnType.ofType,
+            fieldASTs: fieldASTs,
+            info: info,
+            path: path,
+            result: result
+        )
 
-    guard let c = completed else {
-      throw GraphQLError(
-        message: "Cannot return null for non-nullable field \(info.parentType.name).\(info.fieldName)."
-      )
+        guard let c = completed else {
+            throw GraphQLError(
+                message: "Cannot return null for non-nullable field \(info.parentType.name).\(info.fieldName)."
+            )
+        }
+
+        return c
     }
 
-    return c
-  }
+    // If result value is null-ish (null, undefined, or NaN) then return null.
+    if isNullish(result) {
+        return nil
+    }
 
-  // If result value is null-ish (null, undefined, or NaN) then return null.
-  if isNullish(result) {
-    return nil
-  }
+    // If field type is List, complete each item in the list with the inner type
+    if let returnType = returnType as? GraphQLList {
+        return try completeListValue(
+            exeContext: exeContext,
+            returnType: returnType,
+            fieldASTs: fieldASTs,
+            info: info,
+            path: path,
+            result: result
+        )
+    }
 
-  // If field type is List, complete each item in the list with the inner type
-  if let returnType = returnType as? GraphQLList {
-    return try completeListValue(
-        exeContext: exeContext,
-        returnType: returnType,
-        fieldASTs: fieldASTs,
-        info: info,
-        path: path,
-        result: result
+    // If field type is a leaf type, Scalar or Enum, serialize to a valid value,
+    // returning null if serialization is not possible.
+    if let returnType = returnType as? GraphQLLeafType {
+        return try completeLeafValue(returnType: returnType, result: result)
+    }
+
+    // If field type is an abstract type, Interface or Union, determine the
+    // runtime Object type and complete for that type.
+    if let returnType = returnType as? GraphQLAbstractType {
+        return try completeAbstractValue(
+            exeContext: exeContext,
+            returnType: returnType,
+            fieldASTs: fieldASTs,
+            info: info,
+            path: path,
+            result: result
+        )
+    }
+
+    // If field type is Object, execute and complete all sub-selections.
+    if let returnType = returnType as? GraphQLObjectType {
+        return try completeObjectValue(
+            exeContext: exeContext,
+            returnType: returnType,
+            fieldASTs: fieldASTs,
+            info: info,
+            path: path,
+            result: result
+        )
+    }
+    
+    // Not reachable. All possible output types have been considered.
+    throw GraphQLError(
+        message: "Cannot complete value of unexpected type \"\(returnType)\"."
     )
-  }
-
-  // If field type is a leaf type, Scalar or Enum, serialize to a valid value,
-  // returning null if serialization is not possible.
-  if let returnType = returnType as? GraphQLLeafType {
-    return try completeLeafValue(returnType: returnType, result: result)
-  }
-
-  // If field type is an abstract type, Interface or Union, determine the
-  // runtime Object type and complete for that type.
-  if let returnType = returnType as? GraphQLAbstractType {
-    return try completeAbstractValue(
-        exeContext: exeContext,
-        returnType: returnType,
-        fieldASTs: fieldASTs,
-        info: info,
-        path: path,
-        result: result
-    )
-  }
-
-  // If field type is Object, execute and complete all sub-selections.
-  if let returnType = returnType as? GraphQLObjectType {
-    return try completeObjectValue(
-        exeContext: exeContext,
-        returnType: returnType,
-        fieldASTs: fieldASTs,
-        info: info,
-        path: path,
-        result: result
-    )
-  }
-
-  // Not reachable. All possible output types have been considered.
-  throw GraphQLError(
-    message: "Cannot complete value of unexpected type \"\(returnType)\"."
-  )
 }
 
 /**
@@ -675,8 +675,8 @@ func completeLeafValue(returnType: GraphQLLeafType, result: Map) throws -> Map {
  * of that value, then complete the value for that type.
  */
 func completeAbstractValue(exeContext: ExecutionContext, returnType: GraphQLAbstractType, fieldASTs: [Field], info: GraphQLResolveInfo, path: [IndexPathElement], result: Map) throws -> Map {
-  let resolveRes = returnType.resolveType?(result, exeContext.contextValue, info) ??
-                      defaultResolveType(value: result, context: exeContext.contextValue, info: info, abstractType: returnType).map({ .type($0) })
+    let resolveRes = try returnType.resolveType?(result, exeContext.contextValue, info) ??
+        defaultResolveType(value: result, context: exeContext.contextValue, info: info, abstractType: returnType).map({ .type($0) })
 
     guard let resolveResult = resolveRes else {
         throw GraphQLError(
@@ -685,7 +685,7 @@ func completeAbstractValue(exeContext: ExecutionContext, returnType: GraphQLAbst
         )
     }
 
-  // If resolveType returns a string, we assume it's a GraphQLObjectType name.
+    // If resolveType returns a string, we assume it's a GraphQLObjectType name.
     var runtimeType: GraphQLType?
 
     switch resolveResult {
@@ -695,33 +695,33 @@ func completeAbstractValue(exeContext: ExecutionContext, returnType: GraphQLAbst
         runtimeType = type
     }
 
-  guard let objectType = runtimeType as? GraphQLObjectType else {
-    throw GraphQLError(
-        message:
-        "Abstract type \(returnType.name) must resolve to an Object type at " +
-        "runtime for field \(info.parentType.name).\(info.fieldName) with " +
-        "value \"\(resolveResult)\", received \"\(runtimeType)\".",
-        nodes: fieldASTs
-    )
-  }
+    guard let objectType = runtimeType as? GraphQLObjectType else {
+        throw GraphQLError(
+            message:
+            "Abstract type \(returnType.name) must resolve to an Object type at " +
+                "runtime for field \(info.parentType.name).\(info.fieldName) with " +
+            "value \"\(resolveResult)\", received \"\(runtimeType)\".",
+            nodes: fieldASTs
+        )
+    }
 
-  if !exeContext.schema.isPossibleType(abstractType: returnType, possibleType: objectType) {
-    throw GraphQLError(
-        message:
-        "Runtime Object type \"\(objectType.name)\" is not a possible type " +
-        "for \"\(returnType.name)\".",
-        nodes: fieldASTs
-    )
-  }
+    if !exeContext.schema.isPossibleType(abstractType: returnType, possibleType: objectType) {
+        throw GraphQLError(
+            message:
+            "Runtime Object type \"\(objectType.name)\" is not a possible type " +
+            "for \"\(returnType.name)\".",
+            nodes: fieldASTs
+        )
+    }
 
-  return try completeObjectValue(
-    exeContext: exeContext,
-    returnType: objectType,
-    fieldASTs: fieldASTs,
-    info: info,
-    path: path,
-    result: result
-  )
+    return try completeObjectValue(
+        exeContext: exeContext,
+        returnType: objectType,
+        fieldASTs: fieldASTs,
+        info: info,
+        path: path,
+        result: result
+    )
 }
 
 /**

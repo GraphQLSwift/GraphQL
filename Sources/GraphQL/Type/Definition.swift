@@ -378,7 +378,7 @@ public enum TypeResolveResult {
     case name(String)
 }
 
-public typealias GraphQLTypeResolve = (_ value: Map, _ context: Map, _ info: GraphQLResolveInfo) -> TypeResolveResult
+public typealias GraphQLTypeResolve = (_ value: Map, _ context: Map, _ info: GraphQLResolveInfo) throws -> TypeResolveResult
 
 public typealias GraphQLIsTypeOf = (_ source: Map, _ context: Map, _ info: GraphQLResolveInfo) -> Bool
 

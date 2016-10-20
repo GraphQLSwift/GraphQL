@@ -171,52 +171,67 @@ public final class GraphQLSchema {
 
 public typealias TypeMap = [String: GraphQLNamedType]
 
-public enum SchemaError : Error {
-    //    'Schema must contain unique named types but contains multiple ' +
-    //    `types named "${type.name}".`
-    case multipleTypesWithTheSameName
-}
+func typeMapReducer(map: TypeMap, type: GraphQLType) throws -> TypeMap {
+    var map = map
 
-func typeMapReducer(map: TypeMap, type: GraphQLNamedType) throws -> TypeMap {
-    //  if type is List || type is NonNull {
-    //    return typeMapReducer(map: map, type: type.ofType)
-    //  }
+    if let type = type as? GraphQLWrapperType {
+        return try typeMapReducer(map: map, type: type.wrappedType)
+    }
 
-    //  guard map[type.name] == nil else {
-    //    // check for identity
-    //    throw SchemaError.multipleTypesWithTheSameName
-    //  }
+    guard let type = type as? GraphQLNamedType else {
+        return map // Should never happen
+    }
 
-    //  map[type.name] = type
+    //    guard map[type.name] == nil else {
+//    invariant(
+//        map[type.name] === type,
+//        'Schema must contain unique named types but contains multiple ' +
+//        `types named "${type.name}".`
+//    );
+    //    }
+
+    map[type.name] = type
 
     var reducedMap = map
 
-    //  if let union = type as? UnionType {
-    //    reducedMap = type.getTypes().reduce(typeMapReducer, reducedMap)
-    //  }
+    if let type = type as? GraphQLUnionType {
+        reducedMap = try type.types.reduce(reducedMap, typeMapReducer)
+    }
 
-    //  if let object = type as? ObjectType {
-    //    reducedMap = object.interfaces.reduce(typeMapReducer, reducedMap)
-    //  }
+    if let type = type as? GraphQLObjectType {
+        reducedMap = try type.interfaces.reduce(reducedMap, typeMapReducer)
+    }
 
-    //  if type is ObjectType || type is InterfaceType {
-    //    for (_, field) in type.fields {
-    //
-    //      if !field.args.isEmpty {
-    //        let fieldArgTypes = field.args.map($0.type)
-    //        reducedMap = fieldArgTypes.reduce(typeMapReducer, reducedMap)
-    //      }
-    //
-    //      reducedMap = typeMapReducer(reducedMap, field.type)
-    //    }
-    //  }
-    //
-    //  if type is InputObjectType {
-    //    for (_, field) in type.fields {
-    //        reducedMap = typeMapReducer(reducedMap, field.type)
-    //    }
-    //  }
+    if let type = type as? GraphQLObjectType {
+        for (_, field) in type.fields {
 
+            if !field.args.isEmpty {
+                let fieldArgTypes = field.args.values.map({ $0.type })
+                reducedMap = try fieldArgTypes.reduce(reducedMap, typeMapReducer)
+            }
+
+            reducedMap = try typeMapReducer(map: reducedMap, type: field.type)
+        }
+    }
+
+    if let type = type as? GraphQLInterfaceType {
+        for (_, field) in type.fields {
+
+            if !field.args.isEmpty {
+                let fieldArgTypes = field.args.values.map({ $0.type })
+                reducedMap = try fieldArgTypes.reduce(reducedMap, typeMapReducer)
+            }
+
+            reducedMap = try typeMapReducer(map: reducedMap, type: field.type)
+        }
+    }
+
+    if let type = type as? GraphQLInputObjectType {
+        for (_, field) in type.fields {
+            reducedMap = try typeMapReducer(map: reducedMap, type: field.type)
+        }
+    }
+    
     return reducedMap
 }
 
