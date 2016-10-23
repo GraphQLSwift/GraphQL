@@ -75,7 +75,7 @@ public final class GraphQLSchema {
             initialTypes.append(subscription)
         }
 
-        //initialTypes.append(__Schema)
+        initialTypes.append(__Schema)
 
         if !types.isEmpty {
             initialTypes.append(contentsOf: types)
@@ -136,15 +136,17 @@ public final class GraphQLSchema {
         return []
     }
 
-    func isPossibleType(abstractType: GraphQLAbstractType, possibleType: GraphQLObjectType) -> Bool {
+    func isPossibleType(abstractType: GraphQLAbstractType, possibleType: GraphQLObjectType) throws -> Bool {
         if possibleTypeMap[abstractType.name] == nil {
             let possibleTypes = getPossibleTypes(abstractType: abstractType)
 
             guard !possibleTypes.isEmpty else {
-                let error = "Could not find possible implementing types for \(abstractType.name) " +
+                throw GraphQLError(
+                    message:
+                    "Could not find possible implementing types for \(abstractType.name) " +
                     "in schema. Check that schema.types is defined and is an array of " +
-                "all possible types in the schema."
-                return false
+                    "all possible types in the schema."
+                )
 
             }
 

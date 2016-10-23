@@ -10,13 +10,15 @@ class StarWarsQueryTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "hero": [
-                "name": "R2-D2",
+            "data": [
+                "hero": [
+                    "name": "R2-D2",
+                ],
             ],
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testHeroNameAndFriendsQuery() throws {
@@ -31,19 +33,21 @@ class StarWarsQueryTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "hero": [
-                "id": "2001",
-                "name": "R2-D2",
-                "friends": [
-                    ["name": "Luke Skywalker"],
-                    ["name": "Han Solo"],
-                    ["name": "Leia Organa"],
+            "data": [
+                "hero": [
+                    "id": "2001",
+                    "name": "R2-D2",
+                    "friends": [
+                        ["name": "Luke Skywalker"],
+                        ["name": "Han Solo"],
+                        ["name": "Leia Organa"],
+                    ],
                 ],
             ],
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testNestedQuery() throws {
@@ -61,36 +65,38 @@ class StarWarsQueryTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "hero": [
-                "name": "R2-D2",
-                "friends": [
-                    [
-                        "name": "Luke Skywalker",
-                        "appearsIn": ["NEWHOPE", "EMPIRE", "JEDI"],
-                        "friends": [
-                            ["name": "Han Solo"],
-                            ["name": "Leia Organa"],
-                            ["name": "C-3PO"],
-                            ["name": "R2-D2"],
+            "data": [
+                "hero": [
+                    "name": "R2-D2",
+                    "friends": [
+                        [
+                            "name": "Luke Skywalker",
+                            "appearsIn": ["NEWHOPE", "EMPIRE", "JEDI"],
+                            "friends": [
+                                ["name": "Han Solo"],
+                                ["name": "Leia Organa"],
+                                ["name": "C-3PO"],
+                                ["name": "R2-D2"],
+                            ],
                         ],
-                    ],
-                    [
-                        "name": "Han Solo",
-                        "appearsIn": ["NEWHOPE", "EMPIRE", "JEDI"],
-                        "friends": [
-                            ["name": "Luke Skywalker"],
-                            ["name": "Leia Organa"],
-                            ["name": "R2-D2"],
+                        [
+                            "name": "Han Solo",
+                            "appearsIn": ["NEWHOPE", "EMPIRE", "JEDI"],
+                            "friends": [
+                                ["name": "Luke Skywalker"],
+                                ["name": "Leia Organa"],
+                                ["name": "R2-D2"],
+                            ],
                         ],
-                    ],
-                    [
-                        "name": "Leia Organa",
-                        "appearsIn": ["NEWHOPE", "EMPIRE", "JEDI"],
-                        "friends": [
-                            ["name": "Luke Skywalker"],
-                            ["name": "Han Solo"],
-                            ["name": "C-3PO"],
-                            ["name": "R2-D2"],
+                        [
+                            "name": "Leia Organa",
+                            "appearsIn": ["NEWHOPE", "EMPIRE", "JEDI"],
+                            "friends": [
+                                ["name": "Luke Skywalker"],
+                                ["name": "Han Solo"],
+                                ["name": "C-3PO"],
+                                ["name": "R2-D2"],
+                            ],
                         ],
                     ],
                 ],
@@ -98,7 +104,7 @@ class StarWarsQueryTests : XCTestCase {
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testFetchLukeQuery() throws {
@@ -109,13 +115,15 @@ class StarWarsQueryTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "human": [
-                "name": "Luke Skywalker",
+            "data": [
+                "human": [
+                    "name": "Luke Skywalker",
+                ],
             ],
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testFetchSomeIDQuery() throws {
@@ -130,26 +138,30 @@ class StarWarsQueryTests : XCTestCase {
         ]
 
         var expected: Map = [
-            "human": [
-                "name": "Luke Skywalker",
+            "data": [
+                "human": [
+                    "name": "Luke Skywalker",
+                ],
             ],
         ]
 
         var result = try graphql(schema: StarWarsSchema, request: query, variableValues: params)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
 
         params = [
             "someId": "1002",
         ]
 
         expected = [
-            "human": [
-                "name": "Han Solo",
+            "data": [
+                "human": [
+                    "name": "Han Solo",
+                ],
             ],
         ]
 
         result = try graphql(schema: StarWarsSchema, request: query, variableValues: params)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
 
 
         params = [
@@ -157,11 +169,13 @@ class StarWarsQueryTests : XCTestCase {
         ]
 
         expected = [
-            "human": nil,
+            "data": [
+                "human": nil,
+            ],
         ]
 
         result = try graphql(schema: StarWarsSchema, request: query, variableValues: params)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testFetchLukeAliasedQuery() throws {
@@ -172,13 +186,15 @@ class StarWarsQueryTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "luke": [
-                "name": "Luke Skywalker",
+            "data": [
+                "luke": [
+                    "name": "Luke Skywalker",
+                ],
             ],
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testFetchLukeAndLeiaAliasedQuery() throws {
@@ -192,16 +208,18 @@ class StarWarsQueryTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "luke": [
-                "name": "Luke Skywalker",
-            ],
-            "leia": [
-                "name": "Leia Organa",
+            "data": [
+                "luke": [
+                    "name": "Luke Skywalker",
+                ],
+                "leia": [
+                    "name": "Leia Organa",
+                ],
             ],
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testDuplicateFieldsQuery() throws {
@@ -217,18 +235,20 @@ class StarWarsQueryTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "luke": [
-                "name": "Luke Skywalker",
-                "homePlanet": "Tatooine",
-            ],
-            "leia": [
-                "name": "Leia Organa",
-                "homePlanet": "Alderaan",
+            "data": [
+                "luke": [
+                    "name": "Luke Skywalker",
+                    "homePlanet": "Tatooine",
+                ],
+                "leia": [
+                    "name": "Leia Organa",
+                    "homePlanet": "Alderaan",
+                ],
             ],
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testUseFragmentQuery() throws {
@@ -239,25 +259,27 @@ class StarWarsQueryTests : XCTestCase {
                     "    leia: human(id: \"1003\") {" +
                     "        ...HumanFragment" +
                     "    }" +
-                    "    fragment HumanFragment on Human {" +
-                    "        name" +
-                    "        homePlanet" +
-                    "    }" +
+                    "}" +
+                    "fragment HumanFragment on Human {" +
+                    "    name" +
+                    "    homePlanet" +
                     "}"
 
         let expected: Map = [
-            "luke": [
-                "name": "Luke Skywalker",
-                "homePlanet": "Tatooine",
-            ],
-            "leia": [
-                "name": "Leia Organa",
-                "homePlanet": "Alderaan",
-            ],
+            "data": [
+                "luke": [
+                    "name": "Luke Skywalker",
+                    "homePlanet": "Tatooine",
+                ],
+                "leia": [
+                    "name": "Leia Organa",
+                    "homePlanet": "Alderaan",
+                ],
+            ]
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testCheckTypeOfR2Query() throws {
@@ -269,14 +291,16 @@ class StarWarsQueryTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "hero": [
-                "__typename": "Droid",
-                "name": "R2-D2",
+            "data": [
+                "hero": [
+                    "__typename": "Droid",
+                    "name": "R2-D2",
+                ],
             ],
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testCheckTypeOfLukeQuery() throws {
@@ -288,141 +312,148 @@ class StarWarsQueryTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "hero": [
-                "__typename": "Human",
-                "name": "Luke Skywalker",
-            ],
-        ]
-
-        let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
-    }
-
-    func testSecretBackstoryQuery() throws {
-        let query = "query SecretBackstoryQuery {" +
-                    "    hero {" +
-                    "        name" +
-                    "        secretBackstory" +
-                    "    }" +
-                    "}"
-
-        let expected: Map = [
-            "hero": [
-                "name": "R2-D2",
-                "secretBackstory": nil,
-            ],
-        ]
-
-        let expectedErrors: Map = [
-            [
-                "message": "secretBackstory is secret.",
-                "path": ["hero", "secretBackstory"],
-            ],
-        ]
-
-        let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
-        XCTAssertEqual(result["errors"], expectedErrors)
-    }
-
-    func testSecretBackstoryListQuery() throws {
-        let query = "query SecretBackstoryListQuery {" +
-                    "    hero {" +
-                    "        name" +
-                    "        friends {" +
-                    "            name" +
-                    "            secretBackstory" +
-                    "        }" +
-                    "    }" +
-                    "}"
-
-        let expected: Map = [
-            "hero": [
-                "name": "R2-D2",
-                "friends": [
-                    [
-                        "name": "Luke Skywalker",
-                        "secretBackstory": nil,
-                    ],
-                    [
-                        "name": "Han Solo",
-                        "secretBackstory": nil,
-                    ],
-                    [
-                        "name": "Leia Organa",
-                        "secretBackstory": nil,
-                    ],
+            "data": [
+                "hero": [
+                    "__typename": "Human",
+                    "name": "Luke Skywalker",
                 ],
             ],
         ]
 
-        let expectedErrors: Map = [
-            [
-                "message": "secretBackstory is secret.",
-                "path": ["hero", "friends", "0", "secretBackstory"],
+        let result = try graphql(schema: StarWarsSchema, request: query)
+        XCTAssertEqual(result, expected)
+    }
+
+    func testSecretBackstoryQuery() throws {
+        let query = "query SecretBackstoryQuery {\n" +
+                    "    hero {\n" +
+                    "        name\n" +
+                    "        secretBackstory\n" +
+                    "    }\n" +
+                    "}\n"
+
+        let expected: Map = [
+            "data": [
+                "hero": [
+                    "name": "R2-D2",
+                    "secretBackstory": nil,
+                ],
             ],
-            [
-                "message": "secretBackstory is secret.",
-                "path": ["hero", "friends", "1", "secretBackstory"],
-            ],
-            [
-                "message": "secretBackstory is secret.",
-                "path": ["hero", "friends", "2", "secretBackstory"],
+            "errors": [
+                [
+                    "message": "secretBackstory is secret.",
+                    "path": ["hero", "secretBackstory"],
+                    "locations": [["line": 4, "column": 9]],
+                ],
             ],
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
-        XCTAssertEqual(result["errors"], expectedErrors)
+        XCTAssertEqual(result, expected)
+    }
+
+    func testSecretBackstoryListQuery() throws {
+        let query = "query SecretBackstoryListQuery {\n" +
+                    "    hero {\n" +
+                    "        name\n" +
+                    "        friends {\n" +
+                    "            name\n" +
+                    "            secretBackstory\n" +
+                    "        }\n" +
+                    "    }\n" +
+                    "}\n"
+
+        let expected: Map = [
+            "data": [
+                "hero": [
+                    "name": "R2-D2",
+                    "friends": [
+                        [
+                            "name": "Luke Skywalker",
+                            "secretBackstory": nil,
+                        ],
+                        [
+                            "name": "Han Solo",
+                            "secretBackstory": nil,
+                        ],
+                        [
+                            "name": "Leia Organa",
+                            "secretBackstory": nil,
+                        ],
+                    ],
+                ],
+            ],
+            "errors": [
+                [
+                    "message": "secretBackstory is secret.",
+                    "path": ["hero", "friends", 0, "secretBackstory"],
+                    "locations": [["line": 6, "column": 13]],
+                ],
+                [
+                    "message": "secretBackstory is secret.",
+                    "path": ["hero", "friends", 1, "secretBackstory"],
+                     "locations": [["line": 6, "column": 13]],
+                ],
+                [
+                    "message": "secretBackstory is secret.",
+                    "path": ["hero", "friends", 2, "secretBackstory"],
+                    "locations": [["line": 6, "column": 13]],
+                ],
+            ],
+        ]
+
+        let result = try graphql(schema: StarWarsSchema, request: query)
+        XCTAssertEqual(result, expected)
     }
 
     func testSecretBackstoryAliasQuery() throws {
-        let query = "query SecretBackstoryAliasQuery {" +
-                    "    mainHero: hero {" +
-                    "        name" +
-                    "        story: secretBackstory" +
-                    "    }" +
-                    "}"
+        let query = "query SecretBackstoryAliasQuery {\n" +
+                    "    mainHero: hero {\n" +
+                    "        name\n" +
+                    "        story: secretBackstory\n" +
+                    "    }\n" +
+                    "}\n"
 
         let expected: Map = [
-            "mainHero": [
-                "name": "R2-D2",
-                "story": nil,
+            "data": [
+                "mainHero": [
+                    "name": "R2-D2",
+                    "story": nil,
+                ],
             ],
-        ]
-
-        let expectedErrors: Map = [
-            [
-                "message": "secretBackstory is secret.",
-                "path": ["mainHero", "story"],
-            ],
+            "errors": [
+                [
+                    "message": "secretBackstory is secret.",
+                    "path": ["mainHero", "story"],
+                    "locations": [["line": 4, "column": 9]],
+                ],
+            ]
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
-        XCTAssertEqual(result["errors"], expectedErrors)
+        XCTAssertEqual(result, expected)
     }
 
     func testNonNullableFieldsQuery() throws {
         let A = try GraphQLObjectType(
             name: "A",
             fields: [
-                "nullableA": GraphQLFieldConfig(
+                "nullableA": GraphQLField(
                     type: GraphQLTypeReference("A"),
                     resolve: { _ in [:] }
                 ),
-                "nonNullA": GraphQLFieldConfig(
+                "nonNullA": GraphQLField(
                     type: GraphQLNonNull(GraphQLTypeReference("A")),
                     resolve: { _ in [:] }
                 ),
-                "throws": GraphQLFieldConfig(
+                "throws": GraphQLField(
                     type: GraphQLNonNull(GraphQLString),
                     resolve: { _ in
                         struct 🏃 : Error, CustomStringConvertible {
                             let description: String
                         }
 
-                        throw 🏃(description: "catch me if you can")
+                        throw 🏃(description: "catch me if you can.")
                     }
                 ),
             ]
@@ -431,7 +462,7 @@ class StarWarsQueryTests : XCTestCase {
         let queryType = try GraphQLObjectType(
             name: "query",
             fields: [
-                "nullableA": GraphQLFieldConfig(
+                "nullableA": GraphQLField(
                     type: A,
                     resolve: { _ in [:] }
                 )
@@ -442,33 +473,35 @@ class StarWarsQueryTests : XCTestCase {
             query: queryType
           )
 
-        let query = "query {" +
-                    "    nullableA {" +
-                    "        nullableA {" +
-                    "            nonNullA {" +
-                    "                nonNullA {" +
-                    "                    throws" +
-                    "                }" +
-                    "            }" +
-                    "        }" +
-                    "    }" +
-                    "}"
+        let query = "query {\n" +
+                    "    nullableA {\n" +
+                    "        nullableA {\n" +
+                    "            nonNullA {\n" +
+                    "                nonNullA {\n" +
+                    "                    throws\n" +
+                    "                }\n" +
+                    "            }\n" +
+                    "        }\n" +
+                    "    }\n" +
+                    "}\n"
 
         let expected: Map = [
-            "nullableA": [
-                "nullableA": nil,
+            "data": [
+                "nullableA": [
+                    "nullableA": nil,
+                ],
+            ],
+            "errors": [
+                [
+                    "message": "catch me if you can.",
+                    "path": ["nullableA", "nullableA", "nonNullA", "nonNullA", "throws"],
+                    "locations": [["line": 6, "column": 21]],
+                ],
             ],
         ]
 
-        let expectedErrors: Map = [
-            [
-                "message": "secretBackstory is secret.",
-                "path": ["nullableA", "nullableA", "nonNullA", "nonNullA", "throws"],
-            ],
-        ]
-
-        let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        let result = try graphql(schema: schema, request: query)
+        XCTAssertEqual(result, expected)
     }
 }
 

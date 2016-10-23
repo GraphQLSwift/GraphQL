@@ -55,7 +55,7 @@ let GraphQLIncludeDirective = try! GraphQLDirective(
         .inlineFragment,
     ],
     args: [
-        "if": GraphQLArgumentConfig(
+        "if": GraphQLArgument(
             type: GraphQLNonNull(GraphQLBoolean),
             description: "Included when true."
         )
@@ -76,7 +76,7 @@ let GraphQLSkipDirective = try! GraphQLDirective(
         .inlineFragment,
     ],
     args: [
-        "if": GraphQLArgumentConfig(
+        "if": GraphQLArgument(
             type: GraphQLNonNull(GraphQLBoolean),
             description: "Skipped when true."
         )
@@ -100,7 +100,7 @@ let GraphQLDeprecatedDirective = try! GraphQLDirective(
         .enumValue,
         ],
     args: [
-        "if": GraphQLArgumentConfig(
+        "if": GraphQLArgument(
             type: GraphQLNonNull(GraphQLBoolean),
             description:
             "Explains why this element was deprecated, usually also including a " +

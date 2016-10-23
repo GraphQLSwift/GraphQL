@@ -157,21 +157,16 @@ public enum NodeResult {
 public protocol Node {
     var kind: Kind { get }
     var loc: Location? { get }
-    func get(key: IndexPathElement) -> NodeResult?
-    func set(value: Node?, key: IndexPathElement)
-    var key: String { get }
+    func get(key: String) -> NodeResult?
+    func set(value: Node?, key: String)
 }
 
 extension Node {
-    public var key: String {
-        return ""
-    }
-
-    public func get(key: IndexPathElement) -> NodeResult? {
+    public func get(key: String) -> NodeResult? {
         return nil
     }
 
-    public func set(value: Node?, key: IndexPathElement) {
+    public func set(value: Node?, key: String) {
 
     }
 }
@@ -239,20 +234,15 @@ final class Document : Node, Equatable {
         self.definitions = definitions
     }
 
-    func get(key: IndexPathElement) -> NodeResult? {
-        switch key.indexPathValue {
-        case .key(let key):
-            switch key {
-            case "definitions":
-                guard !definitions.isEmpty else {
-                    return nil
-                }
-                return .array(definitions)
-            default:
+    func get(key: String) -> NodeResult? {
+        switch key {
+        case "definitions":
+            guard !definitions.isEmpty else {
                 return nil
             }
-        case .index(let index):
-            return .node(definitions[index])
+            return .array(definitions)
+        default:
+            return nil
         }
     }
 }
@@ -327,28 +317,23 @@ public final class OperationDefinition : Node, Definition, Hashable, Equatable {
         return "operation"
     }
 
-    public func get(key: IndexPathElement) -> NodeResult? {
-        switch key.indexPathValue {
-        case .key(let key):
-            switch key {
-            case "name":
-                return name.map({ .node($0) })
-            case "variableDefinitions":
-                guard !variableDefinitions.isEmpty else {
-                    return nil
-                }
-                return .array(variableDefinitions)
-            case "directives":
-                guard !variableDefinitions.isEmpty else {
-                    return nil
-                }
-                return .array(directives)
-            case "selectionSet":
-                return .node(selectionSet)
-            default:
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "name":
+            return name.map({ .node($0) })
+        case "variableDefinitions":
+            guard !variableDefinitions.isEmpty else {
                 return nil
             }
-        case .index:
+            return .array(variableDefinitions)
+        case "directives":
+            guard !variableDefinitions.isEmpty else {
+                return nil
+            }
+            return .array(directives)
+        case "selectionSet":
+            return .node(selectionSet)
+        default:
             return nil
         }
     }
@@ -383,20 +368,15 @@ public final class VariableDefinition : Node, Equatable {
         self.defaultValue = defaultValue
     }
 
-    public func get(key: IndexPathElement) -> NodeResult? {
-        switch key.indexPathValue {
-        case .key(let key):
-            switch key {
-            case "variable":
-                return .node(variable)
-            case "type":
-                return .node(type)
-            case "defaultValue":
-                return defaultValue.map({ .node($0) })
-            default:
-                return nil
-            }
-        case .index:
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "variable":
+            return .node(variable)
+        case "type":
+            return .node(type)
+        case "defaultValue":
+            return defaultValue.map({ .node($0) })
+        default:
             return nil
         }
     }
@@ -431,6 +411,15 @@ public final class Variable : Node, Value, Equatable {
         self.loc = loc
         self.name = name
     }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "name":
+            return .node(name)
+        default:
+            return nil
+        }
+    }
 }
 
 public func == (lhs: Variable, rhs: Variable) -> Bool {
@@ -447,20 +436,15 @@ public final class SelectionSet : Node, Hashable, Equatable {
         self.selections = selections
     }
 
-    public func get(key: IndexPathElement) -> NodeResult? {
-        switch key.indexPathValue {
-        case .key(let key):
-            switch key {
-            case "selections":
-                guard !selections.isEmpty else {
-                    return nil
-                }
-                return .array(selections)
-            default:
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "selections":
+            guard !selections.isEmpty else {
                 return nil
             }
-        case .index(let index):
-            return .node(selections[index])
+            return .array(selections)
+        default:
+            return nil
         }
     }
 }
@@ -530,30 +514,25 @@ final class Field : Node, Selection, Equatable {
         self.selectionSet = selectionSet
     }
 
-    public func get(key: IndexPathElement) -> NodeResult? {
-        switch key.indexPathValue {
-        case .key(let key):
-            switch key {
-            case "alias":
-                return alias.map({ .node($0) })
-            case "name":
-                return .node(name)
-            case "arguments":
-                guard !arguments.isEmpty else {
-                    return nil
-                }
-                return .array(arguments)
-            case "directives":
-                guard !directives.isEmpty else {
-                    return nil
-                }
-                return .array(directives)
-            case "selectionSet":
-                return selectionSet.map({ .node($0) })
-            default:
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "alias":
+            return alias.map({ .node($0) })
+        case "name":
+            return .node(name)
+        case "arguments":
+            guard !arguments.isEmpty else {
                 return nil
             }
-        case .index:
+            return .array(arguments)
+        case "directives":
+            guard !directives.isEmpty else {
+                return nil
+            }
+            return .array(directives)
+        case "selectionSet":
+            return selectionSet.map({ .node($0) })
+        default:
             return nil
         }
     }
@@ -578,6 +557,17 @@ final class Argument : Node, Equatable {
         self.name = name
         self.value = value
     }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "name":
+            return .node(name)
+        case "value":
+            return .node(value)
+        default:
+            return nil
+        }
+    }
 }
 
 func == (lhs: Argument, rhs: Argument) -> Bool {
@@ -598,6 +588,20 @@ final class FragmentSpread : Node, Selection, Fragment {
         self.loc = loc
         self.name = name
         self.directives = directives
+    }
+
+    func get(key: String) -> NodeResult? {
+        switch key {
+        case "name":
+            return .node(name)
+        case "directives":
+            guard !directives.isEmpty else {
+                return nil
+            }
+            return .array(directives)
+        default:
+            return nil
+        }
     }
 }
 
@@ -624,7 +628,7 @@ final class InlineFragment : Node, Selection, Fragment, HasTypeCondition {
     }
 }
 
-public final class FragmentDefinition : Node, Hashable, Definition, HasTypeCondition {
+final class FragmentDefinition : Node, Hashable, Definition, HasTypeCondition {
     public let kind: Kind = .fragmentDefinition
     public let loc: Location?
     let name: Name
@@ -643,6 +647,24 @@ public final class FragmentDefinition : Node, Hashable, Definition, HasTypeCondi
     func getTypeCondition() -> NamedType? {
         return typeCondition
     }
+
+    func get(key: String) -> NodeResult? {
+        switch key {
+        case "name":
+            return .node(name)
+        case "typeCondition":
+            return .node(typeCondition)
+        case "directives":
+            guard !directives.isEmpty else {
+                return nil
+            }
+            return .array(directives)
+        case "selectionSet":
+            return .node(selectionSet)
+        default:
+            return nil
+        }
+    }
 }
 
 extension FragmentDefinition {
@@ -652,7 +674,7 @@ extension FragmentDefinition {
     }
 }
 
-public func == (lhs: FragmentDefinition, rhs: FragmentDefinition) -> Bool {
+func == (lhs: FragmentDefinition, rhs: FragmentDefinition) -> Bool {
     return lhs.hashValue == rhs.hashValue
 }
 
@@ -897,6 +919,15 @@ final class NamedType : Node, Type, NonNullableType, Equatable {
         self.loc = loc
         self.name = name
     }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "name":
+            return .node(name)
+        default:
+            return nil
+        }
+    }
 }
 
 func == (lhs: NamedType, rhs: NamedType) -> Bool {
@@ -928,6 +959,15 @@ final class NonNullType : Node, Type, Equatable {
     init(loc: Location? = nil, type: NonNullableType) {
         self.loc = loc
         self.type = type
+    }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "type":
+            return .node(type)
+        default:
+            return nil
+        }
     }
 }
 

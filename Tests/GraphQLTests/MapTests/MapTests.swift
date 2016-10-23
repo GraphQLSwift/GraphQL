@@ -545,7 +545,7 @@ public class MapTests : XCTestCase {
             "string": "foo\nbar",
         ]
 
-        let description = "{\"array\":[[],true,0x626172,{},4.2,1969,null,\"foo\\nbar\"],\"bool\":true,\"dictionary\":{\"array\":[],\"bool\":true,\"dictionary\":{},\"double\":4.2,\"int\":1969,\"null\":null,\"string\":\"foo\\nbar\"},\"double\":4.2,\"int\":1969,\"null\":null,\"string\":\"foo\\nbar\"}"
+        let description = "{\"array\":[[],true,{},4.2,1969,null,\"foo\\nbar\"],\"bool\":true,\"dictionary\":{\"array\":[],\"bool\":true,\"dictionary\":{},\"double\":4.2,\"int\":1969,\"null\":null,\"string\":\"foo\\nbar\"},\"double\":4.2,\"int\":1969,\"null\":null,\"string\":\"foo\\nbar\"}"
 
         XCTAssertEqual(buffer.description, description)
     }
@@ -682,7 +682,7 @@ public class MapTests : XCTestCase {
             let foo: Bar
 
             func asMap() throws -> Map {
-                return try ["bar": foo.asMap()]
+                return try ["foo": foo.asMap()]
             }
         }
 

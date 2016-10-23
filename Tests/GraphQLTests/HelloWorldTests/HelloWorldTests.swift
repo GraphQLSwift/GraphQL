@@ -6,7 +6,7 @@ class HelloWorldTests : XCTestCase {
         query: GraphQLObjectType(
             name: "RootQueryType",
             fields: [
-                "hello": GraphQLFieldConfig(
+                "hello": GraphQLField(
                     type: GraphQLString,
                     resolve: { _ in "world" }
                 )

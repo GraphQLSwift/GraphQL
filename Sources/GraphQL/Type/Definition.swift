@@ -27,10 +27,7 @@ public protocol GraphQLInputType : GraphQLType {}
 
 func isInputType(type: GraphQLType?) -> Bool {
     let namedType = getNamedType(type: type)
-
-    return namedType is GraphQLScalarType ||
-        namedType is GraphQLEnumType ||
-        namedType is GraphQLInputObjectType
+    return namedType is GraphQLInputType
 }
 
 /**
@@ -98,11 +95,6 @@ public protocol GraphQLAbstractType : GraphQLNamedType {
 }
 //    GraphQLInterfaceType |
 //    GraphQLUnionType;
-
-func isAbstractType(type: GraphQLType?) -> Bool {
-    return type is GraphQLInterfaceType ||
-        type is GraphQLUnionType
-}
 
 /**
  * These types can all accept null as a value.
@@ -257,7 +249,7 @@ public struct GraphQLObjectType : GraphQLNamedType, GraphQLOutputType, GraphQLCo
     let interfaces: [GraphQLInterfaceType]
     let isTypeOf: GraphQLIsTypeOf?
 
-    public init(name: String, description: String? = nil, fields: GraphQLFieldConfigMap, interfaces: [GraphQLInterfaceType] = [], isTypeOf: GraphQLIsTypeOf? = nil) throws {
+    public init(name: String, description: String? = nil, fields: GraphQLFieldMap, interfaces: [GraphQLInterfaceType] = [], isTypeOf: GraphQLIsTypeOf? = nil) throws {
         try assertValid(name: name)
         self.name = name
         self.objectDescription = description
@@ -298,7 +290,7 @@ public enum GraphQLObjectTypeError : Error {
     case invalidFields(String)
 }
 
-func defineFieldMap(type: GraphQLNamedType.Type, fields: GraphQLFieldConfigMap) throws -> GraphQLFieldDefinitionMap {
+func defineFieldMap(type: GraphQLNamedType.Type, fields: GraphQLFieldMap) throws -> GraphQLFieldDefinitionMap {
     guard !fields.isEmpty else {
         throw GraphQLObjectTypeError.invalidFields("\(type) fields must be an object with field names as keys or a function which returns such an object.")
     }
@@ -310,11 +302,11 @@ func defineFieldMap(type: GraphQLNamedType.Type, fields: GraphQLFieldConfigMap) 
 
         let field = GraphQLFieldDefinition(
             name: name,
-            description: config.description,
             type: config.type,
+            description: config.description,
+            deprecationReason: config.deprecationReason,
             args: try defineArgumentMap(args: config.args),
-            resolve: config.resolve,
-            deprecationReason: config.deprecationReason
+            resolve: config.resolve
         )
 
         fieldMap[name] = field
@@ -328,7 +320,7 @@ func defineArgumentMap(args: GraphQLArgumentConfigMap) throws -> GraphQLArgument
 
     for (name, config) in args {
         try assertValid(name: name)
-        let argument = GraphQLArgument(
+        let argument = GraphQLArgumentDefinition(
             name: name,
             type: config.type,
             defaultValue: config.defaultValue,
@@ -402,16 +394,16 @@ public struct GraphQLResolveInfo {
     let variableValues: [String: Any]
 }
 
-public typealias GraphQLFieldConfigMap = [String: GraphQLFieldConfig]
+public typealias GraphQLFieldMap = [String: GraphQLField]
 
-public struct GraphQLFieldConfig {
+public struct GraphQLField {
     let type: GraphQLOutputType
     let args: GraphQLArgumentConfigMap
     let deprecationReason: String?
     let description: String?
     let resolve: GraphQLFieldResolve?
 
-    public init(type: GraphQLOutputType, args: GraphQLArgumentConfigMap = [:], deprecationReason: String? = nil, description: String? = nil, resolve: GraphQLFieldResolve? = nil) {
+    public init(type: GraphQLOutputType, description: String? = nil, deprecationReason: String? = nil, args: GraphQLArgumentConfigMap = [:], resolve: GraphQLFieldResolve? = nil) {
         self.type = type
         self.args = args
         self.deprecationReason = deprecationReason
@@ -430,6 +422,15 @@ public struct GraphQLFieldDefinition {
     let resolve: GraphQLFieldResolve?
     let deprecationReason: String?
 
+    init(name: String, type: GraphQLOutputType, description: String? = nil, deprecationReason: String? = nil, args: GraphQLArgumentMap = [:], resolve: GraphQLFieldResolve?) {
+        self.name = name
+        self.description = description
+        self.type = type
+        self.args = args
+        self.resolve = resolve
+        self.deprecationReason = deprecationReason
+    }
+
     var isDeprecated: Bool {
         return deprecationReason != nil
     }
@@ -443,18 +444,18 @@ public struct GraphQLFieldDefinition {
 
         return GraphQLFieldDefinition(
             name: name,
-            description: description,
             type: outputType,
+            description: description,
+            deprecationReason: deprecationReason,
             args: args,
-            resolve: resolve,
-            deprecationReason: deprecationReason
+            resolve: resolve
         )
     }
 }
 
-public typealias GraphQLArgumentConfigMap = [String: GraphQLArgumentConfig]
+public typealias GraphQLArgumentConfigMap = [String: GraphQLArgument]
 
-public struct GraphQLArgumentConfig {
+public struct GraphQLArgument {
     let type: GraphQLInputType
     let description: String?
     let defaultValue: Map?
@@ -466,14 +467,22 @@ public struct GraphQLArgumentConfig {
     }
 }
 
-public typealias GraphQLArgumentMap = [String: GraphQLArgument]
+public typealias GraphQLArgumentMap = [String: GraphQLArgumentDefinition]
 
-public struct GraphQLArgument {
+public struct GraphQLArgumentDefinition {
     let name: String
     let type: GraphQLInputType
     let defaultValue: Map?
     let description: String?
+
+    init(name: String, type: GraphQLInputType, defaultValue: Map? = nil, description: String? = nil) {
+        self.name = name
+        self.type = type
+        self.defaultValue = defaultValue
+        self.description = description
+    }
 }
+
 
 /**
  * Interface Type Definition
@@ -500,7 +509,7 @@ public struct GraphQLInterfaceType : GraphQLAbstractType, GraphQLCompositeType, 
 
     let fields: GraphQLFieldDefinitionMap
 
-    public init(name: String, description: String? = nil, fields: GraphQLFieldConfigMap, resolveType: GraphQLTypeResolve? = nil) throws {
+    public init(name: String, description: String? = nil, fields: GraphQLFieldMap, resolveType: GraphQLTypeResolve? = nil) throws {
         try assertValid(name: name)
         self.name = name
         self.interfaceDescription = description
@@ -628,7 +637,7 @@ func defineTypes(hasResolve: Bool, types: [GraphQLObjectType]) throws -> [GraphQ
  * Note: If a value is not provided in a definition, the name of the enum value
  * will be used as its internal value.
  */
-public struct GraphQLEnumType : GraphQLType, GraphQLLeafType, GraphQLInputType {
+public struct GraphQLEnumType : GraphQLType, GraphQLLeafType, GraphQLInputType, GraphQLNullableType {
     public let name: String
     let enumDescription: String?
 
@@ -636,7 +645,7 @@ public struct GraphQLEnumType : GraphQLType, GraphQLLeafType, GraphQLInputType {
     let valueLookup: [Map: GraphQLEnumValueDefinition]
     let nameLookup: [String: GraphQLEnumValueDefinition]
 
-    public init(name: String, description: String? = nil, values: GraphQLEnumValueConfigMap) throws {
+    public init(name: String, description: String? = nil, values: GraphQLEnumValueMap) throws {
         try assertValid(name: name)
         self.name = name
         self.enumDescription = description
@@ -682,7 +691,7 @@ public struct GraphQLEnumType : GraphQLType, GraphQLLeafType, GraphQLInputType {
     }
 }
 
-func defineEnumValues(valueMap: GraphQLEnumValueConfigMap) throws -> [GraphQLEnumValueDefinition] {
+func defineEnumValues(valueMap: GraphQLEnumValueMap) throws -> [GraphQLEnumValueDefinition] {
 
     guard !valueMap.isEmpty else {
         return []
@@ -710,9 +719,9 @@ func defineEnumValues(valueMap: GraphQLEnumValueConfigMap) throws -> [GraphQLEnu
     return definitions
 }
 
-public typealias GraphQLEnumValueConfigMap = [String: GraphQLEnumValueConfig]
+public typealias GraphQLEnumValueMap = [String: GraphQLEnumValue]
 
-public struct GraphQLEnumValueConfig {
+public struct GraphQLEnumValue {
     let value: Map
     let description: String?
     let deprecationReason: String?
@@ -789,7 +798,7 @@ func defineInputObjectFieldMap(fields: InputObjectConfigFieldMap) throws -> Inpu
     for (fieldName, field) in fields {
         try assertValid(name: fieldName)
 
-        let newField = InputObjectField(
+        let newField = InputObjectFieldDefinition(
             name: fieldName,
             description: field.description,
             type: field.type,
@@ -802,22 +811,22 @@ func defineInputObjectFieldMap(fields: InputObjectConfigFieldMap) throws -> Inpu
     return resultFieldMap
 }
 
-struct InputObjectFieldConfig {
+struct InputObjectField {
     let type: GraphQLInputType
     let defaultValue: Map?
     let description: String?
 }
 
-typealias InputObjectConfigFieldMap = [String: InputObjectFieldConfig]
+typealias InputObjectConfigFieldMap = [String: InputObjectField]
 
-struct InputObjectField {
+struct InputObjectFieldDefinition {
     let name: String
     let description: String?
     let type: GraphQLInputType
     let defaultValue: Map?
 }
 
-typealias InputObjectFieldMap = [String: InputObjectField]
+typealias InputObjectFieldMap = [String: InputObjectFieldDefinition]
 
 /**
  * List Modifier

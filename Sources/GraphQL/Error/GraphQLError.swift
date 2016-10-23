@@ -73,8 +73,8 @@ public struct GraphQLError : Error {
             self.positions = positions
         }
 
-        if let source = source, !positions.isEmpty {
-            self.locations = positions.map({ getLocation(source: source, position: $0) })
+        if let source = self.source, !self.positions.isEmpty {
+            self.locations = self.positions.map({ getLocation(source: source, position: $0) })
         } else {
             self.locations = []
         }
@@ -106,6 +106,15 @@ extension GraphQLError : MapRepresentable {
 
         if !path.isEmpty {
             dictionary["path"] = path.map({ $0.map }).map
+        }
+
+        if !locations.isEmpty {
+            dictionary["locations"] = locations.map({
+                return [
+                    "line": $0.line.map,
+                    "column": $0.column.map
+                ] as Map
+            }).map
         }
 
         return .dictionary(dictionary)

@@ -26,7 +26,7 @@ public func graphql(
 ) throws -> Map {
     let source = Source(body: request, name: "GraphQL request")
     let documentAST = try parse(source: source)
-    let validationErrors = try validate(schema: schema, ast: documentAST)
+    let validationErrors = validate(schema: schema, ast: documentAST)
 
     guard validationErrors.isEmpty else {
         return ["errors": validationErrors.map]

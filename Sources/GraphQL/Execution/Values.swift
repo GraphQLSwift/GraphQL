@@ -62,7 +62,7 @@ func getVariableValue(schema: GraphQLSchema, definitionAST: VariableDefinition, 
     let type = typeFromAST(schema: schema, inputTypeAST: definitionAST.type)
     let variable = definitionAST.variable
 
-    if type != nil || !isInputType(type: type) {
+    if type == nil || !isInputType(type: type) {
         throw GraphQLError(
             message:
             "Variable \"$\(variable.name.value)\" expected value of type " +
