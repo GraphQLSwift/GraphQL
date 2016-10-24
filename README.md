@@ -47,7 +47,7 @@ let schema = try GraphQLSchema(
     query: GraphQLObjectType(
         name: "RootQueryType",
         fields: [
-            "hello": GraphQLFieldConfig(
+            "hello": GraphQLField(
                 type: GraphQLString,
                 resolve: { _ in "world" }
             )
@@ -64,10 +64,17 @@ Then, serve the result of a query against that type schema.
 ```swift
 let query = "{ hello }"
 let result = try graphql(schema: schema, request: query)
-
-// Prints
-// {"data":{"hello":"world"}}
 print(result)
+```
+
+Output:
+
+```json
+{
+    "data": {
+        "hello": "world"
+    }
+}
 ```
 
 This runs a query fetching the one field defined. The `graphql` function will
@@ -77,10 +84,25 @@ it, reporting errors otherwise.
 ```swift
 let query = "{ boyhowdy }"
 let result = try graphql(schema: schema, request: query)
-
-// Prints
-// {"errors":[{"message":"Cannot query field "boyhowdy" on type "RootQueryType"."}]}
 print(result)
+```
+
+Output:
+
+```json
+{
+    "errors": [
+        {
+            "locations": [
+                {
+                    "column": 3, 
+                    "line": 1
+                }
+            ], 
+            "message": "Cannot query field \"boyhowdy\" on type \"RootQueryType\"."
+        }
+    ]
+}
 ```
 
 ## License
