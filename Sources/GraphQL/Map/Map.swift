@@ -697,6 +697,8 @@ extension Map : ExpressibleByDictionaryLiteral {
 
 extension Map : CustomStringConvertible {
     public var description: String {
+        var indentLevel = 0
+
         let escapeMapping: [Character: String] = [
             "\r": "\\r",
             "\n": "\\n",
@@ -739,33 +741,74 @@ extension Map : CustomStringConvertible {
         
         func serialize(array: [Map]) -> String {
             var string = "["
+
+            if _isDebugAssertConfiguration() {
+                indentLevel += 1
+            }
             
             for index in 0 ..< array.count {
+                if _isDebugAssertConfiguration() {
+                    string += "\n"
+                    string += indent()
+                }
+
                 string += serialize(map: array[index])
                 
                 if index != array.count - 1 {
-                    string += ","
+                    if _isDebugAssertConfiguration() {
+                        string += ", "
+                    } else {
+                        string += ","
+                    }
                 }
             }
-            
-            return string + "]"
+
+            if _isDebugAssertConfiguration() {
+                indentLevel -= 1
+                return string + "\n" + indent() + "]"
+            } else {
+                return string + "]"
+            }
         }
         
         func serialize(dictionary: [String: Map]) -> String {
             var string = "{"
             var index = 0
+
+            if _isDebugAssertConfiguration() {
+                indentLevel += 1
+            }
             
             for (key, value) in dictionary.sorted(by: {$0.0 < $1.0}) {
-                string += escape(key) + ":" + serialize(map: value)
-                
+                if _isDebugAssertConfiguration() {
+                    string += "\n"
+                    string += indent()
+                    string += escape(key) + ": " + serialize(map: value)
+                } else {
+                    string += escape(key) + ":" + serialize(map: value)
+                }
+
                 if index != dictionary.count - 1 {
-                    string += ","
+                    if _isDebugAssertConfiguration() {
+                        string += ", "
+                    } else {
+                        string += ","
+                    }
                 }
                 
                 index += 1
             }
-            
-            return string + "}"
+
+            if _isDebugAssertConfiguration() {
+                indentLevel -= 1
+                return string + "\n" + indent() + "}"
+            } else {
+                return string + "}"
+            }
+        }
+
+        func indent() -> String {
+            return String(repeating: "    ", count: indentLevel)
         }
         
         return serialize(map: self)

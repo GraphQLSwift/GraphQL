@@ -16,21 +16,29 @@ class HelloWorldTests : XCTestCase {
 
     func testHello() throws {
         let query = "{ hello }"
-        let expected: Map = ["hello": "world"]
+        let expected: Map = [
+            "data": [
+                "hello": "world"
+            ]
+        ]
         let result = try graphql(schema: schema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testBoyhowdy() throws {
         let query = "{ boyhowdy }"
 
-        let expectedErrors: Map = [[
-            "message": "Cannot query field \"boyhowdy\" on type \"RootQueryType\".",
-            "locations": [["line": 1, "column": 3]]
-        ]]
+        let expectedErrors: Map = [
+            "errors": [
+                [
+                    "message": "Cannot query field \"boyhowdy\" on type \"RootQueryType\".",
+                    "locations": [["line": 1, "column": 3]]
+                ]
+            ]
+        ]
 
         let result = try graphql(schema: schema, request: query)
-        XCTAssertEqual(result["errors"], expectedErrors)
+        XCTAssertEqual(result, expectedErrors)
     }
 }
 
