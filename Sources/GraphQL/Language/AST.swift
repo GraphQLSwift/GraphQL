@@ -314,10 +314,6 @@ final class OperationDefinition {
         self.selectionSet = selectionSet
     }
 
-    var key: String {
-        return "operation"
-    }
-
     func get(key: String) -> NodeResult? {
         switch key {
         case "name":
@@ -563,7 +559,7 @@ final class Argument {
         self.value = value
     }
 
-    public func get(key: String) -> NodeResult? {
+    func get(key: String) -> NodeResult? {
         switch key {
         case "name":
             return .node(name)
@@ -661,7 +657,7 @@ extension InlineFragment {
                 return nil
             }
             return .array(directives)
-        case "directives":
+        case "selectionSet":
             return .node(selectionSet)
         default:
             return nil
@@ -1028,7 +1024,7 @@ final class NonNullType {
         self.type = type
     }
 
-    public func get(key: String) -> NodeResult? {
+    func get(key: String) -> NodeResult? {
         switch key {
         case "type":
             return .node(type)

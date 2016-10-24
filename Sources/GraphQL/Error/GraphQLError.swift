@@ -90,14 +90,14 @@ extension GraphQLError : CustomStringConvertible {
     }
 }
 
-extension GraphQLError : Equatable {
+extension GraphQLError : Hashable {
     public var hashValue: Int {
         return message.hashValue
     }
-}
 
-public func == (lhs: GraphQLError, rhs: GraphQLError) -> Bool {
-    return lhs.hashValue == rhs.hashValue
+    public static func == (lhs: GraphQLError, rhs: GraphQLError) -> Bool {
+        return lhs.hashValue == rhs.hashValue
+    }
 }
 
 extension GraphQLError : MapRepresentable {

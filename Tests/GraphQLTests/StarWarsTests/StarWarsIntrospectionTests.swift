@@ -79,18 +79,17 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "__schema": [
-                "queryType": [
-                    [
+            "data": [
+                "__schema": [
+                    "queryType": [
                         "name": "Query",
                     ],
-
                 ],
             ],
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testIntrospectionDroidTypeQuery() throws {
@@ -101,15 +100,15 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "__type": [
-                [
+            "data": [
+                "__type": [
                     "name": "Droid",
                 ],
             ],
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testIntrospectionDroidKindQuery() throws {
@@ -121,8 +120,8 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "__type": [
-                [
+            "data": [
+                "__type": [
                     "name": "Droid",
                     "kind": "OBJECT",
                 ],
@@ -130,7 +129,7 @@ class StarWarsIntrospectionTests : XCTestCase {
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testIntrospectionCharacterKindQuery() throws {
@@ -142,8 +141,8 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "__type": [
-                [
+            "data": [
+                "__type": [
                     "name": "Character",
                     "kind": "INTERFACE",
                 ],
@@ -151,7 +150,7 @@ class StarWarsIntrospectionTests : XCTestCase {
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testIntrospectionDroidFieldsQuery() throws {
@@ -169,8 +168,8 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "__type": [
-                [
+            "data": [
+                "__type": [
                     "name": "Character",
                     "fields": [
                         [
@@ -221,7 +220,7 @@ class StarWarsIntrospectionTests : XCTestCase {
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testIntrospectionDroidNestedFieldsQuery() throws {
@@ -243,8 +242,8 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "__type": [
-                [
+            "data": [
+                "__type": [
                     "name": "Character",
                     "fields": [
                         [
@@ -310,87 +309,87 @@ class StarWarsIntrospectionTests : XCTestCase {
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
-
-
-
 
     func testIntrospectionFieldArgsQuery() throws {
         let query = "query IntrospectionFieldArgsQuery {" +
                     "    __schema {" +
                     "        queryType {" +
-                    "        fields {" +
-                    "            name" +
-                    "            args {" +
+                    "            fields {" +
                     "                name" +
-                    "                description" +
-                    "                type {" +
+                    "                args {" +
                     "                    name" +
-                    "                    kind" +
-                    "                    ofType {" +
+                    "                    description" +
+                    "                    type {" +
                     "                        name" +
                     "                        kind" +
+                    "                        ofType {" +
+                    "                            name" +
+                    "                            kind" +
+                    "                        }" +
                     "                    }" +
-                    "                }" +
-                    "                defaultValue" +
+                    "                    defaultValue" +
+                    "                 }" +
                     "            }" +
                     "        }" +
                     "    }" +
                     "}"
 
         let expected: Map = [
-            "__schema": [
-                "queryType": [
-                    "fields": [
-                        [
-                            "name": "hero",
-                            "args": [
-                                [
-                                    "name": "episode",
-                                    "description": "If omitted, returns the hero of the whole saga. If provided, returns the hero of that particular episode.",
-                                    "type": [
-                                        "name": "Episode",
-                                        "kind": "ENUM",
-                                        "ofType": nil
+            "data": [
+                "__schema": [
+                    "queryType": [
+                        "fields": [
+                            [
+                                "name": "hero",
+                                "args": [
+                                    [
+                                        "name": "episode",
+                                        "description": "If omitted, returns the hero of the whole saga. If provided, returns the hero of that particular episode.",
+                                        "type": [
+                                            "name": "Episode",
+                                            "kind": "ENUM",
+                                            "ofType": nil
+                                        ],
+                                        "defaultValue": nil,
                                     ],
-                                    "defaultValue": nil,
                                 ],
                             ],
-                        ],
-                        [
-                            "name": "human",
-                            "args": [
-                                [
-                                    "name": "id",
-                                    "description": "id of the human",
-                                    "type": [
-                                        "name": nil,
-                                        "kind": "NON_NULL",
-                                        "ofType": [
-                                            "name": "String",
-                                            "kind": "SCALAR",
-                                        ]
+                            [
+                                "name": "human",
+                                "args": [
+                                    [
+                                        "name": "id",
+                                        "description": "id of the human",
+                                        "type": [
+                                            "name": nil,
+                                            "kind": "NON_NULL",
+                                            "ofType": [
+                                                "name": "String",
+                                                "kind": "SCALAR",
+                                            ]
+                                        ],
+                                        "defaultValue": nil,
                                     ],
-                                    "defaultValue": nil,
                                 ],
                             ],
-                        ],
-                        [
-                            "name": "droid",
-                            "args": [
-                                [
-                                    "name": "id",
-                                    "description": "id of the droid",
-                                    "type": [
-                                        "name": nil,
-                                        "kind": "NON_NULL",
-                                        "ofType": [
-                                            "name": "String",
-                                            "kind": "SCALAR",
-                                        ]
+                            [
+                                "name": "droid",
+                                "args": [
+                                    [
+                                        "name": "id",
+                                        "description": "id of the droid",
+                                        "type": [
+                                            "name": nil,
+                                            "kind": "NON_NULL",
+                                            "ofType": [
+                                                "name": "String",
+                                                "kind": "SCALAR",
+                                            ]
+                                        ],
+                                        "defaultValue": nil,
                                     ],
-                                    "defaultValue": nil,
                                 ],
                             ],
                         ],
@@ -400,7 +399,7 @@ class StarWarsIntrospectionTests : XCTestCase {
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testIntrospectionDroidDescriptionQuery() throws {
@@ -412,14 +411,16 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "}"
 
         let expected: Map = [
-            "__type": [
-                "name": "Droid",
-                "description": "A mechanical creature in the Star Wars universe.",
+            "data": [
+                "__type": [
+                    "name": "Droid",
+                    "description": "A mechanical creature in the Star Wars universe.",
+                ],
             ],
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 }
 

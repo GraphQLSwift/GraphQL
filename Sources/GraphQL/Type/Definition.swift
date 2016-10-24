@@ -1,7 +1,7 @@
 /**
  * These are all of the possible kinds of types.
  */
-public protocol GraphQLType : CustomStringConvertible {}
+public protocol GraphQLType : CustomStringConvertible, MapRepresentable {}
 extension GraphQLScalarType : GraphQLType {}
 extension GraphQLObjectType : GraphQLType {}
 extension GraphQLInterfaceType : GraphQLType {}
@@ -130,7 +130,7 @@ func getNullableType(type: GraphQLType?) -> GraphQLNullableType? {
 /**
  * These named types do not include modifiers like List or NonNull.
  */
-public protocol GraphQLNamedType : GraphQLNullableType {
+public protocol GraphQLNamedType : GraphQLNullableType, MapRepresentable {
     var name: String { get }
 }
 
@@ -225,6 +225,15 @@ public final class GraphQLScalarType : CustomStringConvertible {
 
     public var description: String {
         return name
+    }
+}
+
+extension GraphQLScalarType {
+    public var map: Map {
+        return [
+            "name": name.map,
+            "description": scalarDescription.map,
+        ]
     }
 }
 
@@ -326,6 +335,17 @@ public final class GraphQLObjectType {
         for field in fields {
             try field.value.replaceTypeReferences(typeMap: typeMap)
         }
+    }
+}
+
+extension GraphQLObjectType {
+    public var map: Map {
+        return [
+            "name": name.map,
+            "description": objectDescription.map,
+//            "fields": fields.map,
+//            "interfaces": interfaces.map,
+        ]
     }
 }
 
@@ -515,6 +535,19 @@ public final class GraphQLFieldDefinition {
     }
 }
 
+extension GraphQLFieldDefinition : MapRepresentable {
+    public var map: Map {
+        return [
+            "name": name.map,
+            "description": description.map,
+            "type": type.map,
+            "args": args.map,
+            "deprecationReason": deprecationReason.map,
+            "isDeprecated": isDeprecated.map,
+        ]
+    }
+}
+
 public typealias GraphQLArgumentConfigMap = [String: GraphQLArgument]
 
 public struct GraphQLArgument {
@@ -551,6 +584,17 @@ public struct GraphQLArgumentDefinition {
         self.type = type
         self.defaultValue = defaultValue
         self.description = description
+    }
+}
+
+extension GraphQLArgumentDefinition : MapRepresentable {
+    public var map: Map {
+        return [
+            "name": name.map,
+            "description": description.map,
+            "type": type.map,
+            "defaultValue": defaultValue.map,
+        ]
     }
 }
 
@@ -618,6 +662,16 @@ public final class GraphQLInterfaceType {
     }
 }
 
+extension GraphQLInterfaceType {
+    public var map: Map {
+        return [
+            "name": name.map,
+            "description": interfaceDescription.map,
+//            "fields": fields.map,
+        ]
+    }
+}
+
 extension GraphQLInterfaceType : Hashable {
     public var hashValue: Int {
         return ObjectIdentifier(self).hashValue
@@ -637,7 +691,7 @@ extension GraphQLInterfaceType : Hashable {
  *
  * Example:
  *
- *     let PetType = GraphQLUnionType(
+ *     let PetType = try GraphQLUnionType(
  *         name: "Pet",
  *         types: [DogType, CatType],
  *         resolveType: { value, context, info in
@@ -681,6 +735,16 @@ public final class GraphQLUnionType {
 
     public var description: String {
         return name
+    }
+}
+
+extension GraphQLUnionType {
+    public var map: Map {
+        return [
+            "name": name.map,
+            "description": unionDescription.map,
+            "types": types.map,
+        ]
     }
 }
 
@@ -808,6 +872,16 @@ public final class GraphQLEnumType {
     }
 }
 
+extension GraphQLEnumType {
+    public var map: Map {
+        return [
+            "name": name.map,
+            "description": enumDescription.map,
+            "values": values.map
+        ]
+    }
+}
+
 extension GraphQLEnumType : Hashable {
     public var hashValue: Int {
         return ObjectIdentifier(self).hashValue
@@ -875,6 +949,17 @@ struct GraphQLEnumValueDefinition {
     }
 }
 
+extension GraphQLEnumValueDefinition : MapRepresentable {
+    var map: Map {
+        return [
+            "name": name.map,
+            "description": description.map,
+            "deprecationReason": deprecationReason.map,
+            "isDeprecated": isDeprecated.map
+        ]
+    }
+}
+
 /**
  * Input Object Type Definition
  *
@@ -917,6 +1002,16 @@ public final class GraphQLInputObjectType {
 
     public var description: String {
         return name
+    }
+}
+
+extension GraphQLInputObjectType {
+    public var map: Map {
+        return [
+            "name": name.map,
+            "description": inputObjectDescription.map,
+            "fields": fields.map,
+        ]
     }
 }
 
@@ -975,6 +1070,17 @@ struct InputObjectFieldDefinition {
     let defaultValue: Map?
 }
 
+extension InputObjectFieldDefinition : MapRepresentable {
+    var map: Map {
+        return [
+            "name": name.map,
+            "description": description.map,
+            "type": type.map,
+            "defaultValue": defaultValue.map,
+        ]
+    }
+}
+
 typealias InputObjectFieldMap = [String: InputObjectFieldDefinition]
 
 /**
@@ -1013,6 +1119,14 @@ public final class GraphQLList {
     func replaceTypeReferences(typeMap: TypeMap) throws -> GraphQLList {
         let resolvedType = try resolveTypeReference(type: ofType, typeMap: typeMap)
         return GraphQLList(resolvedType)
+    }
+}
+
+extension GraphQLList {
+    public var map: Map {
+        return [
+            "ofType": ofType.map,
+        ]
     }
 }
 
@@ -1074,6 +1188,14 @@ public final class GraphQLNonNull {
     }
 }
 
+extension GraphQLNonNull {
+    public var map: Map {
+        return [
+            "ofType": ofType.map,
+        ]
+    }
+}
+
 extension GraphQLNonNull : Hashable {
     public var hashValue: Int {
         return ObjectIdentifier(self).hashValue
@@ -1097,5 +1219,11 @@ public final class GraphQLTypeReference : GraphQLType, GraphQLOutputType, GraphQ
 
     public var description: String {
         return name
+    }
+}
+
+extension GraphQLTypeReference {
+    public var map: Map {
+        return .null
     }
 }

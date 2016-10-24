@@ -66,13 +66,13 @@ public final class GraphQLSchema {
             initialTypes.append(contentsOf: types)
         }
 
-        var map = TypeMap()
+        var typeMap = TypeMap()
 
         for type in initialTypes {
-            map = try typeMapReducer(map: map, type: type)
+            typeMap = try typeMapReducer(typeMap: typeMap, type: type)
         }
 
-        self.typeMap = map
+        self.typeMap = typeMap
         try replaceTypeReferences(typeMap: typeMap)
 
         // Keep track of all implementations by interface name.
@@ -155,41 +155,57 @@ public final class GraphQLSchema {
     }
 }
 
+extension GraphQLSchema : MapRepresentable {
+    public var map: Map {
+        var typeMapMap: Map = [:]
+
+        for (key, value) in typeMap {
+            typeMapMap[key] = value.map
+        }
+
+        return [
+            "queryType": queryType.map,
+            "mutationType": mutationType.map,
+            "subscriptionType": subscriptionType.map,
+//            "directives":  directives.map,
+            "types": typeMapMap,
+        ]
+    }
+}
+
 public typealias TypeMap = [String: GraphQLNamedType]
 
-func typeMapReducer(map: TypeMap, type: GraphQLType) throws -> TypeMap {
-    var map = map
+func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
+    var typeMap = typeMap
 
     if let type = type as? GraphQLWrapperType {
-        return try typeMapReducer(map: map, type: type.wrappedType)
+        return try typeMapReducer(typeMap: typeMap, type: type.wrappedType)
     }
 
     guard let type = type as? GraphQLNamedType else {
-        return map // Should never happen
+        return typeMap // Should never happen
     }
 
-    guard map[type.name] == nil else {
-//        guard map[type.name]! == type else {
-//            throw GraphQLError(
-//                message:
-//                "Schema must contain unique named types but contains multiple " +
-//                "types named \"\(type.name)\"."
-//            )
-//        }
+    guard typeMap[type.name] == nil else {
+        guard typeMap[type.name]! == type else {
+            throw GraphQLError(
+                message:
+                "Schema must contain unique named types but contains multiple " +
+                "types named \"\(type.name)\"."
+            )
+        }
 
-        return map
+        return typeMap
     }
 
-    map[type.name] = type
-
-    var reducedMap = map
+    typeMap[type.name] = type
 
     if let type = type as? GraphQLUnionType {
-        reducedMap = try type.types.reduce(reducedMap, typeMapReducer)
+        typeMap = try type.types.reduce(typeMap, typeMapReducer)
     }
 
     if let type = type as? GraphQLObjectType {
-        reducedMap = try type.interfaces.reduce(reducedMap, typeMapReducer)
+        typeMap = try type.interfaces.reduce(typeMap, typeMapReducer)
     }
 
     if let type = type as? GraphQLObjectType {
@@ -197,10 +213,10 @@ func typeMapReducer(map: TypeMap, type: GraphQLType) throws -> TypeMap {
 
             if !field.args.isEmpty {
                 let fieldArgTypes = field.args.values.map({ $0.type })
-                reducedMap = try fieldArgTypes.reduce(reducedMap, typeMapReducer)
+                typeMap = try fieldArgTypes.reduce(typeMap, typeMapReducer)
             }
 
-            reducedMap = try typeMapReducer(map: reducedMap, type: field.type)
+            typeMap = try typeMapReducer(typeMap: typeMap, type: field.type)
         }
     }
 
@@ -209,20 +225,20 @@ func typeMapReducer(map: TypeMap, type: GraphQLType) throws -> TypeMap {
 
             if !field.args.isEmpty {
                 let fieldArgTypes = field.args.values.map({ $0.type })
-                reducedMap = try fieldArgTypes.reduce(reducedMap, typeMapReducer)
+                typeMap = try fieldArgTypes.reduce(typeMap, typeMapReducer)
             }
 
-            reducedMap = try typeMapReducer(map: reducedMap, type: field.type)
+            typeMap = try typeMapReducer(typeMap: typeMap, type: field.type)
         }
     }
 
     if let type = type as? GraphQLInputObjectType {
         for (_, field) in type.fields {
-            reducedMap = try typeMapReducer(map: reducedMap, type: field.type)
+            typeMap = try typeMapReducer(typeMap: typeMap, type: field.type)
         }
     }
     
-    return reducedMap
+    return typeMap
 }
 
 func assert(

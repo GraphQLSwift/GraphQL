@@ -264,12 +264,7 @@ func executeFieldsSerially(
             path: fieldPath
         )
 
-        guard let r = result else {
-            return results
-        }
-
-        results[field.key] = r
-        
+        results[field.key] = result
         return results
     }
 }
@@ -285,29 +280,13 @@ func executeFields(
     path: [IndexPathElement],
     fields: [String: [Field]]
 ) throws -> Map {
-    let finalResults: [String: Map] = try fields.reduce([:]) { results, field in
-        var results = results
-        let fieldASTs = field.value
-        let fieldPath = path + [field.key] as [IndexPathElement]
-
-        let result = try resolveField(
-            exeContext: exeContext,
-            parentType: parentType,
-            source: sourceValue,
-            fieldASTs: fieldASTs,
-            path: fieldPath
-        )
-
-        guard let r = result else {
-            return results
-        }
-
-        results[field.key] = r
-
-        return results
-    }
-    
-    return .dictionary(finalResults)
+    return try executeFieldsSerially(
+        exeContext: exeContext,
+        parentType: parentType,
+        sourceValue: sourceValue,
+        path: path,
+        fields: fields
+    )
 }
 
 /**
@@ -491,13 +470,15 @@ func resolveField(
     source: Map,
     fieldASTs: [Field],
     path: [IndexPathElement]
-) throws -> Map? {
+) throws -> Map {
     let fieldAST = fieldASTs[0]
     let fieldName = fieldAST.name.value
 
-    guard let fieldDef = getFieldDef(schema: exeContext.schema, parentType: parentType, fieldName: fieldName) else {
-        return nil // TODO: this used to be "undefined"
-    }
+    let fieldDef = getFieldDef(
+        schema: exeContext.schema,
+        parentType: parentType,
+        fieldName: fieldName
+    )
 
     let returnType = fieldDef.type
     let resolve = fieldDef.resolve ?? defaultResolve
@@ -612,7 +593,7 @@ func completeValueCatchingError(
         // If `completeValueWithLocatedError` returned abruptly (threw an error),
         // log the error and return null.
         exeContext.errors.append(error)
-        return .null // TODO: this was nil before
+        return .null
     } catch {
         fatalError()
     }
@@ -948,19 +929,7 @@ func defaultResolveType(
  * of calling that func while passing along args and context.
  */
 func defaultResolve(source: Map, args: [String: Map], context: Map, info: GraphQLResolveInfo) -> Map {
-    // ensure source is a value for which property access is acceptable.
-    if case .dictionary(let source) = source {
-        let property = source[info.fieldName]
-
-        // TODO: Dynamic Shit
-        //    if (typeof property === 'func') {
-        //      return source[info.fieldName](args, context)
-        //    }
-
-        return property!
-    }
-    
-    return .null
+    return source[info.fieldName]
 }
 
 /**
@@ -976,7 +945,7 @@ func getFieldDef(
     schema: GraphQLSchema,
     parentType: GraphQLObjectType,
     fieldName: String
-) -> GraphQLFieldDefinition? {
+) -> GraphQLFieldDefinition {
     if fieldName == SchemaMetaFieldDef.name && schema.queryType.name == parentType.name {
         return SchemaMetaFieldDef
     } else if fieldName == TypeMetaFieldDef.name && schema.queryType.name == parentType.name {
@@ -985,5 +954,6 @@ func getFieldDef(
         return TypeNameMetaFieldDef
     }
 
-    return parentType.fields[fieldName]
+    // we know this field exists because we passed validation before execution
+    return parentType.fields[fieldName]!
 }

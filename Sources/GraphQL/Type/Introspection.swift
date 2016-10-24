@@ -8,18 +8,19 @@ let __Schema = try! GraphQLObjectType(
         "types": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__Type))),
             description: "A list of all types supported by this server.",
-            resolve: { source, arg, context, info in
-//                let typeMap = info.schema.typeMap
-//                return typeMap.values
-                return []
+            resolve: { schema, _, _, _ in
+                if case .dictionary(let dictionary) = schema["types"] {
+                    return .array(Array(dictionary.values))
+                }
+
+                return .null
             }
         ),
         "queryType": GraphQLField(
             type: GraphQLNonNull(__Type),
             description: "The type that query operations will be rooted at.",
-            resolve: { _, _, _, info in
-//                return info.schema.queryType
-                return "queryType"
+            resolve: { schema, _, _, _ in
+                return schema["queryType"]
             }
         ),
         "mutationType": GraphQLField(
@@ -174,26 +175,26 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
         "kind": GraphQLField(
             type: GraphQLNonNull(__TypeKind),
             resolve: { type, _, _, _ in
-//                switch type {
-//                case is GraphQLScalarType:
-//                    return TypeKind.scalar.rawValue.map
-//                case is GraphQLObjectType:
-//                    return TypeKind.object.rawValue.map
-//                case is GraphQLInterfaceType:
-//                    return TypeKind.interface.rawValue.map
-//                case is GraphQLUnionType:
-//                    return TypeKind.union.rawValue.map
-//                case is GraphQLEnumType:
-//                    return TypeKind.enum.rawValue.map
-//                case is GraphQLInputObjectType:
-//                    return TypeKind.inputObject.rawValue.map
-//                case is GraphQLList:
-//                    return TypeKind.list.rawValue.map
-//                case is GraphQLNonNull:
-//                    return TypeKind.nonNull.rawValue.map
-//                default:
-//                    throw GraphQLError(message: "Unknown kind of type: \(type)")
-//                }
+                switch type {
+                case is GraphQLScalarType:
+                    return TypeKind.scalar.rawValue.map
+                case is GraphQLObjectType:
+                    return TypeKind.object.rawValue.map
+                case is GraphQLInterfaceType:
+                    return TypeKind.interface.rawValue.map
+                case is GraphQLUnionType:
+                    return TypeKind.union.rawValue.map
+                case is GraphQLEnumType:
+                    return TypeKind.enum.rawValue.map
+                case is GraphQLInputObjectType:
+                    return TypeKind.inputObject.rawValue.map
+                case is GraphQLList:
+                    return TypeKind.list.rawValue.map
+                case is GraphQLNonNull:
+                    return TypeKind.nonNull.rawValue.map
+                default:
+                    throw GraphQLError(message: "Unknown kind of type: \(type)")
+                }
                 return "kind"
             }
         ),
@@ -415,7 +416,7 @@ let SchemaMetaFieldDef = GraphQLFieldDefinition(
     type: GraphQLNonNull(__Schema),
     description: "Access the current type schema of this server.",
     resolve: { _, _, _, info in
-        return "schema" //info.schema
+        return info.schema.map
     }
 )
 
@@ -429,8 +430,14 @@ let TypeMetaFieldDef = GraphQLFieldDefinition(
             type: GraphQLNonNull(GraphQLString)
         )
     ],
-    resolve: { _, _, _, info in
-        return "type" //info.schema.getType(name: args["name"]!)
+    resolve: { _, args, _, info in
+        let name = args["name"]!.string!
+
+        guard let type = info.schema.getType(name: name) else {
+            return .null
+        }
+
+        return type.map
     }
 )
 
