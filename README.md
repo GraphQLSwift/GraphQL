@@ -95,8 +95,8 @@ Output:
         {
             "locations": [
                 {
-                    "column": 3, 
-                    "line": 1
+                    "line": 1,
+                    "column": 3
                 }
             ], 
             "message": "Cannot query field \"boyhowdy\" on type \"RootQueryType\"."
