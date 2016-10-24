@@ -6,72 +6,74 @@ class StarWarsIntrospectionTests : XCTestCase {
         let query = "query IntrospectionTypeQuery {" +
                     "    __schema {" +
                     "        types {" +
-                    "            name {" +
+                    "            name" +
                     "        }" +
                     "    }" +
                     "}"
 
         let expected: Map = [
-            "__schema": [
-                "types": [
-                    [
-                        "name": "Query",
-                    ],
-                    [
-                        "name": "Episode",
-                    ],
-                    [
-                        "name": "Character",
-                    ],
-                    [
-                        "name": "String",
-                    ],
-                    [
-                        "name": "Human",
-                    ],
-                    [
-                        "name": "Droid",
-                    ],
-                    [
-                        "name": "__Schema",
-                    ],
-                    [
-                        "name": "__Type",
-                    ],
-                    [
-                        "name": "__TypeKind",
-                    ],
-                    [
-                        "name": "Boolean",
-                    ],
-                    [
-                        "name": "__Field",
-                    ],
-                    [
-                        "name": "__InputValue",
-                    ],
-                    [
-                        "name": "__EnumValue",
-                    ],
-                    [
-                        "name": "__Directive",
-                    ],
-                    [
-                        "name": "__DirectiveLocation",
+            "data": [
+                "__schema": [
+                    "types": [
+                        [
+                            "name": "Query",
+                        ],
+                        [
+                            "name": "Episode",
+                        ],
+                        [
+                            "name": "Character",
+                        ],
+                        [
+                            "name": "String",
+                        ],
+                        [
+                            "name": "Human",
+                        ],
+                        [
+                            "name": "Droid",
+                        ],
+                        [
+                            "name": "__Schema",
+                        ],
+                        [
+                            "name": "__Type",
+                        ],
+                        [
+                            "name": "__TypeKind",
+                        ],
+                        [
+                            "name": "Boolean",
+                        ],
+                        [
+                            "name": "__Field",
+                        ],
+                        [
+                            "name": "__InputValue",
+                        ],
+                        [
+                            "name": "__EnumValue",
+                        ],
+                        [
+                            "name": "__Directive",
+                        ],
+                        [
+                            "name": "__DirectiveLocation",
+                        ],
                     ],
                 ],
             ],
         ]
 
         let result = try graphql(schema: StarWarsSchema, request: query)
-        XCTAssertEqual(result["data"], expected)
+        XCTAssertEqual(result, expected)
     }
 
     func testIntrospectionQueryTypeQuery() throws {
         let query = "query IntrospectionQueryTypeQuery {" +
                     "    __schema {" +
                     "        queryType {" +
-                    "            name {" +
+                    "            name" +
                     "        }" +
                     "    }" +
                     "}"

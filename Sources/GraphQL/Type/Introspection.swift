@@ -8,10 +8,10 @@ let __Schema = try! GraphQLObjectType(
         "types": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__Type))),
             description: "A list of all types supported by this server.",
-            resolve: { _, _, _, info in
+            resolve: { source, arg, context, info in
 //                let typeMap = info.schema.typeMap
 //                return typeMap.values
-                return "types"
+                return []
             }
         ),
         "queryType": GraphQLField(

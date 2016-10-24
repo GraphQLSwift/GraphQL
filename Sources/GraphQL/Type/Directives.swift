@@ -31,7 +31,12 @@ public struct GraphQLDirective {
     let locations: [DirectiveLocation]
     let args: GraphQLArgumentMap
 
-    public init(name: String, description: String, locations: [DirectiveLocation], args: GraphQLArgumentConfigMap = [:]) throws {
+    public init(
+        name: String,
+        description: String,
+        locations: [DirectiveLocation],
+        args: GraphQLArgumentConfigMap = [:]
+    ) throws {
         try assertValid(name: name)
         self.name = name
         self.description = description
@@ -39,7 +44,6 @@ public struct GraphQLDirective {
         self.args = try defineArgumentMap(args: args)
     }
 }
-
 
 /**
  * Used to conditionally include fields or fragments.

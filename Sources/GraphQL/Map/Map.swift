@@ -596,9 +596,7 @@ public func == (lhs: Map, rhs: Map) -> Bool {
 
 // MARK: Hashable
 
-extension Map : Hashable {}
-
-extension Map {
+extension Map : Hashable {
     public var hashValue: Int {
         switch self {
         case .null:

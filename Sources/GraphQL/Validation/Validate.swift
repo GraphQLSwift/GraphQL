@@ -40,18 +40,9 @@ func visit(
     return context.errors
 }
 
-enum HasSelectionSet : Hashable {
+enum HasSelectionSet {
     case operation(OperationDefinition)
     case fragment(FragmentDefinition)
-
-    public var hashValue: Int {
-        switch self {
-        case .operation(let operation):
-            return operation.hashValue
-        case .fragment(let fragment):
-            return fragment.hashValue
-        }
-    }
 
     var node: Node {
         switch self {
@@ -63,18 +54,29 @@ enum HasSelectionSet : Hashable {
     }
 }
 
-func == (lhs: HasSelectionSet, rhs: HasSelectionSet) -> Bool {
-    switch (lhs, rhs) {
-    case (.operation(let l), .operation(let r)):
-        return l == r
-    case (.fragment(let l), .fragment(let r)):
-        return l == r
-    default:
-        return false
+extension HasSelectionSet : Hashable {
+    var hashValue: Int {
+        switch self {
+        case .operation(let operation):
+            return operation.hashValue
+        case .fragment(let fragment):
+            return fragment.hashValue
+        }
+    }
+
+    static func == (lhs: HasSelectionSet, rhs: HasSelectionSet) -> Bool {
+        switch (lhs, rhs) {
+        case (.operation(let l), .operation(let r)):
+            return l == r
+        case (.fragment(let l), .fragment(let r)):
+            return l == r
+        default:
+            return false
+        }
     }
 }
 
-public typealias VariableUsage = (node: Variable, type: GraphQLInputType?)
+typealias VariableUsage = (node: Variable, type: GraphQLInputType?)
 
 /**
  * An instance of this class is passed as the "this" context to all validators,

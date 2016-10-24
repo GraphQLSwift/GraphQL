@@ -43,7 +43,8 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testSimpleExtension() throws {
@@ -65,7 +66,8 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testSimpleNonNullType() throws {
@@ -87,7 +89,8 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testSimpleTypeInheritingInterface() throws {
@@ -102,7 +105,8 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testSimpleTypeInheritingMultipleInterfaces() throws {
@@ -120,7 +124,8 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testSingleValueEnum() throws {
@@ -137,7 +142,8 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testDoubleValueEnum() throws {
@@ -155,11 +161,12 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testSimpleInterface() throws {
-        let source = "enum Hello { WO, RLD }"
+        let source = "interface Hello { world: String }"
 
         let expected = Document(
             definitions: [
@@ -175,11 +182,12 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testSimpleFieldWithArg() throws {
-        let source = "type Hello { world(flag: Boolean): Sting }"
+        let source = "type Hello { world(flag: Boolean): String }"
 
         let expected = Document(
             definitions: [
@@ -201,11 +209,12 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testSimpleFieldWithArgDefaultValue() throws {
-        let source = "type Hello { world(flag: Boolean = true): Sting }"
+        let source = "type Hello { world(flag: Boolean = true): String }"
 
         let expected = Document(
             definitions: [
@@ -228,11 +237,12 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testSimpleFieldWithListArg() throws {
-        let source = "type Hello { world(things: [String]): Sting }"
+        let source = "type Hello { world(things: [String]): String }"
 
         let expected = Document(
             definitions: [
@@ -254,11 +264,12 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testSimpleFieldWithTwoArgs() throws {
-        let source = "type Hello { world(argOne: Boolean, argTwo: Int): Sting }"
+        let source = "type Hello { world(argOne: Boolean, argTwo: Int): String }"
 
         let expected = Document(
             definitions: [
@@ -284,7 +295,8 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testSimpleUnion() throws {
@@ -301,7 +313,8 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testUnionTwoTypes() throws {
@@ -319,7 +332,8 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testScalar() throws {
@@ -333,7 +347,8 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testSimpleInputObject() throws {
@@ -353,7 +368,8 @@ class SchemaParserTests : XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: source) == expected)
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 
     func testSimpleInputObjectWithArgs() throws {
