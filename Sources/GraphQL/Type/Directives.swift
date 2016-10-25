@@ -29,7 +29,7 @@ public struct GraphQLDirective {
     let name: String
     let description: String
     let locations: [DirectiveLocation]
-    let args: GraphQLArgumentMap
+    let args: [GraphQLArgumentDefinition]
 
     public init(
         name: String,

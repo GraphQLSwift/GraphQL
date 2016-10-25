@@ -106,12 +106,12 @@ final class TypeInfo {
             var argType: GraphQLInputType? = nil
 
             if let directive = self.directive {
-                if let argDef = directive.args.find({ $1.name == node.name.value }) {
+                if let argDef = directive.args.find({ $0.name == node.name.value }) {
                     argType = argDef.type
                     self.argument = argDef
                 }
             } else if let fieldDef = self.fieldDef {
-                if let argDef = fieldDef.args.find({ $1.name == node.name.value }) {
+                if let argDef = fieldDef.args.find({ $0.name == node.name.value }) {
                     argType = argDef.type
                     self.argument = argDef
                 }

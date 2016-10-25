@@ -16,22 +16,41 @@ class StarWarsIntrospectionTests : XCTestCase {
                 "__schema": [
                     "types": [
                         [
-                            "name": "Query",
-                        ],
-                        [
-                            "name": "Episode",
+                            "name": "Boolean",
                         ],
                         [
                             "name": "Character",
                         ],
                         [
-                            "name": "String",
+                            "name": "Droid",
+                        ],
+
+                        [
+                            "name": "Episode",
                         ],
                         [
                             "name": "Human",
                         ],
                         [
-                            "name": "Droid",
+                            "name": "Query",
+                        ],
+                        [
+                            "name": "String",
+                        ],
+                        [
+                            "name": "__Directive",
+                        ],
+                        [
+                            "name": "__DirectiveLocation",
+                        ],
+                        [
+                            "name": "__EnumValue",
+                        ],
+                        [
+                            "name": "__Field",
+                        ],
+                        [
+                            "name": "__InputValue",
                         ],
                         [
                             "name": "__Schema",
@@ -41,24 +60,6 @@ class StarWarsIntrospectionTests : XCTestCase {
                         ],
                         [
                             "name": "__TypeKind",
-                        ],
-                        [
-                            "name": "Boolean",
-                        ],
-                        [
-                            "name": "__Field",
-                        ],
-                        [
-                            "name": "__InputValue",
-                        ],
-                        [
-                            "name": "__EnumValue",
-                        ],
-                        [
-                            "name": "__Directive",
-                        ],
-                        [
-                            "name": "__DirectiveLocation",
                         ],
                     ],
                 ],
@@ -170,8 +171,22 @@ class StarWarsIntrospectionTests : XCTestCase {
         let expected: Map = [
             "data": [
                 "__type": [
-                    "name": "Character",
+                    "name": "Droid",
                     "fields": [
+                        [
+                            "name": "appearsIn",
+                            "type": [
+                                "name": nil,
+                                "kind": "LIST",
+                            ],
+                        ],
+                        [
+                            "name": "friends",
+                            "type": [
+                                "name": nil,
+                                "kind": "LIST",
+                            ],
+                        ],
                         [
                             "name": "id",
                             "type": [
@@ -187,28 +202,14 @@ class StarWarsIntrospectionTests : XCTestCase {
                             ],
                         ],
                         [
-                            "name": "friends",
-                            "type": [
-                                "name": nil,
-                                "kind": "LIST",
-                            ],
-                        ],
-                        [
-                            "name": "appearsIn",
-                            "type": [
-                                "name": nil,
-                                "kind": "LIST",
-                            ],
-                        ],
-                        [
-                            "name": "secretBackstory",
+                            "name": "primaryFunction",
                             "type": [
                                 "name": "String",
                                 "kind": "SCALAR",
                             ],
                         ],
                         [
-                            "name": "primaryFunction",
+                            "name": "secretBackstory",
                             "type": [
                                 "name": "String",
                                 "kind": "SCALAR",
@@ -244,8 +245,30 @@ class StarWarsIntrospectionTests : XCTestCase {
         let expected: Map = [
             "data": [
                 "__type": [
-                    "name": "Character",
+                    "name": "Droid",
                     "fields": [
+                        [
+                            "name": "appearsIn",
+                            "type": [
+                                "name": nil,
+                                "kind": "LIST",
+                                "ofType": [
+                                    "name": "Episode",
+                                    "kind": "ENUM",
+                                ],
+                            ],
+                        ],
+                        [
+                            "name": "friends",
+                            "type": [
+                                "name": nil,
+                                "kind": "LIST",
+                                "ofType": [
+                                    "name": "Character",
+                                    "kind": "INTERFACE",
+                                ],
+                            ],
+                        ],
                         [
                             "name": "id",
                             "type": [
@@ -266,29 +289,7 @@ class StarWarsIntrospectionTests : XCTestCase {
                             ],
                         ],
                         [
-                            "name": "friends",
-                            "type": [
-                                "name": nil,
-                                "kind": "LIST",
-                                "ofType": [
-                                    "name": "Character",
-                                    "kind": "INTERFACE",
-                                ],
-                            ],
-                        ],
-                        [
-                            "name": "appearsIn",
-                            "type": [
-                                "name": nil,
-                                "kind": "LIST",
-                                "ofType": [
-                                    "name": "Episode",
-                                    "kind": "ENUM",
-                                ],
-                            ],
-                        ],
-                        [
-                            "name": "secretBackstory",
+                            "name": "primaryFunction",
                             "type": [
                                 "name": "String",
                                 "kind": "SCALAR",
@@ -296,7 +297,7 @@ class StarWarsIntrospectionTests : XCTestCase {
                             ],
                         ],
                         [
-                            "name": "primaryFunction",
+                            "name": "secretBackstory",
                             "type": [
                                 "name": "String",
                                 "kind": "SCALAR",
@@ -342,6 +343,24 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "queryType": [
                         "fields": [
                             [
+                                "name": "droid",
+                                "args": [
+                                    [
+                                        "name": "id",
+                                        "description": "id of the droid",
+                                        "type": [
+                                            "name": nil,
+                                            "kind": "NON_NULL",
+                                            "ofType": [
+                                                "name": "String",
+                                                "kind": "SCALAR",
+                                            ]
+                                        ],
+                                        "defaultValue": nil,
+                                        ],
+                                ],
+                            ],
+                            [
                                 "name": "hero",
                                 "args": [
                                     [
@@ -362,24 +381,6 @@ class StarWarsIntrospectionTests : XCTestCase {
                                     [
                                         "name": "id",
                                         "description": "id of the human",
-                                        "type": [
-                                            "name": nil,
-                                            "kind": "NON_NULL",
-                                            "ofType": [
-                                                "name": "String",
-                                                "kind": "SCALAR",
-                                            ]
-                                        ],
-                                        "defaultValue": nil,
-                                    ],
-                                ],
-                            ],
-                            [
-                                "name": "droid",
-                                "args": [
-                                    [
-                                        "name": "id",
-                                        "description": "id of the droid",
                                         "type": [
                                             "name": nil,
                                             "kind": "NON_NULL",

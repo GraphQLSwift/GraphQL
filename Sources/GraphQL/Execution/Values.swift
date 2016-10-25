@@ -23,7 +23,7 @@ func getVariableValues(schema: GraphQLSchema, definitionASTs: [VariableDefinitio
  * Prepares an object map of argument values given a list of argument
  * definitions and list of argument AST nodes.
  */
-func getArgumentValues(argDefs: GraphQLArgumentMap, argASTs: [Argument]?, variableValues: [String: Map] = [:]) throws -> [String: Map] {
+func getArgumentValues(argDefs: [GraphQLArgumentDefinition], argASTs: [Argument]?, variableValues: [String: Map] = [:]) throws -> [String: Map] {
     guard let argASTs = argASTs else {
         return [:]
     }
@@ -32,17 +32,17 @@ func getArgumentValues(argDefs: GraphQLArgumentMap, argASTs: [Argument]?, variab
 
     return try argDefs.reduce([:]) { result, argDef in
         var resultCopy = result
-        let name = argDef.value.name
+        let name = argDef.name
         let valueAST = argASTMap[name]?.value
 
         var value = try valueFromAST(
             valueAST: valueAST,
-            type: argDef.value.type,
+            type: argDef.type,
             variables: variableValues
         )
 
         if isNullish(value) {
-            value = argDef.value.defaultValue
+            value = argDef.defaultValue
         }
 
         if !isNullish(value) {

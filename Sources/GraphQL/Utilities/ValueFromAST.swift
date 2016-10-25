@@ -64,7 +64,7 @@ func valueFromAST(valueAST: Value?, type: GraphQLInputType, variables: [String: 
         let fieldASTs = objectValue.fields.keyMap({ $0.name.value })
 
         return try .dictionary(fields.keys.reduce([:] as [String: Map]) { obj, fieldName in
-            var objCopy = obj
+            var obj = obj
             let field = fields[fieldName]
             let fieldAST = fieldASTs[fieldName]
             var fieldValue = try valueFromAST(
@@ -78,10 +78,10 @@ func valueFromAST(valueAST: Value?, type: GraphQLInputType, variables: [String: 
             }
 
             if !isNullish(fieldValue) {
-                objCopy[fieldName] = fieldValue
+                obj[fieldName] = fieldValue
             }
             
-            return objCopy
+            return obj
         })
     }
     

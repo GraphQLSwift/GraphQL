@@ -157,18 +157,12 @@ public final class GraphQLSchema {
 
 extension GraphQLSchema : MapRepresentable {
     public var map: Map {
-        var typeMapMap: Map = [:]
-
-        for (key, value) in typeMap {
-            typeMapMap[key] = value.map
-        }
-
         return [
-            "queryType": queryType.map,
-            "mutationType": mutationType.map,
-            "subscriptionType": subscriptionType.map,
-//            "directives":  directives.map,
-            "types": typeMapMap,
+//            "queryType": queryTypeMap,
+//            "mutationType": mutationTypeMap,
+//            "subscriptionType": subscriptionTypeMap,
+////            "directives":  directives.map,
+//            "types": types,
         ]
     }
 }
@@ -212,7 +206,7 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
         for (_, field) in type.fields {
 
             if !field.args.isEmpty {
-                let fieldArgTypes = field.args.values.map({ $0.type })
+                let fieldArgTypes = field.args.map({ $0.type })
                 typeMap = try fieldArgTypes.reduce(typeMap, typeMapReducer)
             }
 
@@ -224,7 +218,7 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
         for (_, field) in type.fields {
 
             if !field.args.isEmpty {
-                let fieldArgTypes = field.args.values.map({ $0.type })
+                let fieldArgTypes = field.args.map({ $0.type })
                 typeMap = try fieldArgTypes.reduce(typeMap, typeMapReducer)
             }
 
@@ -270,8 +264,9 @@ func assert(
         }
 
         // Assert each interface field arg is implemented.
-        for (argName, interfaceArg) in interfaceField.args {
-            guard let objectArg = Array(objectField.args.values).find({ $0.name == argName }) else {
+        for interfaceArg in interfaceField.args {
+            let argName = interfaceArg.name
+            guard let objectArg = objectField.args.find({ $0.name == argName }) else {
                 throw GraphQLError(
                     message:
                     "\(interface.name).\(fieldName) expects argument \"\(argName)\" but " +
@@ -293,8 +288,9 @@ func assert(
         }
 
         // Assert additional arguments must not be required.
-        for (argName, objectArg) in objectField.args {
-            if Array(interfaceField.args.values).find({ $0.name == argName }) != nil {
+        for objectArg in objectField.args {
+            let argName = objectArg.name
+            if interfaceField.args.find({ $0.name == argName }) != nil {
                 guard !(objectArg.type is GraphQLNonNull) else {
                     throw GraphQLError(
                         message:
