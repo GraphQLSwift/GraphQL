@@ -187,8 +187,12 @@ let characterInterface = try! GraphQLInterfaceType(
             description: "All secrets about their past."
         ),
     ],
-    resolveType: { value, _, _ in
-        return getHuman(id: value["id"].string!) != nil ? .name("Human") : .name("Droid")
+    resolveType: { character, _, _ in
+        guard let character = character as? Character else {
+            return .name("Droid")
+        }
+        
+        return getHuman(id: character.id) != nil ? .name("Human") : .name("Droid")
     }
 )
 
@@ -221,9 +225,12 @@ let humanType = try! GraphQLObjectType(
             type: GraphQLList(characterInterface),
             description: "The friends of the human, or an empty list if they " +
             "have none.",
-            resolve: { value, _, _, _ in
-                let human = try Human(map: value)
-                return getFriends(character: human).map({ $0.map }).map
+            resolve: { human, _, _, _ in
+                guard let human = human as? Human else {
+                    return Map.null
+                }
+
+                return getFriends(character: human)
             }
         ),
         "appearsIn": GraphQLField(
@@ -278,9 +285,12 @@ let droidType = try! GraphQLObjectType(
         "friends": GraphQLField(
             type: GraphQLList(characterInterface),
             description: "The friends of the droid, or an empty list if they have none.",
-            resolve: { value, _, _, _ in
-                let droid = try Droid(map: value)
-                return getFriends(character: droid).map({ $0.map }).map
+            resolve: { droid, _, _, _ in
+                guard let droid = droid as? Droid else {
+                    return Map.null
+                }
+
+                return getFriends(character: droid)
             }
         ),
         "appearsIn": GraphQLField(
@@ -334,9 +344,9 @@ let queryType = try! GraphQLObjectType(
                     "provided, returns the hero of that particular episode."
                 )
             ],
-            resolve: { _, args, _, _ in
-                let episode = Episode(rawValue: args["episode"]?.string ?? "")
-                return getHero(episode: episode).map
+            resolve: { _, arguments, _, _ in
+                let episode = Episode(rawValue: arguments["episode"].string ?? "")
+                return getHero(episode: episode)
             }
         ),
         "human": GraphQLField(
@@ -347,8 +357,8 @@ let queryType = try! GraphQLObjectType(
                     description: "id of the human"
                 )
             ],
-            resolve: { _, args, _, _ in
-                return try getHuman(id: args["id"]!.string!).asMap()
+            resolve: { _, arguments, _, _ in
+                return getHuman(id: arguments["id"].string!)
             }
         ),
         "droid": GraphQLField(
@@ -359,8 +369,8 @@ let queryType = try! GraphQLObjectType(
                     description: "id of the droid"
                 )
             ],
-            resolve: { _, args, _, _ in
-                return try getDroid(id: args["id"]!.string!).asMap()
+            resolve: { _, arguments, _, _ in
+                return getDroid(id: arguments["id"].string!)
             }
         ),
     ]

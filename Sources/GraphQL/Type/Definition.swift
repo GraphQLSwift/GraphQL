@@ -62,8 +62,8 @@ func isOutputType(type: GraphQLType?) -> Bool {
  * These types may describe types which may be leaf values.
  */
 public protocol GraphQLLeafType : GraphQLType, GraphQLNamedType {
-    func serialize(value: Map) throws -> Map?
-    func parseValue(value: Map) throws -> Map?
+    func serialize(value: MapRepresentable) throws -> Map?
+    func parseValue(value: MapRepresentable) throws -> Map?
     func parseLiteral(valueAST: Value) throws -> Map?
 }
 
@@ -176,14 +176,14 @@ extension GraphQLNonNull : GraphQLWrapperType {}
 public final class GraphQLScalarType {
     public let name: String
     let scalarDescription: String?
-    let serialize: (Map) throws -> Map?
-    let parseValue: ((Map) throws -> Map?)?
+    let serialize: (MapRepresentable) throws -> Map?
+    let parseValue: ((MapRepresentable) throws -> Map?)?
     let parseLiteral: ((Value) throws -> Map?)?
 
     public init(
         name: String,
         description: String? = nil,
-        serialize: @escaping (Map) throws -> Map?
+        serialize: @escaping (MapRepresentable) throws -> Map?
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -196,8 +196,8 @@ public final class GraphQLScalarType {
     init(
         name: String,
         description: String? = nil,
-        serialize: @escaping (Map) throws -> Map?,
-        parseValue: @escaping (Map) throws -> Map?,
+        serialize: @escaping (MapRepresentable) throws -> Map?,
+        parseValue: @escaping (MapRepresentable) throws -> Map?,
         parseLiteral: @escaping (Value) throws -> Map?
     ) throws {
         try assertValid(name: name)
@@ -209,12 +209,12 @@ public final class GraphQLScalarType {
     }
 
     // Serializes an internal value to include in a response.
-    public func serialize(value: Map) throws -> Map? {
+    public func serialize(value: MapRepresentable) throws -> Map? {
         return try self.serialize(value)
     }
 
     // Parses an externally provided value to use as an input.
-    public func parseValue(value: Map) throws -> Map? {
+    public func parseValue(value: MapRepresentable) throws -> Map? {
         return try self.parseValue?(value)
     }
 
@@ -284,13 +284,13 @@ extension GraphQLScalarType : Hashable {
  *
  * Example:
  *
- *     const PersonType = new GraphQLObjectType({
- *       name: 'Person',
- *       fields: () => ({
- *         name: { type: GraphQLString },
- *         bestFriend: { type: PersonType },
- *       })
- *     });
+ *     let PersonType = GraphQLObjectType(
+ *       name: "Person",
+ *       fields: [
+ *         "name": GraphQLField(type: GraphQLString),
+ *         "bestFriend": GraphQLField(type: GraphQLTypeReference("PersonType")),
+ *       ]
+ *     )
  *
  */
 public final class GraphQLObjectType {
@@ -457,23 +457,23 @@ public enum TypeResolveResult {
 }
 
 public typealias GraphQLTypeResolve = (
-    _ value: Map,
-    _ context: Map,
+    _ value: MapRepresentable,
+    _ context: MapRepresentable,
     _ info: GraphQLResolveInfo
 ) throws -> TypeResolveResult
 
 public typealias GraphQLIsTypeOf = (
-    _ source: Map,
-    _ context: Map,
+    _ source: MapRepresentable,
+    _ context: MapRepresentable,
     _ info: GraphQLResolveInfo
 ) -> Bool
 
 public typealias GraphQLFieldResolve = (
-    _ source: Map,
-    _ args: [String: Map],
-    _ context: Map,
+    _ source: MapRepresentable,
+    _ args: Map,
+    _ context: MapRepresentable,
     _ info: GraphQLResolveInfo
-) throws -> Map
+) throws -> MapRepresentable
 
 public struct GraphQLResolveInfo {
     let fieldName: String
@@ -889,12 +889,12 @@ public final class GraphQLEnumType {
         self.nameLookup = nameLookup
     }
 
-    public func serialize(value: Map) -> Map? {
-        return valueLookup[value].map({ .string($0.name) })
+    public func serialize(value: MapRepresentable) -> Map? {
+        return valueLookup[value.map].map({ .string($0.name) })
     }
 
-    public func parseValue(value: Map) -> Map? {
-        if case .string(let value) = value {
+    public func parseValue(value: MapRepresentable) -> Map? {
+        if case .string(let value) = value.map {
             return nameLookup[value]?.value
         }
 

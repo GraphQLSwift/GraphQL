@@ -1,3 +1,5 @@
+import GraphQL
+
 /**
  * This defines a basic set of data for our Star Wars Schema.
  *
@@ -12,7 +14,7 @@ enum Episode : String {
     case jedi = "JEDI"
 }
 
-protocol Character {
+protocol Character : MapRepresentable {
     var id: String { get }
     var name: String { get }
     var friends: [String] { get }

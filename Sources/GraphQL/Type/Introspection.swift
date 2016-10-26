@@ -9,21 +9,23 @@ let __Schema = try! GraphQLObjectType(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__Type))),
             description: "A list of all types supported by this server.",
             resolve: { schema, _, _, _ in
-                if case .dictionary(let dictionary) = schema["types"] {
-                    let array = Array(dictionary.values).sorted {
-                        $0["name"].string! < $1["name"].string!
-                    }
-                    return .array(array)
+                guard let schema = schema as? GraphQLSchema else {
+                    return Map.null
                 }
 
-                return .null
+                let typeMap = schema.typeMap
+                return Array(typeMap.values)
             }
         ),
         "queryType": GraphQLField(
             type: GraphQLNonNull(__Type),
             description: "The type that query operations will be rooted at.",
             resolve: { schema, _, _, _ in
-                return schema["queryType"]
+                guard let schema = schema as? GraphQLSchema else {
+                    return Map.null
+                }
+
+                return schema.queryType
             }
         ),
         "mutationType": GraphQLField(
@@ -31,9 +33,12 @@ let __Schema = try! GraphQLObjectType(
             description:
             "If this server supports mutation, the type that " +
             "mutation operations will be rooted at.",
-            resolve: { _, _, _, info in
-//                return info.schema.mutationType
-                return "mutationType"
+            resolve: { schema, _, _, _ in
+                guard let schema = schema as? GraphQLSchema else {
+                    return Map.null
+                }
+
+                return schema.mutationType
             }
         ),
         "subscriptionType": GraphQLField(
@@ -41,17 +46,23 @@ let __Schema = try! GraphQLObjectType(
             description:
             "If this server support subscription, the type that " +
             "subscription operations will be rooted at.",
-            resolve: { _, _, _, info in
-//                return info.schema.subscriptionType
-                return "subscriptionType"
+            resolve: { schema, _, _, _ in
+                guard let schema = schema as? GraphQLSchema else {
+                    return Map.null
+                }
+
+                return schema.subscriptionType
             }
         ),
         "directives": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__Directive))),
             description: "A list of all directives supported by this server.",
-            resolve: { _, _, _, info in
-//                return info.schema.directives
-                return "directives"
+            resolve: { schema, _, _, _ in
+                guard let schema = schema as? GraphQLSchema else {
+                    return Map.null
+                }
+
+                return schema.directives
             }
         )
     ]
@@ -75,8 +86,11 @@ let __Directive = try! GraphQLObjectType(
         "args": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__InputValue))),
             resolve: { directive, _, _, _ in
-//                return directive.args
-                return "args"
+                guard let directive = directive as? GraphQLDirective else {
+                    return Map.null
+                }
+
+                return directive.args
             }
         ),
     ]
@@ -178,7 +192,26 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
         "kind": GraphQLField(
             type: GraphQLNonNull(__TypeKind),
             resolve: { type, _, _, _ in
-                return type["kind"]
+                switch type {
+                case let type as GraphQLScalarType:
+                    return TypeKind.scalar
+                case let type as GraphQLObjectType:
+                    return TypeKind.object
+                case let type as GraphQLInterfaceType:
+                    return TypeKind.interface
+                case let type as GraphQLUnionType:
+                    return TypeKind.union
+                case let type as GraphQLEnumType:
+                    return TypeKind.scalar
+                case let type as GraphQLInputObjectType:
+                    return TypeKind.inputObject
+                case let type as GraphQLList:
+                    return TypeKind.list
+                case let type as GraphQLNonNull:
+                    return TypeKind.nonNull
+                default:
+                    throw GraphQLError(message: "Unknown kind of type: \(type)")
+                }
             }
         ),
         "name": GraphQLField(type: GraphQLString),
@@ -192,40 +225,38 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                 )
             ],
             resolve: { type, arguments, _, _ in
-                if type["kind"] == TypeKind.object.rawValue.map ||
-                    type["kind"] == TypeKind.interface.rawValue.map {
-                    let fieldMap = type["fields"].dictionary!
+                if let type = type as? GraphQLObjectType {
+                    let fieldMap = type.fields
+                    var fields = Array(fieldMap.values)
 
-                    var fields = Array(fieldMap.values).sorted {
-                        $0["name"].string! < $1["name"].string!
+                    if !arguments["includeDeprecated"].bool! {
+                        fields = fields.filter({ !$0.isDeprecated })
                     }
 
-                    if !arguments["includeDeprecated"]!.bool! {
-                        fields = fields.filter({ !$0["isDeprecated"].bool! })
-                    }
-
-                    return fields.map
+                    return fields
                 }
 
-                return .null
+                return Map.null
             }
         ),
         "interfaces": GraphQLField(
             type: GraphQLList(GraphQLNonNull(GraphQLTypeReference("__Type"))),
             resolve: { type, _, _, _ in
-//                if let type = type as? GraphQLObjectType {
-//                    return type.interfaces
-//                }
-                return .null
+                if let type = type as? GraphQLObjectType {
+                    return type.interfaces
+                }
+
+                return Map.null
             }
         ),
         "possibleTypes": GraphQLField(
             type: GraphQLList(GraphQLNonNull(GraphQLTypeReference("__Type"))),
             resolve: { type, args, context, info in
-//                if let type = type as? GraphQLAbstractType {
-//                    return info.schema.getPossibleTypes(abstractType: type)
-//                }
-                return .null
+                if let type = type as? GraphQLAbstractType {
+                    return info.schema.getPossibleTypes(abstractType: type)
+                }
+
+                return Map.null
             }
         ),
         "enumValues": GraphQLField(
@@ -236,28 +267,29 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     defaultValue: false
                 )
             ],
-            resolve: { type, includeDeprecated, _, _ in
-//                if let type = type as? GraphQLEnumType {
-//                    let values = type.values
-//
-//                    if !includeDeprecated {
-//                        fields = fields.filter({ !$0.isDeprecated })
-//                    }
-//                    
-//                    return values
-//                }
-                return .null
+            resolve: { type, arguments, _, _ in
+                if let type = type as? GraphQLEnumType {
+                    var values = type.values
+
+                    if !arguments["includeDeprecated"].bool! {
+                        values = values.filter({ !$0.isDeprecated })
+                    }
+                    
+                    return values
+                }
+
+                return Map.null
             }
         ),
         "inputFields": GraphQLField(
             type: GraphQLList(GraphQLNonNull(__InputValue)),
             resolve: { type, _, _, _ in
-//                if let type = type as? GraphQLInputObjectType {
-//                    let fieldMap = type.fields
-//                    return fields.values
-//                }
-//                
-                return .null
+                if let type = type as? GraphQLInputObjectType {
+                    let fieldMap = type.fields
+                    return Array(fieldMap.values)
+                }
+                
+                return Map.null
             }
         ),
         "ofType": GraphQLField(type: GraphQLTypeReference("__Type"))
@@ -275,7 +307,7 @@ let __Field = try! GraphQLObjectType(
         "args": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__InputValue))),
             resolve: { field, _, _, _ in
-                return field["args"]
+                return field.map["args"]
             }
         ),
         "type": GraphQLField(type: GraphQLNonNull(GraphQLTypeReference("__Type"))),
@@ -300,11 +332,11 @@ let __InputValue = try! GraphQLObjectType(
             "A GraphQL-formatted string representing the default value for this " +
             "input value.",
             resolve: { inputVal, _, _, _ in
-                if isNullish(inputVal["defaultValue"]) {
-                    return .null
-                }
+//                if isNullish(inputVal["defaultValue"]) {
+//                    return Map.null
+//                }
 //                print(astFromValue(inputVal.defaultValue, inputVal.type))
-                return .null
+                return Map.null
             }
         )
     ]
@@ -334,6 +366,12 @@ enum TypeKind : String {
     case list = "LIST"
     case nonNull = "NON_NULL"
     case typeReference = "TYPE_REFERENCE"
+}
+
+extension TypeKind : MapRepresentable {
+    var map: Map {
+        return rawValue.map
+    }
 }
 
 let __TypeKind = try! GraphQLEnumType(
@@ -392,7 +430,7 @@ let SchemaMetaFieldDef = GraphQLFieldDefinition(
     type: GraphQLNonNull(__Schema),
     description: "Access the current type schema of this server.",
     resolve: { _, _, _, info in
-        return info.schema.map
+        return info.schema
     }
 )
 
@@ -406,15 +444,9 @@ let TypeMetaFieldDef = GraphQLFieldDefinition(
             type: GraphQLNonNull(GraphQLString)
         )
     ],
-    resolve: { _, args, _, info in
-//        let name = args["name"]!.string!
-//        let type = info.schema.types[name]
-//
-//        guard type["kind"] != TypeKind.typeReference.rawValue.map else {
-//            return info.schema.types[type["name"].string!]
-//        }
-
-        return .null
+    resolve: { _, arguments, _, info in
+        let name = arguments["name"].string!
+        return info.schema.getType(name: name)
     }
 )
 
@@ -423,6 +455,6 @@ let TypeNameMetaFieldDef = GraphQLFieldDefinition(
     type: GraphQLNonNull(GraphQLString),
     description: "The name of the current Object type at runtime.",
     resolve: { _, _, _, info in
-        info.parentType.name.map
+        info.parentType.name
     }
 )
