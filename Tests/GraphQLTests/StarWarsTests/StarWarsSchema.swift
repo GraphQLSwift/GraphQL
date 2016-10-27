@@ -11,52 +11,14 @@ import GraphQL
  * Wars trilogy.
  */
 
-extension Episode : MapConvertible, MapRepresentable {
-    init(map: Map) throws {
-        self = Episode(rawValue: map.string!)!
-    }
-
+extension Episode : MapRepresentable {
     var map: Map {
         return rawValue.map
     }
 }
 
-extension Character {
+extension Human : MapRepresentable {
     var map: Map {
-        if let human = self as? Human {
-            return [
-                "id": human.id.map,
-                "name": human.name.map,
-                "friends": human.friends.map,
-                "appearsIn": human.appearsIn.map,
-                "homePlanet": human.homePlanet.map
-            ]
-        }
-
-        if let droid = self as? Droid {
-            return [
-                "id": droid.id.map,
-                "name": droid.name.map,
-                "friends": droid.friends.map,
-                "appearsIn": droid.appearsIn.map,
-                "primaryFunction": droid.primaryFunction.map
-            ]
-        }
-
-        return nil
-    }
-}
-
-extension Human : MapConvertible {
-    init(map: Map) throws {
-        id = try map.get("id")
-        name = try map.get("name")
-        friends = try map.get("friends")
-        appearsIn = try map.get("appearsIn")
-        homePlanet = try? map.get("homePlanet")
-    }
-
-    func asMap() throws -> Map {
         return [
             "id": id.map,
             "name": name.map,
@@ -67,16 +29,8 @@ extension Human : MapConvertible {
     }
 }
 
-extension Droid : MapConvertible {
-    init(map: Map) throws {
-        id = try map.get("id")
-        name = try map.get("name")
-        friends = try map.get("friends")
-        appearsIn = try map.get("appearsIn")
-        primaryFunction = try map.get("primaryFunction")
-    }
-
-    func asMap() throws -> Map {
+extension Droid : MapRepresentable {
+    var map: Map {
         return [
             "id": id.map,
             "name": name.map,
