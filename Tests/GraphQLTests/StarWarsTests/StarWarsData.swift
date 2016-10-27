@@ -12,6 +12,14 @@ enum Episode : String {
     case newHope = "NEWHOPE"
     case empire = "EMPIRE"
     case jedi = "JEDI"
+
+    init?(_ string: String?) {
+        guard let string = string else {
+            return nil
+        }
+
+        self.init(rawValue: string)
+    }
 }
 
 protocol Character : MapRepresentable {

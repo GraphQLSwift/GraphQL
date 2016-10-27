@@ -131,20 +131,20 @@ extension Droid : MapConvertible {
  * This implements the following type system shorthand:
  *   enum Episode { NEWHOPE, EMPIRE, JEDI }
  */
-let episodeEnum = try! GraphQLEnumType(
+let EpisodeEnum = try! GraphQLEnumType(
     name: "Episode",
     description: "One of the films in the Star Wars Trilogy",
     values: [
         "NEWHOPE": GraphQLEnumValue(
-            value: Episode.newHope.rawValue.map,
+            value: Episode.newHope,
             description: "Released in 1977."
         ),
         "EMPIRE": GraphQLEnumValue(
-            value: Episode.empire.rawValue.map,
+            value: Episode.empire,
             description: "Released in 1980."
         ),
         "JEDI": GraphQLEnumValue(
-            value: Episode.jedi.rawValue.map,
+            value: Episode.jedi,
             description: "Released in 1983."
         ),
     ]
@@ -162,7 +162,7 @@ let episodeEnum = try! GraphQLEnumType(
  *     secretBackstory: String
  *   }
  */
-let characterInterface = try! GraphQLInterfaceType(
+let CharacterInterface = try! GraphQLInterfaceType(
     name: "Character",
     description: "A character in the Star Wars Trilogy",
     fields: [
@@ -179,7 +179,7 @@ let characterInterface = try! GraphQLInterfaceType(
             description: "The friends of the character, or an empty list if they have none."
         ),
         "appearsIn": GraphQLField(
-            type: GraphQLList(episodeEnum),
+            type: GraphQLList(EpisodeEnum),
             description: "Which movies they appear in."
         ),
         "secretBackstory": GraphQLField(
@@ -188,11 +188,12 @@ let characterInterface = try! GraphQLInterfaceType(
         ),
     ],
     resolveType: { character, _, _ in
-        guard let character = character as? Character else {
-            return .name("Droid")
+        switch character {
+        case is Human:
+            return "Human"
+        default:
+            return "Droid"
         }
-        
-        return getHuman(id: character.id) != nil ? .name("Human") : .name("Droid")
     }
 )
 
@@ -209,7 +210,7 @@ let characterInterface = try! GraphQLInterfaceType(
  *     secretBackstory: String
  *   }
  */
-let humanType = try! GraphQLObjectType(
+let HumanType = try! GraphQLObjectType(
     name: "Human",
     description: "A humanoid creature in the Star Wars universe.",
     fields: [
@@ -222,19 +223,15 @@ let humanType = try! GraphQLObjectType(
             description: "The name of the human."
         ),
         "friends": GraphQLField(
-            type: GraphQLList(characterInterface),
+            type: GraphQLList(CharacterInterface),
             description: "The friends of the human, or an empty list if they " +
             "have none.",
             resolve: { human, _, _, _ in
-                guard let human = human as? Human else {
-                    return Map.null
-                }
-
-                return getFriends(character: human)
+                return getFriends(character: human as! Human)
             }
         ),
         "appearsIn": GraphQLField(
-            type: GraphQLList(episodeEnum),
+            type: GraphQLList(EpisodeEnum),
             description: "Which movies they appear in."
         ),
         "homePlanet": GraphQLField(
@@ -253,7 +250,10 @@ let humanType = try! GraphQLObjectType(
             }
         ),
     ],
-    interfaces: [characterInterface]
+    interfaces: [CharacterInterface],
+    isTypeOf: { source, _, _ in
+        source is Human
+    }
 )
 
 
@@ -270,7 +270,7 @@ let humanType = try! GraphQLObjectType(
  *     primaryFunction: String
  *   }
  */
-let droidType = try! GraphQLObjectType(
+let DroidType = try! GraphQLObjectType(
     name: "Droid",
     description: "A mechanical creature in the Star Wars universe.",
     fields: [
@@ -283,18 +283,14 @@ let droidType = try! GraphQLObjectType(
             description: "The name of the droid."
         ),
         "friends": GraphQLField(
-            type: GraphQLList(characterInterface),
+            type: GraphQLList(CharacterInterface),
             description: "The friends of the droid, or an empty list if they have none.",
             resolve: { droid, _, _, _ in
-                guard let droid = droid as? Droid else {
-                    return Map.null
-                }
-
-                return getFriends(character: droid)
+                return getFriends(character: droid as! Droid)
             }
         ),
         "appearsIn": GraphQLField(
-            type: GraphQLList(episodeEnum),
+            type: GraphQLList(EpisodeEnum),
             description: "Which movies they appear in."
         ),
         "secretBackstory": GraphQLField(
@@ -313,7 +309,10 @@ let droidType = try! GraphQLObjectType(
             description: "The primary function of the droid."
         ),
     ],
-    interfaces: [characterInterface]
+    interfaces: [CharacterInterface],
+    isTypeOf: { source, _, _ in
+        source is Droid
+    }
 )
 
 
@@ -331,14 +330,14 @@ let droidType = try! GraphQLObjectType(
  *   }
  *
  */
-let queryType = try! GraphQLObjectType(
+let QueryType = try! GraphQLObjectType(
     name: "Query",
     fields: [
         "hero": GraphQLField(
-            type: characterInterface,
+            type: CharacterInterface,
             args: [
                 "episode": GraphQLArgument(
-                    type: episodeEnum,
+                    type: EpisodeEnum,
                     description:
                     "If omitted, returns the hero of the whole saga. If " +
                     "provided, returns the hero of that particular episode."
@@ -350,7 +349,7 @@ let queryType = try! GraphQLObjectType(
             }
         ),
         "human": GraphQLField(
-            type: humanType,
+            type: HumanType,
             args: [
                 "id": GraphQLArgument(
                     type: GraphQLNonNull(GraphQLString),
@@ -362,7 +361,7 @@ let queryType = try! GraphQLObjectType(
             }
         ),
         "droid": GraphQLField(
-            type: droidType,
+            type: DroidType,
             args: [
                 "id": GraphQLArgument(
                     type: GraphQLNonNull(GraphQLString),
@@ -381,6 +380,6 @@ let queryType = try! GraphQLObjectType(
  * type we defined above) and export it.
  */
 let StarWarsSchema = try! GraphQLSchema(
-    query: queryType,
-    types: [humanType, droidType]
+    query: QueryType,
+    types: [HumanType, DroidType]
 )

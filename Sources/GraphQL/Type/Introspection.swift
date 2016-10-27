@@ -14,7 +14,7 @@ let __Schema = try! GraphQLObjectType(
                 }
 
                 let typeMap = schema.typeMap
-                return Array(typeMap.values)
+                return Array(typeMap.values).sorted(by: { $0.name < $1.name })
             }
         ),
         "queryType": GraphQLField(
@@ -202,7 +202,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                 case let type as GraphQLUnionType:
                     return TypeKind.union
                 case let type as GraphQLEnumType:
-                    return TypeKind.scalar
+                    return TypeKind.enum
                 case let type as GraphQLInputObjectType:
                     return TypeKind.inputObject
                 case let type as GraphQLList:
@@ -227,7 +227,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
             resolve: { type, arguments, _, _ in
                 if let type = type as? GraphQLObjectType {
                     let fieldMap = type.fields
-                    var fields = Array(fieldMap.values)
+                    var fields = Array(fieldMap.values).sorted(by: { $0.name < $1.name })
 
                     if !arguments["includeDeprecated"].bool! {
                         fields = fields.filter({ !$0.isDeprecated })
@@ -286,7 +286,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
             resolve: { type, _, _, _ in
                 if let type = type as? GraphQLInputObjectType {
                     let fieldMap = type.fields
-                    return Array(fieldMap.values)
+                    return Array(fieldMap.values).sorted(by: { $0.name < $1.name })
                 }
                 
                 return Map.null
@@ -307,7 +307,11 @@ let __Field = try! GraphQLObjectType(
         "args": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__InputValue))),
             resolve: { field, _, _, _ in
-                return field.map["args"]
+                guard let field = field as? GraphQLFieldDefinition else {
+                    return Map.null
+                }
+
+                return field.args
             }
         ),
         "type": GraphQLField(type: GraphQLNonNull(GraphQLTypeReference("__Type"))),
@@ -331,12 +335,18 @@ let __InputValue = try! GraphQLObjectType(
             description:
             "A GraphQL-formatted string representing the default value for this " +
             "input value.",
-            resolve: { inputVal, _, _, _ in
-//                if isNullish(inputVal["defaultValue"]) {
-//                    return Map.null
-//                }
-//                print(astFromValue(inputVal.defaultValue, inputVal.type))
-                return Map.null
+            resolve: { inputValue, _, _, _ in
+                guard let inputValue = inputValue as? GraphQLArgumentDefinition else {
+                    return Map.null
+                }
+
+                guard let defaultValue = inputValue.defaultValue else {
+                    return Map.null
+                }
+
+                // This `print` is from the AST printer implementation
+//                return print(astFromValue(value: defaultValue, type: inputValue.type))
+                return defaultValue
             }
         )
     ]

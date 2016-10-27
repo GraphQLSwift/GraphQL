@@ -1,7 +1,7 @@
 /**
  * These are all of the possible kinds of types.
  */
-public protocol GraphQLType : CustomStringConvertible, CustomDebugStringConvertible, MapRepresentable {}
+public protocol GraphQLType : CustomDebugStringConvertible, MapRepresentable {}
 extension GraphQLScalarType : GraphQLType {}
 extension GraphQLObjectType : GraphQLType {}
 extension GraphQLInterfaceType : GraphQLType {}
@@ -175,7 +175,7 @@ extension GraphQLNonNull : GraphQLWrapperType {}
  */
 public final class GraphQLScalarType {
     public let name: String
-    let scalarDescription: String?
+    let description: String?
     let serialize: (MapRepresentable) throws -> Map?
     let parseValue: ((MapRepresentable) throws -> Map?)?
     let parseLiteral: ((Value) throws -> Map?)?
@@ -187,7 +187,7 @@ public final class GraphQLScalarType {
     ) throws {
         try assertValid(name: name)
         self.name = name
-        self.scalarDescription = description
+        self.description = description
         self.serialize = serialize
         self.parseValue = nil
         self.parseLiteral = nil
@@ -202,7 +202,7 @@ public final class GraphQLScalarType {
     ) throws {
         try assertValid(name: name)
         self.name = name
-        self.scalarDescription = description
+        self.description = description
         self.serialize = serialize
         self.parseValue = parseValue
         self.parseLiteral = parseLiteral
@@ -224,15 +224,9 @@ public final class GraphQLScalarType {
     }
 }
 
-extension GraphQLScalarType : CustomStringConvertible {
-    public var description: String {
-        return name
-    }
-}
-
 extension GraphQLScalarType : CustomDebugStringConvertible {
     public var debugDescription: String {
-        return "GraphQLScalarType(name:\(name.debugDescription),description:\(scalarDescription.debugDescription))"
+        return name
     }
 }
 
@@ -240,7 +234,7 @@ extension GraphQLScalarType {
     public var map: Map {
         return [
             "name": name.map,
-            "description": scalarDescription.map,
+            "description": description.map,
             "kind": TypeKind.scalar.rawValue.map,
         ]
     }
@@ -295,7 +289,7 @@ extension GraphQLScalarType : Hashable {
  */
 public final class GraphQLObjectType {
     public let name: String
-    let objectDescription: String?
+    let description: String?
     var fields: GraphQLFieldDefinitionMap
     let interfaces: [GraphQLInterfaceType]
     let isTypeOf: GraphQLIsTypeOf?
@@ -309,7 +303,7 @@ public final class GraphQLObjectType {
     ) throws {
         try assertValid(name: name)
         self.name = name
-        self.objectDescription = description
+        self.description = description
         self.fields = try defineFieldMap(
             name: name,
             fields: fields
@@ -322,22 +316,6 @@ public final class GraphQLObjectType {
         self.isTypeOf = isTypeOf
     }
 
-    init(
-        name: String,
-        objectDescription: String?,
-        fields: GraphQLFieldDefinitionMap,
-        interfaces: [GraphQLInterfaceType],
-        isTypeOf: GraphQLIsTypeOf?
-    ) {
-        self.name = name
-        self.objectDescription = objectDescription
-        self.fields = fields
-        self.interfaces = interfaces
-        self.isTypeOf = isTypeOf
-    }
-
-
-
     func replaceTypeReferences(typeMap: TypeMap) throws {
         for field in fields {
             try field.value.replaceTypeReferences(typeMap: typeMap)
@@ -345,15 +323,9 @@ public final class GraphQLObjectType {
     }
 }
 
-extension GraphQLObjectType : CustomStringConvertible {
-    public var description: String {
-        return name
-    }
-}
-
 extension GraphQLObjectType : CustomDebugStringConvertible {
     public var debugDescription: String {
-        return "GraphQLObjectType(name:\(name.debugDescription),description:\(objectDescription.debugDescription),fields:\(fields.debugDescription),interfaces:\(interfaces.debugDescription))"
+        return name
     }
 }
 
@@ -361,7 +333,7 @@ extension GraphQLObjectType {
     public var map: Map {
         return [
             "name": name.map,
-            "description": objectDescription.map,
+            "description": description.map,
             "fields": fields.map,
             "interfaces": interfaces.map,
             "kind": TypeKind.object.rawValue.map,
@@ -451,6 +423,22 @@ func defineInterfaces(
     return interfaces
 }
 
+public protocol TypeResolveResultRepresentable {
+    var typeResolveResult: TypeResolveResult { get }
+}
+
+extension GraphQLObjectType : TypeResolveResultRepresentable {
+    public var typeResolveResult: TypeResolveResult {
+        return .type(self)
+    }
+}
+
+extension String : TypeResolveResultRepresentable {
+    public var typeResolveResult: TypeResolveResult {
+        return .name(self)
+    }
+}
+
 public enum TypeResolveResult {
     case type(GraphQLObjectType)
     case name(String)
@@ -460,7 +448,7 @@ public typealias GraphQLTypeResolve = (
     _ value: MapRepresentable,
     _ context: MapRepresentable,
     _ info: GraphQLResolveInfo
-) throws -> TypeResolveResult
+) throws -> TypeResolveResultRepresentable
 
 public typealias GraphQLIsTypeOf = (
     _ source: MapRepresentable,
@@ -555,12 +543,6 @@ public final class GraphQLFieldDefinition {
     }
 }
 
-extension GraphQLFieldDefinition : CustomDebugStringConvertible {
-    public var debugDescription: String {
-        return "GraphQLObjectType(name:\(name.debugDescription),description:\(description.debugDescription),type:\(type.debugDescription),args:\(args.debugDescription),deprecationReason:\(deprecationReason.debugDescription),isDeprecated:\(isDeprecated))"
-    }
-}
-
 extension GraphQLFieldDefinition : MapRepresentable {
     public var map: Map {
         return [
@@ -642,7 +624,7 @@ extension GraphQLArgumentDefinition : MapRepresentable {
  */
 public final class GraphQLInterfaceType {
     public let name: String
-    let interfaceDescription: String?
+    let description: String?
     public let resolveType: GraphQLTypeResolve?
 
     let fields: GraphQLFieldDefinitionMap
@@ -655,23 +637,11 @@ public final class GraphQLInterfaceType {
     ) throws {
         try assertValid(name: name)
         self.name = name
-        self.interfaceDescription = description
+        self.description = description
         self.fields = try defineFieldMap(
             name: name,
             fields: fields
         )
-        self.resolveType = resolveType
-    }
-
-    init(
-        name: String,
-        interfaceDescription: String?,
-        fields: GraphQLFieldDefinitionMap,
-        resolveType: GraphQLTypeResolve?
-    ) {
-        self.name = name
-        self.interfaceDescription = interfaceDescription
-        self.fields = fields
         self.resolveType = resolveType
     }
 
@@ -682,15 +652,9 @@ public final class GraphQLInterfaceType {
     }
 }
 
-extension GraphQLInterfaceType : CustomStringConvertible {
-    public var description: String {
-        return name
-    }
-}
-
 extension GraphQLInterfaceType : CustomDebugStringConvertible {
     public var debugDescription: String {
-        return "GraphQLInterfaceType(name:\(name.debugDescription),description:\(interfaceDescription.debugDescription),fields:\(fields.debugDescription))"
+        return name
     }
 }
 
@@ -698,7 +662,7 @@ extension GraphQLInterfaceType {
     public var map: Map {
         return [
             "name": name.map,
-            "description": interfaceDescription.map,
+            "description": description.map,
             "fields": fields.map,
             "kind": TypeKind.interface.rawValue.map,
         ]
@@ -742,7 +706,7 @@ extension GraphQLInterfaceType : Hashable {
  */
 public final class GraphQLUnionType {
     public let name: String
-    let unionDescription: String?
+    let description: String?
     public let resolveType: GraphQLTypeResolve?
 
     let types: [GraphQLObjectType]
@@ -756,7 +720,7 @@ public final class GraphQLUnionType {
     ) throws {
         try assertValid(name: name)
         self.name = name
-        self.unionDescription = description
+        self.description = description
         self.resolveType = resolveType
         self.types = try defineTypes(
             name: name,
@@ -767,15 +731,9 @@ public final class GraphQLUnionType {
     }
 }
 
-extension GraphQLUnionType : CustomStringConvertible {
-    public var description: String {
-        return name
-    }
-}
-
 extension GraphQLUnionType : CustomDebugStringConvertible {
     public var debugDescription: String {
-        return "GraphQLUnionType(name:\(name.debugDescription),description:\(unionDescription.debugDescription),types:\(types.debugDescription))"
+        return name
     }
 }
 
@@ -783,7 +741,7 @@ extension GraphQLUnionType {
     public var map: Map {
         return [
             "name": name.map,
-            "description": unionDescription.map,
+            "description": description.map,
             "types": types.map,
             "kind": TypeKind.union.rawValue.map,
         ]
@@ -853,7 +811,7 @@ func defineTypes(
  */
 public final class GraphQLEnumType {
     public let name: String
-    let enumDescription: String?
+    let description: String?
 
     let values: [GraphQLEnumValueDefinition]
     let valueLookup: [Map: GraphQLEnumValueDefinition]
@@ -866,7 +824,7 @@ public final class GraphQLEnumType {
     ) throws {
         try assertValid(name: name)
         self.name = name
-        self.enumDescription = description
+        self.description = description
         self.values = try defineEnumValues(
             name: name,
             valueMap: values
@@ -910,15 +868,9 @@ public final class GraphQLEnumType {
     }
 }
 
-extension GraphQLEnumType : CustomStringConvertible {
-    public var description: String {
-        return name
-    }
-}
-
 extension GraphQLEnumType : CustomDebugStringConvertible {
     public var debugDescription: String {
-        return "GraphQLEnumType(name:\(name.debugDescription),description:\(enumDescription.debugDescription),values:\(values.debugDescription))"
+        return name
     }
 }
 
@@ -926,7 +878,7 @@ extension GraphQLEnumType {
     public var map: Map {
         return [
             "name": name.map,
-            "description": enumDescription.map,
+            "description": description.map,
             "values": values.map,
             "kind": TypeKind.enum.rawValue.map,
         ]
@@ -979,11 +931,11 @@ public struct GraphQLEnumValue {
     let deprecationReason: String?
 
     public init(
-        value: Map,
+        value: MapRepresentable,
         description: String? = nil,
         deprecationReason: String? = nil
     ) {
-        self.value = value
+        self.value = value.map
         self.description = description
         self.deprecationReason = deprecationReason
     }
@@ -997,12 +949,6 @@ struct GraphQLEnumValueDefinition {
 
     var isDeprecated: Bool {
         return deprecationReason != nil
-    }
-}
-
-extension GraphQLEnumValueDefinition : CustomDebugStringConvertible {
-    public var debugDescription: String {
-        return "GraphQLEnumType(name:\(name.debugDescription),description:\(description.debugDescription),value:\(value),deprecationReason:\(deprecationReason.debugDescription),isDeprecated:\(isDeprecated))"
     }
 }
 
@@ -1039,7 +985,7 @@ extension GraphQLEnumValueDefinition : MapRepresentable {
  */
 public final class GraphQLInputObjectType {
     public let name: String
-    let inputObjectDescription: String?
+    let description: String?
 
     let fields: InputObjectFieldMap
 
@@ -1050,7 +996,7 @@ public final class GraphQLInputObjectType {
     ) throws {
         try assertValid(name: name)
         self.name = name
-        self.inputObjectDescription = description
+        self.description = description
         self.fields = try defineInputObjectFieldMap(
             name: name,
             fields: fields
@@ -1058,15 +1004,9 @@ public final class GraphQLInputObjectType {
     }
 }
 
-extension GraphQLInputObjectType : CustomStringConvertible {
-    public var description: String {
-        return name
-    }
-}
-
 extension GraphQLInputObjectType : CustomDebugStringConvertible {
     public var debugDescription: String {
-        return "GraphQLInputObjectType(name:\(name.debugDescription),description:\(inputObjectDescription.debugDescription),fields:\(fields.debugDescription))"
+        return name
     }
 }
 
@@ -1074,7 +1014,7 @@ extension GraphQLInputObjectType {
     public var map: Map {
         return [
             "name": name.map,
-            "description": inputObjectDescription.map,
+            "description": description.map,
             "fields": fields.map,
             "kind": TypeKind.inputObject.rawValue.map,
         ]
@@ -1184,15 +1124,9 @@ public final class GraphQLList {
     }
 }
 
-extension GraphQLList : CustomStringConvertible {
-    public var description: String {
-        return "[" + ofType.description + "]"
-    }
-}
-
 extension GraphQLList : CustomDebugStringConvertible {
     public var debugDescription: String {
-        return "GraphQLList(ofType:\(ofType.debugDescription))"
+        return "[" + ofType.debugDescription + "]"
     }
 }
 
@@ -1259,15 +1193,9 @@ public final class GraphQLNonNull {
     }
 }
 
-extension GraphQLNonNull : CustomStringConvertible {
-    public var description: String {
-        return ofType.description + "!"
-    }
-}
-
 extension GraphQLNonNull : CustomDebugStringConvertible {
     public var debugDescription: String {
-        return "GraphQLNonNull(ofType:\(ofType.debugDescription))"
+        return ofType.debugDescription + "!"
     }
 }
 
@@ -1302,15 +1230,9 @@ public final class GraphQLTypeReference : GraphQLType, GraphQLOutputType, GraphQ
     }
 }
 
-extension GraphQLTypeReference : CustomStringConvertible {
-    public var description: String {
-        return name
-    }
-}
-
 extension GraphQLTypeReference : CustomDebugStringConvertible {
     public var debugDescription: String {
-        return "GraphQLTypeReference(name:\(name.debugDescription))"
+        return name
     }
 }
 

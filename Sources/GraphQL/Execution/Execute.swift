@@ -817,8 +817,14 @@ func completeAbstractValue(
     path: [IndexPathElement],
     result: MapRepresentable
 ) throws -> MapRepresentable {
-    let resolveRes = try returnType.resolveType?(result, exeContext.contextValue, info) ??
-        defaultResolveType(value: result, context: exeContext.contextValue, info: info, abstractType: returnType).map({ .type($0) })
+    var resolveRes = try returnType.resolveType?(result, exeContext.contextValue, info).typeResolveResult
+
+    resolveRes = resolveRes ?? defaultResolveType(
+        value: result,
+        context: exeContext.contextValue,
+        info: info,
+        abstractType: returnType
+    )
 
     guard let resolveResult = resolveRes else {
         throw GraphQLError(
@@ -841,7 +847,7 @@ func completeAbstractValue(
         throw GraphQLError(
             message:
             "Abstract type \(returnType.name) must resolve to an Object type at " +
-                "runtime for field \(info.parentType.name).\(info.fieldName) with " +
+            "runtime for field \(info.parentType.name).\(info.fieldName) with " +
             "value \"\(resolveResult)\", received \"\(runtimeType)\".",
             nodes: fieldASTs
         )
@@ -880,7 +886,7 @@ func completeObjectValue(
     // If there is an isTypeOf predicate func, call it with the
     // current result. If isTypeOf returns false, then raise an error rather
     // than continuing execution.
-    if returnType.isTypeOf?(result, exeContext.contextValue, info) ?? false {
+    guard returnType.isTypeOf?(result, exeContext.contextValue, info) ?? true else {
         throw GraphQLError(
             message:
             "Expected value of type \"\(returnType.name)\" but got: \(result).",
@@ -923,24 +929,14 @@ func defaultResolveType(
     context: MapRepresentable,
     info: GraphQLResolveInfo,
     abstractType: GraphQLAbstractType
-) -> GraphQLObjectType? {
+) -> TypeResolveResult? {
     let possibleTypes = info.schema.getPossibleTypes(abstractType: abstractType)
-    return possibleTypes.find({ $0.isTypeOf?(value, context, info) ?? false })
-}
 
-func unwrap(_ value: MapRepresentable) -> MapRepresentable? {
-    let mirror = Mirror(reflecting: value)
-
-    if mirror.displayStyle != .optional {
-        return value
-    }
-
-    if mirror.children.isEmpty {
+    guard let type = possibleTypes.find({ $0.isTypeOf?(value, context, info) ?? false }) else {
         return nil
     }
 
-    let child = mirror.children.first!
-    return child.value as? MapRepresentable
+    return .type(type)
 }
 
 /**
@@ -949,11 +945,10 @@ func unwrap(_ value: MapRepresentable) -> MapRepresentable? {
  * and returns it as the result.
  */
 func defaultResolve(source: MapRepresentable, args: Map, context: MapRepresentable, info: GraphQLResolveInfo) -> MapRepresentable {
-    print(type(of: source))
     guard let source = unwrap(source) else {
         return Map.null
     }
-    print(type(of: source))
+
     guard let anyValue = try? get(info.fieldName, from: source), let value = anyValue as? MapRepresentable else {
         return Map.null
     }

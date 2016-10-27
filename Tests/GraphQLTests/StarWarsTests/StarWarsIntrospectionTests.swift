@@ -10,16 +10,6 @@ class StarWarsIntrospectionTests : XCTestCase {
             "which has a name, potentially a list of arguments, and a return type.",
             fields: [
                 "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
-                "description": GraphQLField(type: GraphQLString),
-                "args": GraphQLField(
-                    type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__InputValue))),
-                    resolve: { field, _, _, _ in
-                        return field.map["args"]
-                    }
-                ),
-                "type": GraphQLField(type: GraphQLNonNull(GraphQLTypeReference("__Type"))),
-                "isDeprecated": GraphQLField(type: GraphQLNonNull(GraphQLBoolean)),
-                "deprecationReason": GraphQLField(type: GraphQLString)
             ]
         )
 
