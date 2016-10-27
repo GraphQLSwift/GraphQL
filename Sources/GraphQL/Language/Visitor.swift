@@ -183,30 +183,30 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
 //                if inArray {
 //                    node = node.slice()
 //                } else {
-                    let clone = node
-                    node = clone
+//                    let clone = node
+//                    node = clone
 //                }
-
-                var editOffset = 0
-
-                for ii in 0..<edits.count {
-                    var editKey = edits[ii].key
-                    let editValue = edits[ii].node
-
+//
+//                var editOffset = 0
+//
+//                for ii in 0..<edits.count {
+//                    var editKey = edits[ii].key
+//                    let editValue = edits[ii].node
+//
 //                    if inArray {
 //                        editKey -= editOffset
 //                    }
-
+//
 //                    if inArray && editValue == nil {
 //                        node.splice(editKey, 1)
 //                        editOffset += 1
 //                    } else {
-                        // dynamic shit
-                    if let node = node, case .node(let n) = node {
-                        n.set(value: editValue, key: editKey.keyValue!)
-                    }
+//
+//                    if let node = node, case .node(let n) = node {
+//                        n.set(value: editValue, key: editKey.keyValue!)
 //                    }
-                }
+//                    }
+//                }
             }
 
             index = stack!.index
