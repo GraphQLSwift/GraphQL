@@ -34,9 +34,6 @@ func suggestionList(
  *
  * This distance can be useful for detecting typos in input or sorting
  *
- * @param {string} a
- * @param {string} b
- * @return {int} distance in number of edits
  */
 func lexicalDistance(_ a: String, _ b: String) -> Int {
     let aLength = a.utf8.count
@@ -66,4 +63,3 @@ func lexicalDistance(_ a: String, _ b: String) -> Int {
     
     return d[aLength][bLength]
 }
-

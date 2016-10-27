@@ -19,7 +19,7 @@ extension Optional : OptionalProtocol {
 }
 
 /**
- * Returns true if a value is null, undefined, or NaN.
+ * Returns true if a value is null, or nil.
  */
 func isNullish(_ value: MapRepresentable?) -> Bool {
     guard let value = value else {

@@ -171,42 +171,42 @@ extension Node {
     }
 }
 
-extension Name : Node {}
-extension Document : Node {}
-extension OperationDefinition : Node {}
-extension VariableDefinition : Node {}
-extension Variable : Node {}
-extension SelectionSet : Node {}
-extension Field : Node {}
-extension Argument : Node {}
-extension FragmentSpread : Node {}
-extension InlineFragment : Node {}
-extension FragmentDefinition : Node {}
-extension IntValue : Node {}
-extension FloatValue : Node {}
-extension StringValue : Node {}
-extension BooleanValue : Node {}
-extension EnumValue : Node {}
-extension ListValue : Node {}
-extension ObjectValue : Node {}
-extension ObjectField : Node {}
-extension Directive : Node {}
-extension NamedType : Node {}
-extension ListType : Node {}
-extension NonNullType : Node {}
-extension SchemaDefinition : Node {}
-extension OperationTypeDefinition : Node {}
-extension ScalarTypeDefinition : Node {}
-extension ObjectTypeDefinition : Node {}
-extension FieldDefinition : Node {}
-extension InputValueDefinition : Node {}
-extension InterfaceTypeDefinition : Node {}
-extension UnionTypeDefinition : Node {}
-extension EnumTypeDefinition : Node {}
-extension EnumValueDefinition : Node {}
+extension Name                      : Node {}
+extension Document                  : Node {}
+extension OperationDefinition       : Node {}
+extension VariableDefinition        : Node {}
+extension Variable                  : Node {}
+extension SelectionSet              : Node {}
+extension Field                     : Node {}
+extension Argument                  : Node {}
+extension FragmentSpread            : Node {}
+extension InlineFragment            : Node {}
+extension FragmentDefinition        : Node {}
+extension IntValue                  : Node {}
+extension FloatValue                : Node {}
+extension StringValue               : Node {}
+extension BooleanValue              : Node {}
+extension EnumValue                 : Node {}
+extension ListValue                 : Node {}
+extension ObjectValue               : Node {}
+extension ObjectField               : Node {}
+extension Directive                 : Node {}
+extension NamedType                 : Node {}
+extension ListType                  : Node {}
+extension NonNullType               : Node {}
+extension SchemaDefinition          : Node {}
+extension OperationTypeDefinition   : Node {}
+extension ScalarTypeDefinition      : Node {}
+extension ObjectTypeDefinition      : Node {}
+extension FieldDefinition           : Node {}
+extension InputValueDefinition      : Node {}
+extension InterfaceTypeDefinition   : Node {}
+extension UnionTypeDefinition       : Node {}
+extension EnumTypeDefinition        : Node {}
+extension EnumValueDefinition       : Node {}
 extension InputObjectTypeDefinition : Node {}
-extension TypeExtensionDefinition : Node {}
-extension DirectiveDefinition : Node {}
+extension TypeExtensionDefinition   : Node {}
+extension DirectiveDefinition       : Node {}
 
 final class Name {
     let kind: Kind = .name
@@ -264,9 +264,9 @@ extension Document : Equatable {
     }
 }
 
-protocol Definition : Node {}
+protocol  Definition          : Node       {}
 extension OperationDefinition : Definition {}
-extension FragmentDefinition : Definition {}
+extension FragmentDefinition  : Definition {}
 
 func == (lhs: Definition, rhs: Definition) -> Bool {
     switch lhs {
@@ -469,8 +469,8 @@ extension SelectionSet : Hashable {
     }
 }
 
-protocol Selection : Node {}
-extension Field : Selection {}
+protocol  Selection      : Node      {}
+extension Field          : Selection {}
 extension FragmentSpread : Selection {}
 extension InlineFragment : Selection {}
 
@@ -578,9 +578,9 @@ extension Argument : Equatable {
     }
 }
 
-protocol Fragment : Selection {}
-extension FragmentSpread : Fragment {}
-extension InlineFragment : Fragment {}
+protocol  Fragment       : Selection {}
+extension FragmentSpread : Fragment  {}
+extension InlineFragment : Fragment  {}
 
 final class FragmentSpread {
     let kind: Kind = .fragmentSpread
@@ -721,15 +721,15 @@ extension FragmentDefinition : Hashable {
     }
 }
 
-public protocol Value : Node {}
-extension Variable : Value {}
-extension IntValue : Value {}
-extension FloatValue : Value {}
-extension StringValue : Value {}
+public protocol Value  : Node  {}
+extension Variable     : Value {}
+extension IntValue     : Value {}
+extension FloatValue   : Value {}
+extension StringValue  : Value {}
 extension BooleanValue : Value {}
-extension EnumValue : Value {}
-extension ListValue : Value {}
-extension ObjectValue : Value {}
+extension EnumValue    : Value {}
+extension ListValue    : Value {}
+extension ObjectValue  : Value {}
 
 public func == (lhs: Value, rhs: Value) -> Bool {
     switch lhs {
@@ -941,9 +941,9 @@ extension Directive : Equatable {
     }
 }
 
-protocol Type : Node {}
-extension NamedType : Type {}
-extension ListType : Type {}
+protocol  Type        : Node {}
+extension NamedType   : Type {}
+extension ListType    : Type {}
 extension NonNullType : Type {}
 
 func == (lhs: Type, rhs: Type) -> Bool {
@@ -1042,10 +1042,10 @@ extension NonNullType : Equatable {
 
 // Type System Definition
 // experimental non-spec addition.
-protocol TypeSystemDefinition : Definition {}
-extension SchemaDefinition : TypeSystemDefinition {}
+protocol  TypeSystemDefinition    : Definition           {}
+extension SchemaDefinition        : TypeSystemDefinition {}
 extension TypeExtensionDefinition : TypeSystemDefinition {}
-extension DirectiveDefinition : TypeSystemDefinition {}
+extension DirectiveDefinition     : TypeSystemDefinition {}
 
 func == (lhs: TypeSystemDefinition, rhs: TypeSystemDefinition) -> Bool {
     switch lhs {
@@ -1112,13 +1112,13 @@ extension OperationTypeDefinition : Equatable {
     }
 }
 
-protocol TypeDefinition : TypeSystemDefinition {}
-extension ScalarTypeDefinition : TypeDefinition {}
-extension ObjectTypeDefinition : TypeDefinition {}
-extension InterfaceTypeDefinition : TypeDefinition {}
-extension UnionTypeDefinition : TypeDefinition {}
-extension EnumTypeDefinition : TypeDefinition {}
-extension InputObjectTypeDefinition : TypeDefinition {}
+protocol  TypeDefinition            : TypeSystemDefinition {}
+extension ScalarTypeDefinition      : TypeDefinition       {}
+extension ObjectTypeDefinition      : TypeDefinition       {}
+extension InterfaceTypeDefinition   : TypeDefinition       {}
+extension UnionTypeDefinition       : TypeDefinition       {}
+extension EnumTypeDefinition        : TypeDefinition       {}
+extension InputObjectTypeDefinition : TypeDefinition       {}
 
 func == (lhs: TypeDefinition, rhs: TypeDefinition) -> Bool {
     switch lhs {

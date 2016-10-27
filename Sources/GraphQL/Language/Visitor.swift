@@ -53,84 +53,31 @@ let QueryDocumentKeys: [Kind: [String]] = [
  *
  * By returning different values from the enter and leave functions, the
  * behavior of the visitor can be altered, including skipping over a sub-tree of
- * the AST (by returning false), editing the AST by returning a value or null
- * to remove the value, or to stop the whole traversal by returning BREAK.
+ * the AST (by returning `.skip`), editing the AST by returning a value or nil
+ * to remove the value, or to stop the whole traversal by returning `.break`.
  *
  * When using visit() to edit an AST, the original AST will not be modified, and
  * a new version of the AST with the changes applied will be returned from the
  * visit function.
  *
- *     const editedAST = visit(ast, {
- *       enter(node, key, parent, path, ancestors) {
- *         // @return
- *         //   undefined: no action
- *         //   false: skip visiting this node
- *         //   visitor.BREAK: stop visiting altogether
- *         //   null: delete this node
- *         //   any value: replace this node with the returned value
- *       },
- *       leave(node, key, parent, path, ancestors) {
- *         // @return
- *         //   undefined: no action
- *         //   false: no action
- *         //   visitor.BREAK: stop visiting altogether
- *         //   null: delete this node
- *         //   any value: replace this node with the returned value
- *       }
- *     });
- *
- * Alternatively to providing enter() and leave() functions, a visitor can
- * instead provide functions named the same as the kinds of AST nodes, or
- * enter/leave visitors at a named key, leading to four permutations of
- * visitor API:
- *
- * 1) Named visitors triggered when entering a node a specific kind.
- *
- *     visit(ast, {
- *       Kind(node) {
- *         // enter the "Kind" node
- *       }
- *     })
- *
- * 2) Named visitors that trigger upon entering and leaving a node of
- *    a specific kind.
- *
- *     visit(ast, {
- *       Kind: {
- *         enter(node) {
- *           // enter the "Kind" node
+ *     let editedAST = visit(ast, Visitor(
+ *         enter: { node, key, parent, path, ancestors in
+ *             return
+ *                 .continue: no action
+ *                 .skip: skip visiting this node
+ *                 .break: stop visiting altogether
+ *                 .node(nil): delete this node
+ *                 .node(newNode): replace this node with the returned value
+ *         },
+ *         leave: { node, key, parent, path, ancestors in
+ *             return
+ *                 .continue: no action
+ *                 .skip: no action
+ *                 .break: stop visiting altogether
+ *                 .node(nil): delete this node
+ *                 .node(newNode): replace this node with the returned value
  *         }
- *         leave(node) {
- *           // leave the "Kind" node
- *         }
- *       }
- *     })
- *
- * 3) Generic visitors that trigger upon entering and leaving any node.
- *
- *     visit(ast, {
- *       enter(node) {
- *         // enter any node
- *       },
- *       leave(node) {
- *         // leave any node
- *       }
- *     })
- *
- * 4) Parallel visitors for entering and leaving nodes of a specific kind.
- *
- *     visit(ast, {
- *       enter: {
- *         Kind(node) {
- *           // enter the "Kind" node
- *         }
- *       },
- *       leave: {
- *         Kind(node) {
- *           // leave the "Kind" node
- *         }
- *       }
- *     })
+ *     ))
  */
 @discardableResult
 func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node {

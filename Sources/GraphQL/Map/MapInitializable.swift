@@ -1,3 +1,25 @@
+extension MapInitializable {
+    public init(map: Map) throws {
+        guard case .dictionary(let dictionary) = map else {
+            throw MapError.cannotInitialize(type: Self.self, from: try type(of: map.get()))
+        }
+        self = try construct { property in
+            guard let initializable = property.type as? MapInitializable.Type else {
+                throw MapError.notMapInitializable(property.type)
+            }
+            switch dictionary[property.key] ?? .null {
+            case .null:
+                guard let expressibleByNilLiteral = property.type as? ExpressibleByNilLiteral.Type else {
+                    throw ReflectionError.requiredValueMissing(key: property.key)
+                }
+                return expressibleByNilLiteral.init(nilLiteral: ())
+            case let x:
+                return try initializable.init(map: x)
+            }
+        }
+    }
+}
+
 extension Map : MapInitializable {
     public init(map: Map) throws {
         self = map

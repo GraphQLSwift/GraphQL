@@ -951,11 +951,6 @@ func location(startToken: Token, endToken: Token, source: Source) -> Location {
     )
 }
 
-// Print a simplified form when appearing in JSON/util.inspect.
-//Loc.prototype.toJSON = Loc.prototype.inspect = func toJSON() {
-//  return { start: this.start, end: this.end };
-//};
-
 /**
  * Determines if the next token is of a given kind
  */

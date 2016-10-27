@@ -17,29 +17,8 @@ extension Episode : MapRepresentable {
     }
 }
 
-extension Human : MapRepresentable {
-    var map: Map {
-        return [
-            "id": id.map,
-            "name": name.map,
-            "friends": friends.map,
-            "appearsIn": appearsIn.map,
-            "homePlanet": homePlanet.map
-        ]
-    }
-}
-
-extension Droid : MapRepresentable {
-    var map: Map {
-        return [
-            "id": id.map,
-            "name": name.map,
-            "friends": friends.map,
-            "appearsIn": appearsIn.map,
-            "primaryFunction": primaryFunction.map
-        ]
-    }
-}
+extension Human : MapRepresentable {}
+extension Droid : MapRepresentable {}
 
 /**
  * Using our shorthand to describe type systems, the type system for our
@@ -298,7 +277,7 @@ let QueryType = try! GraphQLObjectType(
                 )
             ],
             resolve: { _, arguments, _, _ in
-                let episode = Episode(rawValue: arguments["episode"].string ?? "")
+                let episode = Episode(arguments["episode"].string)
                 return getHero(episode: episode)
             }
         ),

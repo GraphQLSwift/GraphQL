@@ -56,8 +56,6 @@ final class ExecutionContext {
 /**
  * Implements the "Evaluating requests" section of the GraphQL specification.
  *
- * Returns a Promise that will eventually be resolved and never rejected.
- *
  * If the arguments to this func do not result in a legal execution context,
  * a GraphQLError will be thrown immediately explaining the invalid input.
  */
@@ -69,7 +67,6 @@ func execute(
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) throws -> Map {
-
     // If a valid context cannot be created due to incorrect arguments,
     // this will throw an error.
     let context = try buildExecutionContext(
@@ -489,7 +486,7 @@ func resolveField(
     let returnType = fieldDef.type
     let resolve = fieldDef.resolve ?? defaultResolve
 
-    // Build a JS object of arguments from the field.arguments AST, using the
+    // Build a Map object of arguments from the field.arguments AST, using the
     // variables scope to fulfill any variable references.
     // TODO: find a way to memoize, in case this field is within a List type.
     let args = try getArgumentValues(
@@ -544,7 +541,7 @@ enum ResultOrError {
 }
 
 // Isolates the "ReturnOrAbrupt" behavior to not de-opt the `resolveField`
-// function. Returns the result of resolveFn or the abrupt-return Error object.
+// function. Returns the result of `resolve` or the abrupt-return Error object.
 func resolveOrError(
     resolve: GraphQLFieldResolve,
     source: MapRepresentable,
@@ -597,7 +594,7 @@ func completeValueCatchingError(
         return completed
     } catch let error as GraphQLError {
         // If `completeValueWithLocatedError` returned abruptly (threw an error),
-        // log the error and return null.
+        // log the error and return .null.
         exeContext.errors.append(error)
         return Map.null
     } catch {
@@ -669,7 +666,7 @@ func completeValue(
         throw error
     case .result(let result):
         // If field type is NonNull, complete for inner type, and throw field error
-        // if result is null.
+        // if result is nullish.
         if let returnType = returnType as? GraphQLNonNull {
             let completed = try completeValue(
                 exeContext: exeContext,
@@ -689,7 +686,7 @@ func completeValue(
             return completed
         }
 
-        // If result value is null-ish (null, undefined, or NaN) then return null.
+        // If result value is null-ish (nil or .null) then return .null.
         if isNullish(result) {
             return Map.null
         }
@@ -707,7 +704,7 @@ func completeValue(
         }
 
         // If field type is a leaf type, Scalar or Enum, serialize to a valid value,
-        // returning null if serialization is not possible.
+        // returning .null if serialization is not possible.
         if let returnType = returnType as? GraphQLLeafType {
             return try completeLeafValue(returnType: returnType, result: result)
         }
@@ -759,7 +756,7 @@ func completeListValue(
     guard let result = result as? [MapRepresentable] else {
         throw GraphQLError(
             message:
-            "Expected Iterable, but did not find one for field " +
+            "Expected array, but did not find one for field " +
             "\(info.parentType.name).\(info.fieldName)."
         )
     }
@@ -789,7 +786,7 @@ func completeListValue(
 
 /**
  * Complete a Scalar or Enum by serializing to a valid value, returning
- * null if serialization is not possible.
+ * .null if serialization is not possible.
  */
 func completeLeafValue(returnType: GraphQLLeafType, result: MapRepresentable) throws -> Map {
     let serializedResult = try returnType.serialize(value: result)
@@ -802,7 +799,7 @@ func completeLeafValue(returnType: GraphQLLeafType, result: MapRepresentable) th
         )
     }
     
-    return serializedResult!
+    return serializedResult
 }
 
 /**

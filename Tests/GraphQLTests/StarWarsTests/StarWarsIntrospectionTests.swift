@@ -2,21 +2,6 @@ import XCTest
 @testable import GraphQL
 
 class StarWarsIntrospectionTests : XCTestCase {
-    func testReflection() throws {
-        let __Field = try! GraphQLObjectType(
-            name: "__Field",
-            description:
-            "Object and Interface types are described by a list of Fields, each of " +
-            "which has a name, potentially a list of arguments, and a return type.",
-            fields: [
-                "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
-            ]
-        )
-
-        let name = try get("name", from: __Field)
-        print(name)
-    }
-
     func testIntrospectionTypeQuery() throws {
         let query = "query IntrospectionTypeQuery {" +
                     "    __schema {" +

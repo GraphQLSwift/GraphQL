@@ -159,7 +159,7 @@ func coerceValue(type: GraphQLInputType, value: Map) throws -> Map? {
     }
     
     guard let type = type as? GraphQLLeafType else {
-        fatalError("Must be input type")
+        throw GraphQLError(message: "Must be input type")
     }
     
     let parsed = try type.parseValue(value: value)

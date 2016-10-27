@@ -120,38 +120,6 @@ extension String {
     }
 }
 
-/**
- * Helper function for constructing the Token object.
- */
-//function Tok(
-//  kind,
-//  start: number,
-//  end: number,
-//  line: number,
-//  column: number,
-//  prev: Token | null,
-//  value?: string
-//) {
-//  this.kind = kind
-//  this.start = start
-//  this.end = end
-//  this.line = line
-//  this.column = column
-//  this.value = value
-//  this.prev = prev
-//  this.next = null
-//}
-
-// Print a simplified form when appearing in JSON/util.inspect.
-//Tok.prototype.toJSON = Tok.prototype.inspect = function toJSON() {
-//  return {
-//    kind: this.kind,
-//    value: this.value,
-//    line: this.line,
-//    column: this.column
-//  }
-//}
-
 func character(_ code: UInt8) -> Character {
   return Character(UnicodeScalar(code))
 }

@@ -12,7 +12,6 @@ func typeFromAST(schema: GraphQLSchema, inputTypeAST: Type) -> GraphQLType? {
 
     guard let namedType = inputTypeAST as? NamedType else {
         return nil
-//        invariant(inputTypeAST.kind === NAMED_TYPE, 'Must be a named type.');
     }
 
     return schema.getType(name: namedType.name.value)

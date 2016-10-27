@@ -1,3 +1,23 @@
+extension MapRepresentable {
+    public var map: Map {
+        guard let props = try? properties(self) else {
+            return .null
+        }
+
+        var dictionary = [String: Map](minimumCapacity: props.count)
+
+        for property in props {
+            guard let representable = property.value as? MapRepresentable else {
+                return .null
+            }
+
+            dictionary[property.key] = representable.map
+        }
+
+        return .dictionary(dictionary)
+    }
+}
+
 extension Map : MapRepresentable {
     public var map: Map {
         return self

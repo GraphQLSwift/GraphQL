@@ -78,7 +78,9 @@ func astFromValue(
 
     // Since value is an internally represented value, it must be serialized
     // to an externally represented value before converting into an AST.
-    guard let serialized = try leafType.serialize(value: value), !isNullish(serialized) else {
+    let serialized = try leafType.serialize(value: value)
+
+    guard !isNullish(serialized) else {
         return nil
     }
 

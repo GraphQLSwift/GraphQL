@@ -1,5 +1,5 @@
 /**
- * Given [ A, B, C ] return '"A", "B", or "C"'.
+ * Given ["A", "B", "C"] return "\"A\", \"B\", or \"C\"".
  */
 func quotedOrList(items: [String]) -> String {
     let maxLength = min(5, items.count)
@@ -10,8 +10,6 @@ func quotedOrList(items: [String]) -> String {
             return quoted.element
         }
 
-
-//        let separator = selected.count > 2 ? ", " : " "
         let or = quoted.offset == 0 ? "" : (quoted.offset == selected.count - 1 ? " or " : ", ")
         return list + or + quoted.element
     }

@@ -21,6 +21,12 @@ public enum DirectiveLocation : String {
     case inputFieldDefinition = "INPUT_FIELD_DEFINITION"
 }
 
+extension DirectiveLocation : MapRepresentable {
+    public var map: Map {
+        return rawValue.map
+    }
+}
+
 /**
  * Directives are used by the GraphQL runtime as a way of modifying execution
  * behavior. Type system creators will usually not create these directly.

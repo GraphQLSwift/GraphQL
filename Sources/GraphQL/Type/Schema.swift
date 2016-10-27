@@ -7,10 +7,10 @@
  *
  * Example:
  *
- *     const MyAppSchema = new GraphQLSchema({
- *       query: MyAppQueryRootType,
- *       mutation: MyAppMutationRootType,
- *     })
+ *     let MyAppSchema = GraphQLSchema(
+ *         query: MyAppQueryRootType,
+ *         mutation: MyAppMutationRootType,
+ *     )
  *
  * Note: If an array of `directives` are provided to GraphQLSchema, that will be
  * the exact list of directives represented and allowed. If `directives` is not
@@ -18,10 +18,11 @@
  * @skip) will be used. If you wish to provide *additional* directives to these
  * specified directives, you must explicitly declare them. Example:
  *
- *     const MyAppSchema = new GraphQLSchema({
- *       ...
- *       directives: specifiedDirectives.concat([ myCustomDirective ]),
- *     })
+ *     let MyAppSchema = GraphQLSchema(
+ *         ...
+ *         directives: specifiedDirectives + [myCustomDirective],
+ *         ...
+ *     )
  *
  */
 public final class GraphQLSchema {
@@ -158,11 +159,11 @@ public final class GraphQLSchema {
 extension GraphQLSchema : MapRepresentable {
     public var map: Map {
         return [
-//            "queryType": queryTypeMap,
-//            "mutationType": mutationTypeMap,
-//            "subscriptionType": subscriptionTypeMap,
-////            "directives":  directives.map,
-//            "types": types,
+            "queryType": queryType.map,
+            "mutationType": mutationType.map,
+            "subscriptionType": subscriptionType.map,
+            "directives":  directives.map.map,
+            "types": typeMap.map,
         ]
     }
 }

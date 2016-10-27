@@ -1,29 +1,25 @@
 /**
  * These are all of the possible kinds of types.
  */
-public protocol GraphQLType : CustomDebugStringConvertible, MapRepresentable {}
-extension GraphQLScalarType : GraphQLType {}
-extension GraphQLObjectType : GraphQLType {}
-extension GraphQLInterfaceType : GraphQLType {}
-extension GraphQLUnionType : GraphQLType {}
-extension GraphQLEnumType : GraphQLType {}
-extension GraphQLInputObjectType : GraphQLType {}
-extension GraphQLList : GraphQLType {}
-extension GraphQLNonNull : GraphQLType {}
-
-func isType(type: Any) -> Bool {
-    return type is GraphQLType
-}
+public protocol GraphQLType      : CustomDebugStringConvertible, MapRepresentable {}
+extension GraphQLScalarType      : GraphQLType                                    {}
+extension GraphQLObjectType      : GraphQLType                                    {}
+extension GraphQLInterfaceType   : GraphQLType                                    {}
+extension GraphQLUnionType       : GraphQLType                                    {}
+extension GraphQLEnumType        : GraphQLType                                    {}
+extension GraphQLInputObjectType : GraphQLType                                    {}
+extension GraphQLList            : GraphQLType                                    {}
+extension GraphQLNonNull         : GraphQLType                                    {}
 
 /**
  * These types may be used as input types for arguments and directives.
  */
-public protocol GraphQLInputType : GraphQLType {}
-extension GraphQLScalarType : GraphQLInputType {}
-extension GraphQLEnumType : GraphQLInputType {}
+public protocol GraphQLInputType : GraphQLType      {}
+extension GraphQLScalarType      : GraphQLInputType {}
+extension GraphQLEnumType        : GraphQLInputType {}
 extension GraphQLInputObjectType : GraphQLInputType {}
-extension GraphQLList : GraphQLInputType {}
-extension GraphQLNonNull : GraphQLInputType {}
+extension GraphQLList            : GraphQLInputType {}
+extension GraphQLNonNull         : GraphQLInputType {}
 // TODO: Conditional conformances
 //extension GraphQLList : GraphQLInputType where Element : GraphQLInputType {}
 //extension GraphQLNonNull : GraphQLInputType where Element : (GraphQLScalarType | GraphQLEnumType | GraphQLInputObjectType | GraphQLList<GraphQLInputType>) {}
@@ -36,35 +32,25 @@ func isInputType(type: GraphQLType?) -> Bool {
 /**
  * These types may be used as output types as the result of fields.
  */
-public protocol GraphQLOutputType : GraphQLType {}
-extension GraphQLScalarType : GraphQLOutputType {}
-extension GraphQLObjectType : GraphQLOutputType {}
-extension GraphQLInterfaceType : GraphQLOutputType {}
-extension GraphQLUnionType : GraphQLOutputType {}
-extension GraphQLEnumType : GraphQLOutputType {}
-extension GraphQLList : GraphQLOutputType {}
-extension GraphQLNonNull : GraphQLOutputType {}
+public protocol GraphQLOutputType : GraphQLType       {}
+extension GraphQLScalarType       : GraphQLOutputType {}
+extension GraphQLObjectType       : GraphQLOutputType {}
+extension GraphQLInterfaceType    : GraphQLOutputType {}
+extension GraphQLUnionType        : GraphQLOutputType {}
+extension GraphQLEnumType         : GraphQLOutputType {}
+extension GraphQLList             : GraphQLOutputType {}
+extension GraphQLNonNull          : GraphQLOutputType {}
 // TODO: Conditional conformances
 //extension GraphQLList : GraphQLOutputType where Element : GraphQLOutputType {}
 //extension GraphQLNonNull : GraphQLInputType where Element : (GraphQLScalarType | GraphQLObjectType | GraphQLInterfaceType | GraphQLUnionType | GraphQLEnumType | GraphQLList<GraphQLOutputType>) {}
-
-func isOutputType(type: GraphQLType?) -> Bool {
-    let namedType = getNamedType(type: type)
-
-    return namedType is GraphQLScalarType    ||
-           namedType is GraphQLObjectType    ||
-           namedType is GraphQLInterfaceType ||
-           namedType is GraphQLUnionType     ||
-           namedType is GraphQLEnumType
-}
 
 /**
  * These types may describe types which may be leaf values.
  */
 public protocol GraphQLLeafType : GraphQLType, GraphQLNamedType {
-    func serialize(value: MapRepresentable) throws -> Map?
-    func parseValue(value: MapRepresentable) throws -> Map?
-    func parseLiteral(valueAST: Value) throws -> Map?
+    func serialize(value: MapRepresentable) throws -> Map
+    func parseValue(value: MapRepresentable) throws -> Map
+    func parseLiteral(valueAST: Value) throws -> Map
 }
 
 extension GraphQLScalarType : GraphQLLeafType {}
@@ -80,21 +66,15 @@ func isLeafType(type: GraphQLType?) -> Bool {
  * These types may describe the parent context of a selection set.
  */
 public protocol GraphQLCompositeType : GraphQLType, GraphQLNamedType, GraphQLOutputType {}
-extension GraphQLObjectType : GraphQLCompositeType {}
-extension GraphQLInterfaceType : GraphQLCompositeType {}
-extension GraphQLUnionType : GraphQLCompositeType {}
-
-func isCompositeType(type: GraphQLType?) -> Bool {
-    return type is GraphQLObjectType    ||
-           type is GraphQLInterfaceType ||
-           type is GraphQLUnionType
-}
+extension GraphQLObjectType          : GraphQLCompositeType                             {}
+extension GraphQLInterfaceType       : GraphQLCompositeType                             {}
+extension GraphQLUnionType           : GraphQLCompositeType                             {}
 
 protocol GraphQLTypeReferenceContainer : GraphQLNamedType {
     func replaceTypeReferences(typeMap: TypeMap) throws
 }
 
-extension GraphQLObjectType : GraphQLTypeReferenceContainer {}
+extension GraphQLObjectType    : GraphQLTypeReferenceContainer {}
 extension GraphQLInterfaceType : GraphQLTypeReferenceContainer {}
 
 /**
@@ -105,19 +85,19 @@ public protocol GraphQLAbstractType : GraphQLType, GraphQLNamedType {
 }
 
 extension GraphQLInterfaceType : GraphQLAbstractType {}
-extension GraphQLUnionType : GraphQLAbstractType {}
+extension GraphQLUnionType     : GraphQLAbstractType {}
 
 /**
  * These types can all accept null as a value.
  */
-public protocol GraphQLNullableType : GraphQLType {}
-extension GraphQLScalarType : GraphQLNullableType {}
-extension GraphQLObjectType : GraphQLNullableType {}
-extension GraphQLInterfaceType : GraphQLNullableType {}
-extension GraphQLUnionType : GraphQLNullableType {}
-extension GraphQLEnumType : GraphQLNullableType {}
-extension GraphQLInputObjectType : GraphQLNullableType {}
-extension GraphQLList : GraphQLNullableType {}
+public protocol GraphQLNullableType : GraphQLType         {}
+extension GraphQLScalarType         : GraphQLNullableType {}
+extension GraphQLObjectType         : GraphQLNullableType {}
+extension GraphQLInterfaceType      : GraphQLNullableType {}
+extension GraphQLUnionType          : GraphQLNullableType {}
+extension GraphQLEnumType           : GraphQLNullableType {}
+extension GraphQLInputObjectType    : GraphQLNullableType {}
+extension GraphQLList               : GraphQLNullableType {}
 
 func getNullableType(type: GraphQLType?) -> GraphQLNullableType? {
     if let type = type as? GraphQLNonNull {
@@ -134,11 +114,11 @@ public protocol GraphQLNamedType : GraphQLType, GraphQLNullableType, MapRepresen
     var name: String { get }
 }
 
-extension GraphQLScalarType : GraphQLNamedType {}
-extension GraphQLObjectType : GraphQLNamedType {}
-extension GraphQLInterfaceType : GraphQLNamedType {}
-extension GraphQLUnionType : GraphQLNamedType {}
-extension GraphQLEnumType : GraphQLNamedType {}
+extension GraphQLScalarType      : GraphQLNamedType {}
+extension GraphQLObjectType      : GraphQLNamedType {}
+extension GraphQLInterfaceType   : GraphQLNamedType {}
+extension GraphQLUnionType       : GraphQLNamedType {}
+extension GraphQLEnumType        : GraphQLNamedType {}
 extension GraphQLInputObjectType : GraphQLNamedType {}
 
 func getNamedType(type: GraphQLType?) -> GraphQLNamedType? {
@@ -158,7 +138,7 @@ protocol GraphQLWrapperType : GraphQLType {
     var wrappedType: GraphQLType { get }
 }
 
-extension GraphQLList : GraphQLWrapperType {}
+extension GraphQLList    : GraphQLWrapperType {}
 extension GraphQLNonNull : GraphQLWrapperType {}
 
 /**
@@ -170,20 +150,25 @@ extension GraphQLNonNull : GraphQLWrapperType {}
  *
  * Example:
  *
- *     let oddType = try ScalarType(name: "Odd", serialize: { $0 % 2 == 1 ? $0 : nil })
+ *     let oddType = try ScalarType(
+ *         name: "Bool",
+ *         serialize: {
+ *             try $0.map.asBool(converting: true)
+ *         }
+ *     )
  *
  */
 public final class GraphQLScalarType {
     public let name: String
     let description: String?
-    let serialize: (MapRepresentable) throws -> Map?
-    let parseValue: ((MapRepresentable) throws -> Map?)?
-    let parseLiteral: ((Value) throws -> Map?)?
+    let serialize: (MapRepresentable) throws -> MapRepresentable
+    let parseValue: ((MapRepresentable) throws -> MapRepresentable)?
+    let parseLiteral: ((Value) throws -> MapRepresentable)?
 
     public init(
         name: String,
         description: String? = nil,
-        serialize: @escaping (MapRepresentable) throws -> Map?
+        serialize: @escaping (MapRepresentable) throws -> MapRepresentable
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -193,12 +178,12 @@ public final class GraphQLScalarType {
         self.parseLiteral = nil
     }
 
-    init(
+    public init(
         name: String,
         description: String? = nil,
-        serialize: @escaping (MapRepresentable) throws -> Map?,
-        parseValue: @escaping (MapRepresentable) throws -> Map?,
-        parseLiteral: @escaping (Value) throws -> Map?
+        serialize: @escaping (MapRepresentable) throws -> MapRepresentable,
+        parseValue: @escaping (MapRepresentable) throws -> MapRepresentable,
+        parseLiteral: @escaping (Value) throws -> MapRepresentable
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -209,18 +194,18 @@ public final class GraphQLScalarType {
     }
 
     // Serializes an internal value to include in a response.
-    public func serialize(value: MapRepresentable) throws -> Map? {
-        return try self.serialize(value)
+    public func serialize(value: MapRepresentable) throws -> Map {
+        return try self.serialize(value).map
     }
 
     // Parses an externally provided value to use as an input.
-    public func parseValue(value: MapRepresentable) throws -> Map? {
-        return try self.parseValue?(value)
+    public func parseValue(value: MapRepresentable) throws -> Map {
+        return try self.parseValue?(value).map ?? .null
     }
 
     // Parses an externally provided literal value to use as an input.
-    public func parseLiteral(valueAST: Value) throws -> Map? {
-        return try self.parseLiteral?(valueAST)
+    public func parseLiteral(valueAST: Value) throws -> Map {
+        return try self.parseLiteral?(valueAST).map ?? .null
     }
 }
 
@@ -258,32 +243,35 @@ extension GraphQLScalarType : Hashable {
  *
  * Example:
  *
- *     const AddressType = new GraphQLObjectType({
- *       name: 'Address',
- *       fields: {
- *         street: { type: GraphQLString },
- *         number: { type: GraphQLInt },
- *         formatted: {
- *           type: GraphQLString,
- *           resolve(obj) {
- *             return obj.number + ' ' + obj.street
- *           }
- *         }
- *       }
- *     });
+ *     let AddressType = GraphQLObjectType(
+ *         name: "Address",
+ *         fields: [
+ *             "street": GraphQLField(type: GraphQLString),
+ *             "number": GraphQLField(type: GraphQLInt),
+ *             "formatted": GraphQLField(
+ *                 type: GraphQLString,
+ *                 resolve: { address, _, _, _ in
+ *                     guard let address = address as? Address {
+ *                         return Map.null
+ *                     }
+ *
+ *                     return "\(address.number) \(address.street)"
+ *                 }
+ *             )
+ *         ]
+ *     )
  *
  * When two types need to refer to each other, or a type needs to refer to
- * itself in a field, you can use a function expression (aka a closure or a
- * thunk) to supply the fields lazily.
+ * itself in a field, you can wrap it in a GraphQLTypeReference to supply the fields lazily.
  *
  * Example:
  *
  *     let PersonType = GraphQLObjectType(
- *       name: "Person",
- *       fields: [
- *         "name": GraphQLField(type: GraphQLString),
- *         "bestFriend": GraphQLField(type: GraphQLTypeReference("PersonType")),
- *       ]
+ *         name: "Person",
+ *         fields: [
+ *             "name": GraphQLField(type: GraphQLString),
+ *             "bestFriend": GraphQLField(type: GraphQLTypeReference("PersonType")),
+ *         ]
  *     )
  *
  */
@@ -614,12 +602,12 @@ extension GraphQLArgumentDefinition : MapRepresentable {
  *
  * Example:
  *
- *     const EntityType = new GraphQLInterfaceType({
- *       name: 'Entity',
- *       fields: {
- *         name: { type: GraphQLString }
- *       }
- *     });
+ *     let EntityType = GraphQLInterfaceType(
+ *         name: "Entity",
+ *         fields: {
+ *             "name": GraphQLField(type: GraphQLString)
+ *         }
+ *     )
  *
  */
 public final class GraphQLInterfaceType {
@@ -698,7 +686,7 @@ extension GraphQLInterfaceType : Hashable {
  *             case is Cat:
  *                 return CatType
  *             default:
- *                 return nil
+ *                 return Map.null
  *             }
  *         }
  *     )
@@ -797,14 +785,14 @@ func defineTypes(
  *
  * Example:
  *
- *     const RGBType = new GraphQLEnumType({
- *       name: 'RGB',
- *       values: {
- *         RED: { value: 0 },
- *         GREEN: { value: 1 },
- *         BLUE: { value: 2 }
+ *     let RGBType = GraphQLEnumType(
+ *         name: "RGB",
+ *         values: {
+ *             "RED": GraphQLEnumValue(value: 0),
+ *             "GREEN": GraphQLEnumValue(value: 1),
+ *             "BLUE": GraphQLEnumValue(value: 2)
  *       }
- *     });
+ *     )
  *
  * Note: If a value is not provided in a definition, the name of the enum value
  * will be used as its internal value.
@@ -847,24 +835,24 @@ public final class GraphQLEnumType {
         self.nameLookup = nameLookup
     }
 
-    public func serialize(value: MapRepresentable) -> Map? {
-        return valueLookup[value.map].map({ .string($0.name) })
+    public func serialize(value: MapRepresentable) -> Map {
+        return valueLookup[value.map].map({ .string($0.name) }) ?? .null
     }
 
-    public func parseValue(value: MapRepresentable) -> Map? {
+    public func parseValue(value: MapRepresentable) -> Map {
         if case .string(let value) = value.map {
-            return nameLookup[value]?.value
+            return nameLookup[value]?.value ?? .null
         }
 
-        return nil
+        return .null
     }
 
-    public func parseLiteral(valueAST: Value) -> Map? {
+    public func parseLiteral(valueAST: Value) -> Map {
         if let enumValue = valueAST as? EnumValue {
-            return nameLookup[enumValue.value]?.value
+            return nameLookup[enumValue.value]?.value ?? .null
         }
 
-        return nil
+        return .null
     }
 }
 
@@ -969,7 +957,7 @@ extension GraphQLEnumValueDefinition : MapRepresentable {
  * An input object defines a structured collection of fields which may be
  * supplied to a field argument.
  *
- * Using `NonNull` will ensure that a value must be provided by the query
+ * Using `GraphQLNonNull` will ensure that a value must be provided by the query
  *
  * Example:
  *
@@ -1098,13 +1086,13 @@ typealias InputObjectFieldMap = [String: InputObjectFieldDefinition]
  *
  * Example:
  *
- *     const PersonType = new GraphQLObjectType({
- *       name: 'Person',
- *       fields: () => ({
- *         parents: { type: new GraphQLList(Person) },
- *         children: { type: new GraphQLList(Person) },
- *       })
- *     })
+ *     let PersonType = GraphQLObjectType(
+ *         name: "Person",
+ *         fields: [
+ *             "parents": GraphQLField(type: GraphQLList(GraphQLTypeReference("Person"))),
+ *             "children": GraphQLField(type: GraphQLList(GraphQLTypeReference("Person"))),
+ *         ]
+ *     )
  *
  */
 public final class GraphQLList {
@@ -1160,12 +1148,12 @@ extension GraphQLList : Hashable {
  *
  * Example:
  *
- *     const RowType = new GraphQLObjectType({
- *       name: 'Row',
- *       fields: () => ({
- *         id: { type: new GraphQLNonNull(GraphQLString) },
- *       })
- *     })
+ *     let RowType = GraphQLObjectType(
+ *         name: "Row",
+ *         fields: [
+ *             "id": GraphQLField(type: GraphQLNonNull(GraphQLString)),
+ *         ]
+ *     )
  *
  * Note: the enforcement of non-nullability occurs within the executor.
  */

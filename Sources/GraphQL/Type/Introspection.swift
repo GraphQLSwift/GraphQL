@@ -103,75 +103,75 @@ let __DirectiveLocation = try! GraphQLEnumType(
     "__DirectiveLocation describes one such possible adjacencies.",
     values: [
         "QUERY": GraphQLEnumValue(
-            value: DirectiveLocation.query.rawValue.map,
+            value: DirectiveLocation.query,
             description: "Location adjacent to a query operation."
         ),
         "MUTATION": GraphQLEnumValue(
-            value: DirectiveLocation.mutation.rawValue.map,
+            value: DirectiveLocation.mutation,
             description: "Location adjacent to a mutation operation."
         ),
         "SUBSCRIPTION": GraphQLEnumValue(
-            value: DirectiveLocation.subscription.rawValue.map,
+            value: DirectiveLocation.subscription,
             description: "Location adjacent to a subscription operation."
         ),
         "FIELD": GraphQLEnumValue(
-            value: DirectiveLocation.field.rawValue.map,
+            value: DirectiveLocation.field,
             description: "Location adjacent to a field."
         ),
         "FRAGMENT_DEFINITION": GraphQLEnumValue(
-            value: DirectiveLocation.fragmentDefinition.rawValue.map,
+            value: DirectiveLocation.fragmentDefinition,
             description: "Location adjacent to a fragment definition."
         ),
         "FRAGMENT_SPREAD": GraphQLEnumValue(
-            value: DirectiveLocation.fragmentSpread.rawValue.map,
+            value: DirectiveLocation.fragmentSpread,
             description: "Location adjacent to a fragment spread."
         ),
         "INLINE_FRAGMENT": GraphQLEnumValue(
-            value: DirectiveLocation.inlineFragment.rawValue.map,
+            value: DirectiveLocation.inlineFragment,
             description: "Location adjacent to an inline fragment."
         ),
         "SCHEMA": GraphQLEnumValue(
-            value: DirectiveLocation.schema.rawValue.map,
+            value: DirectiveLocation.schema,
             description: "Location adjacent to a schema definition."
         ),
         "SCALAR": GraphQLEnumValue(
-            value: DirectiveLocation.scalar.rawValue.map,
+            value: DirectiveLocation.scalar,
             description: "Location adjacent to a scalar definition."
         ),
         "OBJECT": GraphQLEnumValue(
-            value: DirectiveLocation.object.rawValue.map,
+            value: DirectiveLocation.object,
             description: "Location adjacent to an object type definition."
         ),
         "FIELD_DEFINITION": GraphQLEnumValue(
-            value: DirectiveLocation.fieldDefinition.rawValue.map,
+            value: DirectiveLocation.fieldDefinition,
             description: "Location adjacent to a field definition."
         ),
         "ARGUMENT_DEFINITION": GraphQLEnumValue(
-            value: DirectiveLocation.argumentDefinition.rawValue.map,
+            value: DirectiveLocation.argumentDefinition,
             description: "Location adjacent to an argument definition."
         ),
         "INTERFACE": GraphQLEnumValue(
-            value: DirectiveLocation.interface.rawValue.map,
+            value: DirectiveLocation.interface,
             description: "Location adjacent to an interface definition."
         ),
         "UNION": GraphQLEnumValue(
-            value: DirectiveLocation.union.rawValue.map,
+            value: DirectiveLocation.union,
             description: "Location adjacent to a union definition."
         ),
         "ENUM": GraphQLEnumValue(
-            value: DirectiveLocation.enum.rawValue.map,
+            value: DirectiveLocation.enum,
             description: "Location adjacent to an enum definition."
         ),
         "ENUM_VALUE": GraphQLEnumValue(
-            value: DirectiveLocation.enumValue.rawValue.map,
+            value: DirectiveLocation.enumValue,
             description: "Location adjacent to an enum value definition."
         ),
         "INPUT_OBJECT": GraphQLEnumValue(
-            value: DirectiveLocation.inputObject.rawValue.map,
+            value: DirectiveLocation.inputObject,
             description: "Location adjacent to an input object type definition."
         ),
         "INPUT_FIELD_DEFINITION": GraphQLEnumValue(
-            value: DirectiveLocation.inputFieldDefinition.rawValue.map,
+            value: DirectiveLocation.inputFieldDefinition,
             description: "Location adjacent to an input object field definition."
         ),
     ]
@@ -389,41 +389,41 @@ let __TypeKind = try! GraphQLEnumType(
     description: "An enum describing what kind of type a given `__Type` is.",
     values: [
         "SCALAR": GraphQLEnumValue(
-            value: TypeKind.scalar.rawValue.map,
+            value: TypeKind.scalar,
             description: "Indicates this type is a scalar."
         ),
         "OBJECT": GraphQLEnumValue(
-            value: TypeKind.object.rawValue.map,
+            value: TypeKind.object,
             description: "Indicates this type is an object. " +
             "`fields` and `interfaces` are valid fields."
         ),
         "INTERFACE": GraphQLEnumValue(
-            value: TypeKind.interface.rawValue.map,
+            value: TypeKind.interface,
             description: "Indicates this type is an interface. " +
             "`fields` and `possibleTypes` are valid fields."
         ),
         "UNION": GraphQLEnumValue(
-            value: TypeKind.union.rawValue.map,
+            value: TypeKind.union,
             description: "Indicates this type is a union. " +
             "`possibleTypes` is a valid field."
         ),
         "ENUM": GraphQLEnumValue(
-            value: TypeKind.enum.rawValue.map,
+            value: TypeKind.enum,
             description: "Indicates this type is an enum. " +
             "`enumValues` is a valid field."
         ),
         "INPUT_OBJECT": GraphQLEnumValue(
-            value: TypeKind.inputObject.rawValue.map,
+            value: TypeKind.inputObject,
             description: "Indicates this type is an input object. " +
             "`inputFields` is a valid field."
         ),
         "LIST": GraphQLEnumValue(
-            value: TypeKind.list.rawValue.map,
+            value: TypeKind.list,
             description: "Indicates this type is a list. " +
             "`ofType` is a valid field."
         ),
         "NON_NULL": GraphQLEnumValue(
-            value: TypeKind.nonNull.rawValue.map,
+            value: TypeKind.nonNull,
             description: "Indicates this type is a non-null. " +
             "`ofType` is a valid field."
         ),
