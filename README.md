@@ -1,4 +1,4 @@
-# [![Logo](Images/logo.png)](https://github.com/GraphQLSwift/GraphQL) GraphQL 
+# GraphQL 
 
 The Swift implementation for GraphQL, a query language for APIs created by Facebook.
 
@@ -10,6 +10,12 @@ The Swift implementation for GraphQL, a query language for APIs created by Faceb
 [![Codebeat][codebeat-badge]][codebeat-url]
 
 Looking for help? Find resources [from the community](http://graphql.org/community/).
+
+## Graphiti
+
+This repo contains the core GraphQL implementation. For a better experience when creating your types use [Graphiti](https://github.com/GraphQLSwift/Graphiti).
+
+**Graphiti** is a Swift library for building GraphQL schemas/types fast, safely and easily.
 
 
 ## Getting Started
