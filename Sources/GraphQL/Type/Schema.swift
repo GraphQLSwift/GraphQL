@@ -162,8 +162,8 @@ extension GraphQLSchema : MapRepresentable {
             "queryType": queryType.map,
             "mutationType": mutationType.map,
             "subscriptionType": subscriptionType.map,
-            "directives":  directives.map.map,
-            "types": typeMap.map,
+            "directives":  directives.map,
+//            "types": typeMap.map,
         ]
     }
 }

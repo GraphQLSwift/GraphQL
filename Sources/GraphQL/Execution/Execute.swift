@@ -27,8 +27,8 @@
 final class ExecutionContext {
   let schema: GraphQLSchema
   let fragments: [String: FragmentDefinition]
-  let rootValue: MapRepresentable
-  let contextValue: MapRepresentable
+  let rootValue: Any
+  let contextValue: Any
   let operation: OperationDefinition
   let variableValues: [String: Map]
   var errors: [GraphQLError]
@@ -36,8 +36,8 @@ final class ExecutionContext {
     init(
         schema: GraphQLSchema,
         fragments: [String: FragmentDefinition],
-        rootValue: MapRepresentable,
-        contextValue: MapRepresentable,
+        rootValue: Any,
+        contextValue: Any,
         operation: OperationDefinition,
         variableValues: [String: Map],
         errors: [GraphQLError]
@@ -62,8 +62,8 @@ final class ExecutionContext {
 func execute(
     schema: GraphQLSchema,
     documentAST: Document,
-    rootValue: MapRepresentable,
-    contextValue: MapRepresentable,
+    rootValue: Any,
+    contextValue: Any,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) throws -> Map {
@@ -88,7 +88,7 @@ func execute(
         var dataMap: Map = [:]
 
         for (key, value) in data {
-            dataMap[key] = value.map
+            dataMap[key] = try map(from: value)
         }
 
         var result: [String: Map] = ["data": dataMap]
@@ -112,8 +112,8 @@ func execute(
 func buildExecutionContext(
     schema: GraphQLSchema,
     documentAST: Document,
-    rootValue: MapRepresentable,
-    contextValue: MapRepresentable,
+    rootValue: Any,
+    contextValue: Any,
     rawVariableValues: [String: Map],
     operationName: String?
 ) throws -> ExecutionContext {
@@ -176,8 +176,8 @@ func buildExecutionContext(
 func executeOperation(
     exeContext: ExecutionContext,
     operation: OperationDefinition,
-    rootValue: MapRepresentable
-) throws -> [String : MapRepresentable] {
+    rootValue: Any
+) throws -> [String : Any] {
     let type = try getOperationRootType(schema: exeContext.schema, operation: operation)
 
     var inputFields: [String : [Field]] = [:]
@@ -250,10 +250,10 @@ func getOperationRootType(
 func executeFieldsSerially(
     exeContext: ExecutionContext,
     parentType: GraphQLObjectType,
-    sourceValue: MapRepresentable,
+    sourceValue: Any,
     path: [IndexPathElement],
     fields: [String: [Field]]
-) throws -> [String: MapRepresentable] {
+) throws -> [String: Any] {
     return try fields.reduce([:]) { results, field in
         var results = results
         let fieldASTs = field.value
@@ -267,7 +267,7 @@ func executeFieldsSerially(
             path: fieldPath
         )
 
-        results[field.key] = result
+        results[field.key] = result ?? Map.null
         return results
     }
 }
@@ -279,10 +279,10 @@ func executeFieldsSerially(
 func executeFields(
     exeContext: ExecutionContext,
     parentType: GraphQLObjectType,
-    sourceValue: MapRepresentable,
+    sourceValue: Any,
     path: [IndexPathElement],
     fields: [String: [Field]]
-) throws -> [String : MapRepresentable] {
+) throws -> [String : Any] {
     return try executeFieldsSerially(
         exeContext: exeContext,
         parentType: parentType,
@@ -470,10 +470,10 @@ func getFieldEntryKey(node: Field) -> String {
 func resolveField(
     exeContext: ExecutionContext,
     parentType: GraphQLObjectType,
-    source: MapRepresentable,
+    source: Any,
     fieldASTs: [Field],
     path: [IndexPathElement]
-) throws -> MapRepresentable {
+) throws -> Any? {
     let fieldAST = fieldASTs[0]
     let fieldName = fieldAST.name.value
 
@@ -536,7 +536,7 @@ func resolveField(
 }
 
 enum ResultOrError {
-    case result(MapRepresentable)
+    case result(Any?)
     case error(Error)
 }
 
@@ -544,9 +544,9 @@ enum ResultOrError {
 // function. Returns the result of `resolve` or the abrupt-return Error object.
 func resolveOrError(
     resolve: GraphQLFieldResolve,
-    source: MapRepresentable,
+    source: Any,
     args: Map,
-    context: MapRepresentable,
+    context: Any,
     info: GraphQLResolveInfo
 )-> ResultOrError {
     do {
@@ -565,7 +565,7 @@ func completeValueCatchingError(
     info: GraphQLResolveInfo,
     path: [IndexPathElement],
     result: ResultOrError
-) throws -> MapRepresentable {
+) throws -> Any? {
     // If the field type is non-nullable, then it is resolved without any
     // protection from errors, however it still properly locates the error.
     if let returnType = returnType as? GraphQLNonNull {
@@ -596,7 +596,7 @@ func completeValueCatchingError(
         // If `completeValueWithLocatedError` returned abruptly (threw an error),
         // log the error and return .null.
         exeContext.errors.append(error)
-        return Map.null
+        return nil
     } catch {
         fatalError()
     }
@@ -611,7 +611,7 @@ func completeValueWithLocatedError(
     info: GraphQLResolveInfo,
     path: [IndexPathElement],
     result: ResultOrError
-) throws -> MapRepresentable {
+) throws -> Any? {
     do {
         let completed = try completeValue(
             exeContext: exeContext,
@@ -660,7 +660,7 @@ func completeValue(
     info: GraphQLResolveInfo,
     path: [IndexPathElement],
     result: ResultOrError
-) throws -> MapRepresentable {
+) throws -> Any? {
     switch result {
     case .error(let error):
         throw error
@@ -677,18 +677,18 @@ func completeValue(
                 result: .result(result)
             )
 
-            guard !isNullish(completed) else {
+            guard let reallyCompleted = completed else {
                 throw GraphQLError(
                     message: "Cannot return null for non-nullable field \(info.parentType.name).\(info.fieldName)."
                 )
             }
 
-            return completed
+            return reallyCompleted
         }
 
         // If result value is null-ish (nil or .null) then return .null.
-        if isNullish(result) {
-            return Map.null
+        guard let r = result else {
+            return nil
         }
 
         // If field type is List, complete each item in the list with the inner type
@@ -699,14 +699,14 @@ func completeValue(
                 fieldASTs: fieldASTs,
                 info: info,
                 path: path,
-                result: result
+                result: r
             )
         }
 
         // If field type is a leaf type, Scalar or Enum, serialize to a valid value,
         // returning .null if serialization is not possible.
         if let returnType = returnType as? GraphQLLeafType {
-            return try completeLeafValue(returnType: returnType, result: result)
+            return try completeLeafValue(returnType: returnType, result: r)
         }
 
         // If field type is an abstract type, Interface or Union, determine the
@@ -718,7 +718,7 @@ func completeValue(
                 fieldASTs: fieldASTs,
                 info: info,
                 path: path,
-                result: result
+                result: r
             )
         }
 
@@ -730,7 +730,7 @@ func completeValue(
                 fieldASTs: fieldASTs,
                 info: info,
                 path: path,
-                result: result
+                result: r
             )
         }
         
@@ -751,9 +751,9 @@ func completeListValue(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: [IndexPathElement],
-    result: MapRepresentable
-) throws -> MapRepresentable {
-    guard let result = result as? [MapRepresentable] else {
+    result: Any
+) throws -> Any? {
+    guard let result = result as? [Any?] else {
         throw GraphQLError(
             message:
             "Expected array, but did not find one for field " +
@@ -762,7 +762,7 @@ func completeListValue(
     }
 
     let itemType = returnType.ofType
-    var completedResults: [MapRepresentable] = []
+    var completedResults: [Any?] = []
 
     for (index, item) in result.enumerated() {
         // No need to modify the info object containing the path,
@@ -788,10 +788,15 @@ func completeListValue(
  * Complete a Scalar or Enum by serializing to a valid value, returning
  * .null if serialization is not possible.
  */
-func completeLeafValue(returnType: GraphQLLeafType, result: MapRepresentable) throws -> Map {
+func completeLeafValue(returnType: GraphQLLeafType, result: Any?) throws -> Map {
+    // TODO: check this out
+    guard let result = result else {
+        return .null
+    }
+
     let serializedResult = try returnType.serialize(value: result)
 
-    if isNullish(serializedResult) {
+    if serializedResult == .null {
         throw GraphQLError(
             message:
             "Expected a value of type \"\(returnType)\" but " +
@@ -812,11 +817,11 @@ func completeAbstractValue(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: [IndexPathElement],
-    result: MapRepresentable
-) throws -> MapRepresentable {
+    result: Any
+) throws -> Any? {
     var resolveRes = try returnType.resolveType?(result, exeContext.contextValue, info).typeResolveResult
 
-    resolveRes = resolveRes ?? defaultResolveType(
+    resolveRes = try resolveRes ?? defaultResolveType(
         value: result,
         context: exeContext.contextValue,
         info: info,
@@ -878,12 +883,12 @@ func completeObjectValue(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: [IndexPathElement],
-    result: MapRepresentable
-) throws -> MapRepresentable {
+    result: Any
+) throws -> Any? {
     // If there is an isTypeOf predicate func, call it with the
     // current result. If isTypeOf returns false, then raise an error rather
     // than continuing execution.
-    guard returnType.isTypeOf?(result, exeContext.contextValue, info) ?? true else {
+    guard try returnType.isTypeOf?(result, exeContext.contextValue, info) ?? true else {
         throw GraphQLError(
             message:
             "Expected value of type \"\(returnType.name)\" but got: \(result).",
@@ -922,14 +927,14 @@ func completeObjectValue(
  * isTypeOf for the object being coerced, returning the first type that matches.
  */
 func defaultResolveType(
-    value: MapRepresentable,
-    context: MapRepresentable,
+    value: Any,
+    context: Any,
     info: GraphQLResolveInfo,
     abstractType: GraphQLAbstractType
-) -> TypeResolveResult? {
+) throws -> TypeResolveResult? {
     let possibleTypes = info.schema.getPossibleTypes(abstractType: abstractType)
 
-    guard let type = possibleTypes.find({ $0.isTypeOf?(value, context, info) ?? false }) else {
+    guard let type = try possibleTypes.find({ try $0.isTypeOf?(value, context, info) ?? false }) else {
         return nil
     }
 
@@ -941,13 +946,14 @@ func defaultResolveType(
  * which takes the property of the source object of the same name as the field
  * and returns it as the result.
  */
-func defaultResolve(source: MapRepresentable, args: Map, context: MapRepresentable, info: GraphQLResolveInfo) -> MapRepresentable {
+func defaultResolve(source: Any, args: Map, context: Any, info: GraphQLResolveInfo) -> Any? {    
     guard let source = unwrap(source) else {
-        return Map.null
+        return nil
     }
 
-    guard let anyValue = try? get(info.fieldName, from: source), let value = anyValue as? MapRepresentable else {
-        return Map.null
+    // TODO: check why Reflection fails
+    guard let value = try? get(info.fieldName, from: source) else {
+        return nil
     }
 
     return value

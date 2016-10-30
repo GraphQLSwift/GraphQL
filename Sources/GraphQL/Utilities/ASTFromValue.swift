@@ -24,7 +24,7 @@ func astFromValue(
         return try astFromValue(value: value, type: type.ofType as! GraphQLInputType)
     }
 
-    if isNullish(value) {
+    guard value != .null else {
         return nil
     }
 
@@ -80,7 +80,7 @@ func astFromValue(
     // to an externally represented value before converting into an AST.
     let serialized = try leafType.serialize(value: value)
 
-    guard !isNullish(serialized) else {
+    guard serialized != .null else {
         return nil
     }
 

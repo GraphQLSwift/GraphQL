@@ -19,8 +19,8 @@
 public func graphql(
     schema: GraphQLSchema,
     request: String,
-    rootValue: Map = .null,
-    contextValue: Map = .null,
+    rootValue: Any = Void(),
+    contextValue: Any = Void(),
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) throws -> Map {
@@ -29,7 +29,7 @@ public func graphql(
     let validationErrors = validate(schema: schema, ast: documentAST)
 
     guard validationErrors.isEmpty else {
-        return ["errors": validationErrors.map]
+        return ["errors": try validationErrors.asMap()]
     }
 
     return try execute(

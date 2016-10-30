@@ -22,7 +22,7 @@ enum Episode : String {
     }
 }
 
-protocol Character : MapRepresentable {
+protocol Character {
     var id: String { get }
     var name: String { get }
     var friends: [String] { get }

@@ -11,14 +11,15 @@ import GraphQL
  * Wars trilogy.
  */
 
+// TODO: implement MapRepresentable automatically for RawRepresentables
 extension Episode : MapRepresentable {
     var map: Map {
         return rawValue.map
     }
 }
 
-extension Human : MapRepresentable {}
-extension Droid : MapRepresentable {}
+extension Human : MapFallibleRepresentable {}
+extension Droid : MapFallibleRepresentable {}
 
 /**
  * Using our shorthand to describe type systems, the type system for our

@@ -3,8 +3,8 @@ public let GraphQLInt = try! GraphQLScalarType(
     description:
     "The `Int` scalar type represents non-fractional signed whole numeric " +
     "values. Int can represent values between -(2^31) and 2^31 - 1.",
-    serialize: { try $0.map.asInt(converting: true) } ,
-    parseValue: { try $0.map.asInt(converting: true) },
+    serialize: { try map(from: $0).asInt(converting: true) } ,
+    parseValue: { try map(from: $0).asInt(converting: true) },
     parseLiteral: { ast in
         if let ast = ast as? IntValue, let int = Int(ast.value) {
             return int
@@ -20,8 +20,8 @@ public let GraphQLFloat = try! GraphQLScalarType(
     "The `Float` scalar type represents signed double-precision fractional " +
     "values as specified by " +
     "[IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point). ",
-    serialize: { try $0.map.asDouble(converting: true) } ,
-    parseValue: { try $0.map.asDouble(converting: true) },
+    serialize: { try map(from: $0).asDouble(converting: true) } ,
+    parseValue: { try map(from: $0).asDouble(converting: true) },
     parseLiteral: { ast in
         if let ast = ast as? FloatValue, let double = Double(ast.value) {
             return double
@@ -41,8 +41,8 @@ public let GraphQLString = try! GraphQLScalarType(
     "The `String` scalar type represents textual data, represented as UTF-8 " +
     "character sequences. The String type is most often used by GraphQL to " +
     "represent free-form human-readable text.",
-    serialize: { try $0.map.asString(converting: true) } ,
-    parseValue: { try $0.map.asString(converting: true) },
+    serialize: { try map(from: $0).asString(converting: true) } ,
+    parseValue: { try map(from: $0).asString(converting: true) },
     parseLiteral: { ast in
         if let ast = ast as? StringValue {
             return ast.value
@@ -55,8 +55,8 @@ public let GraphQLString = try! GraphQLScalarType(
 public let GraphQLBoolean = try! GraphQLScalarType(
     name: "Boolean",
     description: "The `Boolean` scalar type represents `true` or `false`.",
-    serialize: { try $0.map.asBool(converting: true) } ,
-    parseValue: { try $0.map.asBool(converting: true) },
+    serialize: { try map(from: $0).asBool(converting: true) } ,
+    parseValue: { try map(from: $0).asBool(converting: true) },
     parseLiteral: { ast in
         if let ast = ast as? BooleanValue {
             return ast.value
@@ -74,8 +74,8 @@ public let GraphQLID = try! GraphQLScalarType(
     "response as a String; however, it is not intended to be human-readable. " +
     "When expected as an input type, any string (such as `\"4\"`) or integer " +
     "(such as `4`) input value will be accepted as an ID.",
-    serialize: { try $0.map.asString(converting: true) },
-    parseValue: { try $0.map.asString(converting: true) },
+    serialize: { try map(from: $0).asString(converting: true) },
+    parseValue: { try map(from: $0).asString(converting: true) },
     parseLiteral: { ast in
         if let ast = ast as? StringValue {
             return ast.value

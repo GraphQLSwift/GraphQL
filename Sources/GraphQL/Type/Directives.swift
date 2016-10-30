@@ -51,6 +51,17 @@ public struct GraphQLDirective {
     }
 }
 
+extension GraphQLDirective : MapRepresentable {
+    public var map: Map {
+        return [
+            "name": name.map,
+            "description": description.map,
+            "locations": locations.map,
+            "arg": args.map,
+        ]
+    }
+}
+
 /**
  * Used to conditionally include fields or fragments.
  */

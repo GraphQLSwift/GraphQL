@@ -133,11 +133,15 @@ class StarWarsQueryTests : XCTestCase {
                     "    }" +
                     "}"
 
-        var params: [String: Map] = [
+        var params: [String: Map]
+        var expected: Map
+        var result: Map
+
+        params = [
             "someId": "1000",
         ]
 
-        var expected: Map = [
+        expected = [
             "data": [
                 "human": [
                     "name": "Luke Skywalker",
@@ -145,7 +149,7 @@ class StarWarsQueryTests : XCTestCase {
             ],
         ]
 
-        var result = try graphql(schema: StarWarsSchema, request: query, variableValues: params)
+        result = try graphql(schema: StarWarsSchema, request: query, variableValues: params)
         XCTAssertEqual(result, expected)
 
         params = [

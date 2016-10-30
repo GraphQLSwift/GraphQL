@@ -11,7 +11,7 @@ func getVariableValues(schema: GraphQLSchema, definitionASTs: [VariableDefinitio
         valuesCopy[varName] = try getVariableValue(
             schema: schema,
             definitionAST: defAST,
-            input: inputs[varName]!
+            input: inputs[varName] ?? .null
         )
 
         return valuesCopy
@@ -41,7 +41,7 @@ func getArgumentValues(argDefs: [GraphQLArgumentDefinition], argASTs: [Argument]
             variables: variableValues
         )
 
-        if isNullish(value) {
+        if value == nil {
             value = argDef.defaultValue
         }
 
@@ -75,7 +75,7 @@ func getVariableValue(schema: GraphQLSchema, definitionAST: VariableDefinition, 
     let errors = try isValidValue(value: input, type: inputType)
 
     if errors.isEmpty {
-        if isNullish(input) {
+        if input == .null {
             if let defaultValue = definitionAST.defaultValue {
                 return try valueFromAST(valueAST: defaultValue, type: inputType)!
             }
@@ -84,7 +84,7 @@ func getVariableValue(schema: GraphQLSchema, definitionAST: VariableDefinition, 
         return try coerceValue(type: inputType, value: input)!
     }
 
-    if isNullish(input) {
+    guard input != .null else {
         throw GraphQLError(
             message:
             "Variable \"$\(variable.name.value)\" of required type " +
@@ -113,7 +113,7 @@ func coerceValue(type: GraphQLInputType, value: Map) throws -> Map? {
         return try coerceValue(type: nonNull.ofType as! GraphQLInputType, value: value)!
     }
 
-    if isNullish(value) {
+    guard value != .null else {
         return nil
     }
 
@@ -146,11 +146,9 @@ func coerceValue(type: GraphQLInputType, value: Map) throws -> Map? {
 
             var fieldValue = try coerceValue(type: field!.type, value: value[fieldName]!)
 
-            if isNullish(fieldValue) {
+            if fieldValue == .null {
                 fieldValue = field?.defaultValue
-            }
-
-            if !isNullish(fieldValue) {
+            } else {
                 objCopy[fieldName] = fieldValue
             }
 
@@ -164,9 +162,9 @@ func coerceValue(type: GraphQLInputType, value: Map) throws -> Map? {
     
     let parsed = try type.parseValue(value: value)
     
-    if !isNullish(parsed) {
-        return parsed
+    guard parsed != .null else {
+        return nil
     }
 
-    return nil
+    return parsed
 }

@@ -3,6 +3,7 @@ import XCTest
 
 class StarWarsIntrospectionTests : XCTestCase {
     func testIntrospectionTypeQuery() throws {
+        do {
         let query = "query IntrospectionTypeQuery {" +
                     "    __schema {" +
                     "        types {" +
@@ -123,6 +124,9 @@ class StarWarsIntrospectionTests : XCTestCase {
 
         let result = try graphql(schema: StarWarsSchema, request: query)
         XCTAssertEqual(result, expected)
+        } catch {
+            print(error)
+        }
     }
 
     func testIntrospectionQueryTypeQuery() throws {

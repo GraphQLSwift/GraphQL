@@ -1,8 +1,8 @@
-public func unwrap(_ value: MapRepresentable) -> MapRepresentable? {
+public func unwrap(_ value: Any) -> MapFallibleRepresentable? {
     let mirror = Mirror(reflecting: value)
 
     if mirror.displayStyle != .optional {
-        return value
+        return value as? MapFallibleRepresentable
     }
 
     if mirror.children.isEmpty {
@@ -10,5 +10,5 @@ public func unwrap(_ value: MapRepresentable) -> MapRepresentable? {
     }
 
     let child = mirror.children.first!
-    return child.value as? MapRepresentable
+    return child.value as? MapFallibleRepresentable
 }

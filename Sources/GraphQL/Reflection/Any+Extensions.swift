@@ -6,9 +6,9 @@
 //
 //
 
-protocol AnyExtensions {}
+public protocol AnyExtensions {}
 
-extension AnyExtensions {
+public extension AnyExtensions {
     
     static func construct(constructor: (Property.Description) throws -> Any) throws -> Any {
         return try GraphQL.construct(self, constructor: constructor)
@@ -24,7 +24,7 @@ extension AnyExtensions {
     
 }
 
-func extensions(of type: Any.Type) -> AnyExtensions.Type {
+public func extensions(of type: Any.Type) -> AnyExtensions.Type {
     struct Extensions : AnyExtensions {}
     var extensions: AnyExtensions.Type = Extensions.self
     withUnsafePointer(to: &extensions) { pointer in
@@ -33,7 +33,7 @@ func extensions(of type: Any.Type) -> AnyExtensions.Type {
     return extensions
 }
 
-func extensions(of value: Any) -> AnyExtensions {
+public func extensions(of value: Any) -> AnyExtensions {
     struct Extensions : AnyExtensions {}
     var extensions: AnyExtensions = Extensions()
     withUnsafePointer(to: &extensions) { pointer in

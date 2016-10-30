@@ -717,7 +717,7 @@ public class MapTests : XCTestCase {
         XCTAssertEqual(try optional.asMap(), nil)
         XCTAssertEqual(try Int?(1969).asMap(), 1969)
         let fuuOptional: Baz? = nil
-        XCTAssertThrowsError(try fuuOptional.asMap())
+        XCTAssertEqual(try fuuOptional.asMap(), nil)
         XCTAssertEqual(try [1969].asMap(), [1969])
         let fuuArray: [Baz] = []
         XCTAssertEqual(try fuuArray.asMap(), [])

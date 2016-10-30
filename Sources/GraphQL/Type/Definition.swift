@@ -48,8 +48,8 @@ extension GraphQLNonNull          : GraphQLOutputType {}
  * These types may describe types which may be leaf values.
  */
 public protocol GraphQLLeafType : GraphQLType, GraphQLNamedType {
-    func serialize(value: MapRepresentable) throws -> Map
-    func parseValue(value: MapRepresentable) throws -> Map
+    func serialize(value: Any) throws -> Map
+    func parseValue(value: Any) throws -> Map
     func parseLiteral(valueAST: Value) throws -> Map
 }
 
@@ -161,14 +161,14 @@ extension GraphQLNonNull : GraphQLWrapperType {}
 public final class GraphQLScalarType {
     public let name: String
     let description: String?
-    let serialize: (MapRepresentable) throws -> MapRepresentable
-    let parseValue: ((MapRepresentable) throws -> MapRepresentable)?
-    let parseLiteral: ((Value) throws -> MapRepresentable)?
+    let serialize: (Any) throws -> Any
+    let parseValue: ((Any) throws -> Any)?
+    let parseLiteral: ((Value) throws -> Any)?
 
     public init(
         name: String,
         description: String? = nil,
-        serialize: @escaping (MapRepresentable) throws -> MapRepresentable
+        serialize: @escaping (Any) throws -> Any
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -181,9 +181,9 @@ public final class GraphQLScalarType {
     public init(
         name: String,
         description: String? = nil,
-        serialize: @escaping (MapRepresentable) throws -> MapRepresentable,
-        parseValue: @escaping (MapRepresentable) throws -> MapRepresentable,
-        parseLiteral: @escaping (Value) throws -> MapRepresentable
+        serialize: @escaping (Any) throws -> Any,
+        parseValue: @escaping (Any) throws -> Any,
+        parseLiteral: @escaping (Value) throws -> Any
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -194,18 +194,18 @@ public final class GraphQLScalarType {
     }
 
     // Serializes an internal value to include in a response.
-    public func serialize(value: MapRepresentable) throws -> Map {
-        return try self.serialize(value).map
+    public func serialize(value: Any) throws -> Map {
+        return try GraphQL.map(from: self.serialize(value))
     }
 
     // Parses an externally provided value to use as an input.
-    public func parseValue(value: MapRepresentable) throws -> Map {
-        return try self.parseValue?(value).map ?? .null
+    public func parseValue(value: Any) throws -> Map {
+        return try GraphQL.map(from: self.parseValue?(value))
     }
 
     // Parses an externally provided literal value to use as an input.
     public func parseLiteral(valueAST: Value) throws -> Map {
-        return try self.parseLiteral?(valueAST).map ?? .null
+        return try GraphQL.map(from: self.parseLiteral?(valueAST))
     }
 }
 
@@ -433,23 +433,23 @@ public enum TypeResolveResult {
 }
 
 public typealias GraphQLTypeResolve = (
-    _ value: MapRepresentable,
-    _ context: MapRepresentable,
+    _ value: Any,
+    _ context: Any,
     _ info: GraphQLResolveInfo
 ) throws -> TypeResolveResultRepresentable
 
 public typealias GraphQLIsTypeOf = (
-    _ source: MapRepresentable,
-    _ context: MapRepresentable,
+    _ source: Any,
+    _ context: Any,
     _ info: GraphQLResolveInfo
-) -> Bool
+) throws -> Bool
 
 public typealias GraphQLFieldResolve = (
-    _ source: MapRepresentable,
+    _ source: Any,
     _ args: Map,
-    _ context: MapRepresentable,
+    _ context: Any,
     _ info: GraphQLResolveInfo
-) throws -> MapRepresentable
+) throws -> Any?
 
 public struct GraphQLResolveInfo {
     let fieldName: String
@@ -835,12 +835,12 @@ public final class GraphQLEnumType {
         self.nameLookup = nameLookup
     }
 
-    public func serialize(value: MapRepresentable) -> Map {
-        return valueLookup[value.map].map({ .string($0.name) }) ?? .null
+    public func serialize(value: Any) throws -> Map {
+        return try valueLookup[GraphQL.map(from: value)].map({ .string($0.name) }) ?? .null
     }
 
-    public func parseValue(value: MapRepresentable) -> Map {
-        if case .string(let value) = value.map {
+    public func parseValue(value: Any) throws -> Map {
+        if case .string(let value) = try GraphQL.map(from: value) {
             return nameLookup[value]?.value ?? .null
         }
 
@@ -1089,8 +1089,8 @@ typealias InputObjectFieldMap = [String: InputObjectFieldDefinition]
  *     let PersonType = GraphQLObjectType(
  *         name: "Person",
  *         fields: [
- *             "parents": GraphQLField(type: GraphQLList(GraphQLTypeReference("Person"))),
- *             "children": GraphQLField(type: GraphQLList(GraphQLTypeReference("Person"))),
+ *             "parents": GraphQLField(type: GraphQLList("Person")),
+ *             "children": GraphQLField(type: GraphQLList("Person")),
  *         ]
  *     )
  *
@@ -1100,6 +1100,10 @@ public final class GraphQLList {
 
     public init(_ type: GraphQLType) {
         self.ofType = type
+    }
+
+    public init(_ name: String) {
+        self.ofType = GraphQLTypeReference(name)
     }
 
     var wrappedType: GraphQLType {
@@ -1158,10 +1162,14 @@ extension GraphQLList : Hashable {
  * Note: the enforcement of non-nullability occurs within the executor.
  */
 public final class GraphQLNonNull {
-    let ofType: GraphQLNullableType
+    public let ofType: GraphQLNullableType
     
     public init(_ type: GraphQLNullableType) {
         self.ofType = type
+    }
+
+    public init(_ name: String) {
+        self.ofType = GraphQLTypeReference(name)
     }
     
     var wrappedType: GraphQLType {

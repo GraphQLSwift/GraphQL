@@ -10,7 +10,7 @@ let __Schema = try! GraphQLObjectType(
             description: "A list of all types supported by this server.",
             resolve: { schema, _, _, _ in
                 guard let schema = schema as? GraphQLSchema else {
-                    return Map.null
+                    return nil
                 }
 
                 let typeMap = schema.typeMap
@@ -22,7 +22,7 @@ let __Schema = try! GraphQLObjectType(
             description: "The type that query operations will be rooted at.",
             resolve: { schema, _, _, _ in
                 guard let schema = schema as? GraphQLSchema else {
-                    return Map.null
+                    return nil
                 }
 
                 return schema.queryType
@@ -35,7 +35,7 @@ let __Schema = try! GraphQLObjectType(
             "mutation operations will be rooted at.",
             resolve: { schema, _, _, _ in
                 guard let schema = schema as? GraphQLSchema else {
-                    return Map.null
+                    return nil
                 }
 
                 return schema.mutationType
@@ -48,7 +48,7 @@ let __Schema = try! GraphQLObjectType(
             "subscription operations will be rooted at.",
             resolve: { schema, _, _, _ in
                 guard let schema = schema as? GraphQLSchema else {
-                    return Map.null
+                    return nil
                 }
 
                 return schema.subscriptionType
@@ -59,7 +59,7 @@ let __Schema = try! GraphQLObjectType(
             description: "A list of all directives supported by this server.",
             resolve: { schema, _, _, _ in
                 guard let schema = schema as? GraphQLSchema else {
-                    return Map.null
+                    return nil
                 }
 
                 return schema.directives
@@ -87,7 +87,7 @@ let __Directive = try! GraphQLObjectType(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__InputValue))),
             resolve: { directive, _, _, _ in
                 guard let directive = directive as? GraphQLDirective else {
-                    return Map.null
+                    return nil
                 }
 
                 return directive.args
@@ -236,7 +236,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     return fields
                 }
 
-                return Map.null
+                return nil
             }
         ),
         "interfaces": GraphQLField(
@@ -246,7 +246,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     return type.interfaces
                 }
 
-                return Map.null
+                return nil
             }
         ),
         "possibleTypes": GraphQLField(
@@ -256,7 +256,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     return info.schema.getPossibleTypes(abstractType: type)
                 }
 
-                return Map.null
+                return nil
             }
         ),
         "enumValues": GraphQLField(
@@ -278,7 +278,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     return values
                 }
 
-                return Map.null
+                return nil
             }
         ),
         "inputFields": GraphQLField(
@@ -289,7 +289,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     return Array(fieldMap.values).sorted(by: { $0.name < $1.name })
                 }
                 
-                return Map.null
+                return nil
             }
         ),
         "ofType": GraphQLField(type: GraphQLTypeReference("__Type"))
@@ -308,7 +308,7 @@ let __Field = try! GraphQLObjectType(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__InputValue))),
             resolve: { field, _, _, _ in
                 guard let field = field as? GraphQLFieldDefinition else {
-                    return Map.null
+                    return nil
                 }
 
                 return field.args
@@ -337,11 +337,11 @@ let __InputValue = try! GraphQLObjectType(
             "input value.",
             resolve: { inputValue, _, _, _ in
                 guard let inputValue = inputValue as? GraphQLArgumentDefinition else {
-                    return Map.null
+                    return nil
                 }
 
                 guard let defaultValue = inputValue.defaultValue else {
-                    return Map.null
+                    return nil
                 }
 
                 // This `print` is from the AST printer implementation

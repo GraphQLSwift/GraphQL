@@ -74,11 +74,9 @@ func valueFromAST(valueAST: Value?, type: GraphQLInputType, variables: [String: 
                 variables: variables
             )
 
-            if isNullish(fieldValue) {
+            if fieldValue == .null {
                 fieldValue = field?.defaultValue
-            }
-
-            if !isNullish(fieldValue) {
+            } else {
                 obj[fieldName] = fieldValue
             }
             
@@ -92,9 +90,9 @@ func valueFromAST(valueAST: Value?, type: GraphQLInputType, variables: [String: 
     
     let parsed = try type.parseLiteral(valueAST: valueAST)
     
-    if !isNullish(parsed) {
-        return parsed
+    guard parsed != .null else {
+        return nil
     }
     
-    return nil
+    return parsed
 }

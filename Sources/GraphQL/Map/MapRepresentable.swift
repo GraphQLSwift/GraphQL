@@ -1,19 +1,51 @@
-extension MapRepresentable {
-    public var map: Map {
-        guard let props = try? properties(self) else {
-            return .null
-        }
+public func map(from value: Any?) throws -> Map {
+    guard let value = value else {
+        return .null
+    }
 
+    if let mapRepresentable = value as? MapRepresentable {
+        return mapRepresentable.map
+    }
+
+    if let mapFallibleRepresentable = value as? MapFallibleRepresentable {
+        return try mapFallibleRepresentable.asMap()
+    }
+
+    let props = try properties(value)
+
+    var dictionary = [String: Map](minimumCapacity: props.count)
+
+    for property in props {
+        dictionary[property.key] = try map(from: property.value)
+    }
+
+    return .dictionary(dictionary)
+}
+
+public func assertMappable(_ type: Any.Type) throws {
+    if type is MapRepresentable.Type {
+        return
+    }
+
+    if type is MapFallibleRepresentable.Type {
+        return
+    }
+
+    for property in try properties(type) {
+        try assertMappable(property.type)
+    }
+}
+
+extension MapFallibleRepresentable {
+    public func asMap() throws -> Map {
+        let props = try properties(self)
         var dictionary = [String: Map](minimumCapacity: props.count)
-
         for property in props {
-            guard let representable = property.value as? MapRepresentable else {
-                return .null
+            guard let representable = property.value as? MapFallibleRepresentable else {
+                throw MapError.notMapRepresentable(type(of: property.value))
             }
-
-            dictionary[property.key] = representable.map
+            dictionary[property.key] = try representable.asMap()
         }
-
         return .dictionary(dictionary)
     }
 }
@@ -48,6 +80,25 @@ extension String : MapRepresentable {
     }
 }
 
+extension Optional where Wrapped : MapRepresentable {
+    public var map: Map {
+        switch self {
+        case .some(let wrapped): return wrapped.map
+        case .none: return .null
+        }
+    }
+}
+
+extension Array where Element : MapRepresentable {
+    public var mapArray: [Map] {
+        return self.map({$0.map})
+    }
+
+    public var map: Map {
+        return .array(mapArray)
+    }
+}
+
 public protocol MapDictionaryKeyRepresentable {
     var mapDictionaryKey: String { get }
 }
@@ -58,15 +109,28 @@ extension String : MapDictionaryKeyRepresentable {
     }
 }
 
+extension Dictionary where Key : MapDictionaryKeyRepresentable, Value : MapRepresentable {
+    public var mapDictionary: [String: Map] {
+        var dictionary: [String: Map] = [:]
+
+        for (key, value) in self.map({($0.0.mapDictionaryKey, $0.1.map)}) {
+            dictionary[key] = value
+        }
+
+        return dictionary
+    }
+
+    public var map: Map {
+        return .dictionary(mapDictionary)
+    }
+}
+
 // MARK: MapFallibleRepresentable
 
 extension Optional : MapFallibleRepresentable {
     public func asMap() throws -> Map {
-        guard Wrapped.self is MapFallibleRepresentable.Type else {
-            throw MapError.notMapRepresentable(Wrapped.self)
-        }
         if case .some(let wrapped as MapFallibleRepresentable) = self {
-            return try wrapped.asMap()
+            return try GraphQL.map(from: wrapped)
         }
         return .null
     }
@@ -125,74 +189,6 @@ extension Dictionary : MapFallibleRepresentable {
             }
         }
         
-        return .dictionary(dictionary)
-    }
-}
-
-// Unsafe Stuff
-
-// TODO: Use conditional conformances
-extension Optional : MapRepresentable {
-    public var map: Map {
-        guard Wrapped.self is MapRepresentable.Type else {
-            return .null
-        }
-        if case .some(let wrapped as MapRepresentable) = self {
-            return wrapped.map
-        }
-        return .null
-    }
-}
-
-extension Array : MapRepresentable {
-    public var map: Map {
-        var array: [Map] = []
-        array.reserveCapacity(count)
-
-        if Element.self is MapRepresentable.Type {
-            for value in self {
-                let value = value as! MapRepresentable
-                array.append(value.map)
-            }
-        } else {
-            for value in self {
-                if let value = value as? MapRepresentable {
-                    array.append(value.map)
-                } else {
-                    return .null
-                }
-            }
-        }
-
-        return .array(array)
-    }
-}
-
-extension Dictionary : MapRepresentable {
-    public var map: Map {
-        guard Key.self is MapDictionaryKeyRepresentable.Type else {
-            return .null
-        }
-
-        var dictionary = [String: Map](minimumCapacity: count)
-
-        if Value.self is MapRepresentable.Type {
-            for (key, value) in self {
-                let value = value as! MapRepresentable
-                let key = key as! MapDictionaryKeyRepresentable
-                dictionary[key.mapDictionaryKey] = value.map
-            }
-        } else {
-            for (key, value) in self {
-                let key = key as! MapDictionaryKeyRepresentable
-                if let value = value as? MapRepresentable {
-                    dictionary[key.mapDictionaryKey] = value.map
-                }  else {
-                    return .null
-                }
-            }
-        }
-
         return .dictionary(dictionary)
     }
 }
