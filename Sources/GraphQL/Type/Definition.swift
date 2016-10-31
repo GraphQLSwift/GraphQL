@@ -497,6 +497,7 @@ public final class GraphQLFieldDefinition {
     let args: [GraphQLArgumentDefinition]
     let resolve: GraphQLFieldResolve?
     let deprecationReason: String?
+    let isDeprecated: Bool
 
     init(
         name: String,
@@ -512,10 +513,7 @@ public final class GraphQLFieldDefinition {
         self.args = args
         self.resolve = resolve
         self.deprecationReason = deprecationReason
-    }
-
-    var isDeprecated: Bool {
-        return deprecationReason != nil
+        self.isDeprecated = deprecationReason != nil
     }
 
     func replaceTypeReferences(typeMap: TypeMap) throws {
@@ -902,6 +900,7 @@ func defineEnumValues(
             name: valueName,
             description: value.description,
             deprecationReason: value.deprecationReason,
+            isDeprecated: value.deprecationReason != nil,
             value: value.value
         )
 
@@ -933,11 +932,8 @@ struct GraphQLEnumValueDefinition {
     let name: String
     let description: String?
     let deprecationReason: String?
+    let isDeprecated: Bool
     let value: Map
-
-    var isDeprecated: Bool {
-        return deprecationReason != nil
-    }
 }
 
 extension GraphQLEnumValueDefinition : MapRepresentable {
@@ -1163,7 +1159,7 @@ extension GraphQLList : Hashable {
  */
 public final class GraphQLNonNull {
     public let ofType: GraphQLNullableType
-    
+
     public init(_ type: GraphQLNullableType) {
         self.ofType = type
     }
@@ -1171,7 +1167,7 @@ public final class GraphQLNonNull {
     public init(_ name: String) {
         self.ofType = GraphQLTypeReference(name)
     }
-    
+
     var wrappedType: GraphQLType {
         return ofType
     }
