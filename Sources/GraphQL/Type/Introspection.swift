@@ -275,6 +275,17 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     return fields
                 }
 
+                if let type = type as? GraphQLInterfaceType {
+                    let fieldMap = type.fields
+                    var fields = Array(fieldMap.values).sorted(by: { $0.name < $1.name })
+
+                    if !arguments["includeDeprecated"].bool! {
+                        fields = fields.filter({ !$0.isDeprecated })
+                    }
+
+                    return fields
+                }
+
                 return nil
             }
         ),
