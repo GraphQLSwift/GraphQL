@@ -93,6 +93,45 @@ let __Directive = try! GraphQLObjectType(
                 return directive.args
             }
         ),
+        // NOTE: the following three fields are deprecated and are no longer part
+        // of the GraphQL specification.
+        "onOperation": GraphQLField(
+            type: GraphQLNonNull(GraphQLBoolean),
+            deprecationReason: "Use `locations`.",
+            resolve: { directive, _, _, _ in
+                guard let d = directive as? GraphQLDirective else {
+                    return nil
+                }
+
+                return d.locations.contains(.query) ||
+                    d.locations.contains(.mutation) ||
+                    d.locations.contains(.subscription)
+            }
+        ),
+        "onFragment": GraphQLField(
+            type: GraphQLNonNull(GraphQLBoolean),
+            deprecationReason: "Use `locations`.",
+            resolve: { directive, _, _, _ in
+                guard let d = directive as? GraphQLDirective else {
+                    return nil
+                }
+
+                return d.locations.contains(.fragmentSpread) ||
+                    d.locations.contains(.inlineFragment) ||
+                    d.locations.contains(.fragmentDefinition)
+            }
+        ),
+        "onField": GraphQLField(
+            type: GraphQLNonNull(GraphQLBoolean),
+            deprecationReason: "Use `locations`.",
+            resolve: { directive, _, _, _ in
+                guard let d = directive as? GraphQLDirective else {
+                    return nil
+                }
+
+                return d.locations.contains(.field)
+            }
+        ),
     ]
 )
 
@@ -274,7 +313,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     if !arguments["includeDeprecated"].bool! {
                         values = values.filter({ !$0.isDeprecated })
                     }
-                    
+
                     return values
                 }
 
@@ -288,7 +327,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     let fieldMap = type.fields
                     return Array(fieldMap.values).sorted(by: { $0.name < $1.name })
                 }
-                
+
                 return nil
             }
         ),
