@@ -121,7 +121,7 @@ extension GraphQLUnionType       : GraphQLNamedType {}
 extension GraphQLEnumType        : GraphQLNamedType {}
 extension GraphQLInputObjectType : GraphQLNamedType {}
 
-func getNamedType(type: GraphQLType?) -> GraphQLNamedType? {
+public func getNamedType(type: GraphQLType?) -> GraphQLNamedType? {
     var unmodifiedType = type
 
     while let type = unmodifiedType as? GraphQLWrapperType {
