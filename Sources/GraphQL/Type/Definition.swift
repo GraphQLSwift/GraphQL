@@ -49,7 +49,7 @@ extension GraphQLNonNull          : GraphQLOutputType {}
  */
 public protocol GraphQLLeafType : GraphQLType, GraphQLNamedType {
     func serialize(value: Any) throws -> Map
-    func parseValue(value: Any) throws -> Map
+    func parseValue(value: Map) throws -> Map
     func parseLiteral(valueAST: Value) throws -> Map
 }
 
@@ -161,14 +161,14 @@ extension GraphQLNonNull : GraphQLWrapperType {}
 public final class GraphQLScalarType {
     public let name: String
     let description: String?
-    let serialize: (Any) throws -> Any
-    let parseValue: ((Any) throws -> Any)?
-    let parseLiteral: ((Value) throws -> Any)?
+    let serialize: (Any) throws -> Map
+    let parseValue: ((Map) throws -> Map)?
+    let parseLiteral: ((Value) throws -> Map)?
 
     public init(
         name: String,
         description: String? = nil,
-        serialize: @escaping (Any) throws -> Any
+        serialize: @escaping (Any) throws -> Map
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -181,9 +181,9 @@ public final class GraphQLScalarType {
     public init(
         name: String,
         description: String? = nil,
-        serialize: @escaping (Any) throws -> Any,
-        parseValue: @escaping (Any) throws -> Any,
-        parseLiteral: @escaping (Value) throws -> Any
+        serialize: @escaping (Any) throws -> Map,
+        parseValue: @escaping (Map) throws -> Map,
+        parseLiteral: @escaping (Value) throws -> Map
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -195,17 +195,17 @@ public final class GraphQLScalarType {
 
     // Serializes an internal value to include in a response.
     public func serialize(value: Any) throws -> Map {
-        return try GraphQL.map(from: self.serialize(value))
+        return try self.serialize(value)
     }
 
     // Parses an externally provided value to use as an input.
-    public func parseValue(value: Any) throws -> Map {
-        return try GraphQL.map(from: self.parseValue?(value))
+    public func parseValue(value: Map) throws -> Map {
+        return try self.parseValue?(value) ?? Map.null
     }
 
     // Parses an externally provided literal value to use as an input.
     public func parseLiteral(valueAST: Value) throws -> Map {
-        return try GraphQL.map(from: self.parseLiteral?(valueAST))
+        return try self.parseLiteral?(valueAST) ?? Map.null
     }
 }
 
@@ -497,7 +497,6 @@ public final class GraphQLFieldDefinition {
     let args: [GraphQLArgumentDefinition]
     let resolve: GraphQLFieldResolve?
     let deprecationReason: String?
-    let isDeprecated: Bool
 
     init(
         name: String,
@@ -513,7 +512,10 @@ public final class GraphQLFieldDefinition {
         self.args = args
         self.resolve = resolve
         self.deprecationReason = deprecationReason
-        self.isDeprecated = deprecationReason != nil
+    }
+
+    var isDeprecated: Bool {
+        return deprecationReason != nil
     }
 
     func replaceTypeReferences(typeMap: TypeMap) throws {
@@ -837,8 +839,8 @@ public final class GraphQLEnumType {
         return try valueLookup[GraphQL.map(from: value)].map({ .string($0.name) }) ?? .null
     }
 
-    public func parseValue(value: Any) throws -> Map {
-        if case .string(let value) = try GraphQL.map(from: value) {
+    public func parseValue(value: Map) throws -> Map {
+        if case .string(let value) = value {
             return nameLookup[value]?.value ?? .null
         }
 
@@ -900,7 +902,6 @@ func defineEnumValues(
             name: valueName,
             description: value.description,
             deprecationReason: value.deprecationReason,
-            isDeprecated: value.deprecationReason != nil,
             value: value.value
         )
 
@@ -932,8 +933,11 @@ struct GraphQLEnumValueDefinition {
     let name: String
     let description: String?
     let deprecationReason: String?
-    let isDeprecated: Bool
     let value: Map
+
+    var isDeprecated: Bool {
+        return deprecationReason != nil
+    }
 }
 
 extension GraphQLEnumValueDefinition : MapRepresentable {
@@ -1159,7 +1163,7 @@ extension GraphQLList : Hashable {
  */
 public final class GraphQLNonNull {
     public let ofType: GraphQLNullableType
-
+    
     public init(_ type: GraphQLNullableType) {
         self.ofType = type
     }
@@ -1167,7 +1171,7 @@ public final class GraphQLNonNull {
     public init(_ name: String) {
         self.ofType = GraphQLTypeReference(name)
     }
-
+    
     var wrappedType: GraphQLType {
         return ofType
     }
