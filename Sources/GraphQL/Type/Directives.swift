@@ -107,7 +107,7 @@ let GraphQLSkipDirective = try! GraphQLDirective(
 /**
  * Constant string used for default reason for a deprecation.
  */
-let defaulDeprecationReason: Map = .string("\"No longer supported\"")
+let defaulDeprecationReason: Map = .string("No longer supported")
 
 /**
  * Used to declare element of a GraphQL schema as deprecated.
