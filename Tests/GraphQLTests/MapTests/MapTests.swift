@@ -578,9 +578,6 @@ public class MapTests : XCTestCase {
             "string": "foo\nbar",
             ]
 
-        let description = "{\"array\":[[],true,{},4.2,1969,null,\"foo\\nbar\"],\"bool\":true,\"dictionary\":{\"array\":[],\"bool\":true,\"dictionary\":{},\"double\":4.2,\"int\":1969,\"null\":null,\"string\":\"foo\\nbar\"},\"double\":4.2,\"int\":1969,\"null\":null,\"string\":\"foo\\nbar\"}"
-
-
         XCTAssertEqual(buffer.debugDescription.characters.count, 465)
     }
 
