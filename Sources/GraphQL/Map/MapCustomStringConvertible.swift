@@ -66,12 +66,12 @@ extension Map {
         func serialize(array: [Map]) -> String {
             var string = "["
 
-            if _isDebugAssertConfiguration() {
+            if debug {
                 indentLevel += 1
             }
 
             for index in 0 ..< array.count {
-                if _isDebugAssertConfiguration() {
+                if debug {
                     string += "\n"
                     string += indent()
                 }
