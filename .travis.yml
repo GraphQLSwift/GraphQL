@@ -6,10 +6,7 @@ os:
 language: generic
 sudo: required
 dist: trusty
-osx_image: xcode8
-install:
-  - eval "$(curl -sL https://raw.githubusercontent.com/Zewo/Zewo/master/Scripts/Travis/install.sh)"
+osx_image: xcode8.1
 script:
-  - bash <(curl -s https://raw.githubusercontent.com/Zewo/Zewo/master/Scripts/Travis/build-test.sh) GraphQL
-#after_success:
-  - bash <(curl -s https://raw.githubusercontent.com/Zewo/Zewo/master/Scripts/Travis/report-coverage.sh)
+  - eval "$(curl -sL https://raw.githubusercontent.com/lgaches/swifttravisci/master/travisci)"
+  - eval "$(curl -sL https://raw.githubusercontent.com/lgaches/swifttravisci/master/codecov)"
