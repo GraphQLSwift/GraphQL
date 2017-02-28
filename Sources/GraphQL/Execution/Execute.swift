@@ -687,7 +687,7 @@ func completeValue(
         }
 
         // If result value is null-ish (nil or .null) then return .null.
-        guard let r = result else {
+        guard let res = result, let r = unwrap(res) else {
             return nil
         }
 
@@ -951,8 +951,12 @@ func defaultResolve(source: Any, args: Map, context: Any, info: GraphQLResolveIn
         return nil
     }
 
+    guard let s = source as? MapFallibleRepresentable else {
+        return nil
+    }
+
     // TODO: check why Reflection fails
-    guard let value = try? get(info.fieldName, from: source) else {
+    guard let value = try? get(info.fieldName, from: s) else {
         return nil
     }
 

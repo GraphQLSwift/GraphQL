@@ -208,10 +208,10 @@ extension InputObjectTypeDefinition : Node {}
 extension TypeExtensionDefinition   : Node {}
 extension DirectiveDefinition       : Node {}
 
-final class Name {
-    let kind: Kind = .name
-    let loc: Location?
-    let value: String
+public final class Name {
+    public let kind: Kind = .name
+    public let loc: Location?
+    public let value: String
 
     init(loc: Location? = nil, value: String) {
         self.loc = loc
@@ -220,7 +220,7 @@ final class Name {
 }
 
 extension Name : Equatable {
-    static func == (lhs: Name, rhs: Name) -> Bool {
+    public static func == (lhs: Name, rhs: Name) -> Bool {
         return lhs.value == rhs.value
     }
 }
@@ -772,10 +772,10 @@ public func == (lhs: Value, rhs: Value) -> Bool {
     return false
 }
 
-final class IntValue {
-    let kind: Kind = .intValue
-    let loc: Location?
-    let value: String
+public final class IntValue {
+    public let kind: Kind = .intValue
+    public let loc: Location?
+    public let value: String
 
     init(loc: Location? = nil, value: String) {
         self.loc = loc
@@ -784,15 +784,15 @@ final class IntValue {
 }
 
 extension IntValue : Equatable {
-    static func == (lhs: IntValue, rhs: IntValue) -> Bool {
+    public static func == (lhs: IntValue, rhs: IntValue) -> Bool {
         return lhs.value == rhs.value
     }
 }
 
-final class FloatValue {
-    let kind: Kind = .floatValue
-    let loc: Location?
-    let value: String
+public final class FloatValue {
+    public let kind: Kind = .floatValue
+    public let loc: Location?
+    public let value: String
 
     init(loc: Location? = nil, value: String) {
         self.loc = loc
@@ -801,15 +801,15 @@ final class FloatValue {
 }
 
 extension FloatValue : Equatable {
-    static func == (lhs: FloatValue, rhs: FloatValue) -> Bool {
+    public static func == (lhs: FloatValue, rhs: FloatValue) -> Bool {
         return lhs.value == rhs.value
     }
 }
 
-final class StringValue {
-    let kind: Kind = .stringValue
-    let loc: Location?
-    let value: String
+public final class StringValue {
+    public let kind: Kind = .stringValue
+    public let loc: Location?
+    public let value: String
 
     init(loc: Location? = nil, value: String) {
         self.loc = loc
@@ -818,15 +818,15 @@ final class StringValue {
 }
 
 extension StringValue : Equatable {
-    static func == (lhs: StringValue, rhs: StringValue) -> Bool {
+    public static func == (lhs: StringValue, rhs: StringValue) -> Bool {
         return lhs.value == rhs.value
     }
 }
 
-final class BooleanValue {
-    let kind: Kind = .booleanValue
-    let loc: Location?
-    let value: Bool
+public final class BooleanValue {
+    public let kind: Kind = .booleanValue
+    public let loc: Location?
+    public let value: Bool
 
     init(loc: Location? = nil, value: Bool) {
         self.loc = loc
@@ -835,15 +835,15 @@ final class BooleanValue {
 }
 
 extension BooleanValue : Equatable {
-    static func == (lhs: BooleanValue, rhs: BooleanValue) -> Bool {
+    public static func == (lhs: BooleanValue, rhs: BooleanValue) -> Bool {
         return lhs.value == rhs.value
     }
 }
 
-final class EnumValue {
-    let kind: Kind = .enumValue
-    let loc: Location?
-    let value: String
+public final class EnumValue {
+    public let kind: Kind = .enumValue
+    public let loc: Location?
+    public let value: String
 
     init(loc: Location? = nil, value: String) {
         self.loc = loc
@@ -852,15 +852,15 @@ final class EnumValue {
 }
 
 extension EnumValue : Equatable {
-    static func == (lhs: EnumValue, rhs: EnumValue) -> Bool {
+    public static func == (lhs: EnumValue, rhs: EnumValue) -> Bool {
         return lhs.value == rhs.value
     }
 }
 
-final class ListValue {
-    let kind: Kind = .listValue
-    let loc: Location?
-    let values: [Value]
+public final class ListValue {
+    public let kind: Kind = .listValue
+    public let loc: Location?
+    public let values: [Value]
 
     init(loc: Location? = nil, values: [Value]) {
         self.loc = loc
@@ -869,7 +869,7 @@ final class ListValue {
 }
 
 extension ListValue : Equatable {
-    static func == (lhs: ListValue, rhs: ListValue) -> Bool {
+    public static func == (lhs: ListValue, rhs: ListValue) -> Bool {
         guard lhs.values.count == rhs.values.count else {
             return false
         }
@@ -884,10 +884,10 @@ extension ListValue : Equatable {
     }
 }
 
-final class ObjectValue {
-    let kind: Kind = .objectValue
-    let loc: Location?
-    let fields: [ObjectField]
+public final class ObjectValue {
+    public let kind: Kind = .objectValue
+    public let loc: Location?
+    public let fields: [ObjectField]
 
     init(loc: Location? = nil, fields: [ObjectField]) {
         self.loc = loc
@@ -896,16 +896,16 @@ final class ObjectValue {
 }
 
 extension ObjectValue : Equatable {
-    static func == (lhs: ObjectValue, rhs: ObjectValue) -> Bool {
+    public static func == (lhs: ObjectValue, rhs: ObjectValue) -> Bool {
         return lhs.fields == rhs.fields
     }
 }
 
-final class ObjectField {
-    let kind: Kind = .objectField
-    let loc: Location?
-    let name: Name
-    let value: Value
+public final class ObjectField {
+    public let kind: Kind = .objectField
+    public let loc: Location?
+    public let name: Name
+    public let value: Value
 
     init(loc: Location? = nil, name: Name, value: Value) {
         self.loc = loc
@@ -915,7 +915,7 @@ final class ObjectField {
 }
 
 extension ObjectField : Equatable {
-    static func == (lhs: ObjectField, rhs: ObjectField) -> Bool {
+    public static func == (lhs: ObjectField, rhs: ObjectField) -> Bool {
         return lhs.name == rhs.name &&
             lhs.value == rhs.value
     }
