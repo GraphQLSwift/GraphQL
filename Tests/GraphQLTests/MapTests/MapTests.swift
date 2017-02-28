@@ -547,12 +547,40 @@ public class MapTests : XCTestCase {
 
         let description = "{\"array\":[[],true,{},4.2,1969,null,\"foo\\nbar\"],\"bool\":true,\"dictionary\":{\"array\":[],\"bool\":true,\"dictionary\":{},\"double\":4.2,\"int\":1969,\"null\":null,\"string\":\"foo\\nbar\"},\"double\":4.2,\"int\":1969,\"null\":null,\"string\":\"foo\\nbar\"}"
 
-        if _isDebugAssertConfiguration() {
-            XCTAssertEqual(buffer.description.characters.count, 465)
-        } else {
-            XCTAssertEqual(buffer.description, description)
-        }
+        XCTAssertEqual(buffer.description, description)
+
     }
+    
+    func testDebugDescription() {
+        let buffer: Map = [
+            "array": [
+                [],
+                true,
+                [:],
+                4.20,
+                1969,
+                nil,
+                "foo\nbar",
+            ],
+            "bool": true,
+            "dictionary": [
+                "array": [],
+                "bool": true,
+                "dictionary": [:],
+                "double": 4.20,
+                "int": 1969,
+                "null": nil,
+                "string": "foo\nbar",
+            ],
+            "double": 4.20,
+            "int": 1969,
+            "null": nil,
+            "string": "foo\nbar",
+            ]
+
+        XCTAssertEqual(buffer.debugDescription.characters.count, 465)
+    }
+
 
     func testEquality() {
         let a: Map = "foo"
@@ -735,6 +763,7 @@ extension MapTests {
            ("testCreation", testCreation),
            ("testConversion", testConversion),
            ("testDescription", testDescription),
+           ("testDebugDescription", testDebugDescription),
            ("testEquality", testEquality),
            ("testIndexPath", testIndexPath),
            ("testMapInitializable", testMapInitializable),
