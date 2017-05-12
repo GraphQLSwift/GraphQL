@@ -850,7 +850,7 @@ func completeAbstractValue(
             message:
             "Abstract type \(returnType.name) must resolve to an Object type at " +
             "runtime for field \(info.parentType.name).\(info.fieldName) with " +
-            "value \"\(resolveResult)\", received \"\(runtimeType)\".",
+            "value \"\(resolveResult)\", received \"\(String(describing:runtimeType))\".",
             nodes: fieldASTs
         )
     }
