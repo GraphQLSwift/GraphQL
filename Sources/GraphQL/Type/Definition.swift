@@ -698,7 +698,7 @@ public final class GraphQLUnionType {
     let types: [GraphQLObjectType]
     let possibleTypeNames: [String: Bool]
 
-    init(
+    public init(
         name: String,
         description: String? = nil,
         resolveType: GraphQLTypeResolve? = nil,
