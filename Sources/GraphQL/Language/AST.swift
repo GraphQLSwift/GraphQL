@@ -92,7 +92,7 @@ final class Token {
      * including ignored tokens. <SOF> is always the first node and <EOF>
      * the last.
      */
-    let prev: Token?
+    weak var prev: Token?
     var next: Token?
 
     init(kind: Kind, start: Int, end: Int, line: Int, column: Int, value: String? = nil, prev: Token? = nil, next: Token? = nil) {
