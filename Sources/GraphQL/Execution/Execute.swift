@@ -480,7 +480,7 @@ func getFieldEntryKey(node: Field) -> String {
  * then calls completeValue to complete promises, serialize scalars, or execute
  * the sub-selection-set for objects.
  */
-func resolveField(
+public func resolveField(
     exeContext: ExecutionContext,
     parentType: GraphQLObjectType,
     source: Any,
