@@ -1,3 +1,5 @@
+import Dispatch
+
 /**
  * Terminology
  *
@@ -26,21 +28,33 @@
  */
 public final class ExecutionContext {
 
-    let queryStrategy: FieldExecutionStrategy
-    let mutationStrategy: FieldExecutionStrategy
-    let subscriptionStrategy: FieldExecutionStrategy
-    let schema: GraphQLSchema
-    let fragments: [String: FragmentDefinition]
-    let rootValue: Any
-    let contextValue: Any
-    let operation: OperationDefinition
-    let variableValues: [String: Map]
-    var errors: [GraphQLError]
+    let queryStrategy: QueryFieldExecutionStrategy
+    let mutationStrategy: MutationFieldExecutionStrategy
+    let subscriptionStrategy: SubscriptionFieldExecutionStrategy
+    public let schema: GraphQLSchema
+    public let fragments: [String: FragmentDefinition]
+    public let rootValue: Any
+    public let contextValue: Any
+    public let operation: OperationDefinition
+    public let variableValues: [String: Map]
+
+    private var errorsSemaphore = DispatchSemaphore(value: 1)
+    private var _errors: [GraphQLError]
+
+    var errors: [GraphQLError] {
+        get {
+            errorsSemaphore.wait()
+            defer {
+                errorsSemaphore.signal()
+            }
+            return _errors
+        }
+    }
 
     init(
-        queryStrategy: FieldExecutionStrategy,
-        mutationStrategy: FieldExecutionStrategy,
-        subscriptionStrategy: FieldExecutionStrategy,
+        queryStrategy: QueryFieldExecutionStrategy,
+        mutationStrategy: MutationFieldExecutionStrategy,
+        subscriptionStrategy: SubscriptionFieldExecutionStrategy,
         schema: GraphQLSchema,
         fragments: [String: FragmentDefinition],
         rootValue: Any,
@@ -58,9 +72,17 @@ public final class ExecutionContext {
         self.contextValue = contextValue
         self.operation = operation
         self.variableValues = variableValues
-        self.errors = errors
-
+        self._errors = errors
     }
+
+    public func append(error: GraphQLError) {
+        errorsSemaphore.wait()
+        defer {
+            errorsSemaphore.signal()
+        }
+        _errors.append(error)
+    }
+
 }
 
 public protocol FieldExecutionStrategy {
@@ -73,10 +95,17 @@ public protocol FieldExecutionStrategy {
     ) throws -> [String: Any]
 }
 
+public protocol MutationFieldExecutionStrategy: FieldExecutionStrategy {}
+public protocol QueryFieldExecutionStrategy: FieldExecutionStrategy {}
+public protocol SubscriptionFieldExecutionStrategy: FieldExecutionStrategy {}
+
 /**
  * Serial field execution strategy that's suitable for the "Evaluating selection sets" section of the spec for "write" mode.
  */
-public struct SerialFieldExecutionStrategy: FieldExecutionStrategy {
+public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy, MutationFieldExecutionStrategy, SubscriptionFieldExecutionStrategy {
+
+    public init () {}
+
     public func executeFields(
         exeContext: ExecutionContext,
         parentType: GraphQLObjectType,
@@ -104,15 +133,87 @@ public struct SerialFieldExecutionStrategy: FieldExecutionStrategy {
 }
 
 /**
+ * Serial field execution strategy that's suitable for the "Evaluating selection sets" section of the spec for "read" mode.
+ *
+ * Each field is resolved as an individual task on a concurrent dispatch queue.
+ */
+public struct ConcurrentDispatchFieldExecutionStrategy: QueryFieldExecutionStrategy, SubscriptionFieldExecutionStrategy {
+
+    let dispatchQueue: DispatchQueue
+
+    public init(dispatchQueue: DispatchQueue) {
+        self.dispatchQueue = dispatchQueue
+    }
+
+    public init(queueLabel: String = "GraphQL field execution", queueQoS: DispatchQoS = .userInitiated) {
+        self.dispatchQueue = DispatchQueue(
+            label: queueLabel,
+            qos: queueQoS,
+            attributes: .concurrent
+        )
+    }
+
+    public func executeFields(
+        exeContext: ExecutionContext,
+        parentType: GraphQLObjectType,
+        sourceValue: Any,
+        path: [IndexPathElement],
+        fields: [String: [Field]]
+    ) throws -> [String: Any] {
+
+        let resultsQueue = DispatchQueue(
+            label: "\(dispatchQueue.label) results",
+            qos: dispatchQueue.qos
+        )
+        let group = DispatchGroup()
+        var results: [String: Any] = [:]
+        var err: Error? = nil
+
+        fields.forEach { field in
+            let fieldASTs = field.value
+            let fieldKey  = field.key
+            let fieldPath = path + [fieldKey] as [IndexPathElement]
+            dispatchQueue.async(group: group) {
+                guard err == nil else {
+                    return
+                }
+                do {
+                    let result = try resolveField(
+                        exeContext: exeContext,
+                        parentType: parentType,
+                        source: sourceValue,
+                        fieldASTs: fieldASTs,
+                        path: fieldPath
+                    )
+                    resultsQueue.async(group: group) {
+                        results[fieldKey] = result ?? Map.null
+                    }
+                } catch {
+                    resultsQueue.async(group: group) {
+                        err = error
+                    }
+                }
+            }
+        }
+        group.wait()
+        if let error = err {
+            throw error
+        }
+        return results
+    }
+
+}
+
+/**
  * Implements the "Evaluating requests" section of the GraphQL specification.
  *
  * If the arguments to this func do not result in a legal execution context,
  * a GraphQLError will be thrown immediately explaining the invalid input.
  */
 func execute(
-    queryStrategy: FieldExecutionStrategy,
-    mutationStrategy: FieldExecutionStrategy,
-    subscriptionStrategy: FieldExecutionStrategy,
+    queryStrategy: QueryFieldExecutionStrategy,
+    mutationStrategy: MutationFieldExecutionStrategy,
+    subscriptionStrategy: SubscriptionFieldExecutionStrategy,
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: Any,
@@ -166,9 +267,9 @@ func execute(
  * Throws a GraphQLError if a valid execution context cannot be created.
  */
 func buildExecutionContext(
-    queryStrategy: FieldExecutionStrategy,
-    mutationStrategy: FieldExecutionStrategy,
-    subscriptionStrategy: FieldExecutionStrategy,
+    queryStrategy: QueryFieldExecutionStrategy,
+    mutationStrategy: MutationFieldExecutionStrategy,
+    subscriptionStrategy: SubscriptionFieldExecutionStrategy,
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: Any,
@@ -608,7 +709,7 @@ func completeValueCatchingError(
     } catch let error as GraphQLError {
         // If `completeValueWithLocatedError` returned abruptly (threw an error),
         // log the error and return .null.
-        exeContext.errors.append(error)
+        exeContext.append(error: error)
         return nil
     } catch {
         fatalError()
