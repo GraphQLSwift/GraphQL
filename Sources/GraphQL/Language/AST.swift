@@ -426,17 +426,17 @@ extension Variable : Equatable {
     }
 }
 
-final class SelectionSet {
-    let kind: Kind = .selectionSet
-    let loc: Location?
-    let selections: [Selection]
+public final class SelectionSet {
+    public let kind: Kind = .selectionSet
+    public let loc: Location?
+    public let selections: [Selection]
 
     init(loc: Location? = nil, selections: [Selection]) {
         self.loc = loc
         self.selections = selections
     }
 
-    func get(key: String) -> NodeResult? {
+    public func get(key: String) -> NodeResult? {
         switch key {
         case "selections":
             guard !selections.isEmpty else {
@@ -450,11 +450,11 @@ final class SelectionSet {
 }
 
 extension SelectionSet : Hashable {
-    var hashValue: Int {
+    public var hashValue: Int {
         return ObjectIdentifier(self).hashValue
     }
 
-    static func == (lhs: SelectionSet, rhs: SelectionSet) -> Bool {
+    public static func == (lhs: SelectionSet, rhs: SelectionSet) -> Bool {
         guard lhs.selections.count == rhs.selections.count else {
             return false
         }
@@ -469,10 +469,10 @@ extension SelectionSet : Hashable {
     }
 }
 
-protocol  Selection      : Node      {}
-extension Field          : Selection {}
-extension FragmentSpread : Selection {}
-extension InlineFragment : Selection {}
+public protocol Selection : Node      {}
+extension Field           : Selection {}
+extension FragmentSpread  : Selection {}
+extension InlineFragment  : Selection {}
 
 func == (lhs: Selection, rhs: Selection) -> Bool {
     switch lhs {
@@ -495,14 +495,14 @@ func == (lhs: Selection, rhs: Selection) -> Bool {
     return false
 }
 
-final class Field {
-    let kind: Kind = .field
-    let loc: Location?
-    let alias: Name?
-    let name: Name
-    let arguments: [Argument]
-    let directives: [Directive]
-    let selectionSet: SelectionSet?
+public final class Field {
+    public let kind: Kind = .field
+    public let loc: Location?
+    public let alias: Name?
+    public let name: Name
+    public let arguments: [Argument]
+    public let directives: [Directive]
+    public let selectionSet: SelectionSet?
 
     init(loc: Location? = nil, alias: Name? = nil, name: Name, arguments: [Argument] = [], directives: [Directive] = [], selectionSet: SelectionSet? = nil) {
         self.loc = loc
@@ -513,7 +513,7 @@ final class Field {
         self.selectionSet = selectionSet
     }
 
-    func get(key: String) -> NodeResult? {
+    public func get(key: String) -> NodeResult? {
         switch key {
         case "alias":
             return alias.map({ .node($0) })
@@ -538,7 +538,7 @@ final class Field {
 }
 
 extension Field : Equatable {
-    static func == (lhs: Field, rhs: Field) -> Bool {
+    public static func == (lhs: Field, rhs: Field) -> Bool {
         return lhs.alias == rhs.alias &&
             lhs.name == rhs.name &&
             lhs.arguments == rhs.arguments &&
@@ -547,11 +547,11 @@ extension Field : Equatable {
     }
 }
 
-final class Argument {
-    let kind: Kind = .argument
-    let loc: Location?
-    let name: Name
-    let value: Value
+public final class Argument {
+    public let kind: Kind = .argument
+    public let loc: Location?
+    public let name: Name
+    public let value: Value
 
     init(loc: Location? = nil, name: Name, value: Value) {
         self.loc = loc
@@ -559,7 +559,7 @@ final class Argument {
         self.value = value
     }
 
-    func get(key: String) -> NodeResult? {
+    public func get(key: String) -> NodeResult? {
         switch key {
         case "name":
             return .node(name)
@@ -572,7 +572,7 @@ final class Argument {
 }
 
 extension Argument : Equatable {
-    static func == (lhs: Argument, rhs: Argument) -> Bool {
+    public static func == (lhs: Argument, rhs: Argument) -> Bool {
         return lhs.name == rhs.name &&
             lhs.value == rhs.value
     }
@@ -921,11 +921,11 @@ extension ObjectField : Equatable {
     }
 }
 
-final class Directive {
-    let kind: Kind = .directive
-    let loc: Location?
-    let name: Name
-    let arguments: [Argument]
+public final class Directive {
+    public let kind: Kind = .directive
+    public let loc: Location?
+    public let name: Name
+    public let arguments: [Argument]
 
     init(loc: Location? = nil, name: Name, arguments: [Argument] = []) {
         self.loc = loc
@@ -935,7 +935,7 @@ final class Directive {
 }
 
 extension Directive : Equatable {
-    static func == (lhs: Directive, rhs: Directive) -> Bool {
+    public static func == (lhs: Directive, rhs: Directive) -> Bool {
         return lhs.name == rhs.name &&
             lhs.arguments == rhs.arguments
     }
