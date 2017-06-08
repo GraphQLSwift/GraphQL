@@ -24,16 +24,23 @@
  * Namely, schema of the type system that is currently executing,
  * and the fragments defined in the query document
  */
-final class ExecutionContext {
-  let schema: GraphQLSchema
-  let fragments: [String: FragmentDefinition]
-  let rootValue: Any
-  let contextValue: Any
-  let operation: OperationDefinition
-  let variableValues: [String: Map]
-  var errors: [GraphQLError]
+public final class ExecutionContext {
+
+    let queryStrategy: FieldExecutionStrategy
+    let mutationStrategy: FieldExecutionStrategy
+    let subscriptionStrategy: FieldExecutionStrategy
+    let schema: GraphQLSchema
+    let fragments: [String: FragmentDefinition]
+    let rootValue: Any
+    let contextValue: Any
+    let operation: OperationDefinition
+    let variableValues: [String: Map]
+    var errors: [GraphQLError]
 
     init(
+        queryStrategy: FieldExecutionStrategy,
+        mutationStrategy: FieldExecutionStrategy,
+        subscriptionStrategy: FieldExecutionStrategy,
         schema: GraphQLSchema,
         fragments: [String: FragmentDefinition],
         rootValue: Any,
@@ -42,6 +49,9 @@ final class ExecutionContext {
         variableValues: [String: Map],
         errors: [GraphQLError]
     ) {
+        self.queryStrategy = queryStrategy
+        self.mutationStrategy = mutationStrategy
+        self.subscriptionStrategy = subscriptionStrategy
         self.schema = schema
         self.fragments = fragments
         self.rootValue = rootValue
@@ -53,6 +63,46 @@ final class ExecutionContext {
     }
 }
 
+public protocol FieldExecutionStrategy {
+    func executeFields(
+        exeContext: ExecutionContext,
+        parentType: GraphQLObjectType,
+        sourceValue: Any,
+        path: [IndexPathElement],
+        fields: [String: [Field]]
+    ) throws -> [String: Any]
+}
+
+/**
+ * Serial field execution strategy that's suitable for the "Evaluating selection sets" section of the spec for "write" mode.
+ */
+public struct SerialFieldExecutionStrategy: FieldExecutionStrategy {
+    public func executeFields(
+        exeContext: ExecutionContext,
+        parentType: GraphQLObjectType,
+        sourceValue: Any,
+        path: [IndexPathElement],
+        fields: [String: [Field]]
+    ) throws -> [String: Any] {
+        return try fields.reduce([:]) { results, field in
+            var results = results
+            let fieldASTs = field.value
+            let fieldPath = path + [field.key] as [IndexPathElement]
+
+            let result = try resolveField(
+                exeContext: exeContext,
+                parentType: parentType,
+                source: sourceValue,
+                fieldASTs: fieldASTs,
+                path: fieldPath
+            )
+
+            results[field.key] = result ?? Map.null
+            return results
+        }
+    }
+}
+
 /**
  * Implements the "Evaluating requests" section of the GraphQL specification.
  *
@@ -60,6 +110,9 @@ final class ExecutionContext {
  * a GraphQLError will be thrown immediately explaining the invalid input.
  */
 func execute(
+    queryStrategy: FieldExecutionStrategy,
+    mutationStrategy: FieldExecutionStrategy,
+    subscriptionStrategy: FieldExecutionStrategy,
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: Any,
@@ -70,6 +123,9 @@ func execute(
     // If a valid context cannot be created due to incorrect arguments,
     // this will throw an error.
     let context = try buildExecutionContext(
+        queryStrategy: queryStrategy,
+        mutationStrategy: mutationStrategy,
+        subscriptionStrategy: subscriptionStrategy,
         schema: schema,
         documentAST: documentAST,
         rootValue: rootValue,
@@ -110,6 +166,9 @@ func execute(
  * Throws a GraphQLError if a valid execution context cannot be created.
  */
 func buildExecutionContext(
+    queryStrategy: FieldExecutionStrategy,
+    mutationStrategy: FieldExecutionStrategy,
+    subscriptionStrategy: FieldExecutionStrategy,
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: Any,
@@ -160,6 +219,9 @@ func buildExecutionContext(
     )
     
     return ExecutionContext(
+        queryStrategy: queryStrategy,
+        mutationStrategy: mutationStrategy,
+        subscriptionStrategy: subscriptionStrategy,
         schema: schema,
         fragments: fragments,
         rootValue: rootValue,
@@ -193,17 +255,17 @@ func executeOperation(
 
     let path: [IndexPathElement] = []
 
-    if operation.operation == .mutation {
-        return try executeFieldsSerially(
-            exeContext: exeContext,
-            parentType: type,
-            sourceValue: rootValue,
-            path: path,
-            fields: fields
-        )
+    let fieldExecutionStrategy: FieldExecutionStrategy
+    switch operation.operation {
+    case .query:
+        fieldExecutionStrategy = exeContext.queryStrategy
+    case .mutation:
+        fieldExecutionStrategy = exeContext.mutationStrategy
+    case .subscription:
+        fieldExecutionStrategy = exeContext.subscriptionStrategy
     }
 
-    return try executeFields(
+    return try fieldExecutionStrategy.executeFields(
         exeContext: exeContext,
         parentType: type,
         sourceValue: rootValue,
@@ -241,55 +303,6 @@ func getOperationRootType(
 
       return subscriptionType
   }
-}
-
-/**
- * Implements the "Evaluating selection sets" section of the spec
- * for "write" mode.
- */
-func executeFieldsSerially(
-    exeContext: ExecutionContext,
-    parentType: GraphQLObjectType,
-    sourceValue: Any,
-    path: [IndexPathElement],
-    fields: [String: [Field]]
-) throws -> [String: Any] {
-    return try fields.reduce([:]) { results, field in
-        var results = results
-        let fieldASTs = field.value
-        let fieldPath = path + [field.key] as [IndexPathElement]
-
-        let result = try resolveField(
-            exeContext: exeContext,
-            parentType: parentType,
-            source: sourceValue,
-            fieldASTs: fieldASTs,
-            path: fieldPath
-        )
-
-        results[field.key] = result ?? Map.null
-        return results
-    }
-}
-
-/**
- * Implements the "Evaluating selection sets" section of the spec
- * for "read" mode.
- */
-func executeFields(
-    exeContext: ExecutionContext,
-    parentType: GraphQLObjectType,
-    sourceValue: Any,
-    path: [IndexPathElement],
-    fields: [String: [Field]]
-) throws -> [String : Any] {
-    return try executeFieldsSerially(
-        exeContext: exeContext,
-        parentType: parentType,
-        sourceValue: sourceValue,
-        path: path,
-        fields: fields
-    )
 }
 
 /**
@@ -911,8 +924,8 @@ func completeObjectValue(
             )
         }
     }
-    
-    return try executeFields(
+
+    return try exeContext.queryStrategy.executeFields(
         exeContext: exeContext,
         parentType: returnType,
         sourceValue: result,

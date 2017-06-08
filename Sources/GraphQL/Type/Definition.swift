@@ -47,7 +47,7 @@ extension GraphQLNonNull          : GraphQLOutputType {}
 /**
  * These types may describe types which may be leaf values.
  */
-public protocol GraphQLLeafType : GraphQLType, GraphQLNamedType {
+public protocol GraphQLLeafType : GraphQLNamedType {
     func serialize(value: Any) throws -> Map
     func parseValue(value: Map) throws -> Map
     func parseLiteral(valueAST: Value) throws -> Map
@@ -65,10 +65,10 @@ func isLeafType(type: GraphQLType?) -> Bool {
 /**
  * These types may describe the parent context of a selection set.
  */
-public protocol GraphQLCompositeType : GraphQLType, GraphQLNamedType, GraphQLOutputType {}
-extension GraphQLObjectType          : GraphQLCompositeType                             {}
-extension GraphQLInterfaceType       : GraphQLCompositeType                             {}
-extension GraphQLUnionType           : GraphQLCompositeType                             {}
+public protocol GraphQLCompositeType : GraphQLNamedType, GraphQLOutputType {}
+extension GraphQLObjectType          : GraphQLCompositeType                {}
+extension GraphQLInterfaceType       : GraphQLCompositeType                {}
+extension GraphQLUnionType           : GraphQLCompositeType                {}
 
 protocol GraphQLTypeReferenceContainer : GraphQLNamedType {
     func replaceTypeReferences(typeMap: TypeMap) throws
@@ -80,7 +80,7 @@ extension GraphQLInterfaceType : GraphQLTypeReferenceContainer {}
 /**
  * These types may describe the parent context of a selection set.
  */
-public protocol GraphQLAbstractType : GraphQLType, GraphQLNamedType {
+public protocol GraphQLAbstractType : GraphQLNamedType {
     var resolveType: GraphQLTypeResolve? { get }
 }
 
@@ -110,7 +110,7 @@ func getNullableType(type: GraphQLType?) -> GraphQLNullableType? {
 /**
  * These named types do not include modifiers like List or NonNull.
  */
-public protocol GraphQLNamedType : GraphQLType, GraphQLNullableType, MapRepresentable {
+public protocol GraphQLNamedType : GraphQLNullableType {
     var name: String { get }
 }
 
