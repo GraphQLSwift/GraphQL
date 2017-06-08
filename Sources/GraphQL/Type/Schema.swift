@@ -26,13 +26,13 @@
  *
  */
 public final class GraphQLSchema {
-    let queryType: GraphQLObjectType
-    let mutationType: GraphQLObjectType?
-    let subscriptionType: GraphQLObjectType?
-    let directives: [GraphQLDirective]
-    var typeMap: TypeMap
-    let implementations: [String: [GraphQLObjectType]]
-    var possibleTypeMap: [String: [String: Bool]] = [:]
+    public let queryType: GraphQLObjectType
+    public let mutationType: GraphQLObjectType?
+    public let subscriptionType: GraphQLObjectType?
+    public let directives: [GraphQLDirective]
+    public let typeMap: TypeMap
+    public let implementations: [String: [GraphQLObjectType]]
+    private var possibleTypeMap: [String: [String: Bool]] = [:]
 
     public init(
         query: GraphQLObjectType,
@@ -104,11 +104,11 @@ public final class GraphQLSchema {
         }
     }
 
-    func getType(name: String) -> GraphQLNamedType? {
+    public func getType(name: String) -> GraphQLNamedType? {
         return typeMap[name]
     }
 
-    func getPossibleTypes(abstractType: GraphQLAbstractType) -> [GraphQLObjectType] {
+    public func getPossibleTypes(abstractType: GraphQLAbstractType) -> [GraphQLObjectType] {
         if let union = abstractType as? GraphQLUnionType {
             return union.types
         }
@@ -121,7 +121,7 @@ public final class GraphQLSchema {
         return []
     }
 
-    func isPossibleType(abstractType: GraphQLAbstractType, possibleType: GraphQLObjectType) throws -> Bool {
+    public func isPossibleType(abstractType: GraphQLAbstractType, possibleType: GraphQLObjectType) throws -> Bool {
         if possibleTypeMap[abstractType.name] == nil {
             let possibleTypes = getPossibleTypes(abstractType: abstractType)
 
@@ -148,7 +148,7 @@ public final class GraphQLSchema {
     }
 
 
-    func getDirective(name: String) -> GraphQLDirective? {
+    public func getDirective(name: String) -> GraphQLDirective? {
         for directive in directives where directive.name == name {
             return directive
         }

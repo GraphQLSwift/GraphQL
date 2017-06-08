@@ -1,6 +1,6 @@
 import Foundation
 
-typealias SourceLocation = (line: Int, column: Int)
+public typealias SourceLocation = (line: Int, column: Int)
 
 /**
  * Takes a Source and a UTF-8 character offset, and returns the corresponding
