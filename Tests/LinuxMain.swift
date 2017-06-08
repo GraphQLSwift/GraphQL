@@ -10,4 +10,5 @@ XCTMain([
      testCase(LexerTests.allTests),
      testCase(ParserTests.allTests),
      testCase(SchemaParserTests.allTests),
+     testCase(DictionaryPersistedQueriesTests.allTests),
 ])
