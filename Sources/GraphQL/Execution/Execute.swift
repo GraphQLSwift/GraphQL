@@ -31,6 +31,7 @@ public final class ExecutionContext {
     let queryStrategy: QueryFieldExecutionStrategy
     let mutationStrategy: MutationFieldExecutionStrategy
     let subscriptionStrategy: SubscriptionFieldExecutionStrategy
+    let instrumentation: Instrumentation
     public let schema: GraphQLSchema
     public let fragments: [String: FragmentDefinition]
     public let rootValue: Any
@@ -55,6 +56,7 @@ public final class ExecutionContext {
         queryStrategy: QueryFieldExecutionStrategy,
         mutationStrategy: MutationFieldExecutionStrategy,
         subscriptionStrategy: SubscriptionFieldExecutionStrategy,
+        instrumentation: Instrumentation,
         schema: GraphQLSchema,
         fragments: [String: FragmentDefinition],
         rootValue: Any,
@@ -66,6 +68,7 @@ public final class ExecutionContext {
         self.queryStrategy = queryStrategy
         self.mutationStrategy = mutationStrategy
         self.subscriptionStrategy = subscriptionStrategy
+        self.instrumentation = instrumentation
         self.schema = schema
         self.fragments = fragments
         self.rootValue = rootValue
@@ -214,6 +217,7 @@ func execute(
     queryStrategy: QueryFieldExecutionStrategy,
     mutationStrategy: MutationFieldExecutionStrategy,
     subscriptionStrategy: SubscriptionFieldExecutionStrategy,
+    instrumentation: Instrumentation,
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: Any,
@@ -221,43 +225,81 @@ func execute(
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) throws -> Map {
-    // If a valid context cannot be created due to incorrect arguments,
-    // this will throw an error.
-    let context = try buildExecutionContext(
-        queryStrategy: queryStrategy,
-        mutationStrategy: mutationStrategy,
-        subscriptionStrategy: subscriptionStrategy,
-        schema: schema,
-        documentAST: documentAST,
-        rootValue: rootValue,
-        contextValue: contextValue,
-        rawVariableValues: variableValues,
-        operationName: operationName
-    )
 
+    let executeStarted = instrumentation.now
+    let context: ExecutionContext
+    do {
+        // If a valid context cannot be created due to incorrect arguments,
+        // this will throw an error.
+        context = try buildExecutionContext(
+            queryStrategy: queryStrategy,
+            mutationStrategy: mutationStrategy,
+            subscriptionStrategy: subscriptionStrategy,
+            instrumentation: instrumentation,
+            schema: schema,
+            documentAST: documentAST,
+            rootValue: rootValue,
+            contextValue: contextValue,
+            rawVariableValues: variableValues,
+            operationName: operationName
+        )
+    } catch let error as GraphQLError {
+        instrumentation.operationExecution(
+            processId: processId(),
+            threadId: threadId(),
+            started: executeStarted,
+            finished: instrumentation.now,
+            schema: schema,
+            document: documentAST,
+            rootValue: rootValue,
+            contextValue: contextValue,
+            variableValues: variableValues,
+            operation: nil,
+            errors: [error],
+            result: nil
+        )
+        throw error
+    }
+
+    let executeResult: Map
+    let executeErrors: [GraphQLError]
     do {
         let data = try executeOperation(
             exeContext: context,
             operation: context.operation,
             rootValue: rootValue
         )
-
         var dataMap: Map = [:]
-
         for (key, value) in data {
             dataMap[key] = try map(from: value)
         }
-
         var result: [String: Map] = ["data": dataMap]
-
         if !context.errors.isEmpty {
             result["errors"] = context.errors.map
         }
-
-        return .dictionary(result)
+        executeResult = .dictionary(result)
+        executeErrors = context.errors
     } catch let error as GraphQLError {
-        return ["errors": [error].map]
+        executeResult = ["errors": [error].map]
+        executeErrors = [error]
     }
+
+    instrumentation.operationExecution(
+        processId: processId(),
+        threadId: threadId(),
+        started: executeStarted,
+        finished: instrumentation.now,
+        schema: schema,
+        document: documentAST,
+        rootValue: rootValue,
+        contextValue: contextValue,
+        variableValues: variableValues,
+        operation: context.operation,
+        errors: executeErrors,
+        result: executeResult
+    )
+
+    return executeResult
 }
 
 /**
@@ -270,6 +312,7 @@ func buildExecutionContext(
     queryStrategy: QueryFieldExecutionStrategy,
     mutationStrategy: MutationFieldExecutionStrategy,
     subscriptionStrategy: SubscriptionFieldExecutionStrategy,
+    instrumentation: Instrumentation,
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: Any,
@@ -323,6 +366,7 @@ func buildExecutionContext(
         queryStrategy: queryStrategy,
         mutationStrategy: mutationStrategy,
         subscriptionStrategy: subscriptionStrategy,
+        instrumentation: instrumentation,
         schema: schema,
         fragments: fragments,
         rootValue: rootValue,
@@ -629,6 +673,8 @@ public func resolveField(
         variableValues: exeContext.variableValues
     )
 
+    let resolveFieldStarted = exeContext.instrumentation.now
+
     // Get the resolve func, regardless of if its result is normal
     // or abrupt (error).
     let result = resolveOrError(
@@ -637,6 +683,18 @@ public func resolveField(
         args: args,
         context: context,
         info: info
+    )
+
+    exeContext.instrumentation.fieldResolution(
+        processId: processId(),
+        threadId: threadId(), 
+        started: resolveFieldStarted,
+        finished: exeContext.instrumentation.now,
+        source: source,
+        args: args,
+        context: context,
+        info: info,
+        result: result
     )
     
     return try completeValueCatchingError(
@@ -649,9 +707,9 @@ public func resolveField(
     )
 }
 
-enum ResultOrError {
-    case result(Any?)
-    case error(Error)
+public enum ResultOrError<T, E> {
+    case result(T)
+    case error(E)
 }
 
 // Isolates the "ReturnOrAbrupt" behavior to not de-opt the `resolveField`
@@ -662,7 +720,7 @@ func resolveOrError(
     args: Map,
     context: Any,
     info: GraphQLResolveInfo
-)-> ResultOrError {
+)-> ResultOrError<Any?, Error> {
     do {
         return try .result(resolve(source, args, context, info))
     } catch {
@@ -678,7 +736,7 @@ func completeValueCatchingError(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: [IndexPathElement],
-    result: ResultOrError
+    result: ResultOrError<Any?, Error>
 ) throws -> Any? {
     // If the field type is non-nullable, then it is resolved without any
     // protection from errors, however it still properly locates the error.
@@ -724,7 +782,7 @@ func completeValueWithLocatedError(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: [IndexPathElement],
-    result: ResultOrError
+    result: ResultOrError<Any?, Error>
 ) throws -> Any? {
     do {
         let completed = try completeValue(
@@ -773,7 +831,7 @@ func completeValue(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: [IndexPathElement],
-    result: ResultOrError
+    result: ResultOrError<Any?, Error>
 ) throws -> Any? {
     switch result {
     case .error(let error):

@@ -12,13 +12,17 @@
  * GraphQLErrors, or Arrays of GraphQLErrors when invalid.
  */
 func validate(
+    instrumentation: Instrumentation = NoOpInstrumentation,
     schema: GraphQLSchema,
     ast: Document,
     rules: [(ValidationContext) -> Visitor] = []
 ) -> [GraphQLError] {
+    let started = instrumentation.now
     let typeInfo = TypeInfo(schema: schema)
     let rules = rules.isEmpty ? specifiedRules : rules
-    return visit(usingRules: rules, schema: schema, typeInfo: typeInfo, documentAST: ast)
+    let errors = visit(usingRules: rules, schema: schema, typeInfo: typeInfo, documentAST: ast)
+    instrumentation.queryValidation(processId: processId(), threadId: threadId(), started: started, finished: instrumentation.now, schema: schema, document: ast, errors: errors)
+    return errors
 }
 
 /**
