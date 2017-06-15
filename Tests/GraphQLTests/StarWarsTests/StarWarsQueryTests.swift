@@ -126,6 +126,49 @@ class StarWarsQueryTests : XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
+    func testOptionalVariable() throws{
+        
+        let query = "query FetchHeroByEpisodeQuery($episode: String) {" +
+            "    hero(episode: $episode) {" +
+            "        name" +
+            "    }" +
+        "}"
+        
+        var params: [String: Map]
+        var expected: Map
+        var result: Map
+        
+        // $episode is not required so we can omit and expect this to work and return R2
+        params = [:]
+        
+        expected = [
+            "data": [
+                "hero": [
+                    "name": "R2-D2",
+                ],
+            ],
+        ]
+
+        result = try graphql(schema: StarWarsSchema, request: query, variableValues: params)
+        XCTAssertEqual(result, expected)
+        
+        // or we can pass "EMPIRE" and expect Luke
+        params = [
+            "episode": "EMPIRE",
+        ]
+        
+        expected = [
+            "data": [
+                "hero": [
+                    "name": "Luke Skywalker",
+                ],
+            ],
+        ]
+        
+        result = try graphql(schema: StarWarsSchema, request: query, variableValues: params)
+        XCTAssertEqual(result, expected)
+    }
+    
     func testFetchSomeIDQuery() throws {
         let query = "query FetchSomeIDQuery($someId: String!) {" +
                     "    human(id: $someId) {" +

@@ -79,8 +79,11 @@ func getVariableValue(schema: GraphQLSchema, definitionAST: VariableDefinition, 
             if let defaultValue = definitionAST.defaultValue {
                 return try valueFromAST(valueAST: defaultValue, type: inputType)!
             }
+            else if !(inputType is GraphQLNonNull) {
+                return .null
+            }
         }
-
+        
         return try coerceValue(type: inputType, value: input)!
     }
 
