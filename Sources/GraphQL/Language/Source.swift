@@ -5,8 +5,8 @@
  * it might be useful for name to be "Foo.graphql".
  */
 public struct Source {
-    let body: String
-    let name: String
+    public let body: String
+    public let name: String
 
     public init(body: String, name: String = "GraphQL") {
         self.body = body

@@ -41,7 +41,7 @@ public final class ExecutionContext {
     private var errorsSemaphore = DispatchSemaphore(value: 1)
     private var _errors: [GraphQLError]
 
-    var errors: [GraphQLError] {
+    public var errors: [GraphQLError] {
         get {
             errorsSemaphore.wait()
             defer {
