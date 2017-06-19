@@ -289,16 +289,16 @@ func == (lhs: Definition, rhs: Definition) -> Bool {
     return false
 }
 
-enum OperationType : String {
+public enum OperationType : String {
     case query = "query"
     case mutation = "mutation"
     // Note: subscription is an experimental non-spec addition.
     case subscription = "subscription"
 }
 
-final class OperationDefinition {
-    let kind: Kind = .operationDefinition
-    let loc: Location?
+public final class OperationDefinition {
+    public let kind: Kind = .operationDefinition
+    public let loc: Location?
     let operation: OperationType
     let name: Name?
     let variableDefinitions: [VariableDefinition]
@@ -314,7 +314,7 @@ final class OperationDefinition {
         self.selectionSet = selectionSet
     }
 
-    func get(key: String) -> NodeResult? {
+    public func get(key: String) -> NodeResult? {
         switch key {
         case "name":
             return name.map({ .node($0) })
@@ -337,11 +337,11 @@ final class OperationDefinition {
 }
 
 extension OperationDefinition : Hashable {
-    var hashValue: Int {
+    public var hashValue: Int {
         return ObjectIdentifier(self).hashValue
     }
 
-    static func == (lhs: OperationDefinition, rhs: OperationDefinition) -> Bool {
+    public static func == (lhs: OperationDefinition, rhs: OperationDefinition) -> Bool {
         return lhs.operation == rhs.operation &&
             lhs.name == rhs.name &&
             lhs.variableDefinitions == rhs.variableDefinitions &&
@@ -673,9 +673,9 @@ extension InlineFragment : Equatable {
     }
 }
 
-final class FragmentDefinition {
-    let kind: Kind = .fragmentDefinition
-    let loc: Location?
+public final class FragmentDefinition {
+    public let kind: Kind = .fragmentDefinition
+    public let loc: Location?
     let name: Name
     let typeCondition: NamedType
     let directives: [Directive]
@@ -689,7 +689,7 @@ final class FragmentDefinition {
         self.selectionSet = selectionSet
     }
 
-    func get(key: String) -> NodeResult? {
+    public func get(key: String) -> NodeResult? {
         switch key {
         case "name":
             return .node(name)
@@ -709,11 +709,11 @@ final class FragmentDefinition {
 }
 
 extension FragmentDefinition : Hashable {
-    var hashValue: Int {
+    public var hashValue: Int {
         return ObjectIdentifier(self).hashValue
     }
 
-    static func == (lhs: FragmentDefinition, rhs: FragmentDefinition) -> Bool {
+    public static func == (lhs: FragmentDefinition, rhs: FragmentDefinition) -> Bool {
         return lhs.name == rhs.name &&
         lhs.typeCondition == rhs.typeCondition &&
         lhs.directives == rhs.directives &&

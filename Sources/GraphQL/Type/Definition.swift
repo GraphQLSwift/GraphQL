@@ -452,11 +452,11 @@ public typealias GraphQLFieldResolve = (
 ) throws -> Any?
 
 public struct GraphQLResolveInfo {
-    let fieldName: String
+    public let fieldName: String
     let fieldASTs: [Field]
     let returnType: GraphQLOutputType
     let parentType: GraphQLCompositeType
-    let path: [IndexPathElement]
+    public let path: [IndexPathElement]
     let schema: GraphQLSchema
     let fragments: [String: FragmentDefinition]
     let rootValue: Any
