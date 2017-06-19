@@ -54,7 +54,7 @@ func splitLines(string: String) -> [String] {
         let regex = try! NSRegularExpression(pattern: "\r\n|[\n\r]", options: [])
     #else
         let nsstring = NSString(string: string)
-        let regex = try! RegularExpression(pattern: "\r\n|[\n\r]", options: [])
+        let regex = try! NSRegularExpression(pattern: "\r\n|[\n\r]", options: [])
     #endif
 
     var lines: [String] = []

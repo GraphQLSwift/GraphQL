@@ -13,7 +13,7 @@ func getLocation(source: Source, position: Int) -> SourceLocation {
     #if os(macOS)
         let regex = try! NSRegularExpression(pattern: "\r\n|[\n\r]", options: [])
     #else
-        let regex = try! RegularExpression(pattern: "\r\n|[\n\r]", options: [])
+        let regex = try! NSRegularExpression(pattern: "\r\n|[\n\r]", options: [])
     #endif
 
     let matches = regex.matches(in: source.body, options: [], range: NSRange(0..<source.body.utf16.count))
