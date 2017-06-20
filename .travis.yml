@@ -1,19 +1,12 @@
 notifications:
   slack: zewo:VjyVCCQvTOw9yrbzQysZezD1
+os:
+  - linux
+  - osx
 language: generic
-matrix:
-  include:
-    - os: osx
-      env: JOB=SwiftPM_OSX
-      osx_image: xcode8.3
-    - os: linux
-      env: JOB=SwiftPM_linux
-      dist: trusty
-      sudo: required
-      install:
-        -  travis_retry eval "$(curl -sL https://gist.githubusercontent.com/kylef/5c0475ff02b7c7671d2a/raw/9f442512a46d7a2af7b850d65a7e9bd31edfb09b/swiftenv-install.sh)"
+sudo: required
+dist: trusty
+osx_image: xcode8.3
 script:
-  - swift build -c release
-  - swift build
-  - swift test
+  - eval "$(curl -sL https://raw.githubusercontent.com/lgaches/swifttravisci/master/travisci)"
   - eval "$(curl -sL https://raw.githubusercontent.com/lgaches/swifttravisci/master/codecov)"
