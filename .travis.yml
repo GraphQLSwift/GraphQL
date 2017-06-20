@@ -19,3 +19,4 @@ script:
   - swift build -c release
   - swift build
   - swift test
+  - eval "$(curl -sL https://raw.githubusercontent.com/lgaches/swifttravisci/master/codecov)"
