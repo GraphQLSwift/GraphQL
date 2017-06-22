@@ -9,6 +9,7 @@
 /// - parameter queryStrategy:        The field execution strategy to use for query requests
 /// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
 /// - parameter subscriptionStrategy: The field execution strategy to use for subscription requests
+/// - parameter instrumentation:      The instrumentation implementation to call during the parsing, validating, execution, and field resolution stages.
 /// - parameter schema:               The GraphQL type system to use when validating and executing a query.
 /// - parameter request:              A GraphQL language formatted string representing the requested operation.
 /// - parameter rootValue:            The value provided as the first argument to resolver functions on the top level type (e.g. the query object type).
@@ -23,6 +24,7 @@ public func graphql(
     queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
+    instrumentation: Instrumentation = NoOpInstrumentation,
     schema: GraphQLSchema,
     request: String,
     rootValue: Any = Void(),
@@ -30,9 +32,10 @@ public func graphql(
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) throws -> Map {
+
     let source = Source(body: request, name: "GraphQL request")
-    let documentAST = try parse(source: source)
-    let validationErrors = validate(schema: schema, ast: documentAST)
+    let documentAST = try parse(instrumentation: instrumentation, source: source)
+    let validationErrors = validate(instrumentation: instrumentation, schema: schema, ast: documentAST)
 
     guard validationErrors.isEmpty else {
         return ["errors": try validationErrors.asMap()]
@@ -42,6 +45,7 @@ public func graphql(
         queryStrategy: queryStrategy,
         mutationStrategy: mutationStrategy,
         subscriptionStrategy: subscriptionStrategy,
+        instrumentation: instrumentation,
         schema: schema,
         documentAST: documentAST,
         rootValue: rootValue,
