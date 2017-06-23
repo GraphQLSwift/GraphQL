@@ -1,3 +1,21 @@
+/// Implements the "Validation" section of the spec.
+///
+/// Validation runs synchronously, returning an array of encountered errors, or
+/// an empty array if no errors were encountered and the document is valid.
+///
+/// - Parameters:
+///   - instrumentation: The instrumentation implementation to call during the parsing, validating, execution, and field resolution stages.
+///   - schema:          The GraphQL type system to use when validating and executing a query.
+///   - ast:             A GraphQL document representing the requested operation.
+/// - Returns: zero or more errors
+public func validate(
+    instrumentation: Instrumentation = NoOpInstrumentation,
+    schema: GraphQLSchema,
+    ast: Document
+) -> [GraphQLError] {
+    return validate(instrumentation: instrumentation, schema: schema, ast: ast, rules: [])
+}
+
 /**
  * Implements the "Validation" section of the spec.
  *
@@ -15,7 +33,7 @@ func validate(
     instrumentation: Instrumentation = NoOpInstrumentation,
     schema: GraphQLSchema,
     ast: Document,
-    rules: [(ValidationContext) -> Visitor] = []
+    rules: [(ValidationContext) -> Visitor]
 ) -> [GraphQLError] {
     let started = instrumentation.now
     let typeInfo = TypeInfo(schema: schema)

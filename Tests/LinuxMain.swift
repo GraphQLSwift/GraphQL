@@ -13,4 +13,5 @@ XCTMain([
      testCase(FieldExecutionStrategyTests.allTests),
      testCase(FieldsOnCorrectTypeTests.allTests),
      testCase(InstrumentationTests.allTests),
+     testCase(PersistedQueriesTests.allTests),
 ])

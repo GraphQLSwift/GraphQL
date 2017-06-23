@@ -18,7 +18,7 @@ func parse(
  * Given a GraphQL source, parses it into a Document.
  * Throws GraphQLError if a syntax error is encountered.
  */
-func parse(
+public func parse(
     instrumentation: Instrumentation = NoOpInstrumentation,
     source: Source,
     noLocation: Bool = false
