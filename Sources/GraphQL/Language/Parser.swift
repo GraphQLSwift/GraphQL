@@ -2,17 +2,51 @@
  * Given a GraphQL source, parses it into a Document.
  * Throws GraphQLError if a syntax error is encountered.
  */
-func parse(source: String, noLocation: Bool = false) throws -> Document {
-    return try parse(source: Source(body: source), noLocation: noLocation)
+func parse(
+    instrumentation: Instrumentation = NoOpInstrumentation,
+    source: String,
+    noLocation: Bool = false
+) throws -> Document {
+    return try parse(
+        instrumentation: instrumentation,
+        source: Source(body: source),
+        noLocation: noLocation
+    )
 }
 
 /**
  * Given a GraphQL source, parses it into a Document.
  * Throws GraphQLError if a syntax error is encountered.
  */
-func parse(source: Source, noLocation: Bool = false) throws -> Document {
-    let lexer = createLexer(source: source, noLocation: noLocation)
-    return try parseDocument(lexer: lexer)
+public func parse(
+    instrumentation: Instrumentation = NoOpInstrumentation,
+    source: Source,
+    noLocation: Bool = false
+) throws -> Document {
+    let started = instrumentation.now
+    do {
+        let lexer = createLexer(source: source, noLocation: noLocation)
+        let document = try parseDocument(lexer: lexer)
+        instrumentation.queryParsing(
+            processId: processId(),
+            threadId: threadId(),
+            started: started,
+            finished: instrumentation.now,
+            source: source,
+            result: .result(document)
+        )
+        return document
+    } catch let error as GraphQLError {
+        instrumentation.queryParsing(
+            processId: processId(),
+            threadId: threadId(),
+            started: started,
+            finished: instrumentation.now,
+            source: source,
+            result: .error(error)
+        )
+        throw error
+    }
 }
 
 /**

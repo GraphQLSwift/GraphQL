@@ -11,7 +11,7 @@ public struct GraphQLError : Error {
      *
      * Appears in the result of `description`.
      */
-    let message: String
+    public let message: String
 
     /**
      * An array of (line: Int, column: Int) locations within the source GraphQL document
@@ -23,7 +23,7 @@ public struct GraphQLError : Error {
      *
      * Appears in the result of `description`.
      */
-    let locations: [SourceLocation]
+    public let locations: [SourceLocation]
 
     /**
      * An array describing the index path into the execution response which
@@ -31,28 +31,28 @@ public struct GraphQLError : Error {
      *
      * Appears in the result of `description`.
      */
-    let path: [IndexPathElement]
+    public let path: [IndexPathElement]
 
     /**
      * An array of GraphQL AST Nodes corresponding to this error.
      */
-    let nodes: [Node]
+    public let nodes: [Node]
 
     /**
      * The source GraphQL document corresponding to this error.
      */
-    let source: Source?
+    public let source: Source?
 
     /**
      * An array of character offsets within the source GraphQL document
      * which correspond to this error.
      */
-    let positions: [Int]
+    public let positions: [Int]
 
     /**
      * The original error thrown from a field resolver during execution.
      */
-    let originalError: Error?
+    public let originalError: Error?
 
     public init(message: String, nodes: [Node] = [], source: Source? = nil, positions: [Int] = [],
                 path: [IndexPathElement] = [], originalError: Error? = nil) {

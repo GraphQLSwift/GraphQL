@@ -1,4 +1,4 @@
-# GraphQL 
+# GraphQL
 
 The Swift implementation for GraphQL, a query language for APIs created by Facebook.
 
@@ -36,7 +36,7 @@ import PackageDescription
 
 let package = Package(
     dependencies: [
-        .Package(url: "https://github.com/GraphQLSwift/GraphQL.git", majorVersion: 0, minor: 2),
+        .Package(url: "https://github.com/GraphQLSwift/GraphQL.git", majorVersion: 0),
     ]
 )
 ```
@@ -104,12 +104,35 @@ Output:
                     "line": 1,
                     "column": 3
                 }
-            ], 
+            ],
             "message": "Cannot query field \"boyhowdy\" on type \"RootQueryType\"."
         }
     ]
 }
 ```
+
+### Field Execution Strategies
+
+Depending on your needs you can alter the field execution strategies used for field value resolution.
+
+By default the `SerialFieldExecutionStrategy` is used for all operation types (`query`, `mutation`, `subscription`).
+
+To use a different strategy simply provide it to the `graphql` function:
+
+```swift
+try graphql(
+    queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
+    schema: schema,
+    request: query
+)
+```
+
+The following strategies are available:
+
+* `SerialFieldExecutionStrategy`
+* `ConcurrentDispatchFieldExecutionStrategy`
+
+**Please note:** Not all strategies are applicable for all operation types.
 
 ## License
 
