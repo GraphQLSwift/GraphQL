@@ -1,0 +1,12 @@
+machine:
+  services:
+    - docker
+
+dependencies:
+  override:
+    - docker --version
+    - docker build -t aurora .
+
+test:
+  override:
+    - Scripts/test.sh
