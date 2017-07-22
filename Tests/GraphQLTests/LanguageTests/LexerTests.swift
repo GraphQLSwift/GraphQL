@@ -742,6 +742,7 @@ extension LexerTests {
             ("testRecordsLineAndColumn", testRecordsLineAndColumn),
             ("testTokenDescription", testTokenDescription),
             ("testSkipsWhitespace", testSkipsWhitespace),
+            ("testSkipsComments", testSkipsComments),
             ("testSkipsCommas", testSkipsCommas),
             ("testErrorsRespectWhitespaces", testErrorsRespectWhitespaces),
             ("testStrings", testStrings),
