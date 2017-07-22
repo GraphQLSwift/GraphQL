@@ -1,3 +1,4 @@
+import Foundation
 import Dispatch
 
 /// Provides the capability to instrument the execution steps of a GraphQL query.
@@ -62,7 +63,11 @@ extension Instrumentation {
 }
 
 func threadId() -> Int {
-    return Int(pthread_mach_thread_np(pthread_self()))
+    #if os(Linux)
+        return Int(pthread_self())
+    #else
+        return Int(pthread_mach_thread_np(pthread_self()))
+    #endif
 }
 
 func processId() -> Int {
