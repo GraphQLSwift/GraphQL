@@ -1,3 +1,4 @@
+import Foundation
 import Dispatch
 import GraphQL
 import XCTest
@@ -105,7 +106,11 @@ class InstrumentationTests : XCTestCase, Instrumentation {
     }
 
     func testInstrumentationCalls() throws {
+        #if os(Linux)
+        expectedThreadId = Int(pthread_self())
+        #else
         expectedThreadId = Int(pthread_mach_thread_np(pthread_self()))
+        #endif
         expectedProcessId = Int(getpid())
         let result = try graphql(
             instrumentation: self,
@@ -125,7 +130,11 @@ class InstrumentationTests : XCTestCase, Instrumentation {
 
     func testDispatchQueueInstrumentationWrapper() throws {
         let dispatchGroup = DispatchGroup()
+        #if os(Linux)
+        expectedThreadId = Int(pthread_self())
+        #else
         expectedThreadId = Int(pthread_mach_thread_np(pthread_self()))
+        #endif
         expectedProcessId = Int(getpid())
         let result = try graphql(
             instrumentation: DispatchQueueInstrumentationWrapper(self, dispatchGroup: dispatchGroup),

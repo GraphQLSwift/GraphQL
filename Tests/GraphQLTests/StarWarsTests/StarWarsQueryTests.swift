@@ -559,6 +559,7 @@ extension StarWarsQueryTests {
             ("testHeroNameAndFriendsQuery", testHeroNameAndFriendsQuery),
             ("testNestedQuery", testNestedQuery),
             ("testFetchLukeQuery", testFetchLukeQuery),
+            ("testOptionalVariable", testOptionalVariable),
             ("testFetchSomeIDQuery", testFetchSomeIDQuery),
             ("testFetchLukeAliasedQuery", testFetchLukeAliasedQuery),
             ("testFetchLukeAndLeiaAliasedQuery", testFetchLukeAndLeiaAliasedQuery),
@@ -568,7 +569,8 @@ extension StarWarsQueryTests {
             ("testCheckTypeOfLukeQuery", testCheckTypeOfLukeQuery),
             ("testSecretBackstoryQuery", testSecretBackstoryQuery),
             ("testSecretBackstoryListQuery", testSecretBackstoryListQuery),
-            ("testNonNullableFieldsQuery", testNonNullableFieldsQuery),
+            ("testSecretBackstoryAliasQuery",testSecretBackstoryAliasQuery),
+            ("testNonNullableFieldsQuery", testNonNullableFieldsQuery)
         ]
     }
 }
