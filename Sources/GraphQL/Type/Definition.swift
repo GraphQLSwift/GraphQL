@@ -973,7 +973,7 @@ public final class GraphQLInputObjectType {
 
     public let fields: InputObjectFieldMap
 
-    init(
+    public init(
         name: String,
         description: String? = nil,
         fields: InputObjectConfigFieldMap
@@ -1049,6 +1049,12 @@ public struct InputObjectField {
     public let type: GraphQLInputType
     public let defaultValue: Map?
     public let description: String?
+    
+    public init(type: GraphQLInputType, defaultValue: Map? = nil, description: String? = nil) {
+        self.type = type
+        self.defaultValue = defaultValue
+        self.description = description
+    }
 }
 
 public typealias InputObjectConfigFieldMap = [String: InputObjectField]
