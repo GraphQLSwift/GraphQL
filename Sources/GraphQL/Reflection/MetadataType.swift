@@ -14,7 +14,7 @@ extension MetadataType {
 
     init?(type: Any.Type) {
         self.init(pointer: unsafeBitCast(type, to: UnsafePointer<Int>.self))
-        if let kind = type(of: self).kind, kind != self.kind {
+        if let kind = Swift.type(of: self).kind, kind != self.kind {
             return nil
         }
     }

@@ -487,15 +487,15 @@ class StarWarsQueryTests : XCTestCase {
             fields: [
                 "nullableA": GraphQLField(
                     type: GraphQLTypeReference("A"),
-                    resolve: { _ in [:] }
+                    resolve: { _, _, _, _ in [:] }
                 ),
                 "nonNullA": GraphQLField(
                     type: GraphQLNonNull(GraphQLTypeReference("A")),
-                    resolve: { _ in [:] }
+                    resolve: { _, _, _, _ in [:] }
                 ),
                 "throws": GraphQLField(
                     type: GraphQLNonNull(GraphQLString),
-                    resolve: { _ in
+                    resolve: { _, _, _, _ in
                         struct 🏃 : Error, CustomStringConvertible {
                             let description: String
                         }
@@ -511,7 +511,7 @@ class StarWarsQueryTests : XCTestCase {
             fields: [
                 "nullableA": GraphQLField(
                     type: A,
-                    resolve: { _ in [:] }
+                    resolve: { _, _, _, _ in [:] }
                 )
             ]
         )

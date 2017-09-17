@@ -175,7 +175,7 @@ let HumanType = try! GraphQLObjectType(
         "secretBackstory": GraphQLField(
             type: GraphQLString,
             description: "Where are they from and how they came to be who they are.",
-            resolve: { _ in
+            resolve: { _, _, _, _ in
                 struct Secret : Error, CustomStringConvertible {
                     let description: String
                 }
@@ -230,7 +230,7 @@ let DroidType = try! GraphQLObjectType(
         "secretBackstory": GraphQLField(
             type: GraphQLString,
             description: "Construction date and the name of the designer.",
-            resolve: { _ in
+            resolve: { _, _, _, _ in
                 struct Secret : Error, CustomStringConvertible {
                     let description: String
                 }

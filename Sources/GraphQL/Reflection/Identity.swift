@@ -1,9 +1,9 @@
 /// Tests if `value` is `type` or a subclass of `type`
 public func value(_ value: Any, is type: Any.Type) -> Bool {
-    if type(of: value) == type {
+    if Swift.type(of: value) == type {
         return true
     }
-    guard var subclass = Metadata.Class(type: type(of: value)), let superclass = Metadata.Class(type: type) else {
+    guard var subclass = Metadata.Class(type: Swift.type(of: value)), let superclass = Metadata.Class(type: type) else {
         return false
     }
     while let parentClass = subclass.superclass {
