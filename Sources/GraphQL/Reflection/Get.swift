@@ -1,11 +1,9 @@
 /// Get value for key from instance
 public func get(_ key: String, from instance: Any) throws -> Any {
-    for property in try properties(instance) {
-        if property.key == key {
-            return property.value
-        }
+    guard let value = try properties(instance).first(where: { $0.key == key })?.value else {
+        throw ReflectionError.instanceHasNoKey(type: type(of: instance), key: key)
     }
-    throw ReflectionError.instanceHasNoKey(type: type(of: instance), key: key)
+    return value
 }
 
 /// Get value for key from instance as type `T`
