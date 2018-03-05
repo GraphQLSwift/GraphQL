@@ -578,7 +578,7 @@ public class MapTests : XCTestCase {
             "string": "foo\nbar",
             ]
 
-        XCTAssertEqual(buffer.debugDescription.characters.count, 465)
+        XCTAssertEqual(buffer.debugDescription.count, 465)
     }
 
 

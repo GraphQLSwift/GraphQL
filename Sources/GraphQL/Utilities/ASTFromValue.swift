@@ -111,7 +111,7 @@ func astFromValue(
         
         // Use JSON stringify, which uses the same string encoding as GraphQL,
         // then remove the quotes.
-        return StringValue(value: String(serialized.description.characters.dropFirst().dropLast()))
+        return StringValue(value: String(serialized.description.dropFirst().dropLast()))
     }
     
     throw GraphQLError(message: "Cannot convert value to AST: \(serialized)")
