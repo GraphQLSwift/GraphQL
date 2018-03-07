@@ -1,3 +1,5 @@
+import Runtime
+
 public func map(from value: Any?) throws -> Map {
     guard let value = value else {
         return .null
@@ -10,13 +12,14 @@ public func map(from value: Any?) throws -> Map {
     if let mapFallibleRepresentable = value as? MapFallibleRepresentable {
         return try mapFallibleRepresentable.asMap()
     }
-
-    let props = try properties(value)
+    
+    let info = try typeInfo(of: type(of: value))
+    let props = info.properties
 
     var dictionary = [String: Map](minimumCapacity: props.count)
 
     for property in props {
-        dictionary[property.key] = try map(from: property.value)
+        dictionary[property.name] = try map(from: property.get(from: value))
     }
 
     return .dictionary(dictionary)
@@ -31,20 +34,22 @@ public func assertMappable(_ type: Any.Type) throws {
         return
     }
 
-    for property in try properties(type) {
+    let info = try typeInfo(of: type)
+    for property in info.properties {
         try assertMappable(property.type)
     }
 }
 
 extension MapFallibleRepresentable {
     public func asMap() throws -> Map {
-        let props = try properties(self)
+        let info = try typeInfo(of: type(of: self))
+        let props = info.properties
         var dictionary = [String: Map](minimumCapacity: props.count)
         for property in props {
-            guard let representable = property.value as? MapFallibleRepresentable else {
-                throw MapError.notMapRepresentable(type(of: property.value))
+            guard let representable = try property.get(from: self) as? MapFallibleRepresentable else {
+                throw MapError.notMapRepresentable(property.type)
             }
-            dictionary[property.key] = try representable.asMap()
+            dictionary[property.name] = try representable.asMap()
         }
         return .dictionary(dictionary)
     }

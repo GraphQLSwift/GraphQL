@@ -1,20 +1,30 @@
+import Runtime
+
+enum RuntimeReflectionError: Error {
+    case requiredValueMissing(key: String)
+}
+
 extension MapInitializable {
     public init(map: Map) throws {
         guard case .dictionary(let dictionary) = map else {
             throw MapError.cannotInitialize(type: Self.self, from: try type(of: map.get()))
         }
-        self = try construct { property in
+        
+        self = try createInstance()
+        let info = try typeInfo(of: Self.self)
+        
+        for property in info.properties {
             guard let initializable = property.type as? MapInitializable.Type else {
                 throw MapError.notMapInitializable(property.type)
             }
-            switch dictionary[property.key] ?? .null {
+            switch dictionary[property.name] ?? .null {
             case .null:
                 guard let expressibleByNilLiteral = property.type as? ExpressibleByNilLiteral.Type else {
-                    throw ReflectionError.requiredValueMissing(key: property.key)
+                    throw RuntimeReflectionError.requiredValueMissing(key: property.name)
                 }
-                return expressibleByNilLiteral.init(nilLiteral: ())
+                try property.set(value: expressibleByNilLiteral.init(nilLiteral: ()), on: &self)
             case let x:
-                return try initializable.init(map: x)
+                try property.set(value: initializable.init(map: x), on: &self)
             }
         }
     }

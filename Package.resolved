@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Runtime",
+        "repositoryURL": "https://github.com/wickwirew/Runtime.git",
+        "state": {
+          "branch": "swift-4.1",
+          "revision": "4169a0180cb0912f3d24ccb1d1aa86b8191582a2",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}

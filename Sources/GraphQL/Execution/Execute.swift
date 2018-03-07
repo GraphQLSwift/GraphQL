@@ -1,4 +1,5 @@
 import Dispatch
+import Runtime
 
 /**
  * Terminology
@@ -1128,7 +1129,12 @@ func defaultResolve(source: Any, args: Map, context: Any, info: GraphQLResolveIn
     }
 
     // TODO: check why Reflection fails
-    guard let value = try? get(info.fieldName, from: s) else {
+    guard let typeInfo = try? typeInfo(of: type(of: s)),
+        let property = try? typeInfo.property(named: info.fieldName) else {
+        return nil
+    }
+    
+    guard let value = try? property.get(from: s) else {
         return nil
     }
 
