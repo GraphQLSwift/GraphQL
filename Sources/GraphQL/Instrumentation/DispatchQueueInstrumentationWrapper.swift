@@ -1,4 +1,5 @@
 import Dispatch
+import Async
 
 /// Proxies calls through to another `Instrumentation` instance via a DispatchQueue
 ///
@@ -45,7 +46,7 @@ public class DispatchQueueInstrumentationWrapper: Instrumentation {
         }
     }
 
-    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, context: Any, info: GraphQLResolveInfo, result: ResultOrError<Any?, Error>) {
+    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, context: Any, info: GraphQLResolveInfo, result: ResultOrError<Future<Any?>, Error>) {
         dispatchQueue.async(group: dispatchGroup) {
             self.instrumentation.fieldResolution(processId: processId, threadId: threadId, started: started, finished: finished, source: source, args: args, context: context, info: info, result: result)
         }

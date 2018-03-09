@@ -1,3 +1,5 @@
+import Async
+
 /**
  * These are all of the possible kinds of types.
  */
@@ -449,7 +451,7 @@ public typealias GraphQLFieldResolve = (
     _ args: Map,
     _ context: Any,
     _ info: GraphQLResolveInfo
-) throws -> Any?
+) throws -> Future<Any?>
 
 public struct GraphQLResolveInfo {
     public let fieldName: String
@@ -936,7 +938,7 @@ public struct GraphQLEnumValueDefinition {
     public let value: Map
 }
 
-extension GraphQLEnumValueDefinition : MapRepresentable {
+extension GraphQLEnumValueDefinition: MapRepresentable {
     public var map: Map {
         return [
             "name": name.map,

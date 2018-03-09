@@ -1,5 +1,6 @@
 import Foundation
 import Dispatch
+import Async
 
 /// Provides the capability to instrument the execution steps of a GraphQL query.
 ///
@@ -51,7 +52,7 @@ public protocol Instrumentation {
         args: Map,
         context: Any,
         info: GraphQLResolveInfo,
-        result: ResultOrError<Any?, Error>
+        result: ResultOrError<Future<Any?>, Error>
     )
 
 }
@@ -85,6 +86,6 @@ struct noOpInstrumentation: Instrumentation {
     }
     public func operationExecution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, schema: GraphQLSchema, document: Document, rootValue: Any, contextValue: Any, variableValues: [String : Map], operation: OperationDefinition?, errors: [GraphQLError], result: Map) {
     }
-    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, context: Any, info: GraphQLResolveInfo, result: ResultOrError<Any?, Error>) {
+    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, context: Any, info: GraphQLResolveInfo, result: ResultOrError<Future<Any?>, Error>) {
     }
 }
