@@ -10,21 +10,19 @@ extension MapInitializable {
             throw MapError.cannotInitialize(type: Self.self, from: try type(of: map.get()))
         }
         
-        self = try createInstance()
-        let info = try typeInfo(of: Self.self)
-        
-        for property in info.properties {
+        self = try createInstance() { property in
             guard let initializable = property.type as? MapInitializable.Type else {
                 throw MapError.notMapInitializable(property.type)
             }
+            
             switch dictionary[property.name] ?? .null {
             case .null:
                 guard let expressibleByNilLiteral = property.type as? ExpressibleByNilLiteral.Type else {
                     throw RuntimeReflectionError.requiredValueMissing(key: property.name)
                 }
-                try property.set(value: expressibleByNilLiteral.init(nilLiteral: ()), on: &self)
+                return expressibleByNilLiteral.init(nilLiteral: ())
             case let x:
-                try property.set(value: initializable.init(map: x), on: &self)
+                return try initializable.init(map: x)
             }
         }
     }
