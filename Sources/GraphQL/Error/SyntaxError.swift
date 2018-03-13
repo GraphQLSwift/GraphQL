@@ -28,7 +28,7 @@ func highlightSourceAtLocation(source: Source, location: SourceLocation) -> Stri
     let prevLineNum = (line - 1).description
     let lineNum = line.description
     let nextLineNum = (line + 1).description
-    let padLength = nextLineNum.characters.count
+    let padLength = nextLineNum.count
 
     let lines = splitLines(string: source.body)
 
@@ -73,5 +73,5 @@ func splitLines(string: String) -> [String] {
 }
 
 func leftpad(_ length: Int, _ string: String) -> String {
-    return String(repeating: " ", count: max(length - string.characters.count + 1, 0)) + string
+    return String(repeating: " ", count: max(length - string.count + 1, 0)) + string
 }
