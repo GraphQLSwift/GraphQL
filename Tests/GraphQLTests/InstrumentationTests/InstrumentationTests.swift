@@ -2,11 +2,12 @@ import Foundation
 import Dispatch
 import GraphQL
 import XCTest
+import Async
 
 class InstrumentationTests : XCTestCase, Instrumentation {
 
     class MyRoot {}
-    class MyCtx {}
+    class MyCtx: Worker {}
 
     var query = "query sayHello($name: String) { hello(name: $name) }"
     var expectedResult: Map = [
@@ -17,7 +18,7 @@ class InstrumentationTests : XCTestCase, Instrumentation {
     var expectedThreadId = 0
     var expectedProcessId = 0
     var expectedRoot = MyRoot()
-    var expectedCtx = MyCtx()
+    var expectedWorker = MyCtx()
     var expectedOpVars: [String: Map] = ["name": "bob"]
     var expectedOpName = "sayHello"
     var queryParsingCalled = 0
@@ -74,7 +75,7 @@ class InstrumentationTests : XCTestCase, Instrumentation {
         XCTAssertEqual(errors, [])
     }
 
-    func operationExecution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, schema: GraphQLSchema, document: Document, rootValue: Any, contextValue: Any, variableValues: [String : Map], operation: OperationDefinition?, errors: [GraphQLError], result: Map) {
+    func operationExecution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, schema: GraphQLSchema, document: Document, rootValue: Any, worker: Worker, variableValues: [String : Map], operation: OperationDefinition?, errors: [GraphQLError], result: Map) {
         operationExecutionCalled += 1
         XCTAssertEqual(processId, expectedProcessId, "unexpected process id")
         XCTAssertEqual(threadId, expectedThreadId, "unexpected thread id")
@@ -89,7 +90,7 @@ class InstrumentationTests : XCTestCase, Instrumentation {
         XCTAssertEqual(result, expectedResult)
     }
 
-    func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, context: Any, info: GraphQLResolveInfo, result: ResultOrError<Any?, Error>) {
+    func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, worker: Worker, info: GraphQLResolveInfo, result: ResultOrError<Any?, Error>) {
         fieldResolutionCalled += 1
         XCTAssertEqual(processId, expectedProcessId, "unexpected process id")
         XCTAssertEqual(threadId, expectedThreadId, "unexpected thread id")

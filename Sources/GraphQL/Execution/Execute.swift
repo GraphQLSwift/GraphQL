@@ -38,7 +38,7 @@ public final class ExecutionContext {
     public let schema: GraphQLSchema
     public let fragments: [String: FragmentDefinition]
     public let rootValue: Any
-    public let contextValue: Any
+    public let worker: Worker
     public let operation: OperationDefinition
     public let variableValues: [String: Map]
 
@@ -63,7 +63,7 @@ public final class ExecutionContext {
         schema: GraphQLSchema,
         fragments: [String: FragmentDefinition],
         rootValue: Any,
-        contextValue: Any,
+        worker: Worker,
         operation: OperationDefinition,
         variableValues: [String: Map],
         errors: [GraphQLError]
@@ -75,7 +75,7 @@ public final class ExecutionContext {
         self.schema = schema
         self.fragments = fragments
         self.rootValue = rootValue
-        self.contextValue = contextValue
+        self.worker = worker
         self.operation = operation
         self.variableValues = variableValues
         self._errors = errors
@@ -134,7 +134,7 @@ public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy, Mutatio
 
             results[field.key] = result ?? Map.null
             return results
-        }.flatten()
+        }.flatten(on: exeContext.worker)
     }
 }
 
@@ -152,7 +152,7 @@ func execute(
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: Any,
-    contextValue: Any,
+    worker: Worker,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) -> Future<Map> {
@@ -170,7 +170,7 @@ func execute(
             schema: schema,
             documentAST: documentAST,
             rootValue: rootValue,
-            contextValue: contextValue,
+            worker: worker,
             rawVariableValues: variableValues,
             operationName: operationName
         )
@@ -183,16 +183,16 @@ func execute(
             schema: schema,
             document: documentAST,
             rootValue: rootValue,
-            contextValue: contextValue,
+            worker: worker,
             variableValues: variableValues,
             operation: nil,
             errors: [error],
             result: nil
         )
         
-        return Future<Map>(["errors": [error].map])
+        return Future.map(on: worker) { ["errors": [error].map] }
     } catch (let error) {
-        return Future<Map>(["errors": [["message": error.localizedDescription].map]])
+        return Future.map(on: worker) { ["errors": [["message": error.localizedDescription].map]] }
     }
     
     var executeErrors: [GraphQLError] = []
@@ -231,7 +231,7 @@ func execute(
                 schema: schema,
                 document: documentAST,
                 rootValue: rootValue,
-                contextValue: contextValue,
+                worker: worker,
                 variableValues: variableValues,
                 operation: context.operation,
                 errors: executeErrors,
@@ -241,9 +241,9 @@ func execute(
     } catch(let error as GraphQLError) {
         executeErrors = [error]
         
-        return Future<Map>(["errors": [error].map])
+        return Future.map(on: worker) { ["errors": [error].map] }
     } catch (let error) {
-        return Future<Map>(["errors": [["message": error.localizedDescription].map]])
+        return Future.map(on: worker) { ["errors": [["message": error.localizedDescription].map]] }
     }
 }
 
@@ -261,7 +261,7 @@ func buildExecutionContext(
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: Any,
-    contextValue: Any,
+    worker: Worker,
     rawVariableValues: [String: Map],
     operationName: String?
 ) throws -> ExecutionContext {
@@ -315,7 +315,7 @@ func buildExecutionContext(
         schema: schema,
         fragments: fragments,
         rootValue: rootValue,
-        contextValue: contextValue,
+        worker: worker,
         operation: operation,
         variableValues: variableValues,
         errors: errors
@@ -601,7 +601,7 @@ public func resolveField(
     // The resolve func's optional third argument is a context value that
     // is provided to every resolve func within an execution. It is commonly
     // used to represent an authenticated user, or request-specific caches.
-    let context = exeContext.contextValue
+    let worker = exeContext.worker
 
     // The resolve func's optional fourth argument is a collection of
     // information about the current execution state.
@@ -626,7 +626,7 @@ public func resolveField(
         resolve: resolve,
         source: source,
         args: args,
-        context: context,
+        worker: worker,
         info: info
     )
 
@@ -637,7 +637,7 @@ public func resolveField(
         finished: exeContext.instrumentation.now,
         source: source,
         args: args,
-        context: context,
+        worker: worker,
         info: info,
         result: result
     )
@@ -663,11 +663,11 @@ func resolveOrError(
     resolve: GraphQLFieldResolve,
     source: Any,
     args: Map,
-    context: Any,
+    worker: Worker,
     info: GraphQLResolveInfo
 )-> ResultOrError<Future<Any?>, Error> {
     do {
-        return try .result(resolve(source, args, context, info))
+        return try .result(resolve(source, args, worker, info))
     } catch {
         return .error(error)
     }
@@ -713,7 +713,7 @@ func completeValueCatchingError(
         // If `completeValueWithLocatedError` returned abruptly (threw an error),
         // log the error and return .null.
         exeContext.append(error: error)
-        return Future<Any?>(nil)
+        return Future.map(on: exeContext.worker) { nil }
     } catch {
         fatalError()
     }
@@ -806,7 +806,7 @@ func completeValue(
         return result.flatMap(to: Any?.self) { (optional) -> Future<Any?> in
             // If result value is null-ish (nil or .null) then return .null.
             guard let res = optional, let r = unwrap(res) else {
-                return Future<Any?>(nil)
+                return Future.map(on: exeContext.worker) { nil }
             }
 
             // If field type is List, complete each item in the list with the inner type
@@ -826,7 +826,9 @@ func completeValue(
             // If field type is a leaf type, Scalar or Enum, serialize to a valid value,
             // returning .null if serialization is not possible.
             if let returnType = returnType as? GraphQLLeafType {
-                return try Future<Any?>(completeLeafValue(returnType: returnType, result: r))
+                return Future.map(on: exeContext.worker) {
+                    try completeLeafValue(returnType: returnType, result: r)
+                }
             }
 
             // If field type is an abstract type, Interface or Union, determine the
@@ -891,7 +893,7 @@ func completeListValue(
         let fieldPath = path + [index] as [IndexPathElement]
         var futureItem: Future<Any?>! = item as? Future<Any?>
         if futureItem == nil {
-            futureItem = Future<Any?>(item)
+            futureItem = Future.map(on: exeContext.worker) { item }
         }
 
         let completedItem = try completeValueCatchingError(
@@ -906,7 +908,7 @@ func completeListValue(
         completedResults.append(completedItem)
     }
     
-    return completedResults.flatten()
+    return completedResults.flatten(on: exeContext.worker)
 }
 
 /**
@@ -944,11 +946,11 @@ func completeAbstractValue(
     path: [IndexPathElement],
     result: Any
 ) throws -> Future<Any?> {
-    var resolveRes = try returnType.resolveType?(result, exeContext.contextValue, info).typeResolveResult
+    var resolveRes = try returnType.resolveType?(result, exeContext.worker, info).typeResolveResult
 
     resolveRes = try resolveRes ?? defaultResolveType(
         value: result,
-        context: exeContext.contextValue,
+        worker: exeContext.worker,
         info: info,
         abstractType: returnType
     )
@@ -1013,7 +1015,7 @@ func completeObjectValue(
     // If there is an isTypeOf predicate func, call it with the
     // current result. If isTypeOf returns false, then raise an error rather
     // than continuing execution.
-    guard try returnType.isTypeOf?(result, exeContext.contextValue, info) ?? true else {
+    guard try returnType.isTypeOf?(result, exeContext.worker, info) ?? true else {
         throw GraphQLError(
             message:
             "Expected value of type \"\(returnType.name)\" but got: \(result).",
@@ -1055,13 +1057,13 @@ func completeObjectValue(
  */
 func defaultResolveType(
     value: Any,
-    context: Any,
+    worker: Worker,
     info: GraphQLResolveInfo,
     abstractType: GraphQLAbstractType
 ) throws -> TypeResolveResult? {
     let possibleTypes = info.schema.getPossibleTypes(abstractType: abstractType)
 
-    guard let type = try possibleTypes.find({ try $0.isTypeOf?(value, context, info) ?? false }) else {
+    guard let type = try possibleTypes.find({ try $0.isTypeOf?(value, worker, info) ?? false }) else {
         return nil
     }
 
@@ -1073,26 +1075,26 @@ func defaultResolveType(
  * which takes the property of the source object of the same name as the field
  * and returns it as the result.
  */
-func defaultResolve(source: Any, args: Map, context: Any, info: GraphQLResolveInfo) -> Future<Any?> {
+func defaultResolve(source: Any, args: Map, worker: Worker, info: GraphQLResolveInfo) -> Future<Any?> {
     guard let source = unwrap(source) else {
-        return Future<Any?>(nil)
+        return Future.map(on: worker) { nil }
     }
 
     guard let s = source as? MapFallibleRepresentable else {
-        return Future<Any?>(nil)
+        return Future.map(on: worker) { nil }
     }
 
     // TODO: check why Reflection fails
     guard let typeInfo = try? typeInfo(of: type(of: s)),
         let property = try? typeInfo.property(named: info.fieldName) else {
-        return Future<Any?>(nil)
+        return Future.map(on: worker) { nil }
     }
     
     guard let value = try? property.get(from: s) else {
-        return Future<Any?>(nil)
+        return Future.map(on: worker) { nil }
     }
 
-    return Future<Any?>(value)
+    return Future.map(on: worker) { value }
 }
 
 /**

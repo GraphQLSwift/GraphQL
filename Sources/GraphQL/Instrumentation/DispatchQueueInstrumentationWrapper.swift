@@ -40,15 +40,15 @@ public class DispatchQueueInstrumentationWrapper: Instrumentation {
         }
     }
 
-    public func operationExecution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, schema: GraphQLSchema, document: Document, rootValue: Any, contextValue: Any, variableValues: [String : Map], operation: OperationDefinition?, errors: [GraphQLError], result: Map) {
+    public func operationExecution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, schema: GraphQLSchema, document: Document, rootValue: Any, worker: Worker, variableValues: [String : Map], operation: OperationDefinition?, errors: [GraphQLError], result: Map) {
         dispatchQueue.async(group: dispatchGroup) {
-            self.instrumentation.operationExecution(processId: processId, threadId: threadId, started: started, finished: finished, schema: schema, document: document, rootValue: rootValue, contextValue: contextValue, variableValues: variableValues, operation: operation, errors: errors, result: result)
+            self.instrumentation.operationExecution(processId: processId, threadId: threadId, started: started, finished: finished, schema: schema, document: document, rootValue: rootValue, worker: worker, variableValues: variableValues, operation: operation, errors: errors, result: result)
         }
     }
 
-    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, context: Any, info: GraphQLResolveInfo, result: ResultOrError<Future<Any?>, Error>) {
+    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, worker: Worker, info: GraphQLResolveInfo, result: ResultOrError<Future<Any?>, Error>) {
         dispatchQueue.async(group: dispatchGroup) {
-            self.instrumentation.fieldResolution(processId: processId, threadId: threadId, started: started, finished: finished, source: source, args: args, context: context, info: info, result: result)
+            self.instrumentation.fieldResolution(processId: processId, threadId: threadId, started: started, finished: finished, source: source, args: args, worker: worker, info: info, result: result)
         }
     }
 

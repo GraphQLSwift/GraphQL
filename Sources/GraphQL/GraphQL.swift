@@ -30,7 +30,7 @@ public func graphql(
     schema: GraphQLSchema,
     request: String,
     rootValue: Any = Void(),
-    contextValue: Any = Void(),
+    worker: Worker,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) throws -> Future<Map> {
@@ -40,7 +40,7 @@ public func graphql(
     let validationErrors = validate(instrumentation: instrumentation, schema: schema, ast: documentAST)
 
     guard validationErrors.isEmpty else {
-        return Future<Map>(["errors": try validationErrors.asMap()])
+        return Future.map(on: worker) { ["errors": try validationErrors.asMap()] }
     }
 
     return execute(
@@ -51,7 +51,7 @@ public func graphql(
         schema: schema,
         documentAST: documentAST,
         rootValue: rootValue,
-        contextValue: contextValue,
+        worker: worker,
         variableValues: variableValues,
         operationName: operationName
     )
@@ -82,7 +82,7 @@ public func graphql<Retrieval:PersistedQueryRetrieval>(
     queryRetrieval: Retrieval,
     queryId: Retrieval.Id,
     rootValue: Any = Void(),
-    contextValue: Any = Void(),
+    worker: Worker,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) throws -> Future<Map> {
@@ -92,7 +92,7 @@ public func graphql<Retrieval:PersistedQueryRetrieval>(
     case .parseError(let parseError):
         throw parseError
     case .validateErrors(_, let validationErrors):
-        return Future<Map>(["errors": try validationErrors.asMap()])
+        return Future.map(on: worker) { ["errors": try validationErrors.asMap()] }
     case .result(let schema, let documentAST):
         return execute(
             queryStrategy: queryStrategy,
@@ -102,7 +102,7 @@ public func graphql<Retrieval:PersistedQueryRetrieval>(
             schema: schema,
             documentAST: documentAST,
             rootValue: rootValue,
-            contextValue: contextValue,
+            worker: worker,
             variableValues: variableValues,
             operationName: operationName
         )
