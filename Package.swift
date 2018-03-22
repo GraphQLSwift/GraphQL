@@ -12,7 +12,7 @@ let package = Package(
         .package(url: "https://github.com/jseibert/Runtime.git", .branch("swift-4.1")),
 
         // ⏱ Promises and reactive-streams in Swift built for high-performance and scalability.
-        .package(url: "https://github.com/vapor/core.git", .branch("nio")),
+        .package(url: "https://github.com/vapor/core.git", from: "3.0.0-rc.2"),
     ],
 
     targets: [
