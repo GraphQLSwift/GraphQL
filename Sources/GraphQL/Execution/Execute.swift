@@ -38,7 +38,7 @@ public final class ExecutionContext {
     public let schema: GraphQLSchema
     public let fragments: [String: FragmentDefinition]
     public let rootValue: Any
-    public let worker: Worker
+    public let worker: Any
     public let operation: OperationDefinition
     public let variableValues: [String: Map]
 
@@ -119,6 +119,12 @@ public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy, Mutatio
         path: [IndexPathElement],
         fields: [String: [Field]]
     ) throws -> Future<[String: Any]> {
+        guard let worker = exeContext.worker as? Worker else {
+            throw GraphQLError(
+                message: "Provided worker is not actually a worker."
+            )
+        }
+        
         return try fields.reduce([String: Future<Any>]()) { results, field in
             var results = results
             let fieldASTs = field.value
@@ -134,7 +140,7 @@ public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy, Mutatio
 
             results[field.key] = result ?? Map.null
             return results
-        }.flatten(on: exeContext.worker)
+        }.flatten(on: worker)
     }
 }
 
@@ -663,7 +669,7 @@ func resolveOrError(
     resolve: GraphQLFieldResolve,
     source: Any,
     args: Map,
-    worker: Worker,
+    worker: Any,
     info: GraphQLResolveInfo
 )-> ResultOrError<Future<Any?>, Error> {
     do {
@@ -683,6 +689,12 @@ func completeValueCatchingError(
     path: [IndexPathElement],
     result: ResultOrError<Future<Any?>, Error>
 ) throws -> Future<Any?> {
+    guard let w = exeContext.worker as? Worker else {
+        throw GraphQLError(
+            message: "Provided worker is not actually a worker."
+        )
+    }
+    
     // If the field type is non-nullable, then it is resolved without any
     // protection from errors, however it still properly locates the error.
     if let returnType = returnType as? GraphQLNonNull {
@@ -713,7 +725,7 @@ func completeValueCatchingError(
         // If `completeValueWithLocatedError` returned abruptly (threw an error),
         // log the error and return .null.
         exeContext.append(error: error)
-        return Future.map(on: exeContext.worker) { nil }
+        return Future.map(on: w) { nil }
     } catch {
         fatalError()
     }
@@ -778,6 +790,12 @@ func completeValue(
     path: [IndexPathElement],
     result: ResultOrError<Future<Any?>, Error>
 ) throws -> Future<Any?> {
+    guard let w = exeContext.worker as? Worker else {
+        throw GraphQLError(
+            message: "Provided worker is not actually a worker."
+        )
+    }
+    
     switch result {
     case .error(let error):
         throw error
@@ -806,7 +824,7 @@ func completeValue(
         return result.flatMap(to: Any?.self) { (optional) -> Future<Any?> in
             // If result value is null-ish (nil or .null) then return .null.
             guard let res = optional, let r = unwrap(res) else {
-                return Future.map(on: exeContext.worker) { nil }
+                return Future.map(on: w) { nil }
             }
 
             // If field type is List, complete each item in the list with the inner type
@@ -826,7 +844,7 @@ func completeValue(
             // If field type is a leaf type, Scalar or Enum, serialize to a valid value,
             // returning .null if serialization is not possible.
             if let returnType = returnType as? GraphQLLeafType {
-                return Future.map(on: exeContext.worker) {
+                return Future.map(on: w) {
                     try completeLeafValue(returnType: returnType, result: r)
                 }
             }
@@ -876,6 +894,12 @@ func completeListValue(
     path: [IndexPathElement],
     result: Any
 ) throws -> Future<[Any?]> {
+    guard let w = exeContext.worker as? Worker else {
+        throw GraphQLError(
+            message: "Provided worker is not actually a worker."
+        )
+    }
+    
     guard let resultArray = result as? [Any?] else {
         throw GraphQLError(
             message:
@@ -893,7 +917,7 @@ func completeListValue(
         let fieldPath = path + [index] as [IndexPathElement]
         var futureItem: Future<Any?>! = item as? Future<Any?>
         if futureItem == nil {
-            futureItem = Future.map(on: exeContext.worker) { item }
+            futureItem = Future.map(on: w) { item }
         }
 
         let completedItem = try completeValueCatchingError(
@@ -908,7 +932,7 @@ func completeListValue(
         completedResults.append(completedItem)
     }
     
-    return completedResults.flatten(on: exeContext.worker)
+    return completedResults.flatten(on: w)
 }
 
 /**
@@ -1057,13 +1081,19 @@ func completeObjectValue(
  */
 func defaultResolveType(
     value: Any,
-    worker: Worker,
+    worker: Any,
     info: GraphQLResolveInfo,
     abstractType: GraphQLAbstractType
 ) throws -> TypeResolveResult? {
+    guard let w = worker as? Worker else {
+        throw GraphQLError(
+            message: "Provided worker is not actually a worker."
+        )
+    }
+    
     let possibleTypes = info.schema.getPossibleTypes(abstractType: abstractType)
 
-    guard let type = try possibleTypes.find({ try $0.isTypeOf?(value, worker, info) ?? false }) else {
+    guard let type = try possibleTypes.find({ try $0.isTypeOf?(value, w, info) ?? false }) else {
         return nil
     }
 
@@ -1075,26 +1105,32 @@ func defaultResolveType(
  * which takes the property of the source object of the same name as the field
  * and returns it as the result.
  */
-func defaultResolve(source: Any, args: Map, worker: Worker, info: GraphQLResolveInfo) -> Future<Any?> {
+func defaultResolve(source: Any, args: Map, worker: Any, info: GraphQLResolveInfo) throws -> Future<Any?> {
+    guard let w = worker as? Worker else {
+        throw GraphQLError(
+            message: "Provided worker is not actually a worker."
+        )
+    }
+    
     guard let source = unwrap(source) else {
-        return Future.map(on: worker) { nil }
+        return Future.map(on: w) { nil }
     }
 
     guard let s = source as? MapFallibleRepresentable else {
-        return Future.map(on: worker) { nil }
+        return Future.map(on: w) { nil }
     }
 
     // TODO: check why Reflection fails
     guard let typeInfo = try? typeInfo(of: type(of: s)),
         let property = try? typeInfo.property(named: info.fieldName) else {
-        return Future.map(on: worker) { nil }
+        return Future.map(on: w) { nil }
     }
     
     guard let value = try? property.get(from: s) else {
-        return Future.map(on: worker) { nil }
+        return Future.map(on: w) { nil }
     }
 
-    return Future.map(on: worker) { value }
+    return Future.map(on: w) { value }
 }
 
 /**

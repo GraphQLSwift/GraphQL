@@ -11,23 +11,35 @@ let __Schema = try! GraphQLObjectType(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__Type))),
             description: "A list of all types supported by this server.",
             resolve: { schema, _, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 guard let schema = schema as? GraphQLSchema else {
-                    return Future.map(on: worker) { nil }
+                    return Future.map(on: w) { nil }
                 }
 
                 let typeMap = schema.typeMap
-                return Future.map(on: worker) { Array(typeMap.values).sorted(by: { $0.name < $1.name }) }
+                return Future.map(on: w) { Array(typeMap.values).sorted(by: { $0.name < $1.name }) }
             }
         ),
         "queryType": GraphQLField(
             type: GraphQLNonNull(__Type),
             description: "The type that query operations will be rooted at.",
             resolve: { schema, _, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 guard let schema = schema as? GraphQLSchema else {
-                    return Future.map(on: worker) { nil }
+                    return Future.map(on: w) { nil }
                 }
 
-                return Future.map(on: worker) { schema.queryType }
+                return Future.map(on: w) { schema.queryType }
             }
         ),
         "mutationType": GraphQLField(
@@ -36,11 +48,17 @@ let __Schema = try! GraphQLObjectType(
             "If this server supports mutation, the type that " +
             "mutation operations will be rooted at.",
             resolve: { schema, _, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 guard let schema = schema as? GraphQLSchema else {
-                    return Future.map(on: worker) { nil }
+                    return Future.map(on: w) { nil }
                 }
 
-                return Future.map(on: worker) { schema.mutationType }
+                return Future.map(on: w) { schema.mutationType }
             }
         ),
         "subscriptionType": GraphQLField(
@@ -49,22 +67,34 @@ let __Schema = try! GraphQLObjectType(
             "If this server support subscription, the type that " +
             "subscription operations will be rooted at.",
             resolve: { schema, _, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 guard let schema = schema as? GraphQLSchema else {
-                    return Future.map(on: worker) { nil }
+                    return Future.map(on: w) { nil }
                 }
 
-                return Future.map(on: worker) { schema.subscriptionType }
+                return Future.map(on: w) { schema.subscriptionType }
             }
         ),
         "directives": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__Directive))),
             description: "A list of all directives supported by this server.",
             resolve: { schema, _, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 guard let schema = schema as? GraphQLSchema else {
-                    return Future.map(on: worker) { nil }
+                    return Future.map(on: w) { nil }
                 }
 
-                return Future.map(on: worker) { schema.directives }
+                return Future.map(on: w) { schema.directives }
             }
         )
     ]
@@ -88,11 +118,17 @@ let __Directive = try! GraphQLObjectType(
         "args": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__InputValue))),
             resolve: { directive, _, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 guard let directive = directive as? GraphQLDirective else {
-                    return Future.map(on: worker) { nil }
+                    return Future.map(on: w) { nil }
                 }
 
-                return Future.map(on: worker) { directive.args }
+                return Future.map(on: w) { directive.args }
             }
         ),
         // NOTE: the following three fields are deprecated and are no longer part
@@ -101,11 +137,17 @@ let __Directive = try! GraphQLObjectType(
             type: GraphQLNonNull(GraphQLBoolean),
             deprecationReason: "Use `locations`.",
             resolve: { directive, _, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 guard let d = directive as? GraphQLDirective else {
-                    return Future.map(on: worker) { nil }
+                    return Future.map(on: w) { nil }
                 }
 
-                return Future.map(on: worker) { d.locations.contains(.query) ||
+                return Future.map(on: w) { d.locations.contains(.query) ||
                     d.locations.contains(.mutation) ||
                     d.locations.contains(.subscription) }
             }
@@ -114,11 +156,17 @@ let __Directive = try! GraphQLObjectType(
             type: GraphQLNonNull(GraphQLBoolean),
             deprecationReason: "Use `locations`.",
             resolve: { directive, _, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 guard let d = directive as? GraphQLDirective else {
-                    return Future.map(on: worker) { nil }
+                    return Future.map(on: w) { nil }
                 }
 
-                return Future.map(on: worker) { d.locations.contains(.fragmentSpread) ||
+                return Future.map(on: w) { d.locations.contains(.fragmentSpread) ||
                     d.locations.contains(.inlineFragment) ||
                     d.locations.contains(.fragmentDefinition) }
             }
@@ -127,11 +175,17 @@ let __Directive = try! GraphQLObjectType(
             type: GraphQLNonNull(GraphQLBoolean),
             deprecationReason: "Use `locations`.",
             resolve: { directive, _, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 guard let d = directive as? GraphQLDirective else {
-                    return Future.map(on: worker) { nil }
+                    return Future.map(on: w) { nil }
                 }
 
-                return Future.map(on: worker) { d.locations.contains(.field) }
+                return Future.map(on: w) { d.locations.contains(.field) }
             }
         ),
     ]
@@ -233,23 +287,29 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
         "kind": GraphQLField(
             type: GraphQLNonNull(__TypeKind),
             resolve: { type, _, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 switch type {
                 case let type as GraphQLScalarType:
-                    return Future.map(on: worker) { TypeKind.scalar }
+                    return Future.map(on: w) { TypeKind.scalar }
                 case let type as GraphQLObjectType:
-                    return Future.map(on: worker) { TypeKind.object }
+                    return Future.map(on: w) { TypeKind.object }
                 case let type as GraphQLInterfaceType:
-                    return Future.map(on: worker) { TypeKind.interface }
+                    return Future.map(on: w) { TypeKind.interface }
                 case let type as GraphQLUnionType:
-                    return Future.map(on: worker) { TypeKind.union }
+                    return Future.map(on: w) { TypeKind.union }
                 case let type as GraphQLEnumType:
-                    return Future.map(on: worker) { TypeKind.enum }
+                    return Future.map(on: w) { TypeKind.enum }
                 case let type as GraphQLInputObjectType:
-                    return Future.map(on: worker) { TypeKind.inputObject }
+                    return Future.map(on: w) { TypeKind.inputObject }
                 case let type as GraphQLList:
-                    return Future.map(on: worker) { TypeKind.list }
+                    return Future.map(on: w) { TypeKind.list }
                 case let type as GraphQLNonNull:
-                    return Future.map(on: worker) { TypeKind.nonNull }
+                    return Future.map(on: w) { TypeKind.nonNull }
                 default:
                     throw GraphQLError(message: "Unknown kind of type: \(type)")
                 }
@@ -266,6 +326,12 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                 )
             ],
             resolve: { type, arguments, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 if let type = type as? GraphQLObjectType {
                     let fieldMap = type.fields
                     var fields = Array(fieldMap.values).sorted(by: { $0.name < $1.name })
@@ -274,7 +340,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                         fields = fields.filter({ !$0.isDeprecated })
                     }
                     
-                    return Future.map(on: worker) { fields }
+                    return Future.map(on: w) { fields }
                 }
 
                 if let type = type as? GraphQLInterfaceType {
@@ -285,30 +351,42 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                         fields = fields.filter({ !$0.isDeprecated })
                     }
 
-                    return Future.map(on: worker) { fields }
+                    return Future.map(on: w) { fields }
                 }
 
-                return Future.map(on: worker) { nil }
+                return Future.map(on: w) { nil }
             }
         ),
         "interfaces": GraphQLField(
             type: GraphQLList(GraphQLNonNull(GraphQLTypeReference("__Type"))),
             resolve: { type, _, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 if let type = type as? GraphQLObjectType {
-                    return Future.map(on: worker) { type.interfaces }
+                    return Future.map(on: w) { type.interfaces }
                 }
 
-                return Future.map(on: worker) { nil }
+                return Future.map(on: w) { nil }
             }
         ),
         "possibleTypes": GraphQLField(
             type: GraphQLList(GraphQLNonNull(GraphQLTypeReference("__Type"))),
             resolve: { type, args, worker, info in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 if let type = type as? GraphQLAbstractType {
-                    return Future.map(on: worker) { info.schema.getPossibleTypes(abstractType: type) }
+                    return Future.map(on: w) { info.schema.getPossibleTypes(abstractType: type) }
                 }
 
-                return Future.map(on: worker) { nil }
+                return Future.map(on: w) { nil }
             }
         ),
         "enumValues": GraphQLField(
@@ -320,6 +398,12 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                 )
             ],
             resolve: { type, arguments, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 if let type = type as? GraphQLEnumType {
                     var values = type.values
 
@@ -327,21 +411,27 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                         values = values.filter({ !$0.isDeprecated })
                     }
 
-                    return Future.map(on: worker) { values }
+                    return Future.map(on: w) { values }
                 }
 
-                return Future.map(on: worker) { nil }
+                return Future.map(on: w) { nil }
             }
         ),
         "inputFields": GraphQLField(
             type: GraphQLList(GraphQLNonNull(__InputValue)),
             resolve: { type, _, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 if let type = type as? GraphQLInputObjectType {
                     let fieldMap = type.fields
-                    return Future.map(on: worker) { Array(fieldMap.values).sorted(by: { $0.name < $1.name }) }
+                    return Future.map(on: w) { Array(fieldMap.values).sorted(by: { $0.name < $1.name }) }
                 }
 
-                return Future.map(on: worker) { nil }
+                return Future.map(on: w) { nil }
             }
         ),
         "ofType": GraphQLField(type: GraphQLTypeReference("__Type"))
@@ -359,11 +449,17 @@ let __Field = try! GraphQLObjectType(
         "args": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__InputValue))),
             resolve: { field, _, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 guard let field = field as? GraphQLFieldDefinition else {
-                    return Future.map(on: worker) { nil }
+                    return Future.map(on: w) { nil }
                 }
 
-                return Future.map(on: worker) { field.args }
+                return Future.map(on: w) { field.args }
             }
         ),
         "type": GraphQLField(type: GraphQLNonNull(GraphQLTypeReference("__Type"))),
@@ -388,15 +484,21 @@ let __InputValue = try! GraphQLObjectType(
             "A GraphQL-formatted string representing the default value for this " +
             "input value.",
             resolve: { inputValue, _, worker, _ in
+                guard let w = worker as? Worker else {
+                    throw GraphQLError(
+                        message: "Provided worker is not actually a worker."
+                    )
+                }
+                
                 guard let inputValue = inputValue as? GraphQLArgumentDefinition else {
-                    return Future.map(on: worker) { nil }
+                    return Future.map(on: w) { nil }
                 }
 
                 guard let defaultValue = inputValue.defaultValue else {
-                    return Future.map(on: worker) { nil }
+                    return Future.map(on: w) { nil }
                 }
 
-                return Future.map(on: worker) { defaultValue }
+                return Future.map(on: w) { defaultValue }
             }
         )
     ]
@@ -490,7 +592,13 @@ let SchemaMetaFieldDef = GraphQLFieldDefinition(
     type: GraphQLNonNull(__Schema),
     description: "Access the current type schema of this server.",
     resolve: { _, _, worker, info in
-        return Future.map(on: worker) { info.schema }
+        guard let w = worker as? Worker else {
+            throw GraphQLError(
+                message: "Provided worker is not actually a worker."
+            )
+        }
+        
+        return Future.map(on: w) { info.schema }
     }
 )
 
@@ -505,8 +613,14 @@ let TypeMetaFieldDef = GraphQLFieldDefinition(
         )
     ],
     resolve: { _, arguments, worker, info in
+        guard let w = worker as? Worker else {
+            throw GraphQLError(
+                message: "Provided worker is not actually a worker."
+            )
+        }
+        
         let name = arguments["name"].string!
-        return Future.map(on: worker) { info.schema.getType(name: name) }
+        return Future.map(on: w) { info.schema.getType(name: name) }
     }
 )
 
@@ -515,6 +629,12 @@ let TypeNameMetaFieldDef = GraphQLFieldDefinition(
     type: GraphQLNonNull(GraphQLString),
     description: "The name of the current Object type at runtime.",
     resolve: { _, _, worker, info in
-        Future.map(on: worker) { info.parentType.name }
+        guard let w = worker as? Worker else {
+            throw GraphQLError(
+                message: "Provided worker is not actually a worker."
+            )
+        }
+        
+        return Future.map(on: w) { info.parentType.name }
     }
 )

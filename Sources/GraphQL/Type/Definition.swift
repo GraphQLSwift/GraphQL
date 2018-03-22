@@ -449,7 +449,7 @@ public typealias GraphQLIsTypeOf = (
 public typealias GraphQLFieldResolve = (
     _ source: Any,
     _ args: Map,
-    _ worker: Worker,
+    _ worker: Any,
     _ info: GraphQLResolveInfo
 ) throws -> Future<Any?>
 

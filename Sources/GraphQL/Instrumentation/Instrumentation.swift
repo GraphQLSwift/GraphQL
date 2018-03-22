@@ -50,7 +50,7 @@ public protocol Instrumentation {
         finished: DispatchTime,
         source: Any,
         args: Map,
-        worker: Worker,
+        worker: Any,
         info: GraphQLResolveInfo,
         result: ResultOrError<Future<Any?>, Error>
     )
@@ -86,6 +86,6 @@ struct noOpInstrumentation: Instrumentation {
     }
     public func operationExecution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, schema: GraphQLSchema, document: Document, rootValue: Any, worker: Worker, variableValues: [String : Map], operation: OperationDefinition?, errors: [GraphQLError], result: Map) {
     }
-    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, worker: Worker, info: GraphQLResolveInfo, result: ResultOrError<Future<Any?>, Error>) {
+    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, worker: Any, info: GraphQLResolveInfo, result: ResultOrError<Future<Any?>, Error>) {
     }
 }

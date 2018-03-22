@@ -46,7 +46,7 @@ public class DispatchQueueInstrumentationWrapper: Instrumentation {
         }
     }
 
-    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, worker: Worker, info: GraphQLResolveInfo, result: ResultOrError<Future<Any?>, Error>) {
+    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, worker: Any, info: GraphQLResolveInfo, result: ResultOrError<Future<Any?>, Error>) {
         dispatchQueue.async(group: dispatchGroup) {
             self.instrumentation.fieldResolution(processId: processId, threadId: threadId, started: started, finished: finished, source: source, args: args, worker: worker, info: info, result: result)
         }
