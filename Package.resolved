@@ -5,17 +5,17 @@
         "package": "Core",
         "repositoryURL": "https://github.com/vapor/core.git",
         "state": {
-          "branch": "nio",
-          "revision": "25acb283699ca7d2b59aac2875107c6b7b95b66d",
-          "version": null
+          "branch": null,
+          "revision": "225aff2b69049f2a4d9a4aae71d27ba7fb083032",
+          "version": "3.0.1"
         }
       },
       {
         "package": "Runtime",
         "repositoryURL": "https://github.com/jseibert/Runtime.git",
         "state": {
-          "branch": "swift-4.1",
-          "revision": "c8f6c4efd3cc22409b9323cfdf68d2a7121fc897",
+          "branch": "master",
+          "revision": "c5de129db23d9ac07f324b683f19f68b13219f28",
           "version": null
         }
       },
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "1fdee500e5712af7cd4dc0424f892b716a185f81",
-          "version": "1.1.0"
+          "revision": "a0b7f646fba61402da384b3202f54c27debb5e13",
+          "version": "1.3.1"
         }
       },
       {

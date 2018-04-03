@@ -138,7 +138,10 @@ public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy, Mutatio
                 path: fieldPath
             )
 
-            results[field.key] = result ?? Map.null
+            results[field.key] = result.map(to: Any.self) { r in
+                return r ?? Map.null
+            }
+            
             return results
         }.flatten(on: worker)
     }
