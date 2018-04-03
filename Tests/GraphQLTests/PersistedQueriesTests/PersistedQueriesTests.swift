@@ -30,7 +30,7 @@ class PersistedQueriesTests: XCTestCase {
         let result = try lookup("parse_error")
         switch result {
         case .parseError(let error):
-            XCTAssertEqual(String(error.message.characters.prefix(57)), "Syntax Error parse_error (1:4) Expected Name, found <EOF>")
+            XCTAssertEqual(String(error.message.prefix(57)), "Syntax Error parse_error (1:4) Expected Name, found <EOF>")
             XCTAssertEqual(error.locations.first?.line, 1)
             XCTAssertEqual(error.locations.first?.column, 4)
             return
@@ -77,7 +77,7 @@ class PersistedQueriesTests: XCTestCase {
         do {
             _ = try graphql(queryRetrieval: self, queryId: "parse_error")
         } catch let error as GraphQLError {
-            XCTAssertEqual(String(error.message.characters.prefix(57)), "Syntax Error parse_error (1:4) Expected Name, found <EOF>")
+            XCTAssertEqual(String(error.message.prefix(57)), "Syntax Error parse_error (1:4) Expected Name, found <EOF>")
             XCTAssertEqual(error.locations.first?.line, 1)
             XCTAssertEqual(error.locations.first?.column, 4)
         }

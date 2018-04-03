@@ -39,7 +39,7 @@ extension Map {
         func escape(_ source: String) -> String {
             var string = "\""
 
-            for character in source.characters {
+            for character in source {
                 if let escapedSymbol = escapeMapping[character] {
                     string.append(escapedSymbol)
                 } else {

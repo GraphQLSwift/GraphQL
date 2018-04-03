@@ -74,7 +74,7 @@ public let GraphQLID = try! GraphQLScalarType(
     "response as a String; however, it is not intended to be human-readable. " +
     "When expected as an input type, any string (such as `\"4\"`) or integer " +
     "(such as `4`) input value will be accepted as an ID.",
-    serialize: { try map(from: $0) },
+    serialize: { try map(from: $0) } ,
     parseValue: { try $0.asString(converting: true).map },
     parseLiteral: { ast in
         if let ast = ast as? StringValue {
