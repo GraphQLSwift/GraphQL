@@ -5,9 +5,9 @@
         "package": "Runtime",
         "repositoryURL": "https://github.com/wickwirew/Runtime.git",
         "state": {
-          "branch": "swift-4.1",
-          "revision": "4169a0180cb0912f3d24ccb1d1aa86b8191582a2",
-          "version": null
+          "branch": null,
+          "revision": "db1f37b8eb7c1e2ae2d1a73830692625b5923168",
+          "version": "0.4.0"
         }
       }
     ]
