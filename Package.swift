@@ -9,7 +9,7 @@ let package = Package(
     ],
 
     dependencies: [
-        .package(url: "https://github.com/jseibert/Runtime.git", .branch("master")),
+        .package(url: "https://github.com/wickwirew/Runtime.git", from: "0.5.0"),
     ],
 
     targets: [

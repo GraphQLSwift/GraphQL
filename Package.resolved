@@ -3,11 +3,11 @@
     "pins": [
       {
         "package": "Runtime",
-        "repositoryURL": "https://github.com/jseibert/Runtime.git",
+        "repositoryURL": "https://github.com/wickwirew/Runtime.git",
         "state": {
-          "branch": "master",
-          "revision": "c5de129db23d9ac07f324b683f19f68b13219f28",
-          "version": null
+          "branch": null,
+          "revision": "4b8fa99315610937d5430f15e85a293709feff52",
+          "version": "0.5.0"
         }
       }
     ]
