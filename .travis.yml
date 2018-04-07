@@ -16,5 +16,7 @@ script:
   - swift build -c release
   - swift build
   - swift test
-  - eval "$(curl -sL https://raw.githubusercontent.com/lgaches/swifttravisci/master/codecov)"
+  - 'if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+       eval "$(curl -sL https://raw.githubusercontent.com/lgaches/swifttravisci/master/codecov)";
+     fi'
 
