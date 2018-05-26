@@ -1,3 +1,5 @@
+import NIO
+
 /**
  * These are all of the possible kinds of types.
  */
@@ -434,22 +436,22 @@ public enum TypeResolveResult {
 
 public typealias GraphQLTypeResolve = (
     _ value: Any,
-    _ context: Any,
+    _ eventLoopGroup: EventLoopGroup,
     _ info: GraphQLResolveInfo
 ) throws -> TypeResolveResultRepresentable
 
 public typealias GraphQLIsTypeOf = (
     _ source: Any,
-    _ context: Any,
+    _ eventLoopGroup: EventLoopGroup,
     _ info: GraphQLResolveInfo
 ) throws -> Bool
 
 public typealias GraphQLFieldResolve = (
     _ source: Any,
     _ args: Map,
-    _ context: Any,
+    _ eventLoopGroup: EventLoopGroup,
     _ info: GraphQLResolveInfo
-) throws -> Any?
+) throws -> EventLoopFuture<Any?>
 
 public struct GraphQLResolveInfo {
     public let fieldName: String

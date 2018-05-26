@@ -10,11 +10,11 @@ let package = Package(
 
     dependencies: [
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "0.6.0"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "1.7.2"),
     ],
 
     targets: [
-        .target(name: "GraphQL", dependencies: ["Runtime"]),
-
+        .target(name: "GraphQL", dependencies: ["Runtime", "NIO"]),
         .testTarget(name: "GraphQLTests", dependencies: ["GraphQL"]),
     ]
 )
