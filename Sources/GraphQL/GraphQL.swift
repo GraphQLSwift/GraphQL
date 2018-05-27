@@ -1,4 +1,4 @@
-import Async
+import NIO
 
 /// This is the primary entry point function for fulfilling GraphQL operations
 /// by parsing, validating, and executing a GraphQL document along side a
@@ -40,7 +40,7 @@ public func graphql(
     let validationErrors = validate(instrumentation: instrumentation, schema: schema, ast: documentAST)
 
     guard validationErrors.isEmpty else {
-        return eventLoopGroup.eventLoop.newSucceededFuture(result: ["errors": try validationErrors.asMap()])
+        return eventLoopGroup.next().newSucceededFuture(result: ["errors": try validationErrors.asMap()])
     }
 
     return execute(
@@ -92,7 +92,7 @@ public func graphql<Retrieval:PersistedQueryRetrieval>(
     case .parseError(let parseError):
         throw parseError
     case .validateErrors(_, let validationErrors):
-        return eventLoopGroup.eventLoop.newSucceededFuture(result:  ["errors": try validationErrors.asMap()])
+        return eventLoopGroup.next().newSucceededFuture(result: ["errors": try validationErrors.asMap()])
     case .result(let schema, let documentAST):
         return execute(
             queryStrategy: queryStrategy,
