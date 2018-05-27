@@ -1,4 +1,5 @@
 import XCTest
+import NIO
 @testable import GraphQL
 
 class HelloWorldTests : XCTestCase {
@@ -8,24 +9,35 @@ class HelloWorldTests : XCTestCase {
             fields: [
                 "hello": GraphQLField(
                     type: GraphQLString,
-                    resolve: { _, _, _, _ in "world" }
+                    resolve: { _, _, eventLoopGroup, _ in return eventLoopGroup.next().newSucceededFuture(result: "world") }
                 )
             ]
         )
     )
 
     func testHello() throws {
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        defer {
+            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
+        }
+
         let query = "{ hello }"
         let expected: Map = [
             "data": [
                 "hello": "world"
             ]
         ]
-        let result = try graphql(schema: schema, request: query)
+        let result = try graphql(schema: schema, request: query, eventLoopGroup: eventLoopGroup).wait()
+
         XCTAssertEqual(result, expected)
     }
 
     func testBoyhowdy() throws {
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        defer {
+            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
+        }
+
         let query = "{ boyhowdy }"
 
         let expectedErrors: Map = [
@@ -37,7 +49,7 @@ class HelloWorldTests : XCTestCase {
             ]
         ]
 
-        let result = try graphql(schema: schema, request: query)
+        let result = try graphql(schema: schema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expectedErrors)
     }
 }
