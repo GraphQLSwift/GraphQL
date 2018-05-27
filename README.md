@@ -32,11 +32,12 @@ through that README and the corresponding tests in parallel.
 Add GraphQL to your `Package.swift`
 
 ```swift
+// swift-tools-version:4.0
 import PackageDescription
 
 let package = Package(
     dependencies: [
-        .Package(url: "https://github.com/GraphQLSwift/GraphQL.git", majorVersion: 0),
+        .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "0.0.0"),
     ]
 )
 ```
