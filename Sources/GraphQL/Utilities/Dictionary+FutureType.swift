@@ -32,9 +32,9 @@ extension EventLoopFuture: FutureType {
 
     /// See `FutureType`.
     public func addAwaiter(callback: @escaping (FutureResult<T>) -> ()) {
-        self.do { result in
+        _ = self.map { result in
             callback(.success(result))
-            }.catch { error in
+            }.mapIfError { error in
                 callback(.error(error))
         }
     }
@@ -76,15 +76,48 @@ public indirect enum FutureResult<T> {
     }
 }
 
+extension Collection where Element : FutureType {
+    /// Flattens an array of futures into a future with an array of results.
+    /// note: the order of the results will match the order of the
+    /// futures in the input array.
+    ///
+    /// [Learn More →](https://docs.vapor.codes/3.0/async/advanced-futures/#combining-multiple-futures)
+    public func flatten(on worker: EventLoopGroup) -> EventLoopFuture<[Element.Expectation]> {
+        guard count > 0 else {
+            return worker.next().newSucceededFuture(result: [])
+        }
+        var elements: [Element.Expectation] = []
+
+        let promise: EventLoopPromise<[Element.Expectation]> = worker.next().newPromise()
+        elements.reserveCapacity(self.count)
+
+        for element in self {
+            element.addAwaiter { result in
+                switch result {
+                case .error(let error): promise.fail(error: error)
+                case .success(let expectation):
+                    elements.append(expectation)
+
+                    if elements.count == self.count {
+                        promise.succeed(result: elements)
+                    }
+                }
+            }
+        }
+
+        return promise.futureResult
+    }
+}
+
 /// !! From Vapor Async end
 
 extension Dictionary where Value: FutureType {
     func flatten(on worker: EventLoopGroup) -> EventLoopFuture<[Key: Value.Expectation]> {
-        var elements: [Key: Value.Expectation] = [:]
-
         guard self.count > 0 else {
-            return worker.next().newSucceededFuture(result: elements)
+            return worker.next().newSucceededFuture(result: [:])
         }
+
+        var elements: [Key: Value.Expectation] = [:]
 
         let promise: EventLoopPromise<[Key: Value.Expectation]> = worker.next().newPromise()
         elements.reserveCapacity(self.count)
