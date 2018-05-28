@@ -118,8 +118,9 @@ public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy, Mutatio
         path: [IndexPathElement],
         fields: [String: [Field]]
     ) throws -> EventLoopFuture<[String: Any]> {
-        return try fields.reduce([String: EventLoopFuture<Any>]()) { results, field in
-            var results = results
+        var results = [String: EventLoopFuture<Any>]()
+
+        try fields.forEach { field in
             let fieldASTs = field.value
             let fieldPath = path + [field.key] as [IndexPathElement]
 
@@ -132,8 +133,9 @@ public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy, Mutatio
             )
 
             results[field.key] = result.map { $0 ?? Map.null }
-            return results
-            }.flatten(on: exeContext.eventLoopGroup)
+        }
+
+        return results.flatten(on: exeContext.eventLoopGroup)
     }
 }
 
@@ -270,13 +272,13 @@ func execute(
     do {
         var executeErrors: [GraphQLError] = []
 
-        return try executeOperation(
-            exeContext: context,
-            operation: context.operation,
-            rootValue: rootValue
-            ).thenThrowing { data -> Map in
+        let data = try executeOperation(exeContext: context,
+                                        operation: context.operation,
+                                        rootValue: rootValue)
+
+        return data.thenThrowing { data -> Map in
                 var dataMap: Map = [:]
-                for (key, value) in data {
+                for (key, value) in data as! [String: Any] {
                     dataMap[key] = try map(from: value)
                 }
                 var result: [String: Map] = ["data": dataMap]
@@ -702,7 +704,7 @@ public func resolveField(
 
     exeContext.instrumentation.fieldResolution(
         processId: processId(),
-        threadId: threadId(), 
+        threadId: threadId(),
         started: resolveFieldStarted,
         finished: exeContext.instrumentation.now,
         source: source,
@@ -711,7 +713,7 @@ public func resolveField(
         info: info,
         result: result
     )
-    
+
     return try completeValueCatchingError(
         exeContext: exeContext,
         returnType: returnType,
@@ -871,7 +873,7 @@ func completeValue(
             }
         }
 
-        return result.thenThrowing{ result -> EventLoopFuture<Any?> in
+        return result.thenThrowing { result -> EventLoopFuture<Any?> in
             // If result value is null-ish (nil or .null) then return .null.
             guard let result = result, let r = unwrap(result) else {
                 return exeContext.eventLoopGroup.next().newSucceededFuture(result: nil)
@@ -886,7 +888,7 @@ func completeValue(
                     info: info,
                     path: path,
                     result: r
-                    ).thenThrowing { $0 }
+                    ).map { $0 }
             }
 
             // If field type is a leaf type, Scalar or Enum, serialize to a valid value,
@@ -922,7 +924,7 @@ func completeValue(
 
             // Not reachable. All possible output types have been considered.
             throw GraphQLError(message: "Cannot complete value of unexpected type \"\(returnType)\".")
-        }
+            }
     }
 }
 
@@ -966,7 +968,7 @@ func completeListValue(
 
         completedResults.append(completedItem)
     }
-    
+
     return completedResults.flatten(on: exeContext.eventLoopGroup)
 }
 
