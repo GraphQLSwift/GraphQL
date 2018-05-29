@@ -2,6 +2,15 @@
   "object": {
     "pins": [
       {
+        "package": "Core",
+        "repositoryURL": "https://github.com/vapor/core.git",
+        "state": {
+          "branch": null,
+          "revision": "3b72f2cc3fb21d505fbe97215418951a8e4a2871",
+          "version": "3.2.1"
+        }
+      },
+      {
         "package": "Runtime",
         "repositoryURL": "https://github.com/wickwirew/Runtime.git",
         "state": {
