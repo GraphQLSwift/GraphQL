@@ -1,6 +1,6 @@
 import Dispatch
 import Runtime
-import NIO
+import Async
 
 /**
  * Terminology
@@ -266,19 +266,19 @@ func execute(
 
         return eventLoopGroup.next().newSucceededFuture(result: ["errors": [error].map])
     } catch {
-        return eventLoopGroup.next().newFailedFuture(error: error)
+        return eventLoopGroup.next().newSucceededFuture(result:  ["errors": [["message": error.localizedDescription].map]])
     }
 
     do {
         var executeErrors: [GraphQLError] = []
 
-        let data = try executeOperation(exeContext: context,
+        return try executeOperation(exeContext: context,
                                         operation: context.operation,
                                         rootValue: rootValue)
-
-        return data.thenThrowing { data -> Map in
+            
+            .thenThrowing { data -> Map in
                 var dataMap: Map = [:]
-                for (key, value) in data as! [String: Any] {
+                for (key, value) in data {
                     dataMap[key] = try map(from: value)
                 }
                 var result: [String: Map] = ["data": dataMap]
@@ -315,7 +315,7 @@ func execute(
     } catch let error as GraphQLError {
         return eventLoopGroup.next().newSucceededFuture(result: ["errors": [error].map])
     } catch {
-        return eventLoopGroup.next().newFailedFuture(error: error)
+        return eventLoopGroup.next().newSucceededFuture(result: ["errors": [["message": error.localizedDescription].map]])
     }
 }
 
@@ -778,14 +778,20 @@ func completeValueCatchingError(
             info: info,
             path: path,
             result: result
-        )
+            ).mapIfError { error -> Any? in
+                guard let error = error as? GraphQLError else {
+                     fatalError()
+                }
+                exeContext.append(error: error)
+                return nil
+            }
 
         return completed
     } catch let error as GraphQLError {
         // If `completeValueWithLocatedError` returned abruptly (threw an error),
         // log the error and return .null.
         exeContext.append(error: error)
-        return exeContext.eventLoopGroup.next().newFailedFuture(error: error)
+        return exeContext.eventLoopGroup.next().newSucceededFuture(result: nil)
     } catch {
         fatalError()
     }
@@ -873,7 +879,7 @@ func completeValue(
             }
         }
 
-        return result.thenThrowing { result -> EventLoopFuture<Any?> in
+        return result.flatMap(to: Any?.self) { result -> EventLoopFuture<Any?> in
             // If result value is null-ish (nil or .null) then return .null.
             guard let result = result, let r = unwrap(result) else {
                 return exeContext.eventLoopGroup.next().newSucceededFuture(result: nil)
