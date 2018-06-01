@@ -30,6 +30,7 @@ public func graphql(
     schema: GraphQLSchema,
     request: String,
     rootValue: Any = Void(),
+    context: Any = Void(),
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
@@ -51,6 +52,7 @@ public func graphql(
         schema: schema,
         documentAST: documentAST,
         rootValue: rootValue,
+        context: context,
         eventLoopGroup: eventLoopGroup,
         variableValues: variableValues,
         operationName: operationName
@@ -82,6 +84,7 @@ public func graphql<Retrieval:PersistedQueryRetrieval>(
     queryRetrieval: Retrieval,
     queryId: Retrieval.Id,
     rootValue: Any = Void(),
+    context: Any = Void(),
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
@@ -102,6 +105,7 @@ public func graphql<Retrieval:PersistedQueryRetrieval>(
             schema: schema,
             documentAST: documentAST,
             rootValue: rootValue,
+            context: context,
             eventLoopGroup: eventLoopGroup,
             variableValues: variableValues,
             operationName: operationName

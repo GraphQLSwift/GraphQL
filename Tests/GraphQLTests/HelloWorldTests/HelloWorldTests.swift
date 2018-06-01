@@ -9,7 +9,7 @@ class HelloWorldTests : XCTestCase {
             fields: [
                 "hello": GraphQLField(
                     type: GraphQLString,
-                    resolve: { _, _, eventLoopGroup, _ in return eventLoopGroup.next().newSucceededFuture(result: "world") }
+                    resolve: { _, _, _, eventLoopGroup, _ in return eventLoopGroup.next().newSucceededFuture(result: "world") }
                 )
             ]
         )

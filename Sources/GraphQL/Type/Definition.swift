@@ -449,6 +449,7 @@ public typealias GraphQLIsTypeOf = (
 public typealias GraphQLFieldResolve = (
     _ source: Any,
     _ args: Map,
+    _ context: Any,
     _ eventLoopGroup: EventLoopGroup,
     _ info: GraphQLResolveInfo
 ) throws -> EventLoopFuture<Any?>

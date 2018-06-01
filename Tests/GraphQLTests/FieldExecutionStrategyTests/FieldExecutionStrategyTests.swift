@@ -15,7 +15,7 @@ class FieldExecutionStrategyTests: XCTestCase {
             fields: [
                 "sleep": GraphQLField(
                     type: GraphQLString,
-                    resolve: { _, _, eventLoopGroup, _ in
+                    resolve: { _, _, _, eventLoopGroup, _ in
                         let g = DispatchGroup()
                         g.enter()
                         DispatchQueue.global().asyncAfter(wallDeadline: .now() + 0.1) {
@@ -27,7 +27,7 @@ class FieldExecutionStrategyTests: XCTestCase {
                 ),
                 "bang": GraphQLField(
                     type: GraphQLString,
-                    resolve: { (_, _, _, info: GraphQLResolveInfo) in
+                    resolve: { (_, _, _, _, info: GraphQLResolveInfo) in
                         let g = DispatchGroup()
                         g.enter()
                         DispatchQueue.global().asyncAfter(wallDeadline: .now() + 0.1) {

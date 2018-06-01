@@ -37,6 +37,7 @@ public final class ExecutionContext {
     public let schema: GraphQLSchema
     public let fragments: [String: FragmentDefinition]
     public let rootValue: Any
+    public let context: Any
     public let eventLoopGroup: EventLoopGroup
     public let operation: OperationDefinition
     public let variableValues: [String: Map]
@@ -62,6 +63,7 @@ public final class ExecutionContext {
         schema: GraphQLSchema,
         fragments: [String: FragmentDefinition],
         rootValue: Any,
+        context: Any,
         eventLoopGroup: EventLoopGroup,
         operation: OperationDefinition,
         variableValues: [String: Map],
@@ -74,6 +76,7 @@ public final class ExecutionContext {
         self.schema = schema
         self.fragments = fragments
         self.rootValue = rootValue
+        self.context = context
         self.eventLoopGroup = eventLoopGroup
         self.operation = operation
         self.variableValues = variableValues
@@ -226,17 +229,18 @@ func execute(
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: Any,
+    context: Any,
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) -> EventLoopFuture<Map> {
     let executeStarted = instrumentation.now
-    let context: ExecutionContext
+    let buildContext: ExecutionContext
 
     do {
         // If a valid context cannot be created due to incorrect arguments,
         // this will throw an error.
-        context = try buildExecutionContext(
+        buildContext = try buildExecutionContext(
             queryStrategy: queryStrategy,
             mutationStrategy: mutationStrategy,
             subscriptionStrategy: subscriptionStrategy,
@@ -244,6 +248,7 @@ func execute(
             schema: schema,
             documentAST: documentAST,
             rootValue: rootValue,
+            context: context,
             eventLoopGroup: eventLoopGroup,
             rawVariableValues: variableValues,
             operationName: operationName
@@ -272,8 +277,8 @@ func execute(
     do {
         var executeErrors: [GraphQLError] = []
 
-        return try executeOperation(exeContext: context,
-                                        operation: context.operation,
+        return try executeOperation(exeContext: buildContext,
+                                        operation: buildContext.operation,
                                         rootValue: rootValue)
             
             .thenThrowing { data -> Map in
@@ -282,10 +287,10 @@ func execute(
                     dataMap[key] = try map(from: value)
                 }
                 var result: [String: Map] = ["data": dataMap]
-                if !context.errors.isEmpty {
-                    result["errors"] = context.errors.map
+                if !buildContext.errors.isEmpty {
+                    result["errors"] = buildContext.errors.map
                 }
-                executeErrors = context.errors
+                executeErrors = buildContext.errors
 
                 return .dictionary(result)
             }.mapIfError{ error -> Map in
@@ -305,7 +310,7 @@ func execute(
                     rootValue: rootValue,
                     eventLoopGroup: eventLoopGroup,
                     variableValues: variableValues,
-                    operation: context.operation,
+                    operation: buildContext.operation,
                     errors: executeErrors,
                     result: result
                 )
@@ -333,6 +338,7 @@ func buildExecutionContext(
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: Any,
+    context: Any,
     eventLoopGroup: EventLoopGroup,
     rawVariableValues: [String: Map],
     operationName: String?
@@ -387,6 +393,7 @@ func buildExecutionContext(
         schema: schema,
         fragments: fragments,
         rootValue: rootValue,
+        context: context,
         eventLoopGroup: eventLoopGroup,
         operation: operation,
         variableValues: variableValues,
@@ -673,7 +680,7 @@ public func resolveField(
     // The resolve func's optional third argument is a context value that
     // is provided to every resolve func within an execution. It is commonly
     // used to represent an authenticated user, or request-specific caches.
-    let eventLoopGroup = exeContext.eventLoopGroup
+    let context = exeContext.context
 
     // The resolve func's optional fourth argument is a collection of
     // information about the current execution state.
@@ -698,7 +705,8 @@ public func resolveField(
         resolve: resolve,
         source: source,
         args: args,
-        eventLoopGroup: eventLoopGroup,
+        context: context,
+        eventLoopGroup: exeContext.eventLoopGroup,
         info: info
     )
 
@@ -709,7 +717,7 @@ public func resolveField(
         finished: exeContext.instrumentation.now,
         source: source,
         args: args,
-        eventLoopGroup: eventLoopGroup,
+        eventLoopGroup: exeContext.eventLoopGroup,
         info: info,
         result: result
     )
@@ -735,11 +743,12 @@ func resolveOrError(
     resolve: GraphQLFieldResolve,
     source: Any,
     args: Map,
+    context: Any,
     eventLoopGroup: EventLoopGroup,
     info: GraphQLResolveInfo
 ) -> ResultOrError<EventLoopFuture<Any?>, Error> {
     do {
-        return try .result(resolve(source, args, eventLoopGroup, info))
+        return try .result(resolve(source, args, context, eventLoopGroup, info))
     } catch {
         return .error(error)
     }
@@ -1140,7 +1149,7 @@ func defaultResolveType(
  * which takes the property of the source object of the same name as the field
  * and returns it as the result.
  */
-func defaultResolve(source: Any, args: Map, eventLoopGroup: EventLoopGroup, info: GraphQLResolveInfo) -> EventLoopFuture<Any?> {
+func defaultResolve(source: Any, args: Map, context: Any, eventLoopGroup: EventLoopGroup, info: GraphQLResolveInfo) -> EventLoopFuture<Any?> {
     guard let source = unwrap(source) else {
         return eventLoopGroup.next().newSucceededFuture(result: nil)
     }
