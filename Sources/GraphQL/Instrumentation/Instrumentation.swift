@@ -1,5 +1,6 @@
 import Foundation
 import Dispatch
+import NIO
 
 /// Provides the capability to instrument the execution steps of a GraphQL query.
 ///
@@ -35,7 +36,7 @@ public protocol Instrumentation {
         schema: GraphQLSchema,
         document: Document,
         rootValue: Any,
-        contextValue: Any,
+        eventLoopGroup: EventLoopGroup,
         variableValues: [String: Map],
         operation: OperationDefinition?,
         errors: [GraphQLError],
@@ -49,9 +50,9 @@ public protocol Instrumentation {
         finished: DispatchTime,
         source: Any,
         args: Map,
-        context: Any,
+        eventLoopGroup: EventLoopGroup,
         info: GraphQLResolveInfo,
-        result: ResultOrError<Any?, Error>
+        result: ResultOrError<EventLoopFuture<Any?>, Error>
     )
 
 }
@@ -83,8 +84,8 @@ struct noOpInstrumentation: Instrumentation {
     }
     public func queryValidation(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, schema: GraphQLSchema, document: Document, errors: [GraphQLError]) {
     }
-    public func operationExecution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, schema: GraphQLSchema, document: Document, rootValue: Any, contextValue: Any, variableValues: [String : Map], operation: OperationDefinition?, errors: [GraphQLError], result: Map) {
+    public func operationExecution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, schema: GraphQLSchema, document: Document, rootValue: Any, eventLoopGroup: EventLoopGroup, variableValues: [String : Map], operation: OperationDefinition?, errors: [GraphQLError], result: Map) {
     }
-    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, context: Any, info: GraphQLResolveInfo, result: ResultOrError<Any?, Error>) {
+    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, eventLoopGroup: EventLoopGroup, info: GraphQLResolveInfo, result: ResultOrError<EventLoopFuture<Any?>, Error>) {
     }
 }

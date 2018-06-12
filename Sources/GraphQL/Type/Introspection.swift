@@ -1,3 +1,5 @@
+import NIO
+
 let __Schema = try! GraphQLObjectType(
     name: "__Schema",
     description:
@@ -8,24 +10,24 @@ let __Schema = try! GraphQLObjectType(
         "types": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__Type))),
             description: "A list of all types supported by this server.",
-            resolve: { schema, _, _, _ in
+            resolve: { schema, _, _, eventLoopGroup, _ in
                 guard let schema = schema as? GraphQLSchema else {
-                    return nil
+                    return eventLoopGroup.next().newSucceededFuture(result: nil)
                 }
 
                 let typeMap = schema.typeMap
-                return Array(typeMap.values).sorted(by: { $0.name < $1.name })
+                return eventLoopGroup.next().newSucceededFuture(result: Array(typeMap.values).sorted(by: { $0.name < $1.name }))
             }
         ),
         "queryType": GraphQLField(
             type: GraphQLNonNull(__Type),
             description: "The type that query operations will be rooted at.",
-            resolve: { schema, _, _, _ in
+            resolve: { schema, _, _, eventLoopGroup, _ in
                 guard let schema = schema as? GraphQLSchema else {
-                    return nil
+                    return eventLoopGroup.next().newSucceededFuture(result: nil)
                 }
 
-                return schema.queryType
+                return eventLoopGroup.next().newSucceededFuture(result: schema.queryType)
             }
         ),
         "mutationType": GraphQLField(
@@ -33,12 +35,12 @@ let __Schema = try! GraphQLObjectType(
             description:
             "If this server supports mutation, the type that " +
             "mutation operations will be rooted at.",
-            resolve: { schema, _, _, _ in
+            resolve: { schema, _, _, eventLoopGroup, _ in
                 guard let schema = schema as? GraphQLSchema else {
-                    return nil
+                    return eventLoopGroup.next().newSucceededFuture(result: nil)
                 }
 
-                return schema.mutationType
+                return eventLoopGroup.next().newSucceededFuture(result: schema.mutationType)
             }
         ),
         "subscriptionType": GraphQLField(
@@ -46,23 +48,23 @@ let __Schema = try! GraphQLObjectType(
             description:
             "If this server support subscription, the type that " +
             "subscription operations will be rooted at.",
-            resolve: { schema, _, _, _ in
+            resolve: { schema, _, _, eventLoopGroup, _ in
                 guard let schema = schema as? GraphQLSchema else {
-                    return nil
+                    return eventLoopGroup.next().newSucceededFuture(result: nil)
                 }
 
-                return schema.subscriptionType
+                return eventLoopGroup.next().newSucceededFuture(result: schema.subscriptionType)
             }
         ),
         "directives": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__Directive))),
             description: "A list of all directives supported by this server.",
-            resolve: { schema, _, _, _ in
+            resolve: { schema, _, _, eventLoopGroup, _ in
                 guard let schema = schema as? GraphQLSchema else {
-                    return nil
+                    return eventLoopGroup.next().newSucceededFuture(result: nil)
                 }
 
-                return schema.directives
+                return eventLoopGroup.next().newSucceededFuture(result: schema.directives)
             }
         )
     ]
@@ -85,12 +87,12 @@ let __Directive = try! GraphQLObjectType(
         ),
         "args": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__InputValue))),
-            resolve: { directive, _, _, _ in
+            resolve: { directive, _, _, eventLoopGroup, _ in
                 guard let directive = directive as? GraphQLDirective else {
-                    return nil
+                    return eventLoopGroup.next().newSucceededFuture(result: nil)
                 }
 
-                return directive.args
+                return eventLoopGroup.next().newSucceededFuture(result: directive.args)
             }
         ),
         // NOTE: the following three fields are deprecated and are no longer part
@@ -98,38 +100,38 @@ let __Directive = try! GraphQLObjectType(
         "onOperation": GraphQLField(
             type: GraphQLNonNull(GraphQLBoolean),
             deprecationReason: "Use `locations`.",
-            resolve: { directive, _, _, _ in
+            resolve: { directive, _, _, eventLoopGroup, _ in
                 guard let d = directive as? GraphQLDirective else {
-                    return nil
+                    return eventLoopGroup.next().newSucceededFuture(result: nil)
                 }
 
-                return d.locations.contains(.query) ||
+                return eventLoopGroup.next().newSucceededFuture(result: d.locations.contains(.query) ||
                     d.locations.contains(.mutation) ||
-                    d.locations.contains(.subscription)
+                    d.locations.contains(.subscription))
             }
         ),
         "onFragment": GraphQLField(
             type: GraphQLNonNull(GraphQLBoolean),
             deprecationReason: "Use `locations`.",
-            resolve: { directive, _, _, _ in
+            resolve: { directive, _, _, eventLoopGroup, _ in
                 guard let d = directive as? GraphQLDirective else {
-                    return nil
+                    return eventLoopGroup.next().newSucceededFuture(result: nil)
                 }
 
-                return d.locations.contains(.fragmentSpread) ||
+                return eventLoopGroup.next().newSucceededFuture(result: d.locations.contains(.fragmentSpread) ||
                     d.locations.contains(.inlineFragment) ||
-                    d.locations.contains(.fragmentDefinition)
+                    d.locations.contains(.fragmentDefinition))
             }
         ),
         "onField": GraphQLField(
             type: GraphQLNonNull(GraphQLBoolean),
             deprecationReason: "Use `locations`.",
-            resolve: { directive, _, _, _ in
+            resolve: { directive, _, _, eventLoopGroup, _ in
                 guard let d = directive as? GraphQLDirective else {
-                    return nil
+                    return eventLoopGroup.next().newSucceededFuture(result: nil)
                 }
 
-                return d.locations.contains(.field)
+                return eventLoopGroup.next().newSucceededFuture(result: d.locations.contains(.field))
             }
         ),
     ]
@@ -230,24 +232,24 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
     fields: [
         "kind": GraphQLField(
             type: GraphQLNonNull(__TypeKind),
-            resolve: { type, _, _, _ in
+            resolve: { type, _, _, eventLoopGroup, _ in
                 switch type {
                 case let type as GraphQLScalarType:
-                    return TypeKind.scalar
+                    return eventLoopGroup.next().newSucceededFuture(result: TypeKind.scalar)
                 case let type as GraphQLObjectType:
-                    return TypeKind.object
+                    return eventLoopGroup.next().newSucceededFuture(result: TypeKind.object)
                 case let type as GraphQLInterfaceType:
-                    return TypeKind.interface
+                    return eventLoopGroup.next().newSucceededFuture(result: TypeKind.interface)
                 case let type as GraphQLUnionType:
-                    return TypeKind.union
+                    return eventLoopGroup.next().newSucceededFuture(result: TypeKind.union)
                 case let type as GraphQLEnumType:
-                    return TypeKind.enum
+                    return eventLoopGroup.next().newSucceededFuture(result: TypeKind.enum)
                 case let type as GraphQLInputObjectType:
-                    return TypeKind.inputObject
+                    return eventLoopGroup.next().newSucceededFuture(result: TypeKind.inputObject)
                 case let type as GraphQLList:
-                    return TypeKind.list
+                    return eventLoopGroup.next().newSucceededFuture(result: TypeKind.list)
                 case let type as GraphQLNonNull:
-                    return TypeKind.nonNull
+                    return eventLoopGroup.next().newSucceededFuture(result: TypeKind.nonNull)
                 default:
                     throw GraphQLError(message: "Unknown kind of type: \(type)")
                 }
@@ -263,7 +265,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     defaultValue: false
                 )
             ],
-            resolve: { type, arguments, _, _ in
+            resolve: { type, arguments, _, eventLoopGroup, _ in
                 if let type = type as? GraphQLObjectType {
                     let fieldMap = type.fields
                     var fields = Array(fieldMap.values).sorted(by: { $0.name < $1.name })
@@ -272,7 +274,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                         fields = fields.filter({ !$0.isDeprecated })
                     }
 
-                    return fields
+                    return eventLoopGroup.next().newSucceededFuture(result: fields)
                 }
 
                 if let type = type as? GraphQLInterfaceType {
@@ -283,30 +285,30 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                         fields = fields.filter({ !$0.isDeprecated })
                     }
 
-                    return fields
+                    return eventLoopGroup.next().newSucceededFuture(result: fields)
                 }
 
-                return nil
+                return eventLoopGroup.next().newSucceededFuture(result: nil)
             }
         ),
         "interfaces": GraphQLField(
             type: GraphQLList(GraphQLNonNull(GraphQLTypeReference("__Type"))),
-            resolve: { type, _, _, _ in
+            resolve: { type, _, _, eventLoopGroup, _ in
                 if let type = type as? GraphQLObjectType {
-                    return type.interfaces
+                    return eventLoopGroup.next().newSucceededFuture(result: type.interfaces)
                 }
 
-                return nil
+                return eventLoopGroup.next().newSucceededFuture(result: nil)
             }
         ),
         "possibleTypes": GraphQLField(
             type: GraphQLList(GraphQLNonNull(GraphQLTypeReference("__Type"))),
-            resolve: { type, args, context, info in
+            resolve: { type, args, _, eventLoopGroup, info in
                 if let type = type as? GraphQLAbstractType {
-                    return info.schema.getPossibleTypes(abstractType: type)
+                    return eventLoopGroup.next().newSucceededFuture(result: info.schema.getPossibleTypes(abstractType: type))
                 }
 
-                return nil
+                return eventLoopGroup.next().newSucceededFuture(result: nil)
             }
         ),
         "enumValues": GraphQLField(
@@ -317,7 +319,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     defaultValue: false
                 )
             ],
-            resolve: { type, arguments, _, _ in
+            resolve: { type, arguments, _, eventLoopGroup, _ in
                 if let type = type as? GraphQLEnumType {
                     var values = type.values
 
@@ -325,21 +327,21 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                         values = values.filter({ !$0.isDeprecated })
                     }
 
-                    return values
+                    return eventLoopGroup.next().newSucceededFuture(result: values)
                 }
 
-                return nil
+                return eventLoopGroup.next().newSucceededFuture(result: nil)
             }
         ),
         "inputFields": GraphQLField(
             type: GraphQLList(GraphQLNonNull(__InputValue)),
-            resolve: { type, _, _, _ in
+            resolve: { type, _, _, eventLoopGroup, _ in
                 if let type = type as? GraphQLInputObjectType {
                     let fieldMap = type.fields
-                    return Array(fieldMap.values).sorted(by: { $0.name < $1.name })
+                    return eventLoopGroup.next().newSucceededFuture(result: Array(fieldMap.values).sorted(by: { $0.name < $1.name }))
                 }
 
-                return nil
+                return eventLoopGroup.next().newSucceededFuture(result: nil)
             }
         ),
         "ofType": GraphQLField(type: GraphQLTypeReference("__Type"))
@@ -356,12 +358,12 @@ let __Field = try! GraphQLObjectType(
         "description": GraphQLField(type: GraphQLString),
         "args": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__InputValue))),
-            resolve: { field, _, _, _ in
+            resolve: { field, _, _, eventLoopGroup, _ in
                 guard let field = field as? GraphQLFieldDefinition else {
-                    return nil
+                    return eventLoopGroup.next().newSucceededFuture(result: nil)
                 }
 
-                return field.args
+                return eventLoopGroup.next().newSucceededFuture(result: field.args)
             }
         ),
         "type": GraphQLField(type: GraphQLNonNull(GraphQLTypeReference("__Type"))),
@@ -385,18 +387,18 @@ let __InputValue = try! GraphQLObjectType(
             description:
             "A GraphQL-formatted string representing the default value for this " +
             "input value.",
-            resolve: { inputValue, _, _, _ in
+            resolve: { inputValue, _, _, eventLoopGroup, _ in
                 guard let inputValue = inputValue as? GraphQLArgumentDefinition else {
-                    return nil
+                    return eventLoopGroup.next().newSucceededFuture(result: nil)
                 }
 
                 guard let defaultValue = inputValue.defaultValue else {
-                    return nil
+                    return eventLoopGroup.next().newSucceededFuture(result: nil)
                 }
 
                 // This `print` is from the AST printer implementation
 //                return print(astFromValue(value: defaultValue, type: inputValue.type))
-                return defaultValue
+                return eventLoopGroup.next().newSucceededFuture(result: defaultValue)
             }
         )
     ]
@@ -489,8 +491,8 @@ let SchemaMetaFieldDef = GraphQLFieldDefinition(
     name: "__schema",
     type: GraphQLNonNull(__Schema),
     description: "Access the current type schema of this server.",
-    resolve: { _, _, _, info in
-        return info.schema
+    resolve: { _, _, _, eventLoopGroup, info in
+        return eventLoopGroup.next().newSucceededFuture(result: info.schema)
     }
 )
 
@@ -504,9 +506,9 @@ let TypeMetaFieldDef = GraphQLFieldDefinition(
             type: GraphQLNonNull(GraphQLString)
         )
     ],
-    resolve: { _, arguments, _, info in
+    resolve: { _, arguments, _, eventLoopGroup, info in
         let name = arguments["name"].string!
-        return info.schema.getType(name: name)
+        return eventLoopGroup.next().newSucceededFuture(result: info.schema.getType(name: name))
     }
 )
 
@@ -514,7 +516,7 @@ let TypeNameMetaFieldDef = GraphQLFieldDefinition(
     name: "__typename",
     type: GraphQLNonNull(GraphQLString),
     description: "The name of the current Object type at runtime.",
-    resolve: { _, _, _, info in
-        info.parentType.name
+    resolve: { _, _, _, eventLoopGroup, info in
+        eventLoopGroup.next().newSucceededFuture(result: info.parentType.name)
     }
 )

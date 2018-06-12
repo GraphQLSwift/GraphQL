@@ -2,12 +2,39 @@
   "object": {
     "pins": [
       {
+        "package": "Core",
+        "repositoryURL": "https://github.com/vapor/core.git",
+        "state": {
+          "branch": null,
+          "revision": "3b72f2cc3fb21d505fbe97215418951a8e4a2871",
+          "version": "3.2.1"
+        }
+      },
+      {
         "package": "Runtime",
         "repositoryURL": "https://github.com/wickwirew/Runtime.git",
         "state": {
           "branch": null,
-          "revision": "9f9e3078fff093adbd8f43df1052ee5d68b05c2a",
-          "version": "0.6.0"
+          "revision": "23357609f0df427d870bb4bd22ac14e0a4ea1346",
+          "version": "0.7.1"
+        }
+      },
+      {
+        "package": "swift-nio",
+        "repositoryURL": "https://github.com/apple/swift-nio.git",
+        "state": {
+          "branch": null,
+          "revision": "77dc77b9b5cdddfb3c385c5ee6cb74153d284967",
+          "version": "1.7.2"
+        }
+      },
+      {
+        "package": "swift-nio-zlib-support",
+        "repositoryURL": "https://github.com/apple/swift-nio-zlib-support.git",
+        "state": {
+          "branch": null,
+          "revision": "37760e9a52030bb9011972c5213c3350fa9d41fd",
+          "version": "1.0.0"
         }
       }
     ]

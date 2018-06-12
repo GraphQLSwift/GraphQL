@@ -1,3 +1,5 @@
+import NIO
+
 /// This is the primary entry point function for fulfilling GraphQL operations
 /// by parsing, validating, and executing a GraphQL document along side a
 /// GraphQL schema.
@@ -28,20 +30,21 @@ public func graphql(
     schema: GraphQLSchema,
     request: String,
     rootValue: Any = Void(),
-    contextValue: Any = Void(),
+    context: Any = Void(),
+    eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) throws -> Map {
+) throws -> EventLoopFuture<Map> {
 
     let source = Source(body: request, name: "GraphQL request")
     let documentAST = try parse(instrumentation: instrumentation, source: source)
     let validationErrors = validate(instrumentation: instrumentation, schema: schema, ast: documentAST)
 
     guard validationErrors.isEmpty else {
-        return ["errors": try validationErrors.asMap()]
+        return eventLoopGroup.next().newSucceededFuture(result: ["errors": try validationErrors.asMap()])
     }
 
-    return try execute(
+    return execute(
         queryStrategy: queryStrategy,
         mutationStrategy: mutationStrategy,
         subscriptionStrategy: subscriptionStrategy,
@@ -49,7 +52,8 @@ public func graphql(
         schema: schema,
         documentAST: documentAST,
         rootValue: rootValue,
-        contextValue: contextValue,
+        context: context,
+        eventLoopGroup: eventLoopGroup,
         variableValues: variableValues,
         operationName: operationName
     )
@@ -80,19 +84,20 @@ public func graphql<Retrieval:PersistedQueryRetrieval>(
     queryRetrieval: Retrieval,
     queryId: Retrieval.Id,
     rootValue: Any = Void(),
-    contextValue: Any = Void(),
+    context: Any = Void(),
+    eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) throws -> Map {
+) throws -> EventLoopFuture<Map> {
     switch try queryRetrieval.lookup(queryId) {
     case .unknownId(_):
         throw GraphQLError(message: "Unknown query id")
     case .parseError(let parseError):
         throw parseError
     case .validateErrors(_, let validationErrors):
-        return ["errors": try validationErrors.asMap()]
+        return eventLoopGroup.next().newSucceededFuture(result: ["errors": try validationErrors.asMap()])
     case .result(let schema, let documentAST):
-        return try execute(
+        return execute(
             queryStrategy: queryStrategy,
             mutationStrategy: mutationStrategy,
             subscriptionStrategy: subscriptionStrategy,
@@ -100,7 +105,8 @@ public func graphql<Retrieval:PersistedQueryRetrieval>(
             schema: schema,
             documentAST: documentAST,
             rootValue: rootValue,
-            contextValue: contextValue,
+            context: context,
+            eventLoopGroup: eventLoopGroup,
             variableValues: variableValues,
             operationName: operationName
         )

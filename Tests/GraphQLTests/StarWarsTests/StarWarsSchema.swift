@@ -160,8 +160,8 @@ let HumanType = try! GraphQLObjectType(
             type: GraphQLList(CharacterInterface),
             description: "The friends of the human, or an empty list if they " +
             "have none.",
-            resolve: { human, _, _, _ in
-                return getFriends(character: human as! Human)
+            resolve: { human, _, _, eventLoopGroup, _ in
+                return eventLoopGroup.next().newSucceededFuture(result: getFriends(character: human as! Human))
             }
         ),
         "appearsIn": GraphQLField(
@@ -175,7 +175,7 @@ let HumanType = try! GraphQLObjectType(
         "secretBackstory": GraphQLField(
             type: GraphQLString,
             description: "Where are they from and how they came to be who they are.",
-            resolve: { _, _, _, _ in
+            resolve: { _, _, _, _, _ in
                 struct Secret : Error, CustomStringConvertible {
                     let description: String
                 }
@@ -219,8 +219,8 @@ let DroidType = try! GraphQLObjectType(
         "friends": GraphQLField(
             type: GraphQLList(CharacterInterface),
             description: "The friends of the droid, or an empty list if they have none.",
-            resolve: { droid, _, _, _ in
-                return getFriends(character: droid as! Droid)
+            resolve: { droid, _, _, eventLoopGroup, _ in
+                return eventLoopGroup.next().newSucceededFuture(result: getFriends(character: droid as! Droid))
             }
         ),
         "appearsIn": GraphQLField(
@@ -230,7 +230,7 @@ let DroidType = try! GraphQLObjectType(
         "secretBackstory": GraphQLField(
             type: GraphQLString,
             description: "Construction date and the name of the designer.",
-            resolve: { _, _, _, _ in
+            resolve: { _, _, _, _, _ in
                 struct Secret : Error, CustomStringConvertible {
                     let description: String
                 }
@@ -277,9 +277,9 @@ let QueryType = try! GraphQLObjectType(
                     "provided, returns the hero of that particular episode."
                 )
             ],
-            resolve: { _, arguments, _, _ in
+            resolve: { _, arguments, _, eventLoopGroup, _ in
                 let episode = Episode(arguments["episode"].string)
-                return getHero(episode: episode)
+                return eventLoopGroup.next().newSucceededFuture(result: getHero(episode: episode))
             }
         ),
         "human": GraphQLField(
@@ -290,8 +290,8 @@ let QueryType = try! GraphQLObjectType(
                     description: "id of the human"
                 )
             ],
-            resolve: { _, arguments, _, _ in
-                return getHuman(id: arguments["id"].string!)
+            resolve: { _, arguments, _, eventLoopGroup, _ in
+                return eventLoopGroup.next().newSucceededFuture(result: getHuman(id: arguments["id"].string!))
             }
         ),
         "droid": GraphQLField(
@@ -302,8 +302,8 @@ let QueryType = try! GraphQLObjectType(
                     description: "id of the droid"
                 )
             ],
-            resolve: { _, arguments, _, _ in
-                return getDroid(id: arguments["id"].string!)
+            resolve: { _, arguments, _, eventLoopGroup, _ in
+                return eventLoopGroup.next().newSucceededFuture(result: getDroid(id: arguments["id"].string!))
             }
         ),
     ]
