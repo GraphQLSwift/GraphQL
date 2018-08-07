@@ -180,7 +180,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testSerialFieldExecutionStrategyWithSingleField() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -196,7 +196,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testSerialFieldExecutionStrategyWithSingleFieldError() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -212,7 +212,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testSerialFieldExecutionStrategyWithMultipleFields() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -228,7 +228,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testSerialFieldExecutionStrategyWithMultipleFieldErrors() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -249,7 +249,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithSingleField() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -265,7 +265,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithSingleFieldError() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -281,7 +281,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithMultipleFields() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -297,7 +297,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithMultipleFieldErrors() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }

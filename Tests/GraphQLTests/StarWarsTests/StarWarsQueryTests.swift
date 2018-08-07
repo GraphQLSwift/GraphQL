@@ -5,7 +5,7 @@ import NIO
 
 class StarWarsQueryTests : XCTestCase {    
     func testHeroNameQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -29,7 +29,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testHeroNameAndFriendsQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -63,7 +63,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testNestedQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -125,7 +125,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testFetchLukeQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -149,7 +149,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testOptionalVariable() throws{
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -196,7 +196,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testFetchSomeIDQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -257,7 +257,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testFetchLukeAliasedQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -281,7 +281,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testFetchLukeAndLeiaAliasedQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -311,7 +311,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testDuplicateFieldsQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -345,7 +345,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testUseFragmentQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -381,7 +381,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testCheckTypeOfR2Query() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -407,7 +407,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testCheckTypeOfLukeQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -433,7 +433,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testSecretBackstoryQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -466,7 +466,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testSecretBackstoryListQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -525,7 +525,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testSecretBackstoryAliasQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
@@ -558,7 +558,7 @@ class StarWarsQueryTests : XCTestCase {
     }
 
     func testNonNullableFieldsQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
