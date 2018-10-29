@@ -12,7 +12,7 @@ let package = Package(
         .package(url: "https://github.com/wickwirew/Runtime.git", .branch("swift42")),
 
         // ⏱ Promises and reactive-streams in Swift built for high-performance and scalability.
-        .package(url: "https://github.com/vapor/core.git", from: "3.0.0"),
+        .package(url: "https://github.com/vapor/core.git", from: "3.4.4"),
     ],
 
     targets: [
