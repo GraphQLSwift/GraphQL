@@ -33,14 +33,14 @@ func advanceLexer(lexer: Lexer) throws -> Token {
     lexer.lastToken = lexer.token
     var token = lexer.lastToken
 
-      if token.kind != .eof {
+    if token.kind != .eof {
         repeat {
             token.next = try readToken(lexer: lexer, prev: token)
             token = token.next!
         } while token.kind == .comment
 
         lexer.token = token
-      }
+    }
 
     return token
 }
@@ -105,6 +105,17 @@ func getTokenDesc(_ token: Token) -> String {
 }
 
 extension String {
+    func offset(of index: Index) -> Int {
+        return utf8.distance(from: startIndex, to: index)
+    }
+
+    func charCode(at index: Index) -> UInt8? {
+        guard index < utf8.endIndex else {
+            return nil
+        }
+        return utf8[index]
+    }
+
     func charCode(at position: Int) -> UInt8? {
         guard position < utf8.count else {
             return nil
@@ -121,7 +132,7 @@ extension String {
 }
 
 func character(_ code: UInt8) -> Character {
-  return Character(UnicodeScalar(code))
+    return Character(UnicodeScalar(code))
 }
 
 /**
@@ -220,16 +231,16 @@ func readToken(lexer: Lexer, prev: Token) throws -> Token {
         )
     // .
     case 46:
-      if body.charCode(at: position + 1) == 46 && body.charCode(at: position + 2) == 46 {
-        return Token(
-            kind: .spread,
-            start: position,
-            end: position + 3,
-            line: line,
-            column: col,
-            prev: prev
-        )
-      }
+        if body.charCode(at: position + 1) == 46 && body.charCode(at: position + 2) == 46 {
+            return Token(
+                kind: .spread,
+                start: position,
+                end: position + 3,
+                line: line,
+                column: col,
+                prev: prev
+            )
+        }
     // :
     case 58:
         return Token(
@@ -535,14 +546,13 @@ func readDigits(source: Source, start: Int, firstCode: UInt8) throws -> Int {
  */
 func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) throws -> Token {
     let body = source.body
-    let bodyLength = body.utf8.count
-    var position = start + 1
-    var chunkStart = position
+    var positionIndex = body.utf8.index(body.utf8.startIndex, offsetBy: start + 1)
+    var chunkStartIndex = positionIndex
     var currentCode: UInt8? = 0
     var value = ""
 
-    while position < bodyLength {
-        currentCode = body.charCode(at: position)
+    while positionIndex < body.utf8.endIndex {
+        currentCode = body.charCode(at: positionIndex)
 
         //                     not LineTerminator                  not Quote (")
         guard let code = currentCode, code != 0x000A && code != 0x000D && code != 34 else {
@@ -553,16 +563,17 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
         if code < 0x0020 && code != 0x0009 {
             throw syntaxError(
                 source: source,
-                position: position,
+                position: body.offset(of: positionIndex),
                 description: "Invalid character within String: \(character(code))."
             )
         }
 
-        position += 1
+        let startIterationIndex = positionIndex
+        positionIndex = body.utf8.index(after: positionIndex)
 
         if code == 92 { // \
-            value += body.slice(start: chunkStart, end: position - 1)
-            currentCode = body.charCode(at: position)
+            value += String(body.utf8[chunkStartIndex..<startIterationIndex])!
+            currentCode = body.charCode(at: positionIndex)
 
             if let code = currentCode {
                 switch code {
@@ -575,53 +586,59 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
                 case 114: value += "\r"
                 case 116: value += "\t"
                 case 117: // u
+                    let aIndex = body.utf8.index(after: positionIndex)
+                    let bIndex = body.utf8.index(after: aIndex)
+                    let cIndex = body.utf8.index(after: bIndex)
+                    let dIndex = body.utf8.index(after: cIndex)
+
                     let charCode = uniCharCode(
-                        a: body.charCode(at: position + 1)!,
-                        b: body.charCode(at: position + 2)!,
-                        c: body.charCode(at: position + 3)!,
-                        d: body.charCode(at: position + 4)!
+                        a: body.utf8[aIndex],
+                        b: body.utf8[bIndex],
+                        c: body.utf8[cIndex],
+                        d: body.utf8[dIndex]
                     )
 
                     if charCode < 0 {
                         throw syntaxError(
                             source: source,
-                            position: position,
+                            position: body.offset(of: positionIndex),
                             description:
                             "Invalid character escape sequence: " +
-                            "\\u\(body.slice(start: position + 1, end: position + 5))."
+                            "\\u\(body.utf8[aIndex...dIndex])."
                         )
                     }
 
                     value += String(Character(UnicodeScalar(UInt32(charCode))!))
-                    position += 4
+
+                    positionIndex = dIndex
                 default:
                     throw syntaxError(
                         source: source,
-                        position: position,
+                        position: body.offset(of: positionIndex),
                         description: "Invalid character escape sequence: \\\(character(code))."
                     )
                 }
             }
 
-            position += 1
-            chunkStart = position
+            positionIndex = body.utf8.index(after: positionIndex)
+            chunkStartIndex = positionIndex
         }
     }
 
     if currentCode != 34 { // quote (")
         throw syntaxError(
             source: source,
-            position: position,
+            position: body.offset(of: positionIndex),
             description: "Unterminated string."
         )
     }
 
-    value += body.slice(start: chunkStart, end: position)
+    value += String(body.utf8[chunkStartIndex..<positionIndex])!
 
     return Token(
         kind: .string,
         start: start,
-        end: position + 1,
+        end: body.offset(of: positionIndex) + 1,
         line: line,
         column: col,
         value: value,
@@ -640,7 +657,7 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
  * which means the result of ORing the char2hex() will also be negative.
  */
 func uniCharCode(a: UInt8, b: UInt8, c: UInt8, d: UInt8) -> Int {
-  return char2hex(a) << 12 | char2hex(b) << 8 | char2hex(c) << 4 | char2hex(d)
+    return char2hex(a) << 12 | char2hex(b) << 8 | char2hex(c) << 4 | char2hex(d)
 }
 
 /**
@@ -654,9 +671,9 @@ func uniCharCode(a: UInt8, b: UInt8, c: UInt8, d: UInt8) -> Int {
 func char2hex(_ a: UInt8) -> Int {
     let a = Int(a)
     return a >= 48 && a <= 57 ? a - 48 : // 0-9
-           a >= 65 && a <= 70 ? a - 55 : // A-F
-           a >= 97 && a <= 102 ? a - 87 : // a-f
-           -1
+        a >= 65 && a <= 70 ? a - 55 : // A-F
+        a >= 97 && a <= 102 ? a - 87 : // a-f
+        -1
 }
 
 /**
@@ -670,12 +687,12 @@ func readName(source: Source, position: Int, line: Int, col: Int, prev: Token) -
     var end = position + 1
 
     while end != bodyLength,
-          let code = body.charCode(at: end),
-          (code == 95 || // _
-           code >= 48 && code <= 57 || // 0-9
-           code >= 65 && code <= 90 || // A-Z
-           code >= 97 && code <= 122) { // a-z
-        end += 1
+        let code = body.charCode(at: end),
+        (code == 95 || // _
+            code >= 48 && code <= 57 || // 0-9
+            code >= 65 && code <= 90 || // A-Z
+            code >= 97 && code <= 122) { // a-z
+                end += 1
     }
 
     return Token(
