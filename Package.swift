@@ -9,7 +9,7 @@ let package = Package(
     ],
 
     dependencies: [
-        .package(url: "https://github.com/wickwirew/Runtime.git", from: "0.6.0"),
+        .package(url: "https://github.com/wickwirew/Runtime.git", .revision("40cdfbad9650512507c060824e1c4e9fc2ca721d")),
 
         // ⏱ Promises and reactive-streams in Swift built for high-performance and scalability.
         .package(url: "https://github.com/vapor/core.git", from: "3.0.0"),
