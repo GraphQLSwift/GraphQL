@@ -76,7 +76,7 @@ class FieldExecutionStrategyTests: XCTestCase {
                 "locations": [
                     ["column": 3, "line": 1]
                 ],
-                "message": "exampleError(\"bang: bang\")",
+                "message": "exampleError(msg: \"bang: bang\")",
                 "path":["bang"]
             ]
         ]
@@ -100,70 +100,70 @@ class FieldExecutionStrategyTests: XCTestCase {
             "locations": [
                 ["column": 3, "line": 1]
             ],
-            "message": "exampleError(\"bang: a\")",
+            "message": "exampleError(msg: \"bang: a\")",
             "path":["a"]
         ],
         [
             "locations": [
                 ["column": 11, "line": 1]
             ],
-            "message": "exampleError(\"bang: b\")",
+            "message": "exampleError(msg: \"bang: b\")",
             "path":["b"]
         ],
         [
             "locations": [
                 ["column": 19, "line": 1]
             ],
-            "message": "exampleError(\"bang: c\")",
+            "message": "exampleError(msg: \"bang: c\")",
             "path":["c"]
         ],
         [
             "locations": [
                 ["column": 27, "line": 1]
             ],
-            "message": "exampleError(\"bang: d\")",
+            "message": "exampleError(msg: \"bang: d\")",
             "path":["d"]
         ],
         [
             "locations": [
                 ["column": 35, "line": 1]
             ],
-            "message": "exampleError(\"bang: e\")",
+            "message": "exampleError(msg: \"bang: e\")",
             "path":["e"]
         ],
         [
             "locations": [
                 ["column": 43, "line": 1]
             ],
-            "message": "exampleError(\"bang: f\")",
+            "message": "exampleError(msg: \"bang: f\")",
             "path":["f"]
         ],
         [
             "locations": [
                 ["column": 51, "line": 1]
             ],
-            "message": "exampleError(\"bang: g\")",
+            "message": "exampleError(msg: \"bang: g\")",
             "path":["g"]
         ],
         [
             "locations": [
                 ["column": 59, "line": 1]
             ],
-            "message": "exampleError(\"bang: h\")",
+            "message": "exampleError(msg: \"bang: h\")",
             "path":["h"]
         ],
         [
             "locations": [
                 ["column": 67, "line": 1]
             ],
-            "message": "exampleError(\"bang: i\")",
+            "message": "exampleError(msg: \"bang: i\")",
             "path":["i"]
         ],
         [
             "locations": [
                 ["column": 75, "line": 1]
             ],
-            "message": "exampleError(\"bang: j\")",
+            "message": "exampleError(msg: \"bang: j\")",
             "path":["j"]
         ],
         ]
