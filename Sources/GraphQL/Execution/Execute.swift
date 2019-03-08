@@ -788,7 +788,10 @@ func completeValueCatchingError(
             path: path,
             result: result
             ).mapIfError { error -> Any? in
-                exeContext.append(error: locatedError(originalError: error, nodes: fieldASTs, path: path))
+                guard let error = error as? GraphQLError else {
+                    fatalError()
+                }
+                exeContext.append(error: error)
                 return nil
             }
 
@@ -821,8 +824,9 @@ func completeValueWithLocatedError(
             info: info,
             path: path,
             result: result
-        )
-
+        ).thenIfErrorThrowing { error -> Any? in
+            throw locatedError(originalError: error, nodes: fieldASTs, path: path)
+        }
         return completed
     } catch {
         throw locatedError(
