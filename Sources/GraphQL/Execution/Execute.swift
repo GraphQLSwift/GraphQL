@@ -788,10 +788,7 @@ func completeValueCatchingError(
             path: path,
             result: result
             ).mapIfError { error -> Any? in
-                guard let error = error as? GraphQLError else {
-                     fatalError()
-                }
-                exeContext.append(error: error)
+                exeContext.append(error: locatedError(originalError: error, nodes: fieldASTs, path: path))
                 return nil
             }
 
