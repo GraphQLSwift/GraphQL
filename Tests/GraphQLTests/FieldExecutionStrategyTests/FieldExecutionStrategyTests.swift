@@ -208,12 +208,18 @@ class FieldExecutionStrategyTests: XCTestCase {
             seconds: seconds
         )
     }
+    
+    private var eventLoopGroup: EventLoopGroup!
+    
+    override func setUp() {
+        eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+    }
+    
+    override func tearDown() {
+        XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
+    }
 
     func testSerialFieldExecutionStrategyWithSingleField() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
 
         let result = try timing(try graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
@@ -226,11 +232,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testSerialFieldExecutionStrategyWithSingleFieldError() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+        
         let result = try timing(try graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
             schema: schema,
@@ -242,10 +244,6 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
     
     func testSerialFieldExecutionStrategyWithSingleFieldFailedFuture() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
         
         let result = try timing(try graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
@@ -258,10 +256,6 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testSerialFieldExecutionStrategyWithMultipleFields() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
 
         let result = try timing(try graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
@@ -274,10 +268,6 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testSerialFieldExecutionStrategyWithMultipleFieldErrors() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
 
         let result = try timing(try graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
@@ -295,10 +285,6 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithSingleField() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
 
         let result = try timing(try graphql(
             queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
@@ -311,10 +297,6 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithSingleFieldError() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
 
         let result = try timing(try graphql(
             queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
@@ -327,10 +309,6 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithMultipleFields() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
 
         let result = try timing(try graphql(
             queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
@@ -343,10 +321,6 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithMultipleFieldErrors() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
 
         let result = try timing(try graphql(
             queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
