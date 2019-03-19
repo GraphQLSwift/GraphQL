@@ -38,6 +38,20 @@ class FieldExecutionStrategyTests: XCTestCase {
                             msg: "\(info.fieldName): \(info.path.last as! String)"
                         )
                 }
+                ),
+                "futureBang": GraphQLField(
+                    type: GraphQLString,
+                    resolve: { (_, _, _, eventLoopGroup, info: GraphQLResolveInfo) in
+                        let g = DispatchGroup()
+                        g.enter()
+                        DispatchQueue.global().asyncAfter(wallDeadline: .now() + 0.1) {
+                            g.leave()
+                        }
+                        g.wait()
+                        return eventLoopGroup.next().newFailedFuture(error: StrategyError.exampleError(
+                            msg: "\(info.fieldName): \(info.path.last as! String)"
+                        ))
+                }
                 )
             ]
         )
@@ -81,8 +95,24 @@ class FieldExecutionStrategyTests: XCTestCase {
             ]
         ]
     ]
+    
+    let singleFailedFutureQuery = "{ futureBang }"
+    let singleFailedFutureExpected: Map = [
+        "data": [
+            "futureBang": nil
+        ],
+        "errors": [
+            [
+                "locations": [
+                    ["column": 3, "line": 1]
+                ],
+                "message": "exampleError(msg: \"futureBang: futureBang\")",
+                "path":["futureBang"]
+            ]
+        ]
+    ]
 
-    let multiThrowsQuery = "{ a: bang b: bang c: bang d: bang e: bang f: bang g: bang h: bang i: bang j: bang }"
+    let multiThrowsQuery = "{ a: bang b: bang c: bang d: bang e: bang f: bang g: bang h: bang i: bang j: futureBang }"
     let multiThrowsExpectedData: Map = [
         "a": nil,
         "b": nil,
@@ -163,7 +193,7 @@ class FieldExecutionStrategyTests: XCTestCase {
             "locations": [
                 ["column": 75, "line": 1]
             ],
-            "message": "exampleError(msg: \"bang: j\")",
+            "message": "exampleError(msg: \"futureBang: j\")",
             "path":["j"]
         ],
         ]
@@ -178,12 +208,18 @@ class FieldExecutionStrategyTests: XCTestCase {
             seconds: seconds
         )
     }
+    
+    private var eventLoopGroup: EventLoopGroup!
+    
+    override func setUp() {
+        eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+    }
+    
+    override func tearDown() {
+        XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
+    }
 
     func testSerialFieldExecutionStrategyWithSingleField() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
 
         let result = try timing(try graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
@@ -196,11 +232,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testSerialFieldExecutionStrategyWithSingleFieldError() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+        
         let result = try timing(try graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
             schema: schema,
@@ -210,12 +242,20 @@ class FieldExecutionStrategyTests: XCTestCase {
         XCTAssertEqual(result.value, singleThrowsExpected)
         //XCTAssertEqualWithAccuracy(0.1, result.seconds, accuracy: 0.25)
     }
+    
+    func testSerialFieldExecutionStrategyWithSingleFieldFailedFuture() throws {
+        
+        let result = try timing(try graphql(
+            queryStrategy: SerialFieldExecutionStrategy(),
+            schema: schema,
+            request: singleFailedFutureQuery,
+            eventLoopGroup: eventLoopGroup
+            ).wait())
+        XCTAssertEqual(result.value, singleFailedFutureExpected)
+        //XCTAssertEqualWithAccuracy(0.1, result.seconds, accuracy: 0.25)
+    }
 
     func testSerialFieldExecutionStrategyWithMultipleFields() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
 
         let result = try timing(try graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
@@ -228,10 +268,6 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testSerialFieldExecutionStrategyWithMultipleFieldErrors() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
 
         let result = try timing(try graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
@@ -249,10 +285,6 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithSingleField() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
 
         let result = try timing(try graphql(
             queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
@@ -265,10 +297,6 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithSingleFieldError() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
 
         let result = try timing(try graphql(
             queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
@@ -281,10 +309,6 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithMultipleFields() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
 
         let result = try timing(try graphql(
             queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
@@ -297,10 +321,6 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithMultipleFieldErrors() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numThreads: 1)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
 
         let result = try timing(try graphql(
             queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
@@ -324,6 +344,7 @@ extension FieldExecutionStrategyTests {
         return [
             ("testSerialFieldExecutionStrategyWithSingleField", testSerialFieldExecutionStrategyWithSingleField),
             ("testSerialFieldExecutionStrategyWithSingleFieldError", testSerialFieldExecutionStrategyWithSingleFieldError),
+            ("testSerialFieldExecutionStrategyWithSingleFieldFailedFuture", testSerialFieldExecutionStrategyWithSingleFieldFailedFuture),
             ("testSerialFieldExecutionStrategyWithMultipleFields", testSerialFieldExecutionStrategyWithMultipleFields),
             ("testSerialFieldExecutionStrategyWithMultipleFieldErrors", testSerialFieldExecutionStrategyWithMultipleFieldErrors),
             ("testConcurrentDispatchFieldExecutionStrategyWithSingleField", testConcurrentDispatchFieldExecutionStrategyWithSingleField),
