@@ -91,8 +91,8 @@ extension GraphQLError : CustomStringConvertible {
 }
 
 extension GraphQLError : Hashable {
-    public var hashValue: Int {
-        return message.hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(message)
     }
 
     public static func == (lhs: GraphQLError, rhs: GraphQLError) -> Bool {

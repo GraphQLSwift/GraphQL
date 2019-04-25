@@ -77,12 +77,12 @@ enum HasSelectionSet {
 }
 
 extension HasSelectionSet : Hashable {
-    var hashValue: Int {
+    func hash(into hasher: inout Hasher) {
         switch self {
         case .operation(let operation):
-            return operation.hashValue
+            return hasher.combine(operation.hashValue)
         case .fragment(let fragment):
-            return fragment.hashValue
+            return hasher.combine(fragment.hashValue)
         }
     }
 

@@ -228,8 +228,8 @@ extension GraphQLScalarType {
 }
 
 extension GraphQLScalarType : Hashable {
-    public var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
     }
 
     public static func == (lhs: GraphQLScalarType, rhs: GraphQLScalarType) -> Bool {
@@ -332,8 +332,8 @@ extension GraphQLObjectType {
 }
 
 extension GraphQLObjectType : Hashable {
-    public var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
     }
 
     public static func == (lhs: GraphQLObjectType, rhs: GraphQLObjectType) -> Bool {
@@ -659,8 +659,8 @@ extension GraphQLInterfaceType {
 }
 
 extension GraphQLInterfaceType : Hashable {
-    public var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
     }
 
     public static func == (lhs: GraphQLInterfaceType, rhs: GraphQLInterfaceType) -> Bool {
@@ -738,8 +738,8 @@ extension GraphQLUnionType {
 }
 
 extension GraphQLUnionType : Hashable {
-    public var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
     }
 
     public static func == (lhs: GraphQLUnionType, rhs: GraphQLUnionType) -> Bool {
@@ -875,8 +875,8 @@ extension GraphQLEnumType {
 }
 
 extension GraphQLEnumType : Hashable {
-    public var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
     }
 
     public static func == (lhs: GraphQLEnumType, rhs: GraphQLEnumType) -> Bool {
@@ -1009,8 +1009,8 @@ extension GraphQLInputObjectType {
 }
 
 extension GraphQLInputObjectType : Hashable {
-    public var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
     }
 
     public static func == (lhs: GraphQLInputObjectType, rhs: GraphQLInputObjectType) -> Bool {
@@ -1137,8 +1137,8 @@ extension GraphQLList {
 }
 
 extension GraphQLList : Hashable {
-    public var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
     }
 
     public static func == (lhs: GraphQLList, rhs: GraphQLList) -> Bool {
@@ -1210,8 +1210,8 @@ extension GraphQLNonNull {
 }
 
 extension GraphQLNonNull : Hashable {
-    public var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
     }
 
     public static func == (lhs: GraphQLNonNull, rhs: GraphQLNonNull) -> Bool {

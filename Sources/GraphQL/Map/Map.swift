@@ -597,38 +597,22 @@ public func == (lhs: Map, rhs: Map) -> Bool {
 // MARK: Hashable
 
 extension Map : Hashable {
-    public var hashValue: Int {
+    public func hash(into hasher: inout Hasher) {
         switch self {
         case .null:
-            return 0
+            hasher.combine(0)
         case .bool(let bool):
-            return bool.hashValue
+            hasher.combine(bool)
         case .double(let double):
-            return double.hashValue
+            hasher.combine(double)
         case .int(let int):
-            return int.hashValue
+            hasher.combine(int)
         case .string(let string):
-            return string.hashValue
+            hasher.combine(string)
         case .array(let array):
-            var hash = 5381
-
-            for item in array {
-                hash = ((hash << 5) &+ hash) &+ item.hashValue
-            }
-
-            return hash
+            hasher.combine(array)
         case .dictionary(let dictionary):
-            var hash = 5381
-            var keyHash = 5381
-            var valueHash = 5381
-
-            for (key, value) in dictionary {
-                keyHash = ((keyHash << 5) &+ keyHash) &+ key.hashValue
-                valueHash = ((valueHash << 5) &+ valueHash) &+ value.hashValue
-                hash = ((hash << 5) &+ hash) &+ (keyHash ^ valueHash)
-            }
-
-            return hash
+            hasher.combine(dictionary)
         }
     }
 }

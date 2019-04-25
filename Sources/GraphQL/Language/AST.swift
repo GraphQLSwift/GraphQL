@@ -337,8 +337,8 @@ public final class OperationDefinition {
 }
 
 extension OperationDefinition : Hashable {
-    public var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
     }
 
     public static func == (lhs: OperationDefinition, rhs: OperationDefinition) -> Bool {
@@ -450,8 +450,8 @@ public final class SelectionSet {
 }
 
 extension SelectionSet : Hashable {
-    public var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
     }
 
     public static func == (lhs: SelectionSet, rhs: SelectionSet) -> Bool {
@@ -709,8 +709,8 @@ public final class FragmentDefinition {
 }
 
 extension FragmentDefinition : Hashable {
-    public var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
     }
 
     public static func == (lhs: FragmentDefinition, rhs: FragmentDefinition) -> Bool {
