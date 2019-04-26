@@ -23,9 +23,9 @@
         "package": "Runtime",
         "repositoryURL": "https://github.com/wickwirew/Runtime.git",
         "state": {
-          "branch": "nested-struct-crash",
-          "revision": "304fa5dec869e0c3862936f68846b3c59f00bc30",
-          "version": null
+          "branch": null,
+          "revision": "c167476b07fe8cc65fdf064076a4081c3269d14a",
+          "version": "2.1.0"
         }
       },
       {
