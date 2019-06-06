@@ -34,11 +34,7 @@ class InstrumentationTests : XCTestCase, Instrumentation {
                     type: GraphQLString,
                     args: [
                         "name": GraphQLArgument(type: GraphQLNonNull(GraphQLString))
-                    ],
-                    resolve: { inputValue, _, _, eventLoopGroup, _ in
-                        print(type(of: inputValue))
-                        return eventLoopGroup.next().newSucceededFuture(result: nil)
-                    }
+                    ]
 //                    resolve: { _, args, _, _ in return try! args["name"].asString() }
                 )
             ]

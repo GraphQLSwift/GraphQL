@@ -1,4 +1,4 @@
-public enum DirectiveLocation : String, Encodable {
+public enum DirectiveLocation : String {
     // Operations
     case query = "QUERY"
     case mutation = "MUTATION"
@@ -21,11 +21,17 @@ public enum DirectiveLocation : String, Encodable {
     case inputFieldDefinition = "INPUT_FIELD_DEFINITION"
 }
 
+extension DirectiveLocation : MapRepresentable {
+    public var map: Map {
+        return rawValue.map
+    }
+}
+
 /**
  * Directives are used by the GraphQL runtime as a way of modifying execution
  * behavior. Type system creators will usually not create these directly.
  */
-public struct GraphQLDirective : Encodable {
+public struct GraphQLDirective {
     public let name: String
     public let description: String
     public let locations: [DirectiveLocation]
@@ -42,6 +48,17 @@ public struct GraphQLDirective : Encodable {
         self.description = description
         self.locations = locations
         self.args = try defineArgumentMap(args: args)
+    }
+}
+
+extension GraphQLDirective : MapRepresentable {
+    public var map: Map {
+        return [
+            "name": name.map,
+            "description": description.map,
+            "locations": locations.map,
+            "arg": args.map,
+        ]
     }
 }
 

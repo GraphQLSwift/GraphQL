@@ -1,9 +1,6 @@
 import Foundation
 
-public struct SourceLocation : Encodable {
-    public let line: Int
-    public let column: Int
-}
+public typealias SourceLocation = (line: Int, column: Int)
 
 /**
  * Takes a Source and a UTF-8 character offset, and returns the corresponding

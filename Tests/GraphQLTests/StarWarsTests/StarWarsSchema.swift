@@ -11,6 +11,16 @@ import GraphQL
  * Wars trilogy.
  */
 
+// TODO: implement MapRepresentable automatically for RawRepresentables
+extension Episode : MapRepresentable {
+    var map: Map {
+        return rawValue.map
+    }
+}
+
+extension Human : MapFallibleRepresentable {}
+extension Droid : MapFallibleRepresentable {}
+
 /**
  * Using our shorthand to describe type systems, the type system for our
  * Star Wars example is:
@@ -60,15 +70,15 @@ let EpisodeEnum = try! GraphQLEnumType(
     description: "One of the films in the Star Wars Trilogy",
     values: [
         "NEWHOPE": GraphQLEnumValue(
-            value: Map(Episode.newHope.rawValue),
+            value: Episode.newHope,
             description: "Released in 1977."
         ),
         "EMPIRE": GraphQLEnumValue(
-            value: Map(Episode.empire.rawValue),
+            value: Episode.empire,
             description: "Released in 1980."
         ),
         "JEDI": GraphQLEnumValue(
-            value: Map(Episode.jedi.rawValue),
+            value: Episode.jedi,
             description: "Released in 1983."
         ),
     ]

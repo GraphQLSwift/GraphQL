@@ -4,12 +4,7 @@
  * it also includes information about the locations in a
  * GraphQL document and/or execution result that correspond to the error.
  */
-public struct GraphQLError : Error, Encodable {
-    private enum CodingKeys : String, CodingKey {
-        case message
-        case locations
-        case path
-    }
+public struct GraphQLError : Error {
 
     /**
      * A message describing the Error for debugging purposes.
@@ -36,7 +31,7 @@ public struct GraphQLError : Error, Encodable {
      *
      * Appears in the result of `description`.
      */
-    public let path: IndexPath
+    public let path: [IndexPathElement]
 
     /**
      * An array of GraphQL AST Nodes corresponding to this error.
@@ -59,14 +54,8 @@ public struct GraphQLError : Error, Encodable {
      */
     public let originalError: Error?
 
-    public init(
-        message: String,
-        nodes: [Node] = [],
-        source: Source? = nil,
-        positions: [Int] = [],
-        path: IndexPath = [],
-        originalError: Error? = nil
-    ) {
+    public init(message: String, nodes: [Node] = [], source: Source? = nil, positions: [Int] = [],
+                path: [IndexPathElement] = [], originalError: Error? = nil) {
         self.message = message
         self.nodes = nodes
 
@@ -93,27 +82,6 @@ public struct GraphQLError : Error, Encodable {
         self.path = path
         self.originalError = originalError
     }
-    
-    public init(
-        message: String,
-        locations: [SourceLocation],
-        path: IndexPath = []
-    ) {
-        self.message = message
-        self.locations = locations
-        self.path = path
-        self.nodes = []
-        self.source = nil
-        self.positions = []
-        self.originalError = nil
-    }
-    
-    public init(_ error: Error) {
-        self.init(
-            message: error.localizedDescription,
-            originalError: error
-        )
-    }
 }
 
 extension GraphQLError : CustomStringConvertible {
@@ -132,96 +100,23 @@ extension GraphQLError : Hashable {
     }
 }
 
-// MARK: IndexPath
+extension GraphQLError : MapRepresentable {
+    public var map: Map {
+        var dictionary: [String: Map] = ["message": message.map]
 
-public struct IndexPath : Encodable {
-    public let elements: [IndexPathValue]
-    
-    public init(_ elements: [IndexPathElement] = []) {
-        self.elements = elements.map({ $0.indexPathValue })
-    }
-    
-    public func appending(_ elements: IndexPathElement) -> IndexPath {
-        return IndexPath(self.elements + [elements])
-    }
-}
-
-extension IndexPath : ExpressibleByArrayLiteral {
-    public init(arrayLiteral elements: IndexPathElement...) {
-        self.elements = elements.map({ $0.indexPathValue })
-    }
-}
-
-public enum IndexPathValue : Encodable {
-    case index(Int)
-    case key(String)
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        
-        switch self {
-        case let .index(index):
-            try container.encode(index)
-        case let .key(key):
-            try container.encode(key)
+        if !path.isEmpty {
+            dictionary["path"] = path.map({ $0.map }).map
         }
-    }
-}
 
-extension IndexPathValue : IndexPathElement {
-    public var indexPathValue: IndexPathValue {
-        return self
-    }
-}
-
-extension IndexPathValue : CustomStringConvertible {
-    public var description: String {
-        switch self {
-        case let .index(index):
-            return index.description
-        case let .key(key):
-            return key.description
+        if !locations.isEmpty {
+            dictionary["locations"] = locations.map({
+                return [
+                    "line": $0.line.map,
+                    "column": $0.column.map
+                ] as Map
+            }).map
         }
-    }
-}
 
-public protocol IndexPathElement {
-    var indexPathValue: IndexPathValue { get }
-}
-
-extension IndexPathElement {
-    var constructEmptyContainer: Map {
-        switch indexPathValue {
-        case .index: return []
-        case .key: return [:]
-        }
-    }
-}
-
-extension IndexPathElement {
-    public var indexValue: Int? {
-        if case .index(let index) = indexPathValue {
-            return index
-        }
-        return nil
-    }
-    
-    public var keyValue: String? {
-        if case .key(let key) = indexPathValue {
-            return key
-        }
-        return nil
-    }
-}
-
-extension Int : IndexPathElement {
-    public var indexPathValue: IndexPathValue {
-        return .index(self)
-    }
-}
-
-extension String : IndexPathElement {
-    public var indexPathValue: IndexPathValue {
-        return .key(self)
+        return .dictionary(dictionary)
     }
 }

@@ -1,19 +1,4 @@
 .DS_Store
-
-### SwiftPM ###
-Packages
-.build/
-xcuserdata
-DerivedData/
-*.xcodeproj
-
-### Xcode Patch ###
-*.xcodeproj/*
-!*.xcodeproj/project.pbxproj
-!*.xcodeproj/xcshareddata/
-!*.xcworkspace/contents.xcworkspacedata
-/*.gcno
-**/xcshareddata/WorkspaceSettings.xcsettings
-
-## User settings
-xcuserdata/
+/.build
+/Packages
+/*.xcodeproj

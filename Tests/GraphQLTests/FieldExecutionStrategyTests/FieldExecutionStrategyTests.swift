@@ -1,10 +1,11 @@
 import Dispatch
-@testable import GraphQL
+import GraphQL
 import XCTest
 import NIO
 
 class FieldExecutionStrategyTests: XCTestCase {
-    enum StrategyError : Error {
+
+    enum StrategyError: Error {
         case exampleError(msg: String)
     }
 
@@ -22,7 +23,7 @@ class FieldExecutionStrategyTests: XCTestCase {
                         }
                         g.wait()
                         return eventLoopGroup.next().newSucceededFuture(result: "z")
-                    }
+                }
                 ),
                 "bang": GraphQLField(
                     type: GraphQLString,
@@ -34,9 +35,9 @@ class FieldExecutionStrategyTests: XCTestCase {
                         }
                         g.wait()
                         throw StrategyError.exampleError(
-                            msg: "\(info.fieldName): \(info.path.elements.last!)"
+                            msg: "\(info.fieldName): \(info.path.last as! String)"
                         )
-                    }
+                }
                 ),
                 "futureBang": GraphQLField(
                     type: GraphQLString,
@@ -48,26 +49,24 @@ class FieldExecutionStrategyTests: XCTestCase {
                         }
                         g.wait()
                         return eventLoopGroup.next().newFailedFuture(error: StrategyError.exampleError(
-                            msg: "\(info.fieldName): \(info.path.elements.last!)"
+                            msg: "\(info.fieldName): \(info.path.last as! String)"
                         ))
-                    }
+                }
                 )
             ]
         )
     )
 
     let singleQuery = "{ sleep }"
-    
-    let singleExpected = GraphQLResult(
-        data: [
+    let singleExpected: Map = [
+        "data": [
             "sleep": "z"
         ]
-    )
+    ]
 
     let multiQuery = "{ a: sleep b: sleep c: sleep d: sleep e: sleep f: sleep g: sleep h: sleep i: sleep j: sleep }"
-    
-    let multiExpected = GraphQLResult(
-        data: [
+    let multiExpected: Map = [
+        "data": [
             "a": "z",
             "b": "z",
             "c": "z",
@@ -79,40 +78,41 @@ class FieldExecutionStrategyTests: XCTestCase {
             "i": "z",
             "j": "z",
         ]
-    )
+    ]
 
     let singleThrowsQuery = "{ bang }"
-    
-    let singleThrowsExpected = GraphQLResult(
-        data: [
+    let singleThrowsExpected: Map = [
+        "data": [
             "bang": nil
         ],
-        errors: [
-            GraphQLError(
-                message: "exampleError(msg: \"bang: bang\")",
-                locations: [SourceLocation(line: 1, column: 3)],
-                path: ["bang"]
-            )
+        "errors": [
+            [
+                "locations": [
+                    ["column": 3, "line": 1]
+                ],
+                "message": "exampleError(msg: \"bang: bang\")",
+                "path":["bang"]
+            ]
         ]
-    )
+    ]
     
     let singleFailedFutureQuery = "{ futureBang }"
-    
-    let singleFailedFutureExpected = GraphQLResult(
-        data: [
+    let singleFailedFutureExpected: Map = [
+        "data": [
             "futureBang": nil
         ],
-        errors: [
-            GraphQLError(
-                message: "exampleError(msg: \"futureBang: futureBang\")",
-                locations: [SourceLocation(line: 1, column: 3)],
-                path: ["futureBang"]
-            )
+        "errors": [
+            [
+                "locations": [
+                    ["column": 3, "line": 1]
+                ],
+                "message": "exampleError(msg: \"futureBang: futureBang\")",
+                "path":["futureBang"]
+            ]
         ]
-    )
+    ]
 
     let multiThrowsQuery = "{ a: bang b: bang c: bang d: bang e: bang f: bang g: bang h: bang i: bang j: futureBang }"
-    
     let multiThrowsExpectedData: Map = [
         "a": nil,
         "b": nil,
@@ -124,60 +124,79 @@ class FieldExecutionStrategyTests: XCTestCase {
         "h": nil,
         "i": nil,
         "j": nil,
-    ]
-    
-    let multiThrowsExpectedErrors: [GraphQLError] = [
-        GraphQLError(
-            message: "exampleError(msg: \"bang: a\")",
-            locations: [SourceLocation(line: 1, column: 3)],
-            path: ["a"]
-        ),
-        GraphQLError(
-            message: "exampleError(msg: \"bang: b\")",
-            locations: [SourceLocation(line: 1, column: 11)],
-            path: ["b"]
-        ),
-        GraphQLError(
-            message: "exampleError(msg: \"bang: c\")",
-            locations: [SourceLocation(line: 1, column: 19)],
-            path: ["c"]
-        ),
-        GraphQLError(
-            message: "exampleError(msg: \"bang: d\")",
-            locations: [SourceLocation(line: 1, column: 27)],
-            path: ["d"]
-        ),
-        GraphQLError(
-            message: "exampleError(msg: \"bang: e\")",
-            locations: [SourceLocation(line: 1, column: 35)],
-            path: ["e"]
-        ),
-        GraphQLError(
-            message: "exampleError(msg: \"bang: f\")",
-            locations: [SourceLocation(line: 1, column: 43)],
-            path: ["f"]
-        ),
-        GraphQLError(
-            message: "exampleError(msg: \"bang: g\")",
-            locations: [SourceLocation(line: 1, column: 51)],
-            path: ["g"]
-        ),
-        GraphQLError(
-            message: "exampleError(msg: \"bang: h\")",
-            locations: [SourceLocation(line: 1, column: 59)],
-            path: ["h"]
-        ),
-        GraphQLError(
-            message: "exampleError(msg: \"bang: i\")",
-            locations: [SourceLocation(line: 1, column: 67)],
-            path: ["i"]
-        ),
-        GraphQLError(
-            message: "exampleError(msg: \"futureBang: j\")",
-            locations: [SourceLocation(line: 1, column: 75)],
-            path: ["j"]
-        ),
-    ]
+        ]
+    let multiThrowsExpectedErrors: [Map] = [
+        [
+            "locations": [
+                ["column": 3, "line": 1]
+            ],
+            "message": "exampleError(msg: \"bang: a\")",
+            "path":["a"]
+        ],
+        [
+            "locations": [
+                ["column": 11, "line": 1]
+            ],
+            "message": "exampleError(msg: \"bang: b\")",
+            "path":["b"]
+        ],
+        [
+            "locations": [
+                ["column": 19, "line": 1]
+            ],
+            "message": "exampleError(msg: \"bang: c\")",
+            "path":["c"]
+        ],
+        [
+            "locations": [
+                ["column": 27, "line": 1]
+            ],
+            "message": "exampleError(msg: \"bang: d\")",
+            "path":["d"]
+        ],
+        [
+            "locations": [
+                ["column": 35, "line": 1]
+            ],
+            "message": "exampleError(msg: \"bang: e\")",
+            "path":["e"]
+        ],
+        [
+            "locations": [
+                ["column": 43, "line": 1]
+            ],
+            "message": "exampleError(msg: \"bang: f\")",
+            "path":["f"]
+        ],
+        [
+            "locations": [
+                ["column": 51, "line": 1]
+            ],
+            "message": "exampleError(msg: \"bang: g\")",
+            "path":["g"]
+        ],
+        [
+            "locations": [
+                ["column": 59, "line": 1]
+            ],
+            "message": "exampleError(msg: \"bang: h\")",
+            "path":["h"]
+        ],
+        [
+            "locations": [
+                ["column": 67, "line": 1]
+            ],
+            "message": "exampleError(msg: \"bang: i\")",
+            "path":["i"]
+        ],
+        [
+            "locations": [
+                ["column": 75, "line": 1]
+            ],
+            "message": "exampleError(msg: \"futureBang: j\")",
+            "path":["j"]
+        ],
+        ]
 
     func timing<T>(_ block: @autoclosure () throws -> T) throws -> (value: T, seconds: Double) {
         let start = DispatchTime.now()
@@ -256,8 +275,8 @@ class FieldExecutionStrategyTests: XCTestCase {
             request: multiThrowsQuery,
             eventLoopGroup: eventLoopGroup
             ).wait())
-        XCTAssertEqual(result.value.data, multiThrowsExpectedData)
-        let resultErrors = result.value.errors
+        XCTAssertEqual(result.value["data"], multiThrowsExpectedData)
+        let resultErrors = try result.value["errors"].asArray()
         XCTAssertEqual(resultErrors.count, multiThrowsExpectedErrors.count)
         multiThrowsExpectedErrors.forEach { (m) in
             XCTAssertTrue(resultErrors.contains(m), "Expecting result errors to contain \(m)")
@@ -309,8 +328,8 @@ class FieldExecutionStrategyTests: XCTestCase {
             request: multiThrowsQuery,
             eventLoopGroup: eventLoopGroup
             ).wait())
-        XCTAssertEqual(result.value.data, multiThrowsExpectedData)
-        let resultErrors = result.value.errors
+        XCTAssertEqual(result.value["data"], multiThrowsExpectedData)
+        let resultErrors = try result.value["errors"].asArray()
         XCTAssertEqual(resultErrors.count, multiThrowsExpectedErrors.count)
         multiThrowsExpectedErrors.forEach { (m) in
             XCTAssertTrue(resultErrors.contains(m), "Expecting result errors to contain \(m)")

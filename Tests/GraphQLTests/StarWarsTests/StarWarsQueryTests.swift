@@ -16,13 +16,13 @@ class StarWarsQueryTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected = GraphQLResult(
-            data: [
+        let expected: Map = [
+            "data": [
                 "hero": [
                     "name": "R2-D2",
                 ],
-            ]
-        )
+            ],
+        ]
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -44,8 +44,8 @@ class StarWarsQueryTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected = GraphQLResult(
-            data: [
+        let expected: Map = [
+            "data": [
                 "hero": [
                     "id": "2001",
                     "name": "R2-D2",
@@ -55,8 +55,8 @@ class StarWarsQueryTests : XCTestCase {
                         ["name": "Leia Organa"],
                     ],
                 ],
-            ]
-        )
+            ],
+        ]
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -81,8 +81,8 @@ class StarWarsQueryTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected = GraphQLResult(
-            data: [
+        let expected: Map = [
+            "data": [
                 "hero": [
                     "name": "R2-D2",
                     "friends": [
@@ -117,8 +117,8 @@ class StarWarsQueryTests : XCTestCase {
                         ],
                     ],
                 ],
-            ]
-        )
+            ],
+        ]
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -136,13 +136,13 @@ class StarWarsQueryTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected = GraphQLResult(
-            data: [
+        let expected: Map = [
+            "data": [
                 "human": [
                     "name": "Luke Skywalker",
                 ],
-            ]
-        )
+            ],
+        ]
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -158,22 +158,22 @@ class StarWarsQueryTests : XCTestCase {
             "    hero(episode: $episode) {" +
             "        name" +
             "    }" +
-            "}"
+        "}"
 
         var params: [String: Map]
-        var expected: GraphQLResult
-        var result: GraphQLResult
+        var expected: Map
+        var result: Map
 
         // $episode is not required so we can omit and expect this to work and return R2
         params = [:]
 
-        expected = GraphQLResult(
-            data: [
+        expected = [
+            "data": [
                 "hero": [
                     "name": "R2-D2",
                 ],
-            ]
-        )
+            ],
+        ]
 
         result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
         XCTAssertEqual(result, expected)
@@ -183,13 +183,13 @@ class StarWarsQueryTests : XCTestCase {
             "episode": "EMPIRE",
         ]
 
-        expected = GraphQLResult(
-            data: [
+        expected = [
+            "data": [
                 "hero": [
                     "name": "Luke Skywalker",
                 ],
-            ]
-        )
+            ],
+        ]
 
         result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
         XCTAssertEqual(result, expected)
@@ -208,20 +208,20 @@ class StarWarsQueryTests : XCTestCase {
                     "}"
 
         var params: [String: Map]
-        var expected: GraphQLResult
-        var result: GraphQLResult
+        var expected: Map
+        var result: Map
 
         params = [
             "someId": "1000",
         ]
 
-        expected = GraphQLResult(
-            data: [
+        expected = [
+            "data": [
                 "human": [
                     "name": "Luke Skywalker",
                 ],
-            ]
-        )
+            ],
+        ]
 
         result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
         XCTAssertEqual(result, expected)
@@ -230,13 +230,13 @@ class StarWarsQueryTests : XCTestCase {
             "someId": "1002",
         ]
 
-        expected = GraphQLResult(
-            data: [
+        expected = [
+            "data": [
                 "human": [
                     "name": "Han Solo",
                 ],
-            ]
-        )
+            ],
+        ]
 
         result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
         XCTAssertEqual(result, expected)
@@ -246,11 +246,11 @@ class StarWarsQueryTests : XCTestCase {
             "someId": "not a valid id",
         ]
 
-        expected = GraphQLResult(
-            data: [
+        expected = [
+            "data": [
                 "human": nil,
-            ]
-        )
+            ],
+        ]
 
         result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
         XCTAssertEqual(result, expected)
@@ -268,13 +268,13 @@ class StarWarsQueryTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected = GraphQLResult(
-            data: [
+        let expected: Map = [
+            "data": [
                 "luke": [
                     "name": "Luke Skywalker",
                 ],
-            ]
-        )
+            ],
+        ]
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -295,16 +295,16 @@ class StarWarsQueryTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected = GraphQLResult(
-            data: [
+        let expected: Map = [
+            "data": [
                 "luke": [
                     "name": "Luke Skywalker",
                 ],
                 "leia": [
                     "name": "Leia Organa",
                 ],
-            ]
-        )
+            ],
+        ]
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -327,8 +327,8 @@ class StarWarsQueryTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected = GraphQLResult(
-            data: [
+        let expected: Map = [
+            "data": [
                 "luke": [
                     "name": "Luke Skywalker",
                     "homePlanet": "Tatooine",
@@ -337,8 +337,8 @@ class StarWarsQueryTests : XCTestCase {
                     "name": "Leia Organa",
                     "homePlanet": "Alderaan",
                 ],
-            ]
-        )
+            ],
+        ]
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -363,8 +363,8 @@ class StarWarsQueryTests : XCTestCase {
                     "    homePlanet" +
                     "}"
 
-        let expected = GraphQLResult(
-            data: [
+        let expected: Map = [
+            "data": [
                 "luke": [
                     "name": "Luke Skywalker",
                     "homePlanet": "Tatooine",
@@ -374,7 +374,7 @@ class StarWarsQueryTests : XCTestCase {
                     "homePlanet": "Alderaan",
                 ],
             ]
-        )
+        ]
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -393,21 +393,16 @@ class StarWarsQueryTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected = GraphQLResult(
-            data: [
+        let expected: Map = [
+            "data": [
                 "hero": [
                     "__typename": "Droid",
                     "name": "R2-D2",
                 ],
-            ]
-        )
+            ],
+        ]
 
-        let result = try graphql(
-            schema: StarWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
-        
+        let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -424,14 +419,14 @@ class StarWarsQueryTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected = GraphQLResult(
-            data: [
+        let expected: Map = [
+            "data": [
                 "hero": [
                     "__typename": "Human",
                     "name": "Luke Skywalker",
                 ],
-            ]
-        )
+            ],
+        ]
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -450,21 +445,21 @@ class StarWarsQueryTests : XCTestCase {
                     "    }\n" +
                     "}\n"
 
-        let expected = GraphQLResult(
-            data: [
+        let expected: Map = [
+            "data": [
                 "hero": [
                     "name": "R2-D2",
                     "secretBackstory": nil,
                 ],
             ],
-            errors: [
-                GraphQLError(
-                    message: "secretBackstory is secret.",
-                    locations: [SourceLocation(line: 4, column: 9)],
-                    path: ["hero", "secretBackstory"]
-                )
-            ]
-        )
+            "errors": [
+                [
+                    "message": "secretBackstory is secret.",
+                    "path": ["hero", "secretBackstory"],
+                    "locations": [["line": 4, "column": 9]],
+                ],
+            ],
+        ]
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -486,8 +481,8 @@ class StarWarsQueryTests : XCTestCase {
                     "    }\n" +
                     "}\n"
 
-        let expected = GraphQLResult(
-            data: [
+        let expected: Map = [
+            "data": [
                 "hero": [
                     "name": "R2-D2",
                     "friends": [
@@ -506,24 +501,24 @@ class StarWarsQueryTests : XCTestCase {
                     ],
                 ],
             ],
-            errors: [
-                GraphQLError(
-                    message: "secretBackstory is secret.",
-                    locations: [SourceLocation(line: 6, column: 13)],
-                    path: ["hero", "friends", 0, "secretBackstory"]
-                ),
-                GraphQLError(
-                    message: "secretBackstory is secret.",
-                    locations: [SourceLocation(line: 6, column: 13)],
-                    path: ["hero", "friends", 1, "secretBackstory"]
-                ),
-                GraphQLError(
-                    message: "secretBackstory is secret.",
-                    locations: [SourceLocation(line: 6, column: 13)],
-                    path: ["hero", "friends", 2, "secretBackstory"]
-                ),
-            ]
-        )
+            "errors": [
+                [
+                    "message": "secretBackstory is secret.",
+                    "path": ["hero", "friends", 0, "secretBackstory"],
+                    "locations": [["line": 6, "column": 13]],
+                ],
+                [
+                    "message": "secretBackstory is secret.",
+                    "path": ["hero", "friends", 1, "secretBackstory"],
+                     "locations": [["line": 6, "column": 13]],
+                ],
+                [
+                    "message": "secretBackstory is secret.",
+                    "path": ["hero", "friends", 2, "secretBackstory"],
+                    "locations": [["line": 6, "column": 13]],
+                ],
+            ],
+        ]
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -542,21 +537,21 @@ class StarWarsQueryTests : XCTestCase {
                     "    }\n" +
                     "}\n"
 
-        let expected = GraphQLResult(
-            data: [
+        let expected: Map = [
+            "data": [
                 "mainHero": [
                     "name": "R2-D2",
                     "story": nil,
                 ],
             ],
-            errors: [
-                GraphQLError(
-                    message: "secretBackstory is secret.",
-                    locations: [SourceLocation(line: 4, column: 9)],
-                    path: ["mainHero", "story"]
-                ),
+            "errors": [
+                [
+                    "message": "secretBackstory is secret.",
+                    "path": ["mainHero", "story"],
+                    "locations": [["line": 4, "column": 9]],
+                ],
             ]
-        )
+        ]
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -618,20 +613,20 @@ class StarWarsQueryTests : XCTestCase {
                     "    }\n" +
                     "}\n"
 
-        let expected = GraphQLResult(
-            data: [
+        let expected: Map = [
+            "data": [
                 "nullableA": [
                     "nullableA": nil,
                 ],
             ],
-            errors: [
-                GraphQLError(
-                    message: "catch me if you can.",
-                    locations: [SourceLocation(line: 6, column: 21)],
-                    path: ["nullableA", "nullableA", "nonNullA", "nonNullA", "throws"]
-                ),
-            ]
-        )
+            "errors": [
+                [
+                    "message": "catch me if you can.",
+                    "path": ["nullableA", "nullableA", "nonNullA", "nonNullA", "throws"],
+                    "locations": [["line": 6, "column": 21]],
+                ],
+            ],
+        ]
 
         let result = try graphql(schema: schema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
