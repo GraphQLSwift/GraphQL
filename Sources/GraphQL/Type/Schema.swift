@@ -156,15 +156,12 @@ public final class GraphQLSchema {
     }
 }
 
-extension GraphQLSchema : MapRepresentable {
-    public var map: Map {
-        return [
-            "queryType": queryType.map,
-            "mutationType": mutationType.map,
-            "subscriptionType": subscriptionType.map,
-            "directives":  directives.map,
-//            "types": typeMap.map,
-        ]
+extension GraphQLSchema : Encodable {
+    private enum CodingKeys : String, CodingKey {
+        case queryType
+        case mutationType
+        case subscriptionType
+        case directives
     }
 }
 

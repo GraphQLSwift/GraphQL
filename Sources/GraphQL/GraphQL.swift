@@ -1,5 +1,15 @@
 import NIO
 
+public struct GraphQLResult : Equatable {
+    public var data: Map?
+    public var errors: [GraphQLError]
+    
+    init(data: Map? = nil, errors: [GraphQLError] = []) {
+        self.data = data
+        self.errors = errors
+    }
+}
+
 /// This is the primary entry point function for fulfilling GraphQL operations
 /// by parsing, validating, and executing a GraphQL document along side a
 /// GraphQL schema.
@@ -34,14 +44,14 @@ public func graphql(
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) throws -> EventLoopFuture<Map> {
+) throws -> EventLoopFuture<GraphQLResult> {
 
     let source = Source(body: request, name: "GraphQL request")
     let documentAST = try parse(instrumentation: instrumentation, source: source)
     let validationErrors = validate(instrumentation: instrumentation, schema: schema, ast: documentAST)
 
     guard validationErrors.isEmpty else {
-        return eventLoopGroup.next().newSucceededFuture(result: ["errors": try validationErrors.asMap()])
+        return eventLoopGroup.next().newSucceededFuture(result: GraphQLResult(errors: validationErrors))
     }
 
     return execute(
@@ -88,14 +98,14 @@ public func graphql<Retrieval:PersistedQueryRetrieval>(
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) throws -> EventLoopFuture<Map> {
+) throws -> EventLoopFuture<GraphQLResult> {
     switch try queryRetrieval.lookup(queryId) {
     case .unknownId(_):
         throw GraphQLError(message: "Unknown query id")
     case .parseError(let parseError):
         throw parseError
     case .validateErrors(_, let validationErrors):
-        return eventLoopGroup.next().newSucceededFuture(result: ["errors": try validationErrors.asMap()])
+        return eventLoopGroup.next().newSucceededFuture(result: GraphQLResult(errors: validationErrors))
     case .result(let schema, let documentAST):
         return execute(
             queryStrategy: queryStrategy,

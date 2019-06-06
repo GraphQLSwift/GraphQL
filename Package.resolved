@@ -2,15 +2,6 @@
   "object": {
     "pins": [
       {
-        "package": "Core",
-        "repositoryURL": "https://github.com/vapor/core.git",
-        "state": {
-          "branch": null,
-          "revision": "2731f8ba0cf274a61c9bd6ab43550f692ffaf879",
-          "version": "3.9.0"
-        }
-      },
-      {
         "package": "CRuntime",
         "repositoryURL": "https://github.com/wickwirew/CRuntime.git",
         "state": {

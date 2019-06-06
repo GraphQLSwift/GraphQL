@@ -1,3 +1,5 @@
+import Foundation
+
 /**
  * Produces a GraphQL Value AST given a Map value.
  *
@@ -85,20 +87,20 @@ func astFromValue(
     }
 
     // Others serialize based on their corresponding JavaScript scalar types.
-    if case .bool(let bool) = serialized {
-        return BooleanValue(value: bool)
+    if case let .number(number) = serialized {
+        switch number.storageType {
+        case .bool:
+            return BooleanValue(value: number.boolValue)
+        case .int:
+            return IntValue(value: String(number.intValue))
+        case .double:
+            return FloatValue(value: String(number.doubleValue))
+        case .unknown:
+            break
+        }
     }
 
-    // JavaScript numbers can be Int or Float values.
-    if case .int(let int) = serialized {
-        return IntValue(value: String(int))
-    }
-
-    if case .double(let double) = serialized {
-        return FloatValue(value: String(double))
-    }
-
-    if case .string(let string) = serialized {
+    if case let .string(string) = serialized {
         // Enum types use Enum literals.
         if type is GraphQLEnumType {
             return EnumValue(value: string)
@@ -111,7 +113,13 @@ func astFromValue(
         
         // Use JSON stringify, which uses the same string encoding as GraphQL,
         // then remove the quotes.
-        return StringValue(value: String(serialized.description.dropFirst().dropLast()))
+        struct Wrapper : Encodable {
+            let map: Map
+        }
+        
+        let data = try JSONEncoder().encode(Wrapper(map: serialized))
+        let string = String(data: data, encoding: .utf8)!
+        return StringValue(value: String(string.dropFirst(8).dropLast(2)))
     }
     
     throw GraphQLError(message: "Cannot convert value to AST: \(serialized)")
