@@ -24,7 +24,10 @@ let ValidationExampleDogCommand = try! GraphQLEnumType(
 let ValidationExampleSentient = try! GraphQLInterfaceType(
     name: "Sentient",
     fields: [
-        "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
+        "name": GraphQLField(type: GraphQLNonNull(GraphQLString)) { inputValue, _, _, eventLoopGroup, _ in
+            print(type(of: inputValue))
+            return eventLoopGroup.next().newSucceededFuture(result: nil)
+        },
     ],
     resolveType: { _, _, info in
         return "Unknown"
@@ -38,8 +41,14 @@ let ValidationExampleSentient = try! GraphQLInterfaceType(
 let ValidationExampleAlien = try! GraphQLObjectType(
     name: "Alien",
     fields: [
-        "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
-        "homePlanet": GraphQLField(type: GraphQLString),
+        "name": GraphQLField(type: GraphQLNonNull(GraphQLString)) { inputValue, _, _, eventLoopGroup, _ in
+            print(type(of: inputValue))
+            return eventLoopGroup.next().newSucceededFuture(result: nil)
+        },
+        "homePlanet": GraphQLField(type: GraphQLString) { inputValue, _, _, eventLoopGroup, _ in
+            print(type(of: inputValue))
+            return eventLoopGroup.next().newSucceededFuture(result: nil)
+        },
     ],
     interfaces: [ValidationExampleSentient]
 )
@@ -51,8 +60,14 @@ let ValidationExampleAlien = try! GraphQLObjectType(
 let ValidationExampleHuman = try! GraphQLObjectType(
     name: "Human",
     fields: [
-        "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
-        "pets": GraphQLField(type: GraphQLNonNull(GraphQLList(GraphQLNonNull(ValidationExamplePet)))),
+        "name": GraphQLField(type: GraphQLNonNull(GraphQLString)) { inputValue, _, _, eventLoopGroup, _ in
+            print(type(of: inputValue))
+            return eventLoopGroup.next().newSucceededFuture(result: nil)
+        },
+        "pets": GraphQLField(type: GraphQLNonNull(GraphQLList(GraphQLNonNull(ValidationExamplePet)))) { inputValue, _, _, eventLoopGroup, _ in
+            print(type(of: inputValue))
+            return eventLoopGroup.next().newSucceededFuture(result: nil)
+        },
     ],
     interfaces: [ValidationExampleSentient]
 )
@@ -63,7 +78,10 @@ let ValidationExampleHuman = try! GraphQLObjectType(
 let ValidationExamplePet = try! GraphQLInterfaceType(
     name: "Pet",
     fields: [
-        "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
+        "name": GraphQLField(type: GraphQLNonNull(GraphQLString)) { inputValue, _, _, eventLoopGroup, _ in
+            print(type(of: inputValue))
+            return eventLoopGroup.next().newSucceededFuture(result: nil)
+        },
     ],
     resolveType: { _, _, _ in
         return "Unknown"
@@ -81,22 +99,42 @@ let ValidationExamplePet = try! GraphQLInterfaceType(
 let ValidationExampleDog = try! GraphQLObjectType(
     name: "Dog",
     fields: [
-        "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
-        "nickname": GraphQLField(type: GraphQLString),
-        "barkVolume": GraphQLField(type: GraphQLInt),
+        "name": GraphQLField(type: GraphQLNonNull(GraphQLString)) { inputValue, _, _, eventLoopGroup, _ in
+            print(type(of: inputValue))
+            return eventLoopGroup.next().newSucceededFuture(result: nil)
+        },
+        "nickname": GraphQLField(type: GraphQLString) { inputValue, _, _, eventLoopGroup, _ in
+            print(type(of: inputValue))
+            return eventLoopGroup.next().newSucceededFuture(result: nil)
+        },
+        "barkVolume": GraphQLField(type: GraphQLInt) { inputValue, _, _, eventLoopGroup, _ in
+            print(type(of: inputValue))
+            return eventLoopGroup.next().newSucceededFuture(result: nil)
+        },
         "doesKnowCommand": GraphQLField(
             type: GraphQLNonNull(GraphQLBoolean),
             args: [
                 "dogCommand": GraphQLArgument(type: GraphQLNonNull(ValidationExampleDogCommand))
-            ]
+            ],
+            resolve: { inputValue, _, _, eventLoopGroup, _ in
+                print(type(of: inputValue))
+                return eventLoopGroup.next().newSucceededFuture(result: nil)
+            }
         ),
         "isHousetrained": GraphQLField(
             type: GraphQLNonNull(GraphQLBoolean),
             args: [
                 "atOtherHomes": GraphQLArgument(type: GraphQLBoolean)
-            ]
+            ],
+            resolve: { inputValue, _, _, eventLoopGroup, _ in
+                print(type(of: inputValue))
+                return eventLoopGroup.next().newSucceededFuture(result: nil)
+            }
         ),
-        "owner": GraphQLField(type: ValidationExampleHuman),
+        "owner": GraphQLField(type: ValidationExampleHuman) { inputValue, _, _, eventLoopGroup, _ in
+            print(type(of: inputValue))
+            return eventLoopGroup.next().newSucceededFuture(result: nil)
+        },
     ],
     interfaces: [ValidationExamplePet]
 )
@@ -120,15 +158,28 @@ let ValidationExampleCatCommand = try! GraphQLEnumType(
 let ValidationExampleCat = try! GraphQLObjectType(
     name: "Cat",
     fields: [
-        "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
-        "nickname": GraphQLField(type: GraphQLString),
+        "name": GraphQLField(type: GraphQLNonNull(GraphQLString)) { inputValue, _, _, eventLoopGroup, _ in
+            print(type(of: inputValue))
+            return eventLoopGroup.next().newSucceededFuture(result: nil)
+        },
+        "nickname": GraphQLField(type: GraphQLString) { inputValue, _, _, eventLoopGroup, _ in
+            print(type(of: inputValue))
+            return eventLoopGroup.next().newSucceededFuture(result: nil)
+        },
         "doesKnowCommand": GraphQLField(
             type: GraphQLNonNull(GraphQLBoolean),
             args: [
                 "catCommand": GraphQLArgument(type: GraphQLNonNull(ValidationExampleCatCommand))
-            ]
+            ],
+            resolve: { inputValue, _, _, eventLoopGroup, _ in
+                print(type(of: inputValue))
+                return eventLoopGroup.next().newSucceededFuture(result: nil)
+            }
         ),
-        "meowVolume": GraphQLField(type: GraphQLInt),
+        "meowVolume": GraphQLField(type: GraphQLInt) { inputValue, _, _, eventLoopGroup, _ in
+            print(type(of: inputValue))
+            return eventLoopGroup.next().newSucceededFuture(result: nil)
+        },
     ],
     interfaces: [ValidationExamplePet]
 )
@@ -157,7 +208,10 @@ let ValidationExampleHumanOrAlien = try! GraphQLUnionType(
 let ValidationExampleQueryRoot = try! GraphQLObjectType(
     name: "QueryRoot",
     fields: [
-        "dog": GraphQLField(type: ValidationExampleDog),
+        "dog": GraphQLField(type: ValidationExampleDog) { inputValue, _, _, eventLoopGroup, _ in
+            print(type(of: inputValue))
+            return eventLoopGroup.next().newSucceededFuture(result: nil)
+        },
     ]
 )
 

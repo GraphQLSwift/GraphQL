@@ -3,15 +3,15 @@ import NIO
 /**
  * These are all of the possible kinds of types.
  */
-public protocol GraphQLType      : CustomDebugStringConvertible, MapRepresentable {}
-extension GraphQLScalarType      : GraphQLType                                    {}
-extension GraphQLObjectType      : GraphQLType                                    {}
-extension GraphQLInterfaceType   : GraphQLType                                    {}
-extension GraphQLUnionType       : GraphQLType                                    {}
-extension GraphQLEnumType        : GraphQLType                                    {}
-extension GraphQLInputObjectType : GraphQLType                                    {}
-extension GraphQLList            : GraphQLType                                    {}
-extension GraphQLNonNull         : GraphQLType                                    {}
+public protocol GraphQLType      : CustomDebugStringConvertible, Encodable, KeySubscriptable {}
+extension GraphQLScalarType      : GraphQLType                             {}
+extension GraphQLObjectType      : GraphQLType                             {}
+extension GraphQLInterfaceType   : GraphQLType                             {}
+extension GraphQLUnionType       : GraphQLType                             {}
+extension GraphQLEnumType        : GraphQLType                             {}
+extension GraphQLInputObjectType : GraphQLType                             {}
+extension GraphQLList            : GraphQLType                             {}
+extension GraphQLNonNull         : GraphQLType                             {}
 
 /**
  * These types may be used as input types for arguments and directives.
@@ -50,7 +50,7 @@ extension GraphQLNonNull          : GraphQLOutputType {}
  * These types may describe types which may be leaf values.
  */
 public protocol GraphQLLeafType : GraphQLNamedType {
-    func serialize(value: Any) throws -> Map
+    func serialize(value: Map) throws -> Map
     func parseValue(value: Map) throws -> Map
     func parseLiteral(valueAST: Value) throws -> Map
 }
@@ -163,14 +163,16 @@ extension GraphQLNonNull : GraphQLWrapperType {}
 public final class GraphQLScalarType {
     public let name: String
     public let description: String?
-    let serialize: (Any) throws -> Map
+    public let kind: TypeKind = .scalar
+    
+    let serialize: (Map) throws -> Map
     let parseValue: ((Map) throws -> Map)?
     let parseLiteral: ((Value) throws -> Map)?
 
     public init(
         name: String,
         description: String? = nil,
-        serialize: @escaping (Any) throws -> Map
+        serialize: @escaping (Map) throws -> Map
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -183,7 +185,7 @@ public final class GraphQLScalarType {
     public init(
         name: String,
         description: String? = nil,
-        serialize: @escaping (Any) throws -> Map,
+        serialize: @escaping (Map) throws -> Map,
         parseValue: @escaping (Map) throws -> Map,
         parseLiteral: @escaping (Value) throws -> Map
     ) throws {
@@ -196,7 +198,7 @@ public final class GraphQLScalarType {
     }
 
     // Serializes an internal value to include in a response.
-    public func serialize(value: Any) throws -> Map {
+    public func serialize(value: Map) throws -> Map {
         return try self.serialize(value)
     }
 
@@ -211,19 +213,32 @@ public final class GraphQLScalarType {
     }
 }
 
-extension GraphQLScalarType : CustomDebugStringConvertible {
-    public var debugDescription: String {
-        return name
+extension GraphQLScalarType  : Encodable {
+    private enum CodingKeys : String, CodingKey {
+        case name
+        case description
+        case kind
     }
 }
 
-extension GraphQLScalarType {
-    public var map: Map {
-        return [
-            "name": name.map,
-            "description": description.map,
-            "kind": TypeKind.scalar.rawValue.map,
-        ]
+extension GraphQLScalarType : KeySubscriptable {
+    public subscript(key: String) -> Any? {
+        switch key {
+        case CodingKeys.name.rawValue:
+            return self.name
+        case CodingKeys.description.rawValue:
+            return self.description
+        case CodingKeys.kind.rawValue:
+            return self.kind
+        default:
+            return nil
+        }
+    }
+}
+
+extension GraphQLScalarType : CustomDebugStringConvertible {
+    public var debugDescription: String {
+        return name
     }
 }
 
@@ -283,7 +298,8 @@ public final class GraphQLObjectType {
     public let fields: GraphQLFieldDefinitionMap
     public let interfaces: [GraphQLInterfaceType]
     public let isTypeOf: GraphQLIsTypeOf?
-
+    public let kind: TypeKind = .object
+    
     public init(
         name: String,
         description: String? = nil,
@@ -313,21 +329,38 @@ public final class GraphQLObjectType {
     }
 }
 
-extension GraphQLObjectType : CustomDebugStringConvertible {
-    public var debugDescription: String {
-        return name
+extension GraphQLObjectType : Encodable {
+    private enum CodingKeys : String, CodingKey {
+        case name
+        case description
+        case fields
+        case interfaces
+        case kind
     }
 }
 
-extension GraphQLObjectType {
-    public var map: Map {
-        return [
-            "name": name.map,
-            "description": description.map,
-            "fields": fields.map,
-            "interfaces": interfaces.map,
-            "kind": TypeKind.object.rawValue.map,
-        ]
+extension GraphQLObjectType : KeySubscriptable {
+    public subscript(key: String) -> Any? {
+        switch key {
+        case CodingKeys.name.rawValue:
+            return self.name
+        case CodingKeys.description.rawValue:
+            return self.description
+        case CodingKeys.fields.rawValue:
+            return self.fields
+        case CodingKeys.interfaces.rawValue:
+            return self.interfaces
+        case CodingKeys.kind.rawValue:
+            return self.kind.rawValue
+        default:
+            return nil
+        }
+    }
+}
+
+extension GraphQLObjectType : CustomDebugStringConvertible {
+    public var debugDescription: String {
+        return name
     }
 }
 
@@ -459,7 +492,7 @@ public struct GraphQLResolveInfo {
     public let fieldASTs: [Field]
     public let returnType: GraphQLOutputType
     public let parentType: GraphQLCompositeType
-    public let path: [IndexPathElement]
+    public let path: IndexPath
     public let schema: GraphQLSchema
     public let fragments: [String: FragmentDefinition]
     public let rootValue: Any
@@ -532,16 +565,45 @@ public final class GraphQLFieldDefinition {
     }
 }
 
-extension GraphQLFieldDefinition : MapRepresentable {
-    public var map: Map {
-        return [
-            "name": name.map,
-            "description": description.map,
-            "type": type.map,
-            "args": args.map,
-            "deprecationReason": deprecationReason.map,
-            "isDeprecated": isDeprecated.map,
-        ]
+extension GraphQLFieldDefinition : Encodable {
+    private enum CodingKeys : String, CodingKey {
+        case name
+        case description
+        case type
+        case args
+        case deprecationReason
+        case isDeprecated
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.name, forKey: .name)
+        try container.encode(self.description, forKey: .description)
+        try container.encode(AnyEncodable(self.type), forKey: .type)
+        try container.encode(self.args, forKey: .args)
+        try container.encode(self.deprecationReason, forKey: .deprecationReason)
+        try container.encode(self.isDeprecated, forKey: .isDeprecated)
+    }
+}
+
+extension GraphQLFieldDefinition : KeySubscriptable {
+    public subscript(key: String) -> Any? {
+        switch key {
+        case CodingKeys.name.rawValue:
+            return self.name
+        case CodingKeys.description.rawValue:
+            return self.description
+        case CodingKeys.type.rawValue:
+            return self.type
+        case CodingKeys.args.rawValue:
+            return self.args
+        case CodingKeys.deprecationReason.rawValue:
+            return self.deprecationReason
+        case CodingKeys.isDeprecated.rawValue:
+            return self.isDeprecated
+        default:
+            return nil
+        }
     }
 }
 
@@ -582,14 +644,37 @@ public struct GraphQLArgumentDefinition {
     }
 }
 
-extension GraphQLArgumentDefinition : MapRepresentable {
-    public var map: Map {
-        return [
-            "name": name.map,
-            "description": description.map,
-            "type": type.map,
-            "defaultValue": defaultValue.map,
-        ]
+extension GraphQLArgumentDefinition : Encodable {
+    private enum CodingKeys : String, CodingKey {
+        case name
+        case description
+        case type
+        case defaultValue
+    }
+ 
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.name, forKey: .name)
+        try container.encode(self.description, forKey: .description)
+        try container.encode(AnyEncodable(self.type), forKey: .type)
+        try container.encode(self.defaultValue, forKey: .defaultValue)
+    }
+}
+
+extension GraphQLArgumentDefinition : KeySubscriptable {
+    public subscript(key: String) -> Any? {
+        switch key {
+        case CodingKeys.name.rawValue:
+            return self.name
+        case CodingKeys.description.rawValue:
+            return self.description
+        case CodingKeys.type.rawValue:
+            return self.type
+        case CodingKeys.defaultValue.rawValue:
+            return self.defaultValue
+        default:
+            return nil
+        }
     }
 }
 
@@ -615,8 +700,8 @@ public final class GraphQLInterfaceType {
     public let name: String
     public let description: String?
     public let resolveType: GraphQLTypeResolve?
-
     public let fields: GraphQLFieldDefinitionMap
+    public let kind: TypeKind = .interface
 
     public init(
         name: String,
@@ -641,20 +726,35 @@ public final class GraphQLInterfaceType {
     }
 }
 
-extension GraphQLInterfaceType : CustomDebugStringConvertible {
-    public var debugDescription: String {
-        return name
+extension GraphQLInterfaceType : Encodable {
+    private enum CodingKeys : String, CodingKey {
+        case name
+        case description
+        case fields
+        case kind
     }
 }
 
-extension GraphQLInterfaceType {
-    public var map: Map {
-        return [
-            "name": name.map,
-            "description": description.map,
-            "fields": fields.map,
-            "kind": TypeKind.interface.rawValue.map,
-        ]
+extension GraphQLInterfaceType : KeySubscriptable {
+    public subscript(key: String) -> Any? {
+        switch key {
+        case CodingKeys.name.rawValue:
+            return self.name
+        case CodingKeys.description.rawValue:
+            return self.description
+        case CodingKeys.fields.rawValue:
+            return self.fields
+        case CodingKeys.kind.rawValue:
+            return self.kind
+        default:
+            return nil
+        }
+    }
+}
+
+extension GraphQLInterfaceType : CustomDebugStringConvertible {
+    public var debugDescription: String {
+        return name
     }
 }
 
@@ -697,9 +797,9 @@ public final class GraphQLUnionType {
     public let name: String
     public let description: String?
     public let resolveType: GraphQLTypeResolve?
-
     public let types: [GraphQLObjectType]
     public let possibleTypeNames: [String: Bool]
+    public let kind: TypeKind = .union
 
     public init(
         name: String,
@@ -711,29 +811,46 @@ public final class GraphQLUnionType {
         self.name = name
         self.description = description
         self.resolveType = resolveType
+        
         self.types = try defineTypes(
             name: name,
             hasResolve: resolveType != nil,
             types: types
         )
+        
         self.possibleTypeNames = [:]
+    }
+}
+
+extension GraphQLUnionType : Encodable {
+    private enum CodingKeys : String, CodingKey {
+        case name
+        case description
+        case types
+        case kind
+    }
+}
+
+extension GraphQLUnionType : KeySubscriptable {
+    public subscript(key: String) -> Any? {
+        switch key {
+        case CodingKeys.name.rawValue:
+            return self.name
+        case CodingKeys.description.rawValue:
+            return self.description
+        case CodingKeys.types.rawValue:
+            return self.types
+        case CodingKeys.kind.rawValue:
+            return self.kind
+        default:
+            return nil
+        }
     }
 }
 
 extension GraphQLUnionType : CustomDebugStringConvertible {
     public var debugDescription: String {
         return name
-    }
-}
-
-extension GraphQLUnionType {
-    public var map: Map {
-        return [
-            "name": name.map,
-            "description": description.map,
-            "types": types.map,
-            "kind": TypeKind.union.rawValue.map,
-        ]
     }
 }
 
@@ -801,10 +918,10 @@ func defineTypes(
 public final class GraphQLEnumType {
     public let name: String
     public let description: String?
-
     public let values: [GraphQLEnumValueDefinition]
     public let valueLookup: [Map: GraphQLEnumValueDefinition]
     public let nameLookup: [String: GraphQLEnumValueDefinition]
+    public let kind: TypeKind = .enum
 
     public init(
         name: String,
@@ -836,8 +953,8 @@ public final class GraphQLEnumType {
         self.nameLookup = nameLookup
     }
 
-    public func serialize(value: Any) throws -> Map {
-        return try valueLookup[GraphQL.map(from: value)].map({ .string($0.name) }) ?? .null
+    public func serialize(value: Map) throws -> Map {
+        return valueLookup[value].map({ .string($0.name) }) ?? .null
     }
 
     public func parseValue(value: Map) throws -> Map {
@@ -857,20 +974,35 @@ public final class GraphQLEnumType {
     }
 }
 
-extension GraphQLEnumType : CustomDebugStringConvertible {
-    public var debugDescription: String {
-        return name
+extension GraphQLEnumType : Encodable {
+    private enum CodingKeys : String, CodingKey {
+        case name
+        case description
+        case values
+        case kind
     }
 }
 
-extension GraphQLEnumType {
-    public var map: Map {
-        return [
-            "name": name.map,
-            "description": description.map,
-            "values": values.map,
-            "kind": TypeKind.enum.rawValue.map,
-        ]
+extension GraphQLEnumType : KeySubscriptable {
+    public subscript(key: String) -> Any? {
+        switch key {
+        case CodingKeys.name.rawValue:
+            return self.name
+        case CodingKeys.description.rawValue:
+            return self.description
+        case CodingKeys.values.rawValue:
+            return self.values
+        case CodingKeys.kind.rawValue:
+            return self.kind
+        default:
+            return nil
+        }
+    }
+}
+
+extension GraphQLEnumType : CustomDebugStringConvertible {
+    public var debugDescription: String {
+        return name
     }
 }
 
@@ -921,17 +1053,24 @@ public struct GraphQLEnumValue {
     public let deprecationReason: String?
 
     public init(
-        value: MapRepresentable,
+        value: Map,
         description: String? = nil,
         deprecationReason: String? = nil
     ) {
-        self.value = value.map
+        self.value = value
         self.description = description
         self.deprecationReason = deprecationReason
     }
 }
 
-public struct GraphQLEnumValueDefinition {
+public struct GraphQLEnumValueDefinition : Encodable {
+    private enum CodingKeys : String, CodingKey {
+        case name
+        case description
+        case deprecationReason
+        case isDeprecated
+    }
+    
     public let name: String
     public let description: String?
     public let deprecationReason: String?
@@ -939,14 +1078,20 @@ public struct GraphQLEnumValueDefinition {
     public let value: Map
 }
 
-extension GraphQLEnumValueDefinition : MapRepresentable {
-    public var map: Map {
-        return [
-            "name": name.map,
-            "description": description.map,
-            "deprecationReason": deprecationReason.map,
-            "isDeprecated": isDeprecated.map
-        ]
+extension GraphQLEnumValueDefinition : KeySubscriptable {
+    public subscript(key: String) -> Any? {
+        switch key {
+        case CodingKeys.name.rawValue:
+            return self.name
+        case CodingKeys.description.rawValue:
+            return self.description
+        case CodingKeys.deprecationReason.rawValue:
+            return self.deprecationReason
+        case CodingKeys.isDeprecated.rawValue:
+            return self.isDeprecated
+        default:
+            return nil
+        }
     }
 }
 
@@ -973,8 +1118,8 @@ extension GraphQLEnumValueDefinition : MapRepresentable {
 public final class GraphQLInputObjectType {
     public let name: String
     public let description: String?
-
     public let fields: InputObjectFieldMap
+    public let kind: TypeKind = .inputObject
 
     public init(
         name: String,
@@ -991,20 +1136,35 @@ public final class GraphQLInputObjectType {
     }
 }
 
-extension GraphQLInputObjectType : CustomDebugStringConvertible {
-    public var debugDescription: String {
-        return name
+extension GraphQLInputObjectType : Encodable {
+    private enum CodingKeys : String, CodingKey {
+        case name
+        case description
+        case fields
+        case kind
     }
 }
 
-extension GraphQLInputObjectType {
-    public var map: Map {
-        return [
-            "name": name.map,
-            "description": description.map,
-            "fields": fields.map,
-            "kind": TypeKind.inputObject.rawValue.map,
-        ]
+extension GraphQLInputObjectType : KeySubscriptable {
+    public subscript(key: String) -> Any? {
+        switch key {
+        case CodingKeys.name.rawValue:
+            return self.name
+        case CodingKeys.description.rawValue:
+            return self.description
+        case CodingKeys.fields.rawValue:
+            return self.fields
+        case CodingKeys.kind.rawValue:
+            return self.kind
+        default:
+            return nil
+        }
+    }
+}
+
+extension GraphQLInputObjectType : CustomDebugStringConvertible {
+    public var debugDescription: String {
+        return name
     }
 }
 
@@ -1069,14 +1229,37 @@ public struct InputObjectFieldDefinition {
     public let defaultValue: Map?
 }
 
-extension InputObjectFieldDefinition : MapRepresentable {
-    public var map: Map {
-        return [
-            "name": name.map,
-            "description": description.map,
-            "type": type.map,
-            "defaultValue": defaultValue.map,
-        ]
+extension InputObjectFieldDefinition : Encodable {
+    private enum CodingKeys : String, CodingKey {
+        case name
+        case description
+        case type
+        case defaultValue
+    }
+ 
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.name, forKey: .name)
+        try container.encode(self.description, forKey: .description)
+        try container.encode(AnyEncodable(self.type), forKey: .type)
+        try container.encode(self.defaultValue, forKey: .defaultValue)
+    }
+}
+
+extension InputObjectFieldDefinition : KeySubscriptable {
+    public subscript(key: String) -> Any? {
+        switch key {
+        case CodingKeys.name.rawValue:
+            return self.name
+        case CodingKeys.description.rawValue:
+            return self.description
+        case CodingKeys.type.rawValue:
+            return self.type
+        case CodingKeys.defaultValue.rawValue:
+            return self.defaultValue
+        default:
+            return nil
+        }
     }
 }
 
@@ -1102,6 +1285,7 @@ public typealias InputObjectFieldMap = [String: InputObjectFieldDefinition]
  */
 public final class GraphQLList {
     public let ofType: GraphQLType
+    public let kind: TypeKind = .list
 
     public init(_ type: GraphQLType) {
         self.ofType = type
@@ -1121,18 +1305,35 @@ public final class GraphQLList {
     }
 }
 
-extension GraphQLList : CustomDebugStringConvertible {
-    public var debugDescription: String {
-        return "[" + ofType.debugDescription + "]"
+extension GraphQLList : Encodable {
+    private enum CodingKeys : String, CodingKey {
+        case ofType
+        case kind
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(AnyEncodable(self.ofType), forKey: .ofType)
+        try container.encode(self.kind, forKey: .kind)
     }
 }
 
-extension GraphQLList {
-    public var map: Map {
-        return [
-            "ofType": ofType.map,
-            "kind": TypeKind.list.rawValue.map,
-        ]
+extension GraphQLList : KeySubscriptable {
+    public subscript(key: String) -> Any? {
+        switch key {
+        case CodingKeys.ofType.rawValue:
+            return self.ofType
+        case CodingKeys.kind.rawValue:
+            return self.kind
+        default:
+            return nil
+        }
+    }
+}
+
+extension GraphQLList : CustomDebugStringConvertible {
+    public var debugDescription: String {
+        return "[" + ofType.debugDescription + "]"
     }
 }
 
@@ -1168,6 +1369,7 @@ extension GraphQLList : Hashable {
  */
 public final class GraphQLNonNull {
     public let ofType: GraphQLNullableType
+    public let kind: TypeKind = .nonNull
 
     public init(_ type: GraphQLNullableType) {
         self.ofType = type
@@ -1194,18 +1396,35 @@ public final class GraphQLNonNull {
     }
 }
 
-extension GraphQLNonNull : CustomDebugStringConvertible {
-    public var debugDescription: String {
-        return ofType.debugDescription + "!"
+extension GraphQLNonNull : Encodable {
+    private enum CodingKeys : String, CodingKey {
+        case ofType
+        case kind
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(AnyEncodable(self.ofType), forKey: .ofType)
+        try container.encode(self.kind, forKey: .kind)
     }
 }
 
-extension GraphQLNonNull {
-    public var map: Map {
-        return [
-            "ofType": ofType.map,
-            "kind": TypeKind.nonNull.rawValue.map,
-        ]
+extension GraphQLNonNull : KeySubscriptable {
+    public subscript(key: String) -> Any? {
+        switch key {
+        case CodingKeys.ofType.rawValue:
+            return self.ofType
+        case CodingKeys.kind.rawValue:
+            return self.kind
+        default:
+            return nil
+        }
+    }
+}
+
+extension GraphQLNonNull : CustomDebugStringConvertible {
+    public var debugDescription: String {
+        return ofType.debugDescription + "!"
     }
 }
 
@@ -1225,23 +1444,32 @@ extension GraphQLNonNull : Hashable {
  */
 public final class GraphQLTypeReference : GraphQLType, GraphQLOutputType, GraphQLNullableType {
     public let name: String
+    public let kind: TypeKind = .typeReference
 
     public init(_ name: String) {
         self.name = name
     }
 }
 
-extension GraphQLTypeReference : CustomDebugStringConvertible {
-    public var debugDescription: String {
-        return name
+extension GraphQLTypeReference : Encodable {
+    private enum CodingKeys : String, CodingKey {
+        case name
     }
 }
 
-extension GraphQLTypeReference {
-    public var map: Map {
-        return [
-            "name": name.map,
-            "kind": TypeKind.typeReference.rawValue.map,
-        ]
+extension GraphQLTypeReference : KeySubscriptable {
+    public subscript(key: String) -> Any? {
+        switch name {
+        case CodingKeys.name.rawValue:
+            return self.name
+        default:
+            return nil
+        }
+    }
+}
+
+extension GraphQLTypeReference : CustomDebugStringConvertible {
+    public var debugDescription: String {
+        return name
     }
 }

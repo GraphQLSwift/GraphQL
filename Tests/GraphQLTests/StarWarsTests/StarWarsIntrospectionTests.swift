@@ -19,8 +19,8 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected: Map = [
-            "data": [
+        let expected = GraphQLResult(
+            data: [
                 "__schema": [
                     "types": [
                         [
@@ -70,8 +70,8 @@ class StarWarsIntrospectionTests : XCTestCase {
                         ],
                     ],
                 ],
-            ],
-        ]
+            ]
+        )
 
             let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
             XCTAssertEqual(result, expected)
@@ -94,15 +94,15 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected: Map = [
-            "data": [
+        let expected = GraphQLResult(
+            data: [
                 "__schema": [
                     "queryType": [
                         "name": "Query",
                     ],
                 ],
-            ],
-        ]
+            ]
+        )
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -120,13 +120,13 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected: Map = [
-            "data": [
+        let expected = GraphQLResult(
+            data: [
                 "__type": [
                     "name": "Droid",
                 ],
-            ],
-        ]
+            ]
+        )
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -145,14 +145,14 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected: Map = [
-            "data": [
+        let expected = GraphQLResult(
+            data: [
                 "__type": [
                     "name": "Droid",
                     "kind": "OBJECT",
                 ],
-            ],
-        ]
+            ]
+        )
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -171,14 +171,14 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected: Map = [
-            "data": [
+        let expected = GraphQLResult(
+            data: [
                 "__type": [
                     "name": "Character",
                     "kind": "INTERFACE",
                 ],
-            ],
-        ]
+            ]
+        )
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -203,8 +203,8 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected: Map = [
-            "data": [
+        let expected = GraphQLResult(
+            data: [
                 "__type": [
                     "name": "Droid",
                     "fields": [
@@ -252,8 +252,8 @@ class StarWarsIntrospectionTests : XCTestCase {
                         ],
                     ],
                 ],
-            ],
-        ]
+            ]
+        )
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -282,8 +282,8 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected: Map = [
-            "data": [
+        let expected = GraphQLResult(
+            data: [
                 "__type": [
                     "name": "Droid",
                     "fields": [
@@ -346,8 +346,8 @@ class StarWarsIntrospectionTests : XCTestCase {
                         ],
                     ],
                 ],
-            ],
-        ]
+            ]
+        )
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -382,8 +382,8 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected: Map = [
-            "data": [
+        let expected = GraphQLResult(
+            data: [
                 "__schema": [
                     "queryType": [
                         "fields": [
@@ -441,8 +441,8 @@ class StarWarsIntrospectionTests : XCTestCase {
                         ],
                     ],
                 ],
-            ],
-        ]
+            ]
+        )
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
@@ -461,14 +461,14 @@ class StarWarsIntrospectionTests : XCTestCase {
                     "    }" +
                     "}"
 
-        let expected: Map = [
-            "data": [
+        let expected = GraphQLResult(
+            data: [
                 "__type": [
                     "name": "Droid",
                     "description": "A mechanical creature in the Star Wars universe.",
                 ],
-            ],
-        ]
+            ]
+        )
 
         let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)

@@ -1,33 +1,3 @@
-public enum Map {
-    case null
-    case bool(Bool)
-    case double(Double)
-    case int(Int)
-    case string(String)
-    case array([Map])
-    case dictionary([String: Map])
-}
-
-public protocol MapInitializable {
-    init(map: Map) throws
-}
-
-public protocol MapRepresentable : MapFallibleRepresentable {
-    var map: Map { get }
-}
-
-public protocol MapFallibleRepresentable {
-    func asMap() throws -> Map
-}
-
-extension MapRepresentable {
-    public func asMap() throws -> Map {
-        return map
-    }
-}
-
-public protocol MapConvertible : MapInitializable, MapFallibleRepresentable {}
-
 // MARK: MapError
 
 public enum MapError : Error {
@@ -41,60 +11,178 @@ public enum MapError : Error {
     case cannotInitialize(type: Any.Type, from: Any.Type)
 }
 
-// MARK: Parser/Serializer Protocols
+// MARK: Map
 
-public enum MapParserError : Error {
-    case invalidInput
+public enum Map {
+    case null
+    case number(Number)
+    case string(String)
+    case array([Map])
+    case dictionary([String: Map])
+    
+    public static func bool(_ value: Bool) -> Map {
+        return .number(Number(value))
+    }
+    
+    public static func int(_ value: Int) -> Map {
+        return .number(Number(value))
+    }
+    
+    public static func double(_ value: Double) -> Map {
+        return .number(Number(value))
+    }
 }
 
 // MARK: Initializers
 
 extension Map {
-    public init<T: MapRepresentable>(_ value: T?) {
-        self = value?.map ?? .null
+    public static let encoder = MapEncoder()
+
+    public init<T : Encodable>(_ encodable: T, encoder: MapEncoder = Map.encoder) throws {
+        self = try encoder.encode(encodable)
+    }
+    
+    public init(_ number: Number) {
+        self = .number(number)
+    }
+    
+    public init(_ bool: Bool) {
+        self.init(Number(bool))
+    }
+    
+    public init(_ int: Int) {
+        self.init(Number(int))
+    }
+    
+    public init(_ double: Double) {
+        self.init(Number(double))
+    }
+    
+    public init(_ string: String) {
+        self = .string(string)
+    }
+    
+    public init(_ array: [Map]) {
+        self = .array(array)
+    }
+    
+    public init(_ dictionary: [String: Map]) {
+        self = .dictionary(dictionary)
+    }
+    
+    public init(_ number: Number?) {
+        self = number.map({ Map($0) }) ?? .null
+    }
+    
+    public init(_ bool: Bool?) {
+        self.init(bool.map({ Number($0) }))
+    }
+    
+    public init(_ int: Int?) {
+        self.init(int.map({ Number($0) }))
+    }
+    
+    public init(_ double: Double?) {
+        self.init(double.map({ Number($0) }))
+    }
+    
+    public init(_ string: String?) {
+        self = string.map({ Map($0) }) ?? .null
+    }
+    
+    public init(_ array: [Map]?) {
+        self = array.map({ Map($0) }) ?? .null
+    }
+    
+    public init(_ dictionary: [String: Map]?) {
+        self = dictionary.map({ Map($0) }) ?? .null
+    }
+}
+
+// MARK: Any
+
+import Runtime
+
+public func map(from value: Any?) throws -> Map {
+    guard let value = value else {
+        return .null
+    }
+    
+    if let map = value as? Map {
+        return map
+    }
+    
+    if let map = try? Map(any: value) {
+        return map
     }
 
-    public init<T: MapRepresentable>(_ values: [T]?) {
-        if let values = values {
-            self = .array(values.map({$0.map}))
-        } else {
+    if
+        let value = value as? [String: Any],
+        let dictionary: [String: Map] = try? value.reduce(into: [:], { result, pair in
+            result[pair.key] = try map(from: pair.value)
+        })
+    {
+        return .dictionary(dictionary)
+    }
+
+    if
+        let value = value as? [Any],
+        let array: [Map] = try? value.map({ value in
+            try map(from: value)
+        })
+    {
+        return .array(array)
+    }
+
+    
+    if
+        let value = value as? Encodable,
+        let map = try? Map(AnyEncodable(value))
+    {
+        return map
+    }
+
+//    if let mapRepresentable = value as? MapRepresentable {
+//        return mapRepresentable.map
+//    }
+//
+//    if let mapFallibleRepresentable = value as? MapFallibleRepresentable {
+//        return try mapFallibleRepresentable.asMap()
+//    }
+
+    let info = try typeInfo(of: type(of: value))
+    let props = info.properties
+
+    var dictionary = [String: Map](minimumCapacity: props.count)
+
+    for property in props {
+        dictionary[property.name] = try GraphQL.map(from: property.get(from: value))
+    }
+
+    return .dictionary(dictionary)
+}
+
+extension Map {
+    public init(any: Any?) throws {
+        switch any {
+        case .none:
             self = .null
-        }
-    }
-
-    public init<T: MapRepresentable>(_ values: [T?]?) {
-        if let values = values {
-            self = .array(values.map({$0?.map ?? .null}))
-        } else {
-            self = .null
-        }
-    }
-
-    public init<T: MapRepresentable>(_ values: [String: T]?) {
-        if let values = values {
-            var dictionary: [String: Map] = [:]
-
-            for (key, value) in values.map({($0.key, $0.value.map)}) {
-                dictionary[key] = value
-            }
-
+        case let number as Number:
+            self = .number(number)
+        case let bool as Bool:
+            self = .bool(bool)
+        case let double as Double:
+            self = .number(Number(double))
+        case let int as Int:
+            self = .number(Number(int))
+        case let string as String:
+            self = .string(string)
+        case let array as [Map]:
+            self = .array(array)
+        case let dictionary as [String: Map]:
             self = .dictionary(dictionary)
-        } else {
-            self = .null
-        }
-    }
-
-    public init<T: MapRepresentable>(_ values: [String: T?]?) {
-        if let values = values {
-            var dictionary: [String: Map] = [:]
-
-            for (key, value) in values.map({($0.key, $0.value?.map ?? .null)}) {
-                dictionary[key] = value
-            }
-
-            self = .dictionary(dictionary)
-        } else {
-            self = .null
+        default:
+            throw MapError.incompatibleType
         }
     }
 }
@@ -109,22 +197,8 @@ extension Map {
         return false
     }
 
-    public var isBool: Bool {
-        if case .bool = self {
-            return true
-        }
-        return false
-    }
-
-    public var isDouble: Bool {
-        if case .double = self {
-            return true
-        }
-        return false
-    }
-
-    public var isInt: Bool {
-        if case .int = self {
+    public var isNumber: Bool {
+        if case .number = self {
             return true
         }
         return false
@@ -156,15 +230,15 @@ extension Map {
 
 extension Map {
     public var bool: Bool? {
-        return try? get()
+        return try? (get() as Number).boolValue
+    }
+    
+    public var int: Int? {
+        return try? (get() as Number).intValue
     }
 
     public var double: Double? {
-        return try? get()
-    }
-
-    public var int: Int? {
-        return try? get()
+        return try? (get() as Number).doubleValue
     }
 
     public var string: String? {
@@ -183,113 +257,94 @@ extension Map {
 // MARK: try as<type>()
 
 extension Map {
-    public func asBool(converting: Bool = false) throws -> Bool {
+    public func boolValue(converting: Bool = false) throws -> Bool {
         guard converting else {
             return try get()
         }
 
         switch self {
-        case .bool(let value):
-            return value
+        case .null:
+            return false
+            
+        case let .number(number):
+            return number.boolValue
 
-        case .int(let value):
-            return value != 0
-
-        case .double(let value):
-            return value != 0
-
-        case .string(let value):
+        case let .string(value):
             switch value.lowercased() {
             case "true": return true
             case "false": return false
             default: throw MapError.incompatibleType
             }
 
-        case .array(let value):
+        case let .array(value):
             return !value.isEmpty
 
-        case .dictionary(let value):
+        case let .dictionary(value):
             return !value.isEmpty
-
-        case .null:
-            return false
         }
     }
 
-    public func asInt(converting: Bool = false) throws -> Int {
+    public func intValue(converting: Bool = false) throws -> Int {
         guard converting else {
             return try get()
         }
 
         switch self {
-        case .bool(let value):
-            return value ? 1 : 0
-
-        case .int(let value):
-            return value
-
-        case .double(let value):
-            return Int(value)
-
-        case .string(let value):
-            if let int = Int(value) {
-                return int
-            }
-            throw MapError.incompatibleType
-
         case .null:
             return 0
+            
+        case let .number(number):
+            return number.intValue
+
+        case let .string(value):
+            guard let value = Int(value) else {
+                throw MapError.incompatibleType
+            }
+            
+            return value
 
         default:
             throw MapError.incompatibleType
         }
     }
 
-    public func asDouble(converting: Bool = false) throws -> Double {
+    public func doubleValue(converting: Bool = false) throws -> Double {
         guard converting else {
             return try get()
         }
 
         switch self {
-        case .bool(let value):
-            return value ? 1.0 : 0.0
-
-        case .int(let value):
-            return Double(value)
-
-        case .double(let value):
-            return value
-
-        case .string(let value):
-            if let double = Double(value) {
-                return double
-            }
-            throw MapError.incompatibleType
-
         case .null:
             return 0
+            
+        case let .number(number):
+            return number.doubleValue
+
+        case let .string(value):
+            guard let value = Double(value) else {
+                throw MapError.incompatibleType
+            }
+            
+            return value
 
         default:
             throw MapError.incompatibleType
         }
     }
 
-    public func asString(converting: Bool = false) throws -> String {
+    public func stringValue(converting: Bool = false) throws -> String {
         guard converting else {
             return try get()
         }
 
         switch self {
-        case .bool(let value):
-            return String(value)
+        case .null:
+            return "null"
+            
+        case let .number(number):
+            return number.stringValue
 
-        case .int(let value):
-            return String(value)
-
-        case .double(let value):
-            return String(value)
-
-        case .string(let value):
+        case let .string(value):
             return value
 
         case .array:
@@ -297,19 +352,16 @@ extension Map {
 
         case .dictionary:
             throw MapError.incompatibleType
-
-        case .null:
-            return "null"
         }
     }
 
-    public func asArray(converting: Bool = false) throws -> [Map] {
+    public func arrayValue(converting: Bool = false) throws -> [Map] {
         guard converting else {
             return try get()
         }
 
         switch self {
-        case .array(let value):
+        case let .array(value):
             return value
 
         case .null:
@@ -320,13 +372,13 @@ extension Map {
         }
     }
 
-    public func asDictionary(converting: Bool = false) throws -> [String: Map] {
+    public func dictionaryValue(converting: Bool = false) throws -> [String: Map] {
         guard converting else {
             return try get()
         }
 
         switch self {
-        case .dictionary(let value):
+        case let .dictionary(value):
             return value
 
         case .null:
@@ -338,99 +390,40 @@ extension Map {
     }
 }
 
-// MARK: IndexPath
-
-public typealias IndexPath = [IndexPathElement]
-
-public enum IndexPathValue {
-    case index(Int)
-    case key(String)
-}
-
-public protocol IndexPathElement : MapRepresentable {
-    var indexPathValue: IndexPathValue { get }
-}
-
-extension IndexPathElement {
-    public var map: Map {
-        switch indexPathValue {
-        case .index(let index): return index.map
-        case .key(let key): return key.map
-        }
-    }
-}
-
-extension IndexPathElement {
-    public var indexValue: Int? {
-        if case .index(let index) = indexPathValue {
-            return index
-        }
-        return nil
-    }
-
-    public var keyValue: String? {
-        if case .key(let key) = indexPathValue {
-            return key
-        }
-        return nil
-    }
-}
-
-extension IndexPathElement {
-    var constructEmptyContainer: Map {
-        switch indexPathValue {
-        case .index: return []
-        case .key: return [:]
-        }
-    }
-}
-
-extension Int : IndexPathElement {
-    public var indexPathValue: IndexPathValue {
-        return .index(self)
-    }
-}
-
-extension String : IndexPathElement {
-    public var indexPathValue: IndexPathValue {
-        return .key(self)
-    }
-}
-
 // MARK: Get
 
 extension Map {
-    public func get<T : MapInitializable>(_ indexPath: IndexPathElement...) throws -> T {
-        let map = try get(indexPath)
-        return try T(map: map)
-    }
-
     public func get<T>(_ indexPath: IndexPathElement...) throws -> T {
         if indexPath.isEmpty {
             switch self {
-            case .bool(let value as T): return value
-            case .int(let value as T): return value
-            case .double(let value as T): return value
-            case .string(let value as T): return value
-            case .array(let value as T): return value
-            case .dictionary(let value as T): return value
-            default: throw MapError.incompatibleType
+            case let .number(value as T):
+                return value
+            case let .string(value as T):
+                return value
+            case let .array(value as T):
+                return value
+            case let .dictionary(value as T):
+                return value
+            default:
+                throw MapError.incompatibleType
             }
         }
-        return try get(indexPath).get()
+        
+        return try get(IndexPath(indexPath)).get()
     }
-
+    
     public func get(_ indexPath: IndexPathElement...) throws -> Map {
-        return try get(indexPath)
+        return try get(IndexPath(indexPath))
     }
 
     public func get(_ indexPath: IndexPath) throws -> Map {
         var value: Map = self
 
-        for element in indexPath {
-            switch element.indexPathValue {
+        for element in indexPath.elements {
+            switch element {
             case .index(let index):
-                let array = try value.asArray()
+                let array = try value.arrayValue()
+                
                 if array.indices.contains(index) {
                     value = array[index]
                 } else {
@@ -438,7 +431,8 @@ extension Map {
                 }
 
             case .key(let key):
-                let dictionary = try value.asDictionary()
+                let dictionary = try value.dictionaryValue()
+                
                 if let newValue = dictionary[key] {
                     value = newValue
                 } else {
@@ -454,38 +448,40 @@ extension Map {
 // MARK: Set
 
 extension Map {
-    public mutating func set<T : MapRepresentable>(_ value: T, for indexPath: IndexPathElement...) throws {
+    public mutating func set(_ value: Map, for indexPath: IndexPathElement...) throws {
         try set(value, for: indexPath)
     }
 
-    public mutating func set<T : MapRepresentable>(_ value: T, for indexPath: [IndexPathElement]) throws {
-        try set(value, for: indexPath, merging: true)
+    public mutating func set(_ value: Map, for indexPath: [IndexPathElement]) throws {
+        try set(value, for: IndexPath(indexPath), merging: true)
     }
 
-    fileprivate mutating func set<T : MapRepresentable>(_ value: T, for indexPath: [IndexPathElement], merging: Bool) throws {
-        var indexPath = indexPath
+    fileprivate mutating func set(_ value: Map, for indexPath: IndexPath, merging: Bool) throws {
+        var elements = indexPath.elements
 
-        guard let first = indexPath.first else {
-            return self = value.map
+        guard let first = elements.first else {
+            return self = value
         }
 
-        indexPath.removeFirst()
+        elements.removeFirst()
 
-        if indexPath.isEmpty {
-            switch first.indexPathValue {
+        if elements.isEmpty {
+            switch first {
             case .index(let index):
                 if case .array(var array) = self {
                     if !array.indices.contains(index) {
                         throw MapError.outOfBounds
                     }
-                    array[index] = value.map
+                    
+                    array[index] = value
                     self = .array(array)
                 } else {
                     throw MapError.incompatibleType
                 }
             case .key(let key):
                 if case .dictionary(var dictionary) = self {
-                    let newValue = value.map
+                    let newValue = value
+                    
                     if let existingDictionary = dictionary[key]?.dictionary,
                         let newDictionary = newValue.dictionary,
                         merging {
@@ -503,6 +499,7 @@ extension Map {
                     } else {
                         dictionary[key] = newValue
                     }
+                    
                     self = .dictionary(dictionary)
                 } else {
                     throw MapError.incompatibleType
@@ -510,7 +507,7 @@ extension Map {
             }
         } else {
             var next = (try? self.get(first)) ?? first.constructEmptyContainer
-            try next.set(value, for: indexPath)
+            try next.set(value, for: indexPath, merging: true)
             try self.set(next, for: [first])
         }
     }
@@ -554,22 +551,22 @@ extension Map {
 extension Map {
     public subscript(indexPath: IndexPathElement...) -> Map {
         get {
-            return self[indexPath]
+            return self[IndexPath(indexPath)]
         }
 
         set(value) {
-            self[indexPath] = value
+            self[IndexPath(indexPath)] = value
         }
     }
 
-    public subscript(indexPath: [IndexPathElement]) -> Map {
+    public subscript(indexPath: IndexPath) -> Map {
         get {
             return (try? self.get(indexPath)) ?? nil
         }
 
         set(value) {
             do {
-                try self.set(value, for: indexPath)
+                try self.set(value, for: indexPath, merging: true)
             } catch {
                 fatalError(String(describing: error))
             }
@@ -577,6 +574,70 @@ extension Map {
     }
 }
 
+extension String : CodingKey {
+    public var stringValue: String {
+        return self
+    }
+
+    public init?(stringValue: String) {
+        self = stringValue
+    }
+    
+    public var intValue: Int? {
+        return nil
+    }
+    
+    public init?(intValue: Int) {
+        return nil
+    }
+}
+
+extension Map : Codable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        if container.decodeNil() {
+            self = .null
+        }
+            
+        else if let double = try? container.decode(Double.self) {
+            self = .number(Number(double))
+        }
+            
+        else if let string = try? container.decode(String.self) {
+            self = .string(string)
+        }
+            
+        else if let array = try? container.decode([Map].self) {
+            self = .array(array)
+        }
+            
+        else if let dictionary = try? container.decode([String: Map].self) {
+            self = .dictionary(dictionary)
+        }
+            
+        else {
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Corrupted data")
+        }
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        
+        switch self {
+        case .null:
+            try container.encodeNil()
+        case let .number(number):
+            try container.encode(number.doubleValue)
+        case let .string(string):
+            try container.encode(string)
+        case let .array(array):
+            try container.encode(array)
+        case let .dictionary(dictionary):
+            try container.encode(dictionary)
+        }
+    }
+}
 // MARK: Equatable
 
 extension Map : Equatable {}
@@ -584,10 +645,8 @@ extension Map : Equatable {}
 public func == (lhs: Map, rhs: Map) -> Bool {
     switch (lhs, rhs) {
     case (.null, .null): return true
-    case let (.int(l), .int(r)) where l == r: return true
-    case let (.bool(l), .bool(r)) where l == r: return true
+    case let (.number(l), .number(r)) where l == r: return true
     case let (.string(l), .string(r)) where l == r: return true
-    case let (.double(l), .double(r)) where l == r: return true
     case let (.array(l), .array(r)) where l == r: return true
     case let (.dictionary(l), .dictionary(r)) where l == r: return true
     default: return false
@@ -601,17 +660,13 @@ extension Map : Hashable {
         switch self {
         case .null:
             hasher.combine(0)
-        case .bool(let bool):
-            hasher.combine(bool)
-        case .double(let double):
-            hasher.combine(double)
-        case .int(let int):
-            hasher.combine(int)
-        case .string(let string):
+        case let .number(number):
+            hasher.combine(number)
+        case let .string(string):
             hasher.combine(string)
-        case .array(let array):
+        case let .array(array):
             hasher.combine(array)
-        case .dictionary(let dictionary):
+        case let .dictionary(dictionary):
             hasher.combine(dictionary)
         }
     }
@@ -627,19 +682,19 @@ extension Map : ExpressibleByNilLiteral {
 
 extension Map : ExpressibleByBooleanLiteral {
     public init(booleanLiteral value: BooleanLiteralType) {
-        self = .bool(value)
+        self = .number(Number(value))
     }
 }
 
 extension Map : ExpressibleByIntegerLiteral {
     public init(integerLiteral value: IntegerLiteralType) {
-        self = .int(value)
+        self = .number(Number(value))
     }
 }
 
 extension Map : ExpressibleByFloatLiteral {
     public init(floatLiteral value: FloatLiteralType) {
-        self = .double(value)
+        self = .number(Number(value))
     }
 }
 
@@ -672,5 +727,118 @@ extension Map : ExpressibleByDictionaryLiteral {
         }
         
         self = .dictionary(dictionary)
+    }
+}
+
+// MARK: CustomStringConvertible
+
+extension Map : CustomStringConvertible {
+    public var description: String {
+        return self.description(debug: false)
+    }
+}
+
+// MARK: CustomDebugStringConvertible
+
+extension Map:CustomDebugStringConvertible {
+    public var debugDescription:String {
+        return self.description(debug: true)
+    }
+}
+
+
+// MARK: Generic Description
+extension Map {
+    public func description(debug: Bool) -> String {
+        var indentLevel = 0
+        
+        func serialize(map: Map) -> String {
+            switch map {
+            case .null:
+                return "null"
+            case let .number(number):
+                return number.description
+            case .string(let string):
+                return string
+            case .array(let array):
+                return serialize(array: array)
+            case .dictionary(let dictionary):
+                return serialize(dictionary: dictionary)
+            }
+        }
+        
+        func serialize(array: [Map]) -> String {
+            var string = "["
+            
+            if debug {
+                indentLevel += 1
+            }
+            
+            for index in 0 ..< array.count {
+                if debug {
+                    string += "\n"
+                    string += indent()
+                }
+                
+                string += serialize(map: array[index])
+                
+                if index != array.count - 1 {
+                    if debug {
+                        string += ", "
+                    } else {
+                        string += ","
+                    }
+                }
+            }
+            
+            if debug {
+                indentLevel -= 1
+                return string + "\n" + indent() + "]"
+            } else {
+                return string + "]"
+            }
+        }
+        
+        func serialize(dictionary: [String: Map]) -> String {
+            var string = "{"
+            var index = 0
+            
+            if debug {
+                indentLevel += 1
+            }
+            
+            for (key, value) in dictionary.sorted(by: {$0.0 < $1.0}) {
+                if debug {
+                    string += "\n"
+                    string += indent()
+                    string += key + ": " + serialize(map: value)
+                } else {
+                    string += key + ":" + serialize(map: value)
+                }
+                
+                if index != dictionary.count - 1 {
+                    if debug {
+                        string += ", "
+                    } else {
+                        string += ","
+                    }
+                }
+                
+                index += 1
+            }
+            
+            if debug {
+                indentLevel -= 1
+                return string + "\n" + indent() + "}"
+            } else {
+                return string + "}"
+            }
+        }
+        
+        func indent() -> String {
+            return String(repeating: "    ", count: indentLevel)
+        }
+        
+        return serialize(map: self)
     }
 }

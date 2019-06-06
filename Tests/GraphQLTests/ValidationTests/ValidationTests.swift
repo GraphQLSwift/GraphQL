@@ -41,13 +41,13 @@ class ValidationTestCase : XCTestCase {
         testLine: UInt = #line
     ) throws {
         guard let error = error else {
-            XCTFail("Error was not provided")
-            return
+            return XCTFail("Error was not provided")
         }
+        
         XCTAssertEqual(error.message, message, "Unexpected error message", file: testFile, line: testLine)
         XCTAssertEqual(error.locations[0].line, line, "Unexpected line location", file: testFile, line: testLine)
         XCTAssertEqual(error.locations[0].column, column, "Unexpected column location", file: testFile, line: testLine)
-        let errorPath = try error.path.map({ try $0.asMap().description }).joined(separator: " ")
+        let errorPath = error.path.elements.map({ $0.description }).joined(separator: " ")
         XCTAssertEqual(errorPath, path, "Unexpected error path", file: testFile, line: testLine)
     }
     
