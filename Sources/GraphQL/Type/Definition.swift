@@ -485,7 +485,14 @@ public typealias GraphQLFieldResolve = (
     _ context: Any,
     _ eventLoopGroup: EventLoopGroup,
     _ info: GraphQLResolveInfo
-) throws -> EventLoopFuture<Any?>
+) throws -> Future<Any?>
+
+public typealias GraphQLFieldResolveInput = (
+    _ source: Any,
+    _ args: Map,
+    _ context: Any,
+    _ info: GraphQLResolveInfo
+) throws -> Any?
 
 public struct GraphQLResolveInfo {
     public let fieldName: String
@@ -508,13 +515,44 @@ public struct GraphQLField {
     public let deprecationReason: String?
     public let description: String?
     public let resolve: GraphQLFieldResolve?
-
+    
+    public init(
+        type: GraphQLOutputType,
+        description: String? = nil,
+        deprecationReason: String? = nil,
+        args: GraphQLArgumentConfigMap = [:]
+    ) {
+        self.type = type
+        self.args = args
+        self.deprecationReason = deprecationReason
+        self.description = description
+        self.resolve = nil
+    }
+    
     public init(
         type: GraphQLOutputType,
         description: String? = nil,
         deprecationReason: String? = nil,
         args: GraphQLArgumentConfigMap = [:],
-        resolve: GraphQLFieldResolve? = nil
+        resolve: @escaping GraphQLFieldResolveInput
+    ) {
+        self.type = type
+        self.args = args
+        self.deprecationReason = deprecationReason
+        self.description = description
+        
+        self.resolve = { source, args, context, eventLoopGroup, info in
+            let result = try resolve(source, args, context, info)
+            return eventLoopGroup.next().newSucceededFuture(result: result)
+        }
+    }
+    
+    public init(
+        type: GraphQLOutputType,
+        description: String? = nil,
+        deprecationReason: String? = nil,
+        args: GraphQLArgumentConfigMap = [:],
+        resolve: @escaping GraphQLFieldResolve
     ) {
         self.type = type
         self.args = args

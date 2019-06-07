@@ -8,9 +8,11 @@
 import Foundation
 import NIO
 
+public typealias Future = EventLoopFuture
+
 extension Collection {
-    public func flatten<T>(on worker: EventLoopGroup) -> EventLoopFuture<[T]> where Element == EventLoopFuture<T> {
-        return EventLoopFuture.whenAll(Array(self), eventLoop: worker.next())
+    public func flatten<T>(on worker: EventLoopGroup) -> Future<[T]> where Element == Future<T> {
+        return Future.whenAll(Array(self), eventLoop: worker.next())
     }
 }
 
@@ -18,14 +20,14 @@ extension Collection {
     public func flatMap<S, T>(
         to type: T.Type,
         on worker: EventLoopGroup,
-        _ callback: @escaping ([S]) throws -> EventLoopFuture<T>
-    ) -> EventLoopFuture<T> where Element == EventLoopFuture<S> {
+        _ callback: @escaping ([S]) throws -> Future<T>
+    ) -> Future<T> where Element == Future<S> {
         return flatten(on: worker).flatMap(to: T.self, callback)
     }
 }
 
-extension Dictionary where Value : Future {
-    func flatten(on worker: EventLoopGroup) -> EventLoopFuture<[Key: Value.Expectation]> {
+extension Dictionary where Value : FutureType {
+    func flatten(on worker: EventLoopGroup) -> Future<[Key: Value.Expectation]> {
         var elements: [Key: Value.Expectation] = [:]
 
         guard self.count > 0 else {
@@ -52,11 +54,11 @@ extension Dictionary where Value : Future {
         return promise.futureResult
     }
 }
-extension EventLoopFuture {
+extension Future {
     public func flatMap<T>(
         to type: T.Type = T.self,
-        _ callback: @escaping (Expectation) throws -> EventLoopFuture<T>
-    ) -> EventLoopFuture<T> {
+        _ callback: @escaping (Expectation) throws -> Future<T>
+    ) -> Future<T> {
         let promise = eventLoop.newPromise(of: T.self)
         
         self.whenSuccess { expectation in
@@ -76,13 +78,13 @@ extension EventLoopFuture {
     }
 }
 
-public protocol Future {
+public protocol FutureType {
     associatedtype Expectation
     func whenSuccess(_ callback: @escaping (Expectation) -> Void)
     func whenFailure(_ callback: @escaping (Error) -> Void)
 }
 
-extension EventLoopFuture : Future {
+extension Future : FutureType {
     public typealias Expectation = T
     
 }

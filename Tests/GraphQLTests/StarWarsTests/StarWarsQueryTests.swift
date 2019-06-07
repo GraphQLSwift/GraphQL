@@ -6,16 +6,19 @@ import NIO
 class StarWarsQueryTests : XCTestCase {    
     func testHeroNameQuery() throws {
         let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query HeroNameQuery {" +
-                    "    hero {" +
-                    "        name" +
-                    "    }" +
-                    "}"
-
+        let query = """
+        query HeroNameQuery {
+            hero {
+                name
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "hero": [
@@ -24,25 +27,33 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: StarWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
+        
         XCTAssertEqual(result, expected)
     }
 
     func testHeroNameAndFriendsQuery() throws {
         let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query HeroNameAndFriendsQuery {" +
-                    "    hero {" +
-                    "        id" +
-                    "        name" +
-                    "        friends {" +
-                    "            name" +
-                    "        }" +
-                    "    }" +
-                    "}"
+        let query = """
+        query HeroNameAndFriendsQuery {
+            hero {
+                id
+                name
+                friends {
+                    name
+                }
+            }
+        }
+        """
 
         let expected = GraphQLResult(
             data: [
@@ -58,28 +69,36 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: StarWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
+        
         XCTAssertEqual(result, expected)
     }
 
     func testNestedQuery() throws {
         let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query NestedQuery {" +
-                    "    hero {" +
-                    "        name" +
-                    "        friends {" +
-                    "            name" +
-                    "            appearsIn" +
-                    "            friends {" +
-                    "                name" +
-                    "            }" +
-                    "        }" +
-                    "    }" +
-                    "}"
+        let query = """
+        query NestedQuery {
+            hero {
+                name
+                friends {
+                    name
+                    appearsIn
+                    friends {
+                        name
+                    }
+                }
+            }
+        }
+        """
 
         let expected = GraphQLResult(
             data: [
@@ -573,15 +592,19 @@ class StarWarsQueryTests : XCTestCase {
             fields: [
                 "nullableA": GraphQLField(
                     type: GraphQLTypeReference("A"),
-                    resolve: { _, _, _, eventLoopGroup, _ in eventLoopGroup.next().newSucceededFuture(result: [:]) }
+                    resolve: { _, _, _, _ -> [String: String]? in
+                        [:] as [String: String]
+                    }
                 ),
                 "nonNullA": GraphQLField(
                     type: GraphQLNonNull(GraphQLTypeReference("A")),
-                    resolve: { _, _, _, eventLoopGroup, _ in eventLoopGroup.next().newSucceededFuture(result: [:]) }
+                    resolve: { _, _, _, _ -> [String: String]? in
+                        [:] as [String: String]
+                    }
                 ),
                 "throws": GraphQLField(
                     type: GraphQLNonNull(GraphQLString),
-                    resolve: { _, _, _, _, _ in
+                    resolve: { _, _, _, _ -> [String: String]? in
                         struct 🏃 : Error, CustomStringConvertible {
                             let description: String
                         }
@@ -597,7 +620,9 @@ class StarWarsQueryTests : XCTestCase {
             fields: [
                 "nullableA": GraphQLField(
                     type: A,
-                    resolve: { _, _, _, eventLoopGroup, _ in eventLoopGroup.next().newSucceededFuture(result: [:]) }
+                    resolve: { _, _, _, _ -> [String: String]? in
+                        [:] as [String: String]
+                    }
                 )
             ]
         )

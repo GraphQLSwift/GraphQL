@@ -137,13 +137,10 @@ func getCharacter(id: String) -> Character? {
  * Allows us to query for a character"s friends.
  */
 func getFriends(character: Character) -> [Character] {
-    return character.friends.reduce([]) { friends, friendID in
-        var friends = friends
-        guard let friend = getCharacter(id: friendID) else {
-            return friends
+    return character.friends.reduce(into: []) { friends, friendID in
+        if let friend = getCharacter(id: friendID) {
+            friends.append(friend)
         }
-        friends.append(friend)
-        return friends
     }
 }
 

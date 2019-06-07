@@ -15,7 +15,7 @@ public protocol Instrumentation {
         started: DispatchTime,
         finished: DispatchTime,
         source: Source,
-        result: ResultOrError<Document, GraphQLError>
+        result: Result<Document, GraphQLError>
     )
 
     func queryValidation(
@@ -52,7 +52,7 @@ public protocol Instrumentation {
         args: Map,
         eventLoopGroup: EventLoopGroup,
         info: GraphQLResolveInfo,
-        result: ResultOrError<EventLoopFuture<Any?>, Error>
+        result: Result<Future<Any?>, Error>
     )
 
 }
@@ -80,12 +80,12 @@ public let NoOpInstrumentation:Instrumentation = noOpInstrumentation()
 
 struct noOpInstrumentation: Instrumentation {
     public let now = DispatchTime(uptimeNanoseconds: 0)
-    public func queryParsing(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Source, result: ResultOrError<Document, GraphQLError>) {
+    public func queryParsing(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Source, result: Result<Document, GraphQLError>) {
     }
     public func queryValidation(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, schema: GraphQLSchema, document: Document, errors: [GraphQLError]) {
     }
     public func operationExecution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, schema: GraphQLSchema, document: Document, rootValue: Any, eventLoopGroup: EventLoopGroup, variableValues: [String : Map], operation: OperationDefinition?, errors: [GraphQLError], result: Map) {
     }
-    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, eventLoopGroup: EventLoopGroup, info: GraphQLResolveInfo, result: ResultOrError<EventLoopFuture<Any?>, Error>) {
+    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, eventLoopGroup: EventLoopGroup, info: GraphQLResolveInfo, result: Result<Future<Any?>, Error>) {
     }
 }

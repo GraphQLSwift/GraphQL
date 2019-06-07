@@ -44,7 +44,7 @@ public func graphql(
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) throws -> EventLoopFuture<GraphQLResult> {
+) throws -> Future<GraphQLResult> {
 
     let source = Source(body: request, name: "GraphQL request")
     let documentAST = try parse(instrumentation: instrumentation, source: source)
@@ -98,7 +98,7 @@ public func graphql<Retrieval:PersistedQueryRetrieval>(
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) throws -> EventLoopFuture<GraphQLResult> {
+) throws -> Future<GraphQLResult> {
     switch try queryRetrieval.lookup(queryId) {
     case .unknownId(_):
         throw GraphQLError(message: "Unknown query id")

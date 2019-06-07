@@ -33,7 +33,7 @@ public func parse(
             started: started,
             finished: instrumentation.now,
             source: source,
-            result: .result(document)
+            result: .success(document)
         )
         return document
     } catch let error as GraphQLError {
@@ -43,7 +43,7 @@ public func parse(
             started: started,
             finished: instrumentation.now,
             source: source,
-            result: .error(error)
+            result: .failure(error)
         )
         throw error
     }

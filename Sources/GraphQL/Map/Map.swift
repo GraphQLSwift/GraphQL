@@ -142,24 +142,7 @@ public func map(from value: Any?) throws -> Map {
         return map
     }
 
-//    if let mapRepresentable = value as? MapRepresentable {
-//        return mapRepresentable.map
-//    }
-//
-//    if let mapFallibleRepresentable = value as? MapFallibleRepresentable {
-//        return try mapFallibleRepresentable.asMap()
-//    }
-
-    let info = try typeInfo(of: type(of: value))
-    let props = info.properties
-
-    var dictionary = [String: Map](minimumCapacity: props.count)
-
-    for property in props {
-        dictionary[property.name] = try GraphQL.map(from: property.get(from: value))
-    }
-
-    return .dictionary(dictionary)
+    throw MapError.incompatibleType
 }
 
 extension Map {

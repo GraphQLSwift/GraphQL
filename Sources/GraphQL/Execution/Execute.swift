@@ -99,7 +99,7 @@ public protocol FieldExecutionStrategy {
         sourceValue: Any,
         path: IndexPath,
         fields: [String: [Field]]
-    ) throws -> EventLoopFuture<[String: Any]>
+    ) throws -> Future<[String: Any]>
 }
 
 public protocol MutationFieldExecutionStrategy: FieldExecutionStrategy {}
@@ -119,8 +119,8 @@ public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy, Mutatio
         sourceValue: Any,
         path: IndexPath,
         fields: [String: [Field]]
-    ) throws -> EventLoopFuture<[String: Any]> {
-        var results = [String: EventLoopFuture<Any>]()
+    ) throws -> Future<[String: Any]> {
+        var results = [String: Future<Any>]()
 
         try fields.forEach { field in
             let fieldASTs = field.value
@@ -154,7 +154,10 @@ public struct ConcurrentDispatchFieldExecutionStrategy: QueryFieldExecutionStrat
         self.dispatchQueue = dispatchQueue
     }
 
-    public init(queueLabel: String = "GraphQL field execution", queueQoS: DispatchQoS = .userInitiated) {
+    public init(
+        queueLabel: String = "GraphQL field execution",
+        queueQoS: DispatchQoS = .userInitiated
+    ) {
         self.dispatchQueue = DispatchQueue(
             label: queueLabel,
             qos: queueQoS,
@@ -168,14 +171,14 @@ public struct ConcurrentDispatchFieldExecutionStrategy: QueryFieldExecutionStrat
         sourceValue: Any,
         path: IndexPath,
         fields: [String: [Field]]
-    ) throws -> EventLoopFuture<[String: Any]> {
-
+    ) throws -> Future<[String: Any]> {
         let resultsQueue = DispatchQueue(
             label: "\(dispatchQueue.label) results",
             qos: dispatchQueue.qos
         )
+        
         let group = DispatchGroup()
-        var results: [String: EventLoopFuture<Any>] = [:]
+        var results: [String: Future<Any>] = [:]
         var err: Error? = nil
 
         fields.forEach { field in
@@ -204,7 +207,9 @@ public struct ConcurrentDispatchFieldExecutionStrategy: QueryFieldExecutionStrat
                 }
             }
         }
+        
         group.wait()
+        
         if let error = err {
             throw error
         }
@@ -232,7 +237,7 @@ func execute(
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) -> EventLoopFuture<GraphQLResult> {
+) -> Future<GraphQLResult> {
     let executeStarted = instrumentation.now
     let buildContext: ExecutionContext
 
@@ -410,7 +415,7 @@ func executeOperation(
     exeContext: ExecutionContext,
     operation: OperationDefinition,
     rootValue: Any
-) throws -> EventLoopFuture<[String : Any]> {
+) throws -> Future<[String: Any]> {
     let type = try getOperationRootType(schema: exeContext.schema, operation: operation)
     var inputFields: [String : [Field]] = [:]
     var visitedFragmentNames: [String : Bool] = [:]
@@ -655,7 +660,7 @@ public func resolveField(
     source: Any,
     fieldASTs: [Field],
     path: IndexPath
-) throws -> EventLoopFuture<Any?> {
+) throws -> Future<Any?> {
     let fieldAST = fieldASTs[0]
     let fieldName = fieldAST.name.value
 
@@ -697,7 +702,7 @@ public func resolveField(
         variableValues: exeContext.variableValues
     )
 
-    let resolveFieldStarted = exeContext.instrumentation.now
+//    let resolveFieldStarted = exeContext.instrumentation.now
 
     // Get the resolve func, regardless of if its result is normal
     // or abrupt (error).
@@ -710,17 +715,17 @@ public func resolveField(
         info: info
     )
 
-    exeContext.instrumentation.fieldResolution(
-        processId: processId(),
-        threadId: threadId(),
-        started: resolveFieldStarted,
-        finished: exeContext.instrumentation.now,
-        source: source,
-        args: args,
-        eventLoopGroup: exeContext.eventLoopGroup,
-        info: info,
-        result: result
-    )
+//    exeContext.instrumentation.fieldResolution(
+//        processId: processId(),
+//        threadId: threadId(),
+//        started: resolveFieldStarted,
+//        finished: exeContext.instrumentation.now,
+//        source: source,
+//        args: args,
+//        eventLoopGroup: exeContext.eventLoopGroup,
+//        info: info,
+//        result: result
+//    )
 
     return try completeValueCatchingError(
         exeContext: exeContext,
@@ -732,11 +737,6 @@ public func resolveField(
     )
 }
 
-public enum ResultOrError<T, E> {
-    case result(T)
-    case error(E)
-}
-
 // Isolates the "ReturnOrAbrupt" behavior to not de-opt the `resolveField`
 // function. Returns the result of `resolve` or the abrupt-return Error object.
 func resolveOrError(
@@ -746,11 +746,12 @@ func resolveOrError(
     context: Any,
     eventLoopGroup: EventLoopGroup,
     info: GraphQLResolveInfo
-) -> ResultOrError<EventLoopFuture<Any?>, Error> {
+) -> Result<Future<Any?>, Error> {
     do {
-        return try .result(resolve(source, args, context, eventLoopGroup, info))
+        let result = try resolve(source, args, context, eventLoopGroup, info)
+        return .success(result)
     } catch {
-        return .error(error)
+        return .failure(error)
     }
 }
 
@@ -762,8 +763,8 @@ func completeValueCatchingError(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: IndexPath,
-    result: ResultOrError<EventLoopFuture<Any?>, Error>
-) throws -> EventLoopFuture<Any?> {
+    result: Result<Future<Any?>, Error>
+) throws -> Future<Any?> {
     // If the field type is non-nullable, then it is resolved without any
     // protection from errors, however it still properly locates the error.
     if let returnType = returnType as? GraphQLNonNull {
@@ -787,13 +788,13 @@ func completeValueCatchingError(
             info: info,
             path: path,
             result: result
-            ).mapIfError { error -> Any? in
-                guard let error = error as? GraphQLError else {
-                    fatalError()
-                }
-                exeContext.append(error: error)
-                return nil
+        ).mapIfError { error -> Any? in
+            guard let error = error as? GraphQLError else {
+                fatalError()
             }
+            exeContext.append(error: error)
+            return nil
+        }
 
         return completed
     } catch let error as GraphQLError {
@@ -814,8 +815,8 @@ func completeValueWithLocatedError(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: IndexPath,
-    result: ResultOrError<EventLoopFuture<Any?>, Error>
-) throws -> EventLoopFuture<Any?> {
+    result: Result<Future<Any?>, Error>
+) throws -> Future<Any?> {
     do {
         let completed = try completeValue(
             exeContext: exeContext,
@@ -864,12 +865,12 @@ func completeValue(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: IndexPath,
-    result: ResultOrError<EventLoopFuture<Any?>, Error>
-) throws -> EventLoopFuture<Any?> {
+    result: Result<Future<Any?>, Error>
+) throws -> Future<Any?> {
     switch result {
-    case .error(let error):
+    case let .failure(error):
         throw error
-    case .result(let result):
+    case let .success(result):
         // If field type is NonNull, complete for inner type, and throw field error
         // if result is nullish.
         if let returnType = returnType as? GraphQLNonNull {
@@ -879,7 +880,7 @@ func completeValue(
                 fieldASTs: fieldASTs,
                 info: info,
                 path: path,
-                result: .result(result)
+                result: .success(result)
             ).thenThrowing { value -> Any? in
                 guard let value = value else {
                     throw GraphQLError(message: "Cannot return null for non-nullable field \(info.parentType.name).\(info.fieldName).")
@@ -889,7 +890,7 @@ func completeValue(
             }
         }
 
-        return result.flatMap(to: Any?.self) { result -> EventLoopFuture<Any?> in
+        return result.flatMap(to: Any?.self) { result -> Future<Any?> in
             // If result value is null-ish (nil or .null) then return .null.
             guard let result = result, let r = unwrap(result) else {
                 return exeContext.eventLoopGroup.next().newSucceededFuture(result: nil)
@@ -955,7 +956,7 @@ func completeListValue(
     info: GraphQLResolveInfo,
     path: IndexPath,
     result: Any
-) throws -> EventLoopFuture<[Any?]> {
+) throws -> Future<[Any?]> {
     guard let result = result as? [Any?] else {
         throw GraphQLError(
             message:
@@ -965,13 +966,13 @@ func completeListValue(
     }
 
     let itemType = returnType.ofType
-    var completedResults: [EventLoopFuture<Any?>] = []
+    var completedResults: [Future<Any?>] = []
 
     for (index, item) in result.enumerated() {
         // No need to modify the info object containing the path,
         // since from here on it is not ever accessed by resolver funcs.
         let fieldPath = path.appending(index)
-        let futureItem = item as? EventLoopFuture<Any?> ?? exeContext.eventLoopGroup.next().newSucceededFuture(result: item)
+        let futureItem = item as? Future<Any?> ?? exeContext.eventLoopGroup.next().newSucceededFuture(result: item)
 
         let completedItem = try completeValueCatchingError(
             exeContext: exeContext,
@@ -979,7 +980,7 @@ func completeListValue(
             fieldASTs: fieldASTs,
             info: info,
             path: fieldPath,
-            result: .result(futureItem)
+            result: .success(futureItem)
         )
 
         completedResults.append(completedItem)
@@ -1022,7 +1023,7 @@ func completeAbstractValue(
     info: GraphQLResolveInfo,
     path: IndexPath,
     result: Any
-) throws -> EventLoopFuture<Any?> {
+) throws -> Future<Any?> {
     var resolveRes = try returnType.resolveType?(result, exeContext.eventLoopGroup, info).typeResolveResult
 
     resolveRes = try resolveRes ?? defaultResolveType(
@@ -1088,7 +1089,7 @@ func completeObjectValue(
     info: GraphQLResolveInfo,
     path: IndexPath,
     result: Any
-) throws -> EventLoopFuture<Any?> {
+) throws -> Future<Any?> {
     // If there is an isTypeOf predicate func, call it with the
     // current result. If isTypeOf returns false, then raise an error rather
     // than continuing execution.
@@ -1122,7 +1123,7 @@ func completeObjectValue(
         sourceValue: result,
         path: path,
         fields: subFieldASTs
-        ).map { $0 }
+    ).map { $0 }
 }
 
 /**
@@ -1156,7 +1157,7 @@ func defaultResolve(
     context: Any,
     eventLoopGroup: EventLoopGroup,
     info: GraphQLResolveInfo
-) -> EventLoopFuture<Any?> {
+) -> Future<Any?> {
     #warning("Why not mark function as throwing?")
     
     guard let source = unwrap(source) else {

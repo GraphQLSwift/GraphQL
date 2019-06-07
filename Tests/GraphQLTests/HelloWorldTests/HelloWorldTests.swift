@@ -9,47 +9,38 @@ class HelloWorldTests : XCTestCase {
             fields: [
                 "hello": GraphQLField(
                     type: GraphQLString,
-                    resolve: { _, _, _, eventLoopGroup, _ in return eventLoopGroup.next().newSucceededFuture(result: "world")
+                    resolve: { _, _, _, _ in
+                        "world"
                     }
                 )
             ]
         )
     )
     
-    struct Foo : Encodable {
-        let bar: String
-    }
-    
-    func testMap() throws {
-        let encoder = MapEncoder()
-        let map = try encoder.encode(Foo(bar: "bar"))
-        print(map)
-    }
-
     func testHello() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         
         defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
+            XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
 
         let query = "{ hello }"
+        let expected = GraphQLResult(data: ["hello": "world"])
         
-        let expected = GraphQLResult(
-            data: [
-                "hello": "world"
-            ]
-        )
-        
-        let result = try graphql(schema: schema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: schema,
+            request: query,
+            eventLoopGroup: group
+        ).wait()
 
         XCTAssertEqual(result, expected)
     }
 
     func testBoyhowdy() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        
         defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
+            XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
 
         let query = "{ boyhowdy }"
@@ -63,7 +54,12 @@ class HelloWorldTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: schema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: schema,
+            request: query,
+            eventLoopGroup: group
+        ).wait()
+        
         XCTAssertEqual(result, expected)
     }
 }

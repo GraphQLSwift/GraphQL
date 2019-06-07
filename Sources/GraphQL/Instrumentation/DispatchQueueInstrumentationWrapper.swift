@@ -28,7 +28,7 @@ public class DispatchQueueInstrumentationWrapper: Instrumentation {
         return instrumentation.now
     }
 
-    public func queryParsing(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Source, result: ResultOrError<Document, GraphQLError>) {
+    public func queryParsing(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Source, result: Result<Document, GraphQLError>) {
         dispatchQueue.async(group: dispatchGroup) {
             self.instrumentation.queryParsing(processId: processId, threadId: threadId, started: started, finished: finished, source: source, result: result)
         }
@@ -46,7 +46,7 @@ public class DispatchQueueInstrumentationWrapper: Instrumentation {
         }
     }
 
-    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, eventLoopGroup: EventLoopGroup, info: GraphQLResolveInfo, result: ResultOrError<EventLoopFuture<Any?>, Error>) {
+    public func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, eventLoopGroup: EventLoopGroup, info: GraphQLResolveInfo, result: Result<Future<Any?>, Error>) {
         dispatchQueue.async(group: dispatchGroup) {
             self.instrumentation.fieldResolution(processId: processId, threadId: threadId, started: started, finished: finished, source: source, args: args, eventLoopGroup: eventLoopGroup, info: info, result: result)
         }

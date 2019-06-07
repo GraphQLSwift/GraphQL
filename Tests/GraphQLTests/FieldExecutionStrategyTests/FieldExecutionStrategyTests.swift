@@ -15,24 +15,29 @@ class FieldExecutionStrategyTests: XCTestCase {
                 "sleep": GraphQLField(
                     type: GraphQLString,
                     resolve: { _, _, _, eventLoopGroup, _ in
-                        let g = DispatchGroup()
-                        g.enter()
+                        let group = DispatchGroup()
+                        group.enter()
+                        
                         DispatchQueue.global().asyncAfter(wallDeadline: .now() + 0.1) {
-                            g.leave()
+                            group.leave()
                         }
-                        g.wait()
+                        
+                        group.wait()
                         return eventLoopGroup.next().newSucceededFuture(result: "z")
                     }
                 ),
                 "bang": GraphQLField(
                     type: GraphQLString,
                     resolve: { (_, _, _, _, info: GraphQLResolveInfo) in
-                        let g = DispatchGroup()
-                        g.enter()
+                        let group = DispatchGroup()
+                        group.enter()
+                        
                         DispatchQueue.global().asyncAfter(wallDeadline: .now() + 0.1) {
-                            g.leave()
+                            group.leave()
                         }
-                        g.wait()
+                        
+                        group.wait()
+                        
                         throw StrategyError.exampleError(
                             msg: "\(info.fieldName): \(info.path.elements.last!)"
                         )
@@ -43,10 +48,13 @@ class FieldExecutionStrategyTests: XCTestCase {
                     resolve: { (_, _, _, eventLoopGroup, info: GraphQLResolveInfo) in
                         let g = DispatchGroup()
                         g.enter()
+                        
                         DispatchQueue.global().asyncAfter(wallDeadline: .now() + 0.1) {
                             g.leave()
                         }
+                        
                         g.wait()
+                        
                         return eventLoopGroup.next().newFailedFuture(error: StrategyError.exampleError(
                             msg: "\(info.fieldName): \(info.path.elements.last!)"
                         ))
