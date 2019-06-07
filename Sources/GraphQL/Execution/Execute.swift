@@ -1157,8 +1157,6 @@ func defaultResolve(
     eventLoopGroup: EventLoopGroup,
     info: GraphQLResolveInfo
 ) -> Future<Any?> {
-    #warning("Why not mark function as throwing?")
-    
     guard let source = unwrap(source) else {
         return eventLoopGroup.next().newSucceededFuture(result: nil)
     }
