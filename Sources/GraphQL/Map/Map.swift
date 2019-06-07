@@ -101,8 +101,6 @@ extension Map {
 
 // MARK: Any
 
-import Runtime
-
 public func map(from value: Any?) throws -> Map {
     guard let value = value else {
         return .null
