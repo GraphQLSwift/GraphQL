@@ -37,7 +37,7 @@ import PackageDescription
 
 let package = Package(
     dependencies: [
-        .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "0.9.0"),
+        .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "0.10.0"),
     ]
 )
 ```
@@ -56,7 +56,9 @@ let schema = try GraphQLSchema(
         fields: [
             "hello": GraphQLField(
                 type: GraphQLString,
-                resolve: { _, _, _, _ in "world" }
+                resolve: { _, _, _, _ in
+                    "world" 
+                }
             )
         ]
     )

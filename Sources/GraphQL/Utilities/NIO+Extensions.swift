@@ -11,30 +11,30 @@ import NIO
 public typealias Future = EventLoopFuture
 
 extension Collection {
-    public func flatten<T>(on worker: EventLoopGroup) -> Future<[T]> where Element == Future<T> {
-        return Future.whenAll(Array(self), eventLoop: worker.next())
+    public func flatten<T>(on eventLoopGroup: EventLoopGroup) -> Future<[T]> where Element == Future<T> {
+        return Future.whenAll(Array(self), eventLoop: eventLoopGroup.next())
     }
 }
 
 extension Collection {
     public func flatMap<S, T>(
         to type: T.Type,
-        on worker: EventLoopGroup,
+        on eventLoopGroup: EventLoopGroup,
         _ callback: @escaping ([S]) throws -> Future<T>
     ) -> Future<T> where Element == Future<S> {
-        return flatten(on: worker).flatMap(to: T.self, callback)
+        return flatten(on: eventLoopGroup).flatMap(to: T.self, callback)
     }
 }
 
 extension Dictionary where Value : FutureType {
-    func flatten(on worker: EventLoopGroup) -> Future<[Key: Value.Expectation]> {
+    func flatten(on eventLoopGroup: EventLoopGroup) -> Future<[Key: Value.Expectation]> {
         var elements: [Key: Value.Expectation] = [:]
 
         guard self.count > 0 else {
-            return worker.next().newSucceededFuture(result: elements)
+            return eventLoopGroup.next().newSucceededFuture(result: elements)
         }
 
-        let promise: EventLoopPromise<[Key: Value.Expectation]> = worker.next().newPromise()
+        let promise: EventLoopPromise<[Key: Value.Expectation]> = eventLoopGroup.next().newPromise()
         elements.reserveCapacity(self.count)
 
         for (key, value) in self {
