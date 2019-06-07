@@ -303,7 +303,7 @@ let QueryType = try! GraphQLObjectType(
  * Finally, we construct our schema (whose starting query type is the query
  * type we defined above) and export it.
  */
-let StarWarsSchema = try! GraphQLSchema(
+let starWarsSchema = try! GraphQLSchema(
     query: QueryType,
     types: [HumanType, DroidType]
 )

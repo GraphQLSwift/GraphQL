@@ -7,7 +7,7 @@ import XCTest
 func validationErrors(query: String) throws -> [GraphQLError] {
     let source = Source(body: query, name: "StarWars.graphql")
     let ast = try parse(source: source)
-    return validate(schema: StarWarsSchema, ast: ast)
+    return validate(schema: starWarsSchema, ast: ast)
 }
 
 class StarWarsValidationTests : XCTestCase {

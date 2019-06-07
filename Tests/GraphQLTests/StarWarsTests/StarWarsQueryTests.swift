@@ -28,7 +28,7 @@ class StarWarsQueryTests : XCTestCase {
         )
 
         let result = try graphql(
-            schema: StarWarsSchema,
+            schema: starWarsSchema,
             request: query,
             eventLoopGroup: eventLoopGroup
         ).wait()
@@ -70,7 +70,7 @@ class StarWarsQueryTests : XCTestCase {
         )
 
         let result = try graphql(
-            schema: StarWarsSchema,
+            schema: starWarsSchema,
             request: query,
             eventLoopGroup: eventLoopGroup
         ).wait()
@@ -139,7 +139,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -163,7 +163,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -194,7 +194,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
+        result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
         XCTAssertEqual(result, expected)
 
         // or we can pass "EMPIRE" and expect Luke
@@ -210,7 +210,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
+        result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -242,7 +242,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
+        result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
         XCTAssertEqual(result, expected)
 
         params = [
@@ -257,7 +257,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
+        result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
         XCTAssertEqual(result, expected)
 
 
@@ -271,7 +271,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
+        result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -295,7 +295,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -325,7 +325,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -359,7 +359,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -395,7 +395,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -422,7 +422,7 @@ class StarWarsQueryTests : XCTestCase {
         )
 
         let result = try graphql(
-            schema: StarWarsSchema,
+            schema: starWarsSchema,
             request: query,
             eventLoopGroup: eventLoopGroup
         ).wait()
@@ -452,7 +452,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -485,7 +485,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -544,7 +544,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -577,7 +577,7 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: StarWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
     }
 
