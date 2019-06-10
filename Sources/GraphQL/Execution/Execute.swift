@@ -1,4 +1,5 @@
 import Dispatch
+import Runtime
 import NIO
 
 /**
@@ -997,8 +998,7 @@ func completeLeafValue(returnType: GraphQLLeafType, result: Any?) throws -> Map 
         return .null
     }
     
-    let r = try map(from: result)
-    let serializedResult = try returnType.serialize(value: r)
+    let serializedResult = try returnType.serialize(value: result)
 
     if serializedResult == .null {
         throw GraphQLError(
@@ -1092,7 +1092,10 @@ func completeObjectValue(
     // If there is an isTypeOf predicate func, call it with the
     // current result. If isTypeOf returns false, then raise an error rather
     // than continuing execution.
-    guard try returnType.isTypeOf?(result, exeContext.eventLoopGroup, info) ?? true else {
+    if
+        let isTypeOf = returnType.isTypeOf,
+        try !isTypeOf(result, exeContext.eventLoopGroup, info)
+    {
         throw GraphQLError(
             message:
             "Expected value of type \"\(returnType.name)\" but got: \(result).",
@@ -1170,16 +1173,29 @@ func defaultResolve(
         return eventLoopGroup.next().newSucceededFuture(result: nil)
     }
     
-    guard let any = try? AnyEncoder().encode(AnyEncodable(encodable)) else {
+    guard
+        let typeInfo = try? typeInfo(of: type(of: encodable)),
+        let property = try? typeInfo.property(named: info.fieldName)
+    else {
         return eventLoopGroup.next().newSucceededFuture(result: nil)
     }
     
-    guard let dictionary = any as? [String: Any] else {
+    guard let value = try? property.get(from: encodable) else {
         return eventLoopGroup.next().newSucceededFuture(result: nil)
     }
     
-    let value = dictionary[info.fieldName]
     return eventLoopGroup.next().newSucceededFuture(result: value)
+    
+//    guard let any = try? AnyEncoder().encode(AnyEncodable(encodable)) else {
+//        return eventLoopGroup.next().newSucceededFuture(result: nil)
+//    }
+//
+//    guard let dictionary = any as? [String: Any] else {
+//        return eventLoopGroup.next().newSucceededFuture(result: nil)
+//    }
+//
+//    let value = dictionary[info.fieldName]
+//    return eventLoopGroup.next().newSucceededFuture(result: value)
 }
 
 /**

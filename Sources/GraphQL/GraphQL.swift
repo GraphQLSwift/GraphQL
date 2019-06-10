@@ -4,7 +4,7 @@ public struct GraphQLResult : Equatable {
     public var data: Map?
     public var errors: [GraphQLError]
     
-    init(data: Map? = nil, errors: [GraphQLError] = []) {
+    public init(data: Map? = nil, errors: [GraphQLError] = []) {
         self.data = data
         self.errors = errors
     }
@@ -86,7 +86,7 @@ public func graphql(
 /// - throws: throws GraphQLError if an error occurs while parsing the `request`.
 ///
 /// - returns: returns a `Map` dictionary containing the result of the query inside the key `data` and any validation or execution errors inside the key `errors`. The value of `data` might be `null` if, for example, the query is invalid. It's possible to have both `data` and `errors` if an error occurs only in a specific field. If that happens the value of that field will be `null` and there will be an error inside `errors` specifying the reason for the failure and the path of the failed field.
-public func graphql<Retrieval:PersistedQueryRetrieval>(
+public func graphql<Retrieval: PersistedQueryRetrieval>(
     queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),

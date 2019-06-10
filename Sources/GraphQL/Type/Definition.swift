@@ -50,7 +50,7 @@ extension GraphQLNonNull          : GraphQLOutputType {}
  * These types may describe types which may be leaf values.
  */
 public protocol GraphQLLeafType : GraphQLNamedType {
-    func serialize(value: Map) throws -> Map
+    func serialize(value: Any) throws -> Map
     func parseValue(value: Map) throws -> Map
     func parseLiteral(valueAST: Value) throws -> Map
 }
@@ -165,14 +165,14 @@ public final class GraphQLScalarType {
     public let description: String?
     public let kind: TypeKind = .scalar
     
-    let serialize: (Map) throws -> Map
+    let serialize: (Any) throws -> Map
     let parseValue: ((Map) throws -> Map)?
     let parseLiteral: ((Value) throws -> Map)?
 
     public init(
         name: String,
         description: String? = nil,
-        serialize: @escaping (Map) throws -> Map
+        serialize: @escaping (Any) throws -> Map
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -185,7 +185,7 @@ public final class GraphQLScalarType {
     public init(
         name: String,
         description: String? = nil,
-        serialize: @escaping (Map) throws -> Map,
+        serialize: @escaping (Any) throws -> Map,
         parseValue: @escaping (Map) throws -> Map,
         parseLiteral: @escaping (Value) throws -> Map
     ) throws {
@@ -198,7 +198,7 @@ public final class GraphQLScalarType {
     }
 
     // Serializes an internal value to include in a response.
-    public func serialize(value: Map) throws -> Map {
+    public func serialize(value: Any) throws -> Map {
         return try self.serialize(value)
     }
 
@@ -534,6 +534,20 @@ public struct GraphQLField {
         description: String? = nil,
         deprecationReason: String? = nil,
         args: GraphQLArgumentConfigMap = [:],
+        resolve: GraphQLFieldResolve?
+    ) {
+        self.type = type
+        self.args = args
+        self.deprecationReason = deprecationReason
+        self.description = description
+        self.resolve = resolve
+    }
+    
+    public init(
+        type: GraphQLOutputType,
+        description: String? = nil,
+        deprecationReason: String? = nil,
+        args: GraphQLArgumentConfigMap = [:],
         resolve: @escaping GraphQLFieldResolveInput
     ) {
         self.type = type
@@ -545,20 +559,6 @@ public struct GraphQLField {
             let result = try resolve(source, args, context, info)
             return eventLoopGroup.next().newSucceededFuture(result: result)
         }
-    }
-    
-    public init(
-        type: GraphQLOutputType,
-        description: String? = nil,
-        deprecationReason: String? = nil,
-        args: GraphQLArgumentConfigMap = [:],
-        resolve: @escaping GraphQLFieldResolve
-    ) {
-        self.type = type
-        self.args = args
-        self.deprecationReason = deprecationReason
-        self.description = description
-        self.resolve = resolve
     }
 }
 
@@ -991,8 +991,8 @@ public final class GraphQLEnumType {
         self.nameLookup = nameLookup
     }
 
-    public func serialize(value: Map) throws -> Map {
-        return valueLookup[value].map({ .string($0.name) }) ?? .null
+    public func serialize(value: Any) throws -> Map {
+        return try valueLookup[map(from: value)].map({ .string($0.name) }) ?? .null
     }
 
     public func parseValue(value: Map) throws -> Map {

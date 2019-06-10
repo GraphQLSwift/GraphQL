@@ -1,4 +1,3 @@
-
 public enum PersistedQueryRetrievalResult<T> {
     case unknownId(T)
     case parseError(GraphQLError)

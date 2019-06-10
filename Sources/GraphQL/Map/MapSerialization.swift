@@ -33,11 +33,17 @@ public struct MapSerialization {
     }
     
     static func object(with map: Map) throws -> NSObject {
-        throw DecodingError.dataCorrupted(
-            DecodingError.Context(
-                codingPath: [],
-                debugDescription: "The given data was not valid Map."
-            )
-        )
+        switch map {
+        case .null:
+            return NSNull()
+        case var .number(number):
+            return number.number
+        case let .string(string):
+            return string as NSString
+        case let .array(array):
+            return try array.map({ try object(with: $0) }) as NSArray
+        case let .dictionary(dictionary):
+            return try dictionary.mapValues({ try object(with: $0) }) as NSDictionary
+        }
     }
 }
