@@ -1,12 +1,35 @@
+import Foundation
 import NIO
 
-public struct GraphQLResult : Equatable {
+public struct GraphQLResult : Equatable, Encodable, CustomStringConvertible {
     public var data: Map?
     public var errors: [GraphQLError]
     
     public init(data: Map? = nil, errors: [GraphQLError] = []) {
         self.data = data
         self.errors = errors
+    }
+    
+    enum CodingKeys : String, CodingKey {
+        case data
+        case errors
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        if let data = self.data {
+            try container.encode(data, forKey: .data)
+        }
+        
+        if !self.errors.isEmpty {
+            try container.encode(self.errors, forKey: .errors)
+        }
+    }
+    
+    public var description: String {
+        let data = try! JSONEncoder().encode(self)
+        return String(data: data, encoding: .utf8)!
     }
 }
 
