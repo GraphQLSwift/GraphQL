@@ -1,32 +1,32 @@
 import Foundation
 import NIO
 
-public struct GraphQLResult : Equatable, Encodable, CustomStringConvertible {
+public struct GraphQLResult: Equatable, Encodable, CustomStringConvertible {
     public var data: Map?
     public var errors: [GraphQLError]
-    
+
     public init(data: Map? = nil, errors: [GraphQLError] = []) {
         self.data = data
         self.errors = errors
     }
-    
-    enum CodingKeys : String, CodingKey {
+
+    enum CodingKeys: String, CodingKey {
         case data
         case errors
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        
+
         if let data = self.data {
             try container.encode(data, forKey: .data)
         }
-        
-        if !self.errors.isEmpty {
-            try container.encode(self.errors, forKey: .errors)
+
+        if !errors.isEmpty {
+            try container.encode(errors, forKey: .errors)
         }
     }
-    
+
     public var description: String {
         let data = try! JSONEncoder().encode(self)
         return String(data: data, encoding: .utf8)!
@@ -68,13 +68,12 @@ public func graphql(
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) throws -> Future<GraphQLResult> {
-
     let source = Source(body: request, name: "GraphQL request")
     let documentAST = try parse(instrumentation: instrumentation, source: source)
     let validationErrors = validate(instrumentation: instrumentation, schema: schema, ast: documentAST)
 
     guard validationErrors.isEmpty else {
-        return eventLoopGroup.next().newSucceededFuture(result: GraphQLResult(errors: validationErrors))
+        return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: validationErrors))
     }
 
     return execute(
@@ -123,13 +122,13 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
     operationName: String? = nil
 ) throws -> Future<GraphQLResult> {
     switch try queryRetrieval.lookup(queryId) {
-    case .unknownId(_):
+    case .unknownId:
         throw GraphQLError(message: "Unknown query id")
-    case .parseError(let parseError):
+    case let .parseError(parseError):
         throw parseError
-    case .validateErrors(_, let validationErrors):
-        return eventLoopGroup.next().newSucceededFuture(result: GraphQLResult(errors: validationErrors))
-    case .result(let schema, let documentAST):
+    case let .validateErrors(_, validationErrors):
+        return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: validationErrors))
+    case let .result(schema, documentAST):
         return execute(
             queryStrategy: queryStrategy,
             mutationStrategy: mutationStrategy,

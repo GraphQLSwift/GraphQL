@@ -4,8 +4,8 @@ let __Schema = try! GraphQLObjectType(
     name: "__Schema",
     description:
     "A GraphQL Schema defines the capabilities of a GraphQL server. It " +
-    "exposes all available types and directives on the server, as well as " +
-    "the entry points for query, mutation, and subscription operations.",
+        "exposes all available types and directives on the server, as well as " +
+        "the entry points for query, mutation, and subscription operations.",
     fields: [
         "types": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__Type))),
@@ -34,7 +34,7 @@ let __Schema = try! GraphQLObjectType(
             type: __Type,
             description:
             "If this server supports mutation, the type that " +
-            "mutation operations will be rooted at.",
+                "mutation operations will be rooted at.",
             resolve: { schema, _, _, _ -> GraphQLObjectType? in
                 guard let schema = schema as? GraphQLSchema else {
                     return nil
@@ -47,7 +47,7 @@ let __Schema = try! GraphQLObjectType(
             type: __Type,
             description:
             "If this server support subscription, the type that " +
-            "subscription operations will be rooted at.",
+                "subscription operations will be rooted at.",
             resolve: { schema, _, _, _ -> GraphQLObjectType? in
                 guard let schema = schema as? GraphQLSchema else {
                     return nil
@@ -66,7 +66,7 @@ let __Schema = try! GraphQLObjectType(
 
                 return schema.directives
             }
-        )
+        ),
     ]
 )
 
@@ -74,11 +74,11 @@ let __Directive = try! GraphQLObjectType(
     name: "__Directive",
     description:
     "A Directive provides a way to describe alternate runtime execution and " +
-    "type validation behavior in a GraphQL document." +
-    "\n\nIn some cases, you need to provide options to alter GraphQL\"s " +
-    "execution behavior in ways field arguments will not suffice, such as " +
-    "conditionally including or skipping a field. Directives provide this by " +
-    "describing additional information to the executor.",
+        "type validation behavior in a GraphQL document." +
+        "\n\nIn some cases, you need to provide options to alter GraphQL\"s " +
+        "execution behavior in ways field arguments will not suffice, such as " +
+        "conditionally including or skipping a field. Directives provide this by " +
+        "describing additional information to the executor.",
     fields: [
         "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
         "description": GraphQLField(type: GraphQLString),
@@ -92,7 +92,7 @@ let __Directive = try! GraphQLObjectType(
 
                 return directive.args
             }
-        )
+        ),
     ]
 )
 
@@ -100,7 +100,7 @@ let __DirectiveLocation = try! GraphQLEnumType(
     name: "__DirectiveLocation",
     description:
     "A Directive can be adjacent to many parts of the GraphQL language, a " +
-    "__DirectiveLocation describes one such possible adjacencies.",
+        "__DirectiveLocation describes one such possible adjacencies.",
     values: [
         "QUERY": GraphQLEnumValue(
             value: Map(DirectiveLocation.query.rawValue),
@@ -181,13 +181,13 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
     name: "__Type",
     description:
     "The fundamental unit of any GraphQL Schema is the type. There are " +
-    "many kinds of types in GraphQL as represented by the `__TypeKind` enum." +
-    "\n\nDepending on the kind of a type, certain fields describe " +
-    "information about that type. Scalar types provide no information " +
-    "beyond a name and description, while Enum types provide their values. " +
-    "Object and Interface types provide the fields they describe. Abstract " +
-    "types, Union and Interface, provide the Object types possible " +
-    "at runtime. List and NonNull types compose other types.",
+        "many kinds of types in GraphQL as represented by the `__TypeKind` enum." +
+        "\n\nDepending on the kind of a type, certain fields describe " +
+        "information about that type. Scalar types provide no information " +
+        "beyond a name and description, while Enum types provide their values. " +
+        "Object and Interface types provide the fields they describe. Abstract " +
+        "types, Union and Interface, provide the Object types possible " +
+        "at runtime. List and NonNull types compose other types.",
     fields: [
         "kind": GraphQLField(
             type: GraphQLNonNull(__TypeKind),
@@ -222,7 +222,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                 "includeDeprecated": GraphQLArgument(
                     type: GraphQLBoolean,
                     defaultValue: false
-                )
+                ),
             ],
             resolve: { type, arguments, _, _ -> [GraphQLFieldDefinition]? in
                 if let type = type as? GraphQLObjectType {
@@ -230,7 +230,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     var fields = Array(fieldMap.values).sorted(by: { $0.name < $1.name })
 
                     if !arguments["includeDeprecated"].bool! {
-                        fields = fields.filter({ !$0.isDeprecated })
+                        fields = fields.filter { !$0.isDeprecated }
                     }
 
                     return fields
@@ -241,7 +241,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     var fields = Array(fieldMap.values).sorted(by: { $0.name < $1.name })
 
                     if !arguments["includeDeprecated"].bool! {
-                        fields = fields.filter({ !$0.isDeprecated })
+                        fields = fields.filter { !$0.isDeprecated }
                     }
 
                     return fields
@@ -256,13 +256,13 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                 guard let type = type as? GraphQLObjectType else {
                     return nil
                 }
-                
+
                 return type.interfaces
             }
         ),
         "possibleTypes": GraphQLField(
             type: GraphQLList(GraphQLNonNull(GraphQLTypeReference("__Type"))),
-            resolve: { type, args, _, info -> [GraphQLObjectType]? in
+            resolve: { type, _, _, info -> [GraphQLObjectType]? in
                 guard let type = type as? GraphQLAbstractType else {
                     return nil
                 }
@@ -276,7 +276,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                 "includeDeprecated": GraphQLArgument(
                     type: GraphQLBoolean,
                     defaultValue: false
-                )
+                ),
             ],
             resolve: { type, arguments, _, _ -> [GraphQLEnumValueDefinition]? in
                 guard let type = type as? GraphQLEnumType else {
@@ -286,7 +286,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                 var values = type.values
 
                 if !arguments["includeDeprecated"].bool! {
-                    values = values.filter({ !$0.isDeprecated })
+                    values = values.filter { !$0.isDeprecated }
                 }
 
                 return values
@@ -298,13 +298,13 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                 guard let type = type as? GraphQLInputObjectType else {
                     return nil
                 }
-                
+
                 let fieldMap = type.fields
                 let fields = Array(fieldMap.values).sorted(by: { $0.name < $1.name })
                 return fields
             }
         ),
-        "ofType": GraphQLField(type: GraphQLTypeReference("__Type"))
+        "ofType": GraphQLField(type: GraphQLTypeReference("__Type")),
     ]
 )
 
@@ -312,7 +312,7 @@ let __Field = try! GraphQLObjectType(
     name: "__Field",
     description:
     "Object and Interface types are described by a list of Fields, each of " +
-    "which has a name, potentially a list of arguments, and a return type.",
+        "which has a name, potentially a list of arguments, and a return type.",
     fields: [
         "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
         "description": GraphQLField(type: GraphQLString),
@@ -328,7 +328,7 @@ let __Field = try! GraphQLObjectType(
         ),
         "type": GraphQLField(type: GraphQLNonNull(GraphQLTypeReference("__Type"))),
         "isDeprecated": GraphQLField(type: GraphQLNonNull(GraphQLBoolean)),
-        "deprecationReason": GraphQLField(type: GraphQLString)
+        "deprecationReason": GraphQLField(type: GraphQLString),
     ]
 )
 
@@ -336,8 +336,8 @@ let __InputValue = try! GraphQLObjectType(
     name: "__InputValue",
     description:
     "Arguments provided to Fields or Directives and the input fields of an " +
-    "InputObject are represented as Input Values which describe their type " +
-    "and optionally a default value.",
+        "InputObject are represented as Input Values which describe their type " +
+        "and optionally a default value.",
     fields: [
         "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
         "description": GraphQLField(type: GraphQLString),
@@ -346,7 +346,7 @@ let __InputValue = try! GraphQLObjectType(
             type: GraphQLString,
             description:
             "A GraphQL-formatted string representing the default value for this " +
-            "input value.",
+                "input value.",
             resolve: { inputValue, _, _, _ -> Map? in
                 guard
                     let inputValue = inputValue as? GraphQLArgumentDefinition,
@@ -359,7 +359,7 @@ let __InputValue = try! GraphQLObjectType(
 //                return print(astFromValue(value: defaultValue, type: inputValue.type))
                 return defaultValue
             }
-        )
+        ),
     ]
 )
 
@@ -367,17 +367,17 @@ let __EnumValue = try! GraphQLObjectType(
     name: "__EnumValue",
     description:
     "One possible value for a given Enum. Enum values are unique values, not " +
-    "a placeholder for a string or numeric value. However an Enum value is " +
-    "returned in a JSON response as a string.",
+        "a placeholder for a string or numeric value. However an Enum value is " +
+        "returned in a JSON response as a string.",
     fields: [
         "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
         "description": GraphQLField(type: GraphQLString),
         "isDeprecated": GraphQLField(type: GraphQLNonNull(GraphQLBoolean)),
-        "deprecationReason": GraphQLField(type: GraphQLString)
+        "deprecationReason": GraphQLField(type: GraphQLString),
     ]
 )
 
-public enum TypeKind : String, Encodable {
+public enum TypeKind: String, Encodable {
     case scalar = "SCALAR"
     case object = "OBJECT"
     case interface = "INTERFACE"
@@ -400,37 +400,37 @@ let __TypeKind = try! GraphQLEnumType(
         "OBJECT": GraphQLEnumValue(
             value: Map(TypeKind.object.rawValue),
             description: "Indicates this type is an object. " +
-            "`fields` and `interfaces` are valid fields."
+                "`fields` and `interfaces` are valid fields."
         ),
         "INTERFACE": GraphQLEnumValue(
             value: Map(TypeKind.interface.rawValue),
             description: "Indicates this type is an interface. " +
-            "`fields` and `possibleTypes` are valid fields."
+                "`fields` and `possibleTypes` are valid fields."
         ),
         "UNION": GraphQLEnumValue(
             value: Map(TypeKind.union.rawValue),
             description: "Indicates this type is a union. " +
-            "`possibleTypes` is a valid field."
+                "`possibleTypes` is a valid field."
         ),
         "ENUM": GraphQLEnumValue(
             value: Map(TypeKind.enum.rawValue),
             description: "Indicates this type is an enum. " +
-            "`enumValues` is a valid field."
+                "`enumValues` is a valid field."
         ),
         "INPUT_OBJECT": GraphQLEnumValue(
             value: Map(TypeKind.inputObject.rawValue),
             description: "Indicates this type is an input object. " +
-            "`inputFields` is a valid field."
+                "`inputFields` is a valid field."
         ),
         "LIST": GraphQLEnumValue(
             value: Map(TypeKind.list.rawValue),
             description: "Indicates this type is a list. " +
-            "`ofType` is a valid field."
+                "`ofType` is a valid field."
         ),
         "NON_NULL": GraphQLEnumValue(
             value: Map(TypeKind.nonNull.rawValue),
             description: "Indicates this type is a non-null. " +
-            "`ofType` is a valid field."
+                "`ofType` is a valid field."
         ),
     ]
 )
@@ -445,7 +445,7 @@ let SchemaMetaFieldDef = GraphQLFieldDefinition(
     type: GraphQLNonNull(__Schema),
     description: "Access the current type schema of this server.",
     resolve: { _, _, _, eventLoopGroup, info in
-        return eventLoopGroup.next().newSucceededFuture(result: info.schema)
+        eventLoopGroup.next().makeSucceededFuture(info.schema)
     }
 )
 
@@ -457,11 +457,11 @@ let TypeMetaFieldDef = GraphQLFieldDefinition(
         GraphQLArgumentDefinition(
             name: "name",
             type: GraphQLNonNull(GraphQLString)
-        )
+        ),
     ],
     resolve: { _, arguments, _, eventLoopGroup, info in
         let name = arguments["name"].string!
-        return eventLoopGroup.next().newSucceededFuture(result: info.schema.getType(name: name))
+        return eventLoopGroup.next().makeSucceededFuture(info.schema.getType(name: name))
     }
 )
 
@@ -470,6 +470,6 @@ let TypeNameMetaFieldDef = GraphQLFieldDefinition(
     type: GraphQLNonNull(GraphQLString),
     description: "The name of the current Object type at runtime.",
     resolve: { _, _, _, eventLoopGroup, info in
-        eventLoopGroup.next().newSucceededFuture(result: info.parentType.name)
+        eventLoopGroup.next().makeSucceededFuture(info.parentType.name)
     }
 )
