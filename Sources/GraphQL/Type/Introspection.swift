@@ -445,7 +445,7 @@ let SchemaMetaFieldDef = GraphQLFieldDefinition(
     type: GraphQLNonNull(__Schema),
     description: "Access the current type schema of this server.",
     resolve: { _, _, _, eventLoopGroup, info in
-        return eventLoopGroup.next().newSucceededFuture(result: info.schema)
+        return eventLoopGroup.next().makeSucceededFuture(info.schema)
     }
 )
 
@@ -461,7 +461,7 @@ let TypeMetaFieldDef = GraphQLFieldDefinition(
     ],
     resolve: { _, arguments, _, eventLoopGroup, info in
         let name = arguments["name"].string!
-        return eventLoopGroup.next().newSucceededFuture(result: info.schema.getType(name: name))
+        return eventLoopGroup.next().makeSucceededFuture(info.schema.getType(name: name))
     }
 )
 
@@ -470,6 +470,6 @@ let TypeNameMetaFieldDef = GraphQLFieldDefinition(
     type: GraphQLNonNull(GraphQLString),
     description: "The name of the current Object type at runtime.",
     resolve: { _, _, _, eventLoopGroup, info in
-        eventLoopGroup.next().newSucceededFuture(result: info.parentType.name)
+        eventLoopGroup.next().makeSucceededFuture(info.parentType.name)
     }
 )

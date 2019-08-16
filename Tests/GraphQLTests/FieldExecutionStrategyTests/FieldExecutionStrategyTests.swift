@@ -23,7 +23,7 @@ class FieldExecutionStrategyTests: XCTestCase {
                         }
                         
                         group.wait()
-                        return eventLoopGroup.next().newSucceededFuture(result: "z")
+                        return eventLoopGroup.next().makeSucceededFuture("z")
                     }
                 ),
                 "bang": GraphQLField(
@@ -55,7 +55,7 @@ class FieldExecutionStrategyTests: XCTestCase {
                         
                         g.wait()
                         
-                        return eventLoopGroup.next().newFailedFuture(error: StrategyError.exampleError(
+                        return eventLoopGroup.next().makeFailedFuture(StrategyError.exampleError(
                             msg: "\(info.fieldName): \(info.path.elements.last!)"
                         ))
                     }
