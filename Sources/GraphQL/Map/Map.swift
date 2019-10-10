@@ -15,14 +15,11 @@ public enum MapError : Error {
 
 public enum Map {
     case null
+    case bool(Bool)
     case number(Number)
     case string(String)
     case array([Map])
     case dictionary([String: Map])
-    
-    public static func bool(_ value: Bool) -> Map {
-        return .number(Number(value))
-    }
     
     public static func int(_ value: Int) -> Map {
         return .number(Number(value))
@@ -47,7 +44,7 @@ extension Map {
     }
     
     public init(_ bool: Bool) {
-        self.init(Number(bool))
+        self = .bool(bool)
     }
     
     public init(_ int: Int) {
@@ -211,7 +208,7 @@ extension Map {
 
 extension Map {
     public var bool: Bool? {
-        return try? (get() as Number).boolValue
+        return try? get()
     }
     
     public var int: Int? {
@@ -246,6 +243,9 @@ extension Map {
         switch self {
         case .null:
             return false
+
+        case let .bool(value):
+            return value
             
         case let .number(number):
             return number.boolValue
@@ -321,6 +321,9 @@ extension Map {
         switch self {
         case .null:
             return "null"
+
+        case let .bool(value):
+            return "\(value)"
             
         case let .number(number):
             return number.stringValue
@@ -378,6 +381,8 @@ extension Map {
         if indexPath.isEmpty {
             switch self {
             case let .number(value as T):
+                return value
+            case let .bool(value as T):
                 return value
             case let .string(value as T):
                 return value
@@ -608,6 +613,8 @@ extension Map : Codable {
         switch self {
         case .null:
             try container.encodeNil()
+        case let .bool(value):
+            try container.encode(value)
         case let .number(number):
             try container.encode(number.doubleValue)
         case let .string(string):
@@ -647,6 +654,8 @@ extension Map : Hashable {
         switch self {
         case .null:
             hasher.combine(0)
+        case let .bool(value):
+            hasher.combine(value)
         case let .number(number):
             hasher.combine(number)
         case let .string(string):
@@ -743,6 +752,8 @@ extension Map {
             switch map {
             case .null:
                 return "null"
+            case let .bool(value):
+                return value.description
             case let .number(number):
                 return number.description
             case .string(let string):
