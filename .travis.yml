@@ -3,7 +3,7 @@ notifications:
 language: generic
 env:
   global:
-  - SWIFT_VERSION=5.0
+  - SWIFT_VERSION=5.1
 matrix:
   include:
     - os: osx
