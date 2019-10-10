@@ -229,7 +229,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     let fieldMap = type.fields
                     var fields = Array(fieldMap.values).sorted(by: { $0.name < $1.name })
 
-                    if !arguments["includeDeprecated"].bool! {
+                    if !(arguments["includeDeprecated"].bool ?? false) {
                         fields = fields.filter({ !$0.isDeprecated })
                     }
 
@@ -240,7 +240,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     let fieldMap = type.fields
                     var fields = Array(fieldMap.values).sorted(by: { $0.name < $1.name })
 
-                    if !arguments["includeDeprecated"].bool! {
+                    if !(arguments["includeDeprecated"].bool ?? false) {
                         fields = fields.filter({ !$0.isDeprecated })
                     }
 
@@ -285,7 +285,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
 
                 var values = type.values
 
-                if !arguments["includeDeprecated"].bool! {
+                if !(arguments["includeDeprecated"].bool ?? false) {
                     values = values.filter({ !$0.isDeprecated })
                 }
 
