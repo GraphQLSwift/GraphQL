@@ -557,7 +557,7 @@ public struct GraphQLField {
         
         self.resolve = { source, args, context, eventLoopGroup, info in
             let result = try resolve(source, args, context, info)
-            return eventLoopGroup.next().newSucceededFuture(result: result)
+            return eventLoopGroup.next().makeSucceededFuture(result)
         }
     }
 }

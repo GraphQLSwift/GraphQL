@@ -12,7 +12,7 @@ public typealias Future = EventLoopFuture
 
 extension Collection {
     public func flatten<T>(on eventLoopGroup: EventLoopGroup) -> Future<[T]> where Element == Future<T> {
-        return Future.whenAll(Array(self), eventLoop: eventLoopGroup.next())
+        return Future.whenAllSucceed(Array(self), on: eventLoopGroup.next())
     }
 }
 
@@ -31,10 +31,10 @@ extension Dictionary where Value : FutureType {
         var elements: [Key: Value.Expectation] = [:]
 
         guard self.count > 0 else {
-            return eventLoopGroup.next().newSucceededFuture(result: elements)
+            return eventLoopGroup.next().makeSucceededFuture(elements)
         }
 
-        let promise: EventLoopPromise<[Key: Value.Expectation]> = eventLoopGroup.next().newPromise()
+        let promise: EventLoopPromise<[Key: Value.Expectation]> = eventLoopGroup.next().makePromise()
         elements.reserveCapacity(self.count)
 
         for (key, value) in self {
@@ -42,12 +42,12 @@ extension Dictionary where Value : FutureType {
                 elements[key] = expectation
                 
                 if elements.count == self.count {
-                    promise.succeed(result: elements)
+                    promise.succeed(elements)
                 }
             }
             
             value.whenFailure { error in
-                promise.fail(error: error)
+                promise.fail(error)
             }
         }
 
@@ -59,19 +59,19 @@ extension Future {
         to type: T.Type = T.self,
         _ callback: @escaping (Expectation) throws -> Future<T>
     ) -> Future<T> {
-        let promise = eventLoop.newPromise(of: T.self)
+        let promise = eventLoop.makePromise(of: T.self)
         
         self.whenSuccess { expectation in
             do {
                 let mapped = try callback(expectation)
-                mapped.cascade(promise: promise)
+                mapped.cascade(to: promise)
             } catch {
-                promise.fail(error: error)
+                promise.fail(error)
             }
         }
             
         self.whenFailure { error in
-            promise.fail(error: error)
+            promise.fail(error)
         }
         
         return promise.futureResult
@@ -85,6 +85,5 @@ public protocol FutureType {
 }
 
 extension Future : FutureType {
-    public typealias Expectation = T
-    
+    public typealias Expectation = Value
 }
