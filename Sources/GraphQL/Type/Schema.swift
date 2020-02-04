@@ -178,8 +178,8 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
         return typeMap // Should never happen
     }
 
-    guard typeMap[type.name] == nil else {
-        guard typeMap[type.name]! == type else {
+    guard typeMap[type.name] == nil || typeMap[type.name] is GraphQLTypeReference else {
+        guard typeMap[type.name]! == type || type is GraphQLTypeReference else {
             throw GraphQLError(
                 message:
                 "Schema must contain unique named types but contains multiple " +
