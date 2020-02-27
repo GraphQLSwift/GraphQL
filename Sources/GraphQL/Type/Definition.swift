@@ -557,7 +557,7 @@ public struct GraphQLField {
         
         self.resolve = { source, args, context, eventLoopGroup, info in
             let result = try resolve(source, args, context, info)
-            return eventLoopGroup.next().newSucceededFuture(result: result)
+            return eventLoopGroup.next().makeSucceededFuture(result)
         }
     }
 }
@@ -1480,7 +1480,7 @@ extension GraphQLNonNull : Hashable {
  * A special type to allow a object/interface types to reference itself. It's replaced with the real type
  * object when the schema is built.
  */
-public final class GraphQLTypeReference : GraphQLType, GraphQLOutputType, GraphQLNullableType {
+public final class GraphQLTypeReference : GraphQLType, GraphQLOutputType, GraphQLNullableType, GraphQLNamedType {
     public let name: String
     public let kind: TypeKind = .typeReference
 
