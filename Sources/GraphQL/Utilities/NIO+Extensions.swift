@@ -11,13 +11,13 @@ import NIO
 public typealias Future = EventLoopFuture
 
 extension Collection {
-    public func flatten<T>(on eventLoopGroup: EventLoopGroup) -> Future<[T]> where Element == Future<T> {
+    internal func flatten<T>(on eventLoopGroup: EventLoopGroup) -> Future<[T]> where Element == Future<T> {
         return Future.whenAllSucceed(Array(self), on: eventLoopGroup.next())
     }
 }
 
 extension Collection {
-    public func flatMap<S, T>(
+    internal func flatMap<S, T>(
         to type: T.Type,
         on eventLoopGroup: EventLoopGroup,
         _ callback: @escaping ([S]) throws -> Future<T>
@@ -55,7 +55,7 @@ extension Dictionary where Value : FutureType {
     }
 }
 extension Future {
-    public func flatMap<T>(
+    internal func flatMap<T>(
         to type: T.Type = T.self,
         _ callback: @escaping (Expectation) throws -> Future<T>
     ) -> Future<T> {
