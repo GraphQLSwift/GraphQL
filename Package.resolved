@@ -3,7 +3,7 @@
     "pins": [
       {
         "package": "CRuntime",
-        "repositoryURL": "https://github.com/wickwirew/CRuntime.git",
+        "repositoryURL": "https://github.com/nerdsupremacist/CRuntime.git",
         "state": {
           "branch": null,
           "revision": "95f911318d8c885f6fc05e971471f94adfd39405",
@@ -11,12 +11,21 @@
         }
       },
       {
-        "package": "Runtime",
-        "repositoryURL": "https://github.com/wickwirew/Runtime.git",
+        "package": "CwlDemangle",
+        "repositoryURL": "https://github.com/mattgallagher/CwlDemangle.git",
         "state": {
           "branch": null,
-          "revision": "c167476b07fe8cc65fdf064076a4081c3269d14a",
-          "version": "2.1.0"
+          "revision": "b268c08207d2990664605c49b2c71cbd0df3445b",
+          "version": "0.1.0"
+        }
+      },
+      {
+        "package": "Runtime",
+        "repositoryURL": "https://github.com/nerdsupremacist/Runtime.git",
+        "state": {
+          "branch": null,
+          "revision": "64c026751ec24bdb69320a31ec933063b7b07cb7",
+          "version": "2.1.2-beta.1"
         }
       },
       {
