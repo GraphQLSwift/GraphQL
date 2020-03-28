@@ -286,19 +286,19 @@ func assert(
         }
 
         // Assert additional arguments must not be required.
-        for objectArg in objectField.args {
-            let argName = objectArg.name
-            if interfaceField.args.find({ $0.name == argName }) != nil {
-                guard !(objectArg.type is GraphQLNonNull) else {
-                    throw GraphQLError(
-                        message:
-                        "\(object.name).\(fieldName)(\(argName):) is of required type " +
-                        "\"\(objectArg.type)\" but is not also provided by the " +
-                        "interface \(interface.name).\(fieldName)."
-                    )
-                }
-            }
-        }
+//        for objectArg in objectField.args {
+//            let argName = objectArg.name
+//            if interfaceField.args.find({ $0.name == argName }) != nil {
+//                guard !(objectArg.type is GraphQLNonNull) else {
+//                    throw GraphQLError(
+//                        message:
+//                        "\(object.name).\(fieldName)(\(argName):) is of required type " +
+//                        "\"\(objectArg.type)\" but is not also provided by the " +
+//                        "interface \(interface.name).\(fieldName)."
+//                    )
+//                }
+//            }
+//        }
     }
 }
 
