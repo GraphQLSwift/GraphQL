@@ -567,7 +567,7 @@ public typealias GraphQLFieldDefinitionMap = [String: GraphQLFieldDefinition]
 public final class GraphQLFieldDefinition {
     public let name: String
     public let description: String?
-    public internal(set) var type: GraphQLOutputType
+    public var type: GraphQLOutputType
     public let args: [GraphQLArgumentDefinition]
     public let resolve: GraphQLFieldResolve?
     public let deprecationReason: String?
