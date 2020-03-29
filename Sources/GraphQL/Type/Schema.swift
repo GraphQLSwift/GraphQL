@@ -92,7 +92,7 @@ public final class GraphQLSchema {
             }
         }
 
-        self.implementations = implementations
+        self.implementations = implementations.mapValues { $0.sorted { $0.fields.count > $1.fields.count } }
 
         // Enforce correct interface implementations.
         for (_, type) in typeMap {
