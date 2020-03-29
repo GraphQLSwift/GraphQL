@@ -57,7 +57,7 @@ func == (lhs: GraphQLType, rhs: GraphQLType) -> Bool {
         }
     case let l as GraphQLTypeReference:
         if let r = rhs as? GraphQLTypeReference {
-            return l == r
+            return l.name == r.name
         }
     default:
         return false
