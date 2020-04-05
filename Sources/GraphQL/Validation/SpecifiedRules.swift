@@ -18,7 +18,7 @@ let specifiedRules: [(ValidationContext) -> Visitor] = [
 //    NoUndefinedVariables,
 //    NoUnusedVariables,
 //    KnownDirectives,
-//    KnownArgumentNames,
+    KnownArgumentNames,
 //    UniqueArgumentNames,
 //    ArgumentsOfCorrectType,
 //    ProvidedNonNullArguments,
