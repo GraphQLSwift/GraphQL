@@ -21,7 +21,7 @@ let specifiedRules: [(ValidationContext) -> Visitor] = [
     KnownArgumentNames,
 //    UniqueArgumentNames,
 //    ArgumentsOfCorrectType,
-//    ProvidedNonNullArguments,
+    ProvidedNonNullArguments,
 //    DefaultValuesOfCorrectType,
 //    VariablesInAllowedPosition,
 //    OverlappingFieldsCanBeMerged,
