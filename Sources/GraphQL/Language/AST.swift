@@ -1,3 +1,5 @@
+import Foundation
+
 /**
  * Contains a range of UTF-8 character offsets and token references that
  * identify the region of the source from which the AST derived.
@@ -722,62 +724,64 @@ extension FragmentDefinition : Hashable {
 }
 
 public protocol Value  : Node  {
-    func encode() -> String
+    func encode() throws -> String
 }
 extension Variable     : Value {
 
-    public func encode() -> String {
+    public func encode() throws -> String {
         return "$\(name)"
     }
 
 }
 extension IntValue     : Value {
 
-    public func encode() -> String {
+    public func encode() throws -> String {
         return value
     }
 
 }
 extension FloatValue   : Value {
 
-    public func encode() -> String {
+    public func encode() throws -> String {
         return value
     }
 
 }
 extension StringValue  : Value {
 
-    public func encode() -> String {
-        return value
+    public func encode() throws -> String {
+        let data = value.data(using: .utf8)!
+        let string = try JSONDecoder().decode(String.self, from: data)
+        return "\"" + string + "\""
     }
 
 }
 extension BooleanValue : Value {
 
-    public func encode() -> String {
+    public func encode() throws -> String {
         return String(value)
     }
 
 }
 extension EnumValue    : Value {
 
-    public func encode() -> String {
+    public func encode() throws -> String {
         return value
     }
 
 }
 extension ListValue    : Value {
 
-    public func encode() -> String {
-        let joined = values.map { $0.encode() }.joined(separator: ",")
+    public func encode() throws -> String {
+        let joined = try values.map { try $0.encode() }.joined(separator: ",")
         return "[\(joined)]"
     }
 
 }
 extension ObjectValue  : Value {
 
-    public func encode() -> String {
-        let joined = fields.map { "\($0.name):\($0.value.encode())" }.joined(separator: ",")
+    public func encode() throws -> String {
+        let joined = try fields.map { "\($0.name):\(try $0.value.encode())" }.joined(separator: ",")
         return "[\(joined)]"
     }
 

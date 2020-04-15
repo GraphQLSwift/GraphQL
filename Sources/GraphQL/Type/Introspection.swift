@@ -356,7 +356,7 @@ let __InputValue = try! GraphQLObjectType(
                 }
 
                 // This `print` is from the AST printer implementation
-                return try astFromValue(value: defaultValue, type: inputValue.type).map { .string($0.encode()) }
+                return try astFromValue(value: defaultValue, type: inputValue.type).map { .string(try $0.encode()) }
             }
         )
     ]
