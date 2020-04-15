@@ -755,8 +755,8 @@ extension StringValue  : Value {
         }
 
         let data = "{ string : \(value) }".data(using: .utf8)!
-        let string = try JSONDecoder().decode(Wrapper.self, from: data)
-        return "\"" + string + "\""
+        let wrapper = try JSONDecoder().decode(Wrapper.self, from: data)
+        return "\"" + wrapper.string + "\""
     }
 
 }
