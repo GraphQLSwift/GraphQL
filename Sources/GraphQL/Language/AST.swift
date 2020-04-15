@@ -721,15 +721,78 @@ extension FragmentDefinition : Hashable {
     }
 }
 
-public protocol Value  : Node  {}
-extension Variable     : Value {}
-extension IntValue     : Value {}
-extension FloatValue   : Value {}
-extension StringValue  : Value {}
-extension BooleanValue : Value {}
-extension EnumValue    : Value {}
-extension ListValue    : Value {}
-extension ObjectValue  : Value {}
+public protocol Value  : Node  {
+    func encode() -> String
+}
+extension Variable     : Value {
+
+    public func encode() -> String {
+        return "$\(name)"
+    }
+
+}
+extension IntValue     : Value {
+
+    public func encode() -> String {
+        return value
+    }
+
+}
+extension FloatValue   : Value {
+
+    public func encode() -> String {
+        return value
+    }
+
+}
+extension StringValue  : Value {
+
+    public func encode() -> String {
+        return "\"\(value.escapeString())\""
+    }
+
+}
+extension BooleanValue : Value {
+
+    public func encode() -> String {
+        return String(value)
+    }
+
+}
+extension EnumValue    : Value {
+
+    public func encode() -> String {
+        return value
+    }
+
+}
+extension ListValue    : Value {
+
+    public func encode() -> String {
+        let joined = values.map { $0.encode() }.joined(separator: ",")
+        return "[\(joined)]"
+    }
+
+}
+extension ObjectValue  : Value {
+
+    public func encode() -> String {
+        let joined = fields.map { "\($0.name):\($0.value.encode())" }.joined(separator: ",")
+        return "[\(joined)]"
+    }
+
+}
+
+extension String {
+    fileprivate func escapeString() -> String {
+        var newString = replacingOccurrences(of: "\"", with: "\"\"")
+        if newString.contains(",") || newString.contains("\n") {
+            newString = String(format: "\"%@\"", newString)
+        }
+
+        return newString
+    }
+}
 
 public func == (lhs: Value, rhs: Value) -> Bool {
     switch lhs {
