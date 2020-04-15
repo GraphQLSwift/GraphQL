@@ -90,7 +90,7 @@ public let GraphQLSkipDirective = try! GraphQLDirective(
 /**
  * Constant string used for default reason for a deprecation.
  */
-let defaulDeprecationReason: Map = .string("\"No longer supported\"")
+let defaulDeprecationReason: Map = "No longer supported"
 
 /**
  * Used to declare element of a GraphQL schema as deprecated.
@@ -104,8 +104,8 @@ public let GraphQLDeprecatedDirective = try! GraphQLDirective(
         .enumValue,
         ],
     args: [
-        "if": GraphQLArgument(
-            type: GraphQLNonNull(GraphQLBoolean),
+        "reason": GraphQLArgument(
+            type: GraphQLString,
             description:
             "Explains why this element was deprecated, usually also including a " +
             "suggestion for how to access supported similar data. Formatted " +
