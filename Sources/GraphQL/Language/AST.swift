@@ -750,13 +750,7 @@ extension FloatValue   : Value {
 extension StringValue  : Value {
 
     public func encode() throws -> String {
-        struct Wrapper : Decodable {
-            let string: String
-        }
-
-        let data = "{\"string\":\(value)}".data(using: .utf8)!
-        let wrapper = try JSONDecoder().decode(Wrapper.self, from: data)
-        return "\"" + wrapper.string + "\""
+        return "\"" + value + "\""
     }
 
 }
