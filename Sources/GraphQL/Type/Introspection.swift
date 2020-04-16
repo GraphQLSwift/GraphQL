@@ -362,29 +362,6 @@ let __InputValue = try! GraphQLObjectType(
     ]
 )
 
-extension Map {
-
-    fileprivate func encodeAsGraphQLString() -> String {
-        switch self {
-        case .null:
-            return "null"
-        case .bool(let bool):
-            return String(bool)
-        case .number(let number):
-            return number.stringValue
-        case .string(let string):
-            return "\"\(string)\""
-        case .array(let array):
-            let joined = array.map({ $0.encodeAsGraphQLString() }).joined(separator: ", ")
-            return "[\(joined)]"
-        case .dictionary(let dictionary):
-            let joined = dictionary.map { "\($0.key) : \($0.value.encodeAsGraphQLString())" }.joined(separator: ", ")
-            return "{\(joined)}"
-        }
-    }
-
-}
-
 let __EnumValue = try! GraphQLObjectType(
     name: "__EnumValue",
     description:

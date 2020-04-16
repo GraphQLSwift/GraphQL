@@ -750,7 +750,7 @@ extension FloatValue   : Value {
 extension StringValue  : Value {
 
     public func encode() throws -> String {
-        return "\"" + value.escapeString() + "\""
+        return "\"" + value + "\""
     }
 
 }
@@ -783,16 +783,6 @@ extension ObjectValue  : Value {
         return "[\(joined)]"
     }
 
-}
-
-extension String {
-    fileprivate func escapeString() -> String {
-        var newString = replacingOccurrences(of: "\"", with: "\"\"")
-        if newString.contains(",") || newString.contains("\n") {
-            newString = String(format: "\"%@\"", newString)
-        }
-        return newString
-    }
 }
 
 public func == (lhs: Value, rhs: Value) -> Bool {
