@@ -2048,7 +2048,7 @@ extension _AnyDecoder {
     fileprivate func unbox(_ value: Any, as type: Bool.Type) throws -> Bool? {
         guard !(value is NSNull) else { return nil }
 
-        #if DEPLOYMENT_RUNTIME_SWIFT
+        #if DEPLOYMENT_RUNTIME_SWIFT || os(Linux)
         // Bridging differences require us to split implementations here
         guard let number = __SwiftValue.store(value) as? NSNumber else {
             throw DecodingError._typeMismatch(at: self.codingPath, expectation: type, reality: value)

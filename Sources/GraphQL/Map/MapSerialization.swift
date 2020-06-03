@@ -36,6 +36,8 @@ public struct MapSerialization {
         switch map {
         case .null:
             return NSNull()
+        case let .bool(value):
+            return value as NSObject
         case var .number(number):
             return number.number
         case let .string(string):
