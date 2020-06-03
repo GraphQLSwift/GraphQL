@@ -1,6 +1,6 @@
 import Foundation
 
-public struct SourceLocation : Encodable {
+public struct SourceLocation : Codable {
     public let line: Int
     public let column: Int
     

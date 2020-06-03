@@ -4,8 +4,8 @@
  * it also includes information about the locations in a
  * GraphQL document and/or execution result that correspond to the error.
  */
-public struct GraphQLError : Error, Encodable {
-    private enum CodingKeys : String, CodingKey {
+public struct GraphQLError : Error, Codable {
+    enum CodingKeys : String, CodingKey {
         case message
         case locations
         case path
@@ -41,23 +41,23 @@ public struct GraphQLError : Error, Encodable {
     /**
      * An array of GraphQL AST Nodes corresponding to this error.
      */
-    public let nodes: [Node]
+    public private(set) var nodes: [Node] = []
 
     /**
      * The source GraphQL document corresponding to this error.
      */
-    public let source: Source?
+    public private(set) var source: Source? = nil
 
     /**
      * An array of character offsets within the source GraphQL document
      * which correspond to this error.
      */
-    public let positions: [Int]
+    public private(set) var positions: [Int] = []
 
     /**
      * The original error thrown from a field resolver during execution.
      */
-    public let originalError: Error?
+    public private(set) var originalError: Error? = nil
 
     public init(
         message: String,
@@ -134,7 +134,7 @@ extension GraphQLError : Hashable {
 
 // MARK: IndexPath
 
-public struct IndexPath : Encodable {
+public struct IndexPath : Codable {
     public let elements: [IndexPathValue]
     
     public init(_ elements: [IndexPathElement] = []) {
@@ -152,9 +152,21 @@ extension IndexPath : ExpressibleByArrayLiteral {
     }
 }
 
-public enum IndexPathValue : Encodable {
+public enum IndexPathValue : Codable {
     case index(Int)
     case key(String)
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        if let index = try? container.decode(Int.self) {
+            self = .index(index)
+        } else if let key = try? container.decode(String.self) {
+            self = .key(key)
+        } else {
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid type.")
+        }
+    }
     
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
