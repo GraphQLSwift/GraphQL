@@ -634,6 +634,8 @@ public func == (lhs: Map, rhs: Map) -> Bool {
     switch (lhs, rhs) {
     case (.null, .null):
         return true
+    case let (.bool(l), .bool(r)) where l == r:
+        return true
     case let (.number(l), .number(r)) where l == r:
         return true
     case let (.string(l), .string(r)) where l == r:
