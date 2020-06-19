@@ -1477,10 +1477,10 @@ extension GraphQLNonNull : Hashable {
 }
 
 /**
- * A special type to allow a object/interface types to reference itself. It's replaced with the real type
+ * A special type to allow object/interface types to reference itself. It's replaced with the real type
  * object when the schema is built.
  */
-public final class GraphQLTypeReference : GraphQLType, GraphQLOutputType, GraphQLNullableType {
+public final class GraphQLTypeReference : GraphQLType, GraphQLOutputType, GraphQLNullableType, GraphQLNamedType {
     public let name: String
     public let kind: TypeKind = .typeReference
 

@@ -92,7 +92,7 @@ public final class GraphQLSchema {
             }
         }
 
-        self.implementations = implementations
+        self.implementations = implementations.mapValues { $0.sorted { $0.fields.count > $1.fields.count } }
 
         // Enforce correct interface implementations.
         for (_, type) in typeMap {
@@ -117,8 +117,7 @@ public final class GraphQLSchema {
             return implementations[interface.name] ?? []
         }
 
-        // Should be impossible. Only UnionType and InterfaceType should conform to AbstractType
-        return []
+        fatalError("Should be impossible. Only UnionType and InterfaceType should conform to AbstractType")
     }
 
     public func isPossibleType(abstractType: GraphQLAbstractType, possibleType: GraphQLObjectType) throws -> Bool {
@@ -178,8 +177,8 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
         return typeMap // Should never happen
     }
 
-    guard typeMap[type.name] == nil else {
-        guard typeMap[type.name]! == type else {
+    guard typeMap[type.name] == nil || typeMap[type.name] is GraphQLTypeReference else {
+        guard typeMap[type.name]! == type || type is GraphQLTypeReference else {
             throw GraphQLError(
                 message:
                 "Schema must contain unique named types but contains multiple " +

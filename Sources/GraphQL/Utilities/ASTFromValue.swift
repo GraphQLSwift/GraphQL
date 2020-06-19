@@ -30,7 +30,7 @@ func astFromValue(
         return nil
     }
 
-    // Convert JavaScript array to GraphQL list. If the GraphQLType is a list, but
+    // Convert array to GraphQL list. If the GraphQLType is a list, but
     // the value is not an array, convert the value using the list's item type.
     if let type = type as? GraphQLList {
         let itemType = type.ofType as! GraphQLInputType
@@ -86,7 +86,7 @@ func astFromValue(
         return nil
     }
 
-    // Others serialize based on their corresponding JavaScript scalar types.
+    // Others serialize based on their corresponding scalar types.
     if case let .number(number) = serialized {
         switch number.storageType {
         case .bool:
