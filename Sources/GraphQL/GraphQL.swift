@@ -1,7 +1,7 @@
 import Foundation
 import NIO
 
-public struct GraphQLResult : Equatable, Encodable, CustomStringConvertible {
+public struct GraphQLResult : Equatable, Codable, CustomStringConvertible {
     public var data: Map?
     public var errors: [GraphQLError]
     
@@ -13,6 +13,12 @@ public struct GraphQLResult : Equatable, Encodable, CustomStringConvertible {
     enum CodingKeys : String, CodingKey {
         case data
         case errors
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.data = try container.decodeIfPresent(Map.self, forKey: .data)
+        self.errors = try container.decodeIfPresent([GraphQLError].self, forKey: .errors) ?? []
     }
 
     public func encode(to encoder: Encoder) throws {
