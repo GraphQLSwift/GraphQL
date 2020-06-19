@@ -273,9 +273,9 @@ func execute(
             result: nil
         )
 
-        return eventLoopGroup.next().newSucceededFuture(result: GraphQLResult(errors: [error]))
+        return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: [error]))
     } catch {
-        return eventLoopGroup.next().newSucceededFuture(result: GraphQLResult(errors: [GraphQLError(error)]))
+        return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: [GraphQLError(error)]))
     }
 
     do {
@@ -285,7 +285,7 @@ func execute(
             exeContext: buildContext,
             operation: buildContext.operation,
             rootValue: rootValue
-        ).thenThrowing { data -> GraphQLResult in
+            ).flatMapThrowing { data -> GraphQLResult in
             var dataMap: Map = [:]
             
             for (key, value) in data {
@@ -300,12 +300,15 @@ func execute(
             
 //            executeErrors = buildContext.errors
             return result
-        }.mapIfError { error -> GraphQLResult in
+        }.flatMapError { error -> Future<GraphQLResult> in
+            let result: GraphQLResult
             if let error = error as? GraphQLError {
-                return GraphQLResult(errors: [error])
+                result = GraphQLResult(errors: [error])
+            } else {
+                result = GraphQLResult(errors: [GraphQLError(error)])
             }
 
-            return GraphQLResult(errors: [GraphQLError(error)])
+            return buildContext.eventLoopGroup.next().makeSucceededFuture(result)
         }.map { result -> GraphQLResult in
 //            instrumentation.operationExecution(
 //                processId: processId(),
@@ -325,9 +328,9 @@ func execute(
             return result
         }
     } catch let error as GraphQLError {
-        return eventLoopGroup.next().newSucceededFuture(result: GraphQLResult(errors: [error]))
+        return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: [error]))
     } catch {
-        return eventLoopGroup.next().newSucceededFuture(result: GraphQLResult(errors: [GraphQLError(error)]))
+        return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: [GraphQLError(error)]))
     }
 }
 
@@ -788,12 +791,12 @@ func completeValueCatchingError(
             info: info,
             path: path,
             result: result
-        ).mapIfError { error -> Any? in
+        ).flatMapError { error -> EventLoopFuture<Any?> in
             guard let error = error as? GraphQLError else {
                 fatalError()
             }
             exeContext.append(error: error)
-            return nil
+            return exeContext.eventLoopGroup.next().makeSucceededFuture(nil)
         }
 
         return completed
@@ -801,7 +804,7 @@ func completeValueCatchingError(
         // If `completeValueWithLocatedError` returned abruptly (threw an error),
         // log the error and return .null.
         exeContext.append(error: error)
-        return exeContext.eventLoopGroup.next().newSucceededFuture(result: nil)
+        return exeContext.eventLoopGroup.next().makeSucceededFuture(nil)
     } catch {
         fatalError()
     }
@@ -825,7 +828,7 @@ func completeValueWithLocatedError(
             info: info,
             path: path,
             result: result
-        ).thenIfErrorThrowing { error -> Any? in
+        ).flatMapErrorThrowing { error -> Any? in
             throw locatedError(originalError: error, nodes: fieldASTs, path: path)
         }
         return completed
@@ -881,7 +884,7 @@ func completeValue(
                 info: info,
                 path: path,
                 result: .success(result)
-            ).thenThrowing { value -> Any? in
+            ).flatMapThrowing { value -> Any? in
                 guard let value = value else {
                     throw GraphQLError(message: "Cannot return null for non-nullable field \(info.parentType.name).\(info.fieldName).")
                 }
@@ -893,7 +896,7 @@ func completeValue(
         return result.flatMap(to: Any?.self) { result -> Future<Any?> in
             // If result value is null-ish (nil or .null) then return .null.
             guard let result = result, let r = unwrap(result) else {
-                return exeContext.eventLoopGroup.next().newSucceededFuture(result: nil)
+                return exeContext.eventLoopGroup.next().makeSucceededFuture(nil)
             }
 
             // If field type is List, complete each item in the list with the inner type
@@ -911,7 +914,7 @@ func completeValue(
             // If field type is a leaf type, Scalar or Enum, serialize to a valid value,
             // returning .null if serialization is not possible.
             if let returnType = returnType as? GraphQLLeafType {
-                return exeContext.eventLoopGroup.next().newSucceededFuture(result: try completeLeafValue(returnType: returnType, result: r))
+                return exeContext.eventLoopGroup.next().makeSucceededFuture(try completeLeafValue(returnType: returnType, result: r))
             }
 
             // If field type is an abstract type, Interface or Union, determine the
@@ -972,7 +975,7 @@ func completeListValue(
         // No need to modify the info object containing the path,
         // since from here on it is not ever accessed by resolver funcs.
         let fieldPath = path.appending(index)
-        let futureItem = item as? Future<Any?> ?? exeContext.eventLoopGroup.next().newSucceededFuture(result: item)
+        let futureItem = item as? Future<Any?> ?? exeContext.eventLoopGroup.next().makeSucceededFuture(item)
 
         let completedItem = try completeValueCatchingError(
             exeContext: exeContext,
@@ -1161,30 +1164,30 @@ func defaultResolve(
     info: GraphQLResolveInfo
 ) -> Future<Any?> {
     guard let source = unwrap(source) else {
-        return eventLoopGroup.next().newSucceededFuture(result: nil)
+        return eventLoopGroup.next().makeSucceededFuture(nil)
     }
     
     if let subscriptable = source as? KeySubscriptable {
         let value = subscriptable[info.fieldName]
-        return eventLoopGroup.next().newSucceededFuture(result: value)
+        return eventLoopGroup.next().makeSucceededFuture(value)
     }
 
     guard let encodable = source as? Encodable else {
-        return eventLoopGroup.next().newSucceededFuture(result: nil)
+        return eventLoopGroup.next().makeSucceededFuture(nil)
     }
     
     guard
         let typeInfo = try? typeInfo(of: type(of: encodable)),
         let property = try? typeInfo.property(named: info.fieldName)
     else {
-        return eventLoopGroup.next().newSucceededFuture(result: nil)
+        return eventLoopGroup.next().makeSucceededFuture(nil)
     }
     
     guard let value = try? property.get(from: encodable) else {
-        return eventLoopGroup.next().newSucceededFuture(result: nil)
+        return eventLoopGroup.next().makeSucceededFuture(nil)
     }
     
-    return eventLoopGroup.next().newSucceededFuture(result: value)
+    return eventLoopGroup.next().makeSucceededFuture(value)
     
 //    guard let any = try? AnyEncoder().encode(AnyEncodable(encodable)) else {
 //        return eventLoopGroup.next().newSucceededFuture(result: nil)

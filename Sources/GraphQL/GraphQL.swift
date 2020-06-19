@@ -80,7 +80,7 @@ public func graphql(
     let validationErrors = validate(instrumentation: instrumentation, schema: schema, ast: documentAST)
 
     guard validationErrors.isEmpty else {
-        return eventLoopGroup.next().newSucceededFuture(result: GraphQLResult(errors: validationErrors))
+        return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: validationErrors))
     }
 
     return execute(
@@ -134,7 +134,7 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
     case .parseError(let parseError):
         throw parseError
     case .validateErrors(_, let validationErrors):
-        return eventLoopGroup.next().newSucceededFuture(result: GraphQLResult(errors: validationErrors))
+        return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: validationErrors))
     case .result(let schema, let documentAST):
         return execute(
             queryStrategy: queryStrategy,
