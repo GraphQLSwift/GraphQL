@@ -1272,12 +1272,20 @@ public final class InterfaceTypeDefinition {
     public let kind: Kind = .interfaceTypeDefinition
     public let loc: Location?
     public let name: Name
+    public let interfaces: [NamedType]
     public let directives: [Directive]
     public let fields: [FieldDefinition]
 
-    init(loc: Location? = nil, name: Name, directives: [Directive] = [], fields: [FieldDefinition]) {
+    init(
+        loc: Location? = nil,
+        name: Name,
+        interfaces: [NamedType] = [],
+        directives: [Directive] = [],
+        fields: [FieldDefinition]
+    ) {
         self.loc = loc
         self.name = name
+        self.interfaces = interfaces
         self.directives = directives
         self.fields = fields
     }

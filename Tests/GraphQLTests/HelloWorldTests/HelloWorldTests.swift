@@ -63,12 +63,3 @@ class HelloWorldTests : XCTestCase {
         XCTAssertEqual(result, expected)
     }
 }
-
-extension HelloWorldTests {
-    static var allTests: [(String, (HelloWorldTests) -> () throws -> Void)] {
-        return [
-            ("testHello", testHello),
-            ("testBoyhowdy", testBoyhowdy),
-        ]
-    }
-}

@@ -803,10 +803,11 @@ func parseInputValueDef(lexer: Lexer) throws -> InputValueDefinition {
  * InterfaceTypeDefinition : interface Name Directives? { FieldDefinition+ }
  */
 func parseInterfaceTypeDefinition(lexer: Lexer) throws -> InterfaceTypeDefinition {
-    let start = lexer.token;
-    try expectKeyword(lexer: lexer, value: "interface");
-    let name = try parseName(lexer: lexer);
-    let directives = try parseDirectives(lexer: lexer);
+    let start = lexer.token
+    try expectKeyword(lexer: lexer, value: "interface")
+    let name = try parseName(lexer: lexer)
+    let interfaces = try parseImplementsInterfaces(lexer: lexer)
+    let directives = try parseDirectives(lexer: lexer)
     let fields = try any(
         lexer: lexer,
         openKind: .openingBrace,
@@ -816,6 +817,7 @@ func parseInterfaceTypeDefinition(lexer: Lexer) throws -> InterfaceTypeDefinitio
     return InterfaceTypeDefinition(
         loc: loc(lexer: lexer, startToken: start),
         name: name,
+        interfaces: interfaces,
         directives: directives,
         fields: fields
     )

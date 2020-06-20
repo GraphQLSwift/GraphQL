@@ -31,8 +31,8 @@ public final class GraphQLSchema {
     public let subscriptionType: GraphQLObjectType?
     public let directives: [GraphQLDirective]
     public let typeMap: TypeMap
-    public let implementations: [String: [GraphQLObjectType]]
-    private var possibleTypeMap: [String: [String: Bool]] = [:]
+    public let implementations: [String: InterfaceImplementations]
+    private var subTypeMap: [String: [String: Bool]] = [:]
 
     public init(
         query: GraphQLObjectType,
@@ -77,22 +77,7 @@ public final class GraphQLSchema {
         try replaceTypeReferences(typeMap: typeMap)
 
         // Keep track of all implementations by interface name.
-        var implementations: [String: [GraphQLObjectType]] = [:]
-
-        for (_, type) in typeMap {
-            if let object = type as? GraphQLObjectType {
-                for interface in object.interfaces {
-                    if var i = implementations[interface.name] {
-                        i.append(object)
-                        implementations[interface.name] = i
-                    } else {
-                        implementations[interface.name] = [object]
-                    }
-                }
-            }
-        }
-
-        self.implementations = implementations.mapValues { $0.sorted { $0.fields.count > $1.fields.count } }
+        self.implementations = collectImplementations(types: Array(typeMap.values))
 
         // Enforce correct interface implementations.
         for (_, type) in typeMap {
@@ -109,48 +94,70 @@ public final class GraphQLSchema {
     }
 
     public func getPossibleTypes(abstractType: GraphQLAbstractType) -> [GraphQLObjectType] {
-        if let union = abstractType as? GraphQLUnionType {
-            return union.types
+        if let unionType = abstractType as? GraphQLUnionType {
+            return unionType.types
         }
-
-        if let interface = abstractType as? GraphQLInterfaceType {
-            return implementations[interface.name] ?? []
+        
+        if let interfaceType = abstractType as? GraphQLInterfaceType {
+            return getImplementations(interfaceType: interfaceType).objects
         }
-
+        
         fatalError("Should be impossible. Only UnionType and InterfaceType should conform to AbstractType")
     }
-
-    public func isPossibleType(abstractType: GraphQLAbstractType, possibleType: GraphQLObjectType) throws -> Bool {
-        if possibleTypeMap[abstractType.name] == nil {
-            let possibleTypes = getPossibleTypes(abstractType: abstractType)
-
-            guard !possibleTypes.isEmpty else {
-                throw GraphQLError(
-                    message:
-                    "Could not find possible implementing types for \(abstractType.name) " +
-                    "in schema. Check that schema.types is defined and is an array of " +
-                    "all possible types in the schema."
-                )
-
-            }
-
-            var map: [String: Bool] = [:]
-
-            for type in possibleTypes {
-                map[type.name] = true
-            }
-
-            possibleTypeMap[abstractType.name] = map
-        }
-
-        return possibleTypeMap[abstractType.name]?[possibleType.name] != nil
+    
+    public func getImplementations(
+        interfaceType: GraphQLInterfaceType
+    ) -> InterfaceImplementations {
+        implementations[interfaceType.name]!
     }
 
+    // @deprecated: use isSubType instead - will be removed in the future.
+    public func isPossibleType(
+        abstractType: GraphQLAbstractType,
+        possibleType: GraphQLObjectType
+    ) throws -> Bool {
+        isSubType(abstractType: abstractType, maybeSubType: possibleType)
+    }
+    
+    public func isSubType(
+      abstractType: GraphQLAbstractType,
+      maybeSubType: GraphQLNamedType
+    ) -> Bool {
+        var map = subTypeMap[abstractType.name]
+
+        if map == nil {
+            map = [:]
+
+            if let unionType = abstractType as? GraphQLUnionType {
+                for type in unionType.types {
+                    map?[type.name] = true
+                }
+            }
+            
+            if let interfaceType = abstractType as? GraphQLInterfaceType {
+                let implementations = getImplementations(interfaceType: interfaceType)
+                
+                for type in implementations.objects {
+                    map?[type.name] = true
+                }
+                
+                for type in implementations.interfaces {
+                    map?[type.name] = true
+                }
+            }
+            
+            subTypeMap[abstractType.name] = map
+        }
+
+        let isSubType = map?[maybeSubType.name] != nil
+        return isSubType
+    }
 
     public func getDirective(name: String) -> GraphQLDirective? {
         for directive in directives where directive.name == name {
             return directive
         }
+        
         return nil
     }
 }
@@ -165,6 +172,51 @@ extension GraphQLSchema : Encodable {
 }
 
 public typealias TypeMap = [String: GraphQLNamedType]
+
+public struct InterfaceImplementations {
+    public let objects: [GraphQLObjectType]
+    public let interfaces: [GraphQLInterfaceType]
+    
+    public init(
+        objects: [GraphQLObjectType] = [],
+        interfaces: [GraphQLInterfaceType] = []
+    ) {
+        self.objects = objects
+        self.interfaces = interfaces
+    }
+}
+
+func collectImplementations(
+  types: [GraphQLNamedType]
+) -> [String : InterfaceImplementations] {
+    var implementations: [String: InterfaceImplementations] = [:]
+
+    for type in types {
+        if let type = type as? GraphQLInterfaceType {
+            if implementations[type.name] == nil {
+                implementations[type.name] = InterfaceImplementations()
+            }
+
+            // Store implementations by interface.
+            for iface in type.interfaces {
+                implementations[iface.name] = InterfaceImplementations(
+                    interfaces: (implementations[iface.name]?.interfaces ?? []) + [type]
+                )
+            }
+        }
+        
+        if let type = type as? GraphQLObjectType {
+            // Store implementations by objects.
+            for iface in type.interfaces {
+                implementations[iface.name] = InterfaceImplementations(
+                    objects: (implementations[iface.name]?.objects ?? []) + [type]
+                )
+            }
+        }
+    }
+
+    return implementations
+}
 
 func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
     var typeMap = typeMap
@@ -197,9 +249,7 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
 
     if let type = type as? GraphQLObjectType {
         typeMap = try type.interfaces.reduce(typeMap, typeMapReducer)
-    }
 
-    if let type = type as? GraphQLObjectType {
         for (_, field) in type.fields {
 
             if !field.args.isEmpty {
@@ -212,6 +262,8 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
     }
 
     if let type = type as? GraphQLInterfaceType {
+        typeMap = try type.interfaces.reduce(typeMap, typeMapReducer)
+        
         for (_, field) in type.fields {
 
             if !field.args.isEmpty {

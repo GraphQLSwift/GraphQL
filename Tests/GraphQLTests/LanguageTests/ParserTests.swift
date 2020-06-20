@@ -326,24 +326,3 @@ class ParserTests : XCTestCase {
         XCTAssert(try parseType(source: source) == expected)
     }
 }
-
-extension ParserTests {
-    static var allTests: [(String, (ParserTests) -> () throws -> Void)] {
-        return [
-            ("testErrorMessages", testErrorMessages),
-            ("testVariableInlineValues", testVariableInlineValues),
-            ("testKitchenSink", testKitchenSink),
-            ("testNonKeywordAsName", testNonKeywordAsName),
-            ("testAnonymousMutationOperation", testAnonymousMutationOperation),
-            ("testAnonymousSubscriptionOperation", testAnonymousSubscriptionOperation),
-            ("testNamedMutationOperation", testNamedMutationOperation),
-            ("testNamedSubscriptionOperation", testNamedSubscriptionOperation),
-            ("testCreateAST", testCreateAST),
-            ("testNoLocation", testNoLocation),
-            ("testLocationSource", testLocationSource),
-            ("testLocationTokens", testLocationTokens),
-            ("testParseValue", testParseValue),
-            ("testParseType", testParseType),
-        ]
-    }
-}

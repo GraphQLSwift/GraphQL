@@ -662,26 +662,3 @@ class StarWarsQueryTests : XCTestCase {
         XCTAssertEqual(result, expected)
     }
 }
-
-extension StarWarsQueryTests {
-    static var allTests: [(String, (StarWarsQueryTests) -> () throws -> Void)] {
-        return [
-            ("testHeroNameQuery", testHeroNameQuery),
-            ("testHeroNameAndFriendsQuery", testHeroNameAndFriendsQuery),
-            ("testNestedQuery", testNestedQuery),
-            ("testFetchLukeQuery", testFetchLukeQuery),
-            ("testOptionalVariable", testOptionalVariable),
-            ("testFetchSomeIDQuery", testFetchSomeIDQuery),
-            ("testFetchLukeAliasedQuery", testFetchLukeAliasedQuery),
-            ("testFetchLukeAndLeiaAliasedQuery", testFetchLukeAndLeiaAliasedQuery),
-            ("testDuplicateFieldsQuery", testDuplicateFieldsQuery),
-            ("testUseFragmentQuery", testUseFragmentQuery),
-            ("testCheckTypeOfR2Query", testCheckTypeOfR2Query),
-            ("testCheckTypeOfLukeQuery", testCheckTypeOfLukeQuery),
-            ("testSecretBackstoryQuery", testSecretBackstoryQuery),
-            ("testSecretBackstoryListQuery", testSecretBackstoryListQuery),
-            ("testSecretBackstoryAliasQuery",testSecretBackstoryAliasQuery),
-            ("testNonNullableFieldsQuery", testNonNullableFieldsQuery)
-        ]
-    }
-}

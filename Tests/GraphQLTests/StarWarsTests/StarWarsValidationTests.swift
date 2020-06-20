@@ -103,17 +103,3 @@ class StarWarsValidationTests : XCTestCase {
         XCTAssert(try validationErrors(query: query).isEmpty)
     }
 }
-
-extension StarWarsValidationTests {
-    static var allTests: [(String, (StarWarsValidationTests) -> () throws -> Void)] {
-        return [
-            ("testNestedQueryWithFragment", testNestedQueryWithFragment),
-            ("testHeroSpaceshipQuery", testHeroSpaceshipQuery),
-            ("testHeroNoFieldsQuery", testHeroNoFieldsQuery),
-            ("testHeroFieldsOnScalarQuery", testHeroFieldsOnScalarQuery),
-            ("testDroidFieldOnCharacter", testDroidFieldOnCharacter),
-            ("testDroidFieldInFragment", testDroidFieldInFragment),
-            ("testDroidFieldInInlineFragment", testDroidFieldInInlineFragment),
-        ]
-    }
-}

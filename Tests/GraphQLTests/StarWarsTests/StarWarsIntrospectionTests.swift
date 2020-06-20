@@ -474,19 +474,3 @@ class StarWarsIntrospectionTests : XCTestCase {
         XCTAssertEqual(result, expected)
     }
 }
-
-extension StarWarsIntrospectionTests {
-    static var allTests: [(String, (StarWarsIntrospectionTests) -> () throws -> Void)] {
-        return [
-            ("testIntrospectionTypeQuery", testIntrospectionTypeQuery),
-            ("testIntrospectionQueryTypeQuery", testIntrospectionQueryTypeQuery),
-            ("testIntrospectionDroidTypeQuery", testIntrospectionDroidTypeQuery),
-            ("testIntrospectionDroidKindQuery", testIntrospectionDroidKindQuery),
-            ("testIntrospectionCharacterKindQuery", testIntrospectionCharacterKindQuery),
-            ("testIntrospectionDroidFieldsQuery", testIntrospectionDroidFieldsQuery),
-            ("testIntrospectionDroidNestedFieldsQuery", testIntrospectionDroidNestedFieldsQuery),
-            ("testIntrospectionFieldArgsQuery", testIntrospectionFieldArgsQuery),
-            ("testIntrospectionDroidDescriptionQuery", testIntrospectionDroidDescriptionQuery),
-        ]
-    }
-}

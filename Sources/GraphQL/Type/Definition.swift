@@ -739,21 +739,26 @@ public final class GraphQLInterfaceType {
     public let description: String?
     public let resolveType: GraphQLTypeResolve?
     public let fields: GraphQLFieldDefinitionMap
+    public let interfaces: [GraphQLInterfaceType]
     public let kind: TypeKind = .interface
 
     public init(
         name: String,
         description: String? = nil,
+        interfaces: [GraphQLInterfaceType] = [],
         fields: GraphQLFieldMap,
         resolveType: GraphQLTypeResolve? = nil
     ) throws {
         try assertValid(name: name)
         self.name = name
         self.description = description
+        
         self.fields = try defineFieldMap(
             name: name,
             fields: fields
         )
+        
+        self.interfaces = interfaces
         self.resolveType = resolveType
     }
 

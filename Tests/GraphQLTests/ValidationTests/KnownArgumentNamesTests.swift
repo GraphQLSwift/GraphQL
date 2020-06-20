@@ -3,7 +3,7 @@ import XCTest
 
 class KnownArgumentNamesTests : ValidationTestCase {
     override func setUp() {
-        rule = KnownArgumentNames
+        rule = KnownArgumentNamesRule
     }
     
     func testValidWithObjectWithoutArguments() throws {
@@ -40,17 +40,5 @@ class KnownArgumentNamesTests : ValidationTestCase {
             error: errors.first, line: 1, column: 56,
             message: #"Field "name" on type "Dog" does not have argument "uppercased"."#
         )
-    }
-    
-}
-
-extension KnownArgumentNamesTests {
-    static var allTests: [(String, (KnownArgumentNamesTests) -> () throws -> Void)] {
-        return [
-            ("testValidWithObjectWithoutArguments", testValidWithObjectWithoutArguments),
-            ("testValidWithCorrectArgumentNames", testValidWithCorrectArgumentNames),
-            ("testInvalidWithSlightlyMisspelledArgument", testInvalidWithSlightlyMisspelledArgument),
-            ("testInvalidWithUnrelatedArgument", testInvalidWithUnrelatedArgument),
-        ]
     }
 }

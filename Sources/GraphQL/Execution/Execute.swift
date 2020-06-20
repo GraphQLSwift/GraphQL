@@ -638,7 +638,10 @@ func doesFragmentConditionMatch(
     }
 
     if let abstractType = conditionalType as? GraphQLAbstractType {
-        return try exeContext.schema.isPossibleType(abstractType: abstractType, possibleType: type)
+        return exeContext.schema.isSubType(
+            abstractType: abstractType,
+            maybeSubType: type
+        )
     }
     
     return false
@@ -1062,7 +1065,7 @@ func completeAbstractValue(
         )
     }
 
-    if try !exeContext.schema.isPossibleType(abstractType: returnType, possibleType: objectType) {
+    if !exeContext.schema.isSubType(abstractType: returnType, maybeSubType: objectType) {
         throw GraphQLError(
             message:
             "Runtime Object type \"\(objectType.name)\" is not a possible type " +

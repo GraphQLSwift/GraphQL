@@ -159,13 +159,3 @@ class InstrumentationTests : XCTestCase, Instrumentation {
     }
 
 }
-
-extension InstrumentationTests {
-    static var allTests: [(String, (InstrumentationTests) -> () throws -> Void)] {
-        return [
-            ("testInstrumentationCalls", testInstrumentationCalls),
-            ("testDispatchQueueInstrumentationWrapper", testDispatchQueueInstrumentationWrapper),
-        ]
-    }
-}
-

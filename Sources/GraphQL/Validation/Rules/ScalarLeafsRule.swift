@@ -14,12 +14,12 @@ func requiredSubselectionMessage(fieldName: String, type: GraphQLType) -> String
  * A GraphQL document is valid only if all leaf fields (fields without
  * sub selections) are of scalar or enum types.
  */
-func ScalarLeafs(context: ValidationContext) -> Visitor {
+func ScalarLeafsRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, key, parent, path, ancestors in
             if let node = node as? Field {
                 if let type = context.type {
-                    if isLeafType(type: type) {
+                    if isLeafType(type: getNamedType(type: type)) {
                         if let selectionSet = node.selectionSet {
                             let error = GraphQLError(
                                 message: noSubselectionAllowedMessage(fieldName: node.name.value, type: type),

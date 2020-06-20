@@ -104,14 +104,26 @@ func isTypeSubTypeOf(
         return false
     }
 
-    // If superType type is an abstract type, maybeSubType type may be a currently
-    // possible object type.
-    if let superType = superType as? GraphQLAbstractType,
-       let maybeSubType = maybeSubType as? GraphQLObjectType,
-       try schema.isPossibleType(
+    // If superType type is an abstract type, check if it is super type of maybeSubType.
+    if
+        let superType = superType as? GraphQLAbstractType,
+        let maybeSubType = maybeSubType as? GraphQLObjectType,
+        schema.isSubType(
             abstractType: superType,
-            possibleType: maybeSubType
-       ) {
+            maybeSubType: maybeSubType
+       )
+    {
+        return true
+    }
+    
+    if
+        let superType = superType as? GraphQLAbstractType,
+        let maybeSubType = maybeSubType as? GraphQLInterfaceType,
+        schema.isSubType(
+            abstractType: superType,
+            maybeSubType: maybeSubType
+        )
+    {
         return true
     }
 
@@ -132,7 +144,7 @@ func doTypesOverlap(
     schema: GraphQLSchema,
     typeA: GraphQLCompositeType,
     typeB: GraphQLCompositeType
-) throws -> Bool {
+) -> Bool {
     // Equivalent types overlap
     if typeA == typeB {
         return true
@@ -142,28 +154,31 @@ func doTypesOverlap(
         if let typeB = typeB as? GraphQLAbstractType {
             // If both types are abstract, then determine if there is any intersection
             // between possible concrete types of each.
-            return try schema.getPossibleTypes(abstractType: typeA).find({
-                try schema.isPossibleType(
+            return schema.getPossibleTypes(abstractType: typeA).contains { typeA in
+                schema.isSubType(
                     abstractType: typeB,
-                    possibleType: $0
+                    maybeSubType: typeA
                 )
-            }) != nil
+            }
         }
 
         if let typeB = typeB as? GraphQLObjectType {
             // Determine if the latter type is a possible concrete type of the former.
-            return try schema.isPossibleType(
+            return schema.isSubType(
                 abstractType: typeA,
-                possibleType: typeB
+                maybeSubType: typeB
             )
         }
     }
 
-    if let typeA = typeA as? GraphQLObjectType, let typeB = typeB as? GraphQLAbstractType {
+    if
+        let typeA = typeA as? GraphQLObjectType,
+        let typeB = typeB as? GraphQLAbstractType
+    {
         // Determine if the former type is a possible concrete type of the latter.
-        return try schema.isPossibleType(
+        return schema.isSubType(
             abstractType: typeB,
-            possibleType: typeA
+            maybeSubType: typeA
         )
     }
     

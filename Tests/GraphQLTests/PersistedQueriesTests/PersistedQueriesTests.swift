@@ -138,18 +138,3 @@ class PersistedQueriesTests: XCTestCase {
 //    }
 
 }
-
-extension PersistedQueriesTests {
-    static var allTests: [(String, (PersistedQueriesTests) -> () throws -> Void)] {
-        return [
-//            ("testLookupWithUnknownId", testLookupWithUnknownId),
-//            ("testLookupWithParseError", testLookupWithParseError),
-//            ("testLookupWithValidationErrors", testLookupWithValidationErrors),
-//            ("testLookupWithResult", testLookupWithResult),
-//            ("testGraphQLWithUnknownId", testGraphQLWithUnknownId),
-//            ("testGraphQLWithWithParseError", testGraphQLWithWithParseError),
-//            ("testGraphQLWithWithValidationErrors", testGraphQLWithWithValidationErrors),
-//            ("testGraphQLWithWithResult", testGraphQLWithWithResult),
-        ]
-    }
-}

@@ -1,6 +1,6 @@
 import Foundation
 
- func missingArgumentsMessage(
+func missingArgumentsMessage(
     fieldName: String,
     type: String,
     missingArguments: [String]
@@ -9,7 +9,7 @@ import Foundation
     return "Field \"\(fieldName)\" on type \"\(type)\" is missing required arguments \(arguments)."
 }
 
- func ProvidedNonNullArguments(context: ValidationContext) -> Visitor {
+ func ProvidedNonNullArgumentsRule(context: ValidationContext) -> Visitor {
     return Visitor(
         leave: { node, key, parent, path, ancestors in
             if let node = node as? Field, let field = context.fieldDef, let type = context.parentType {

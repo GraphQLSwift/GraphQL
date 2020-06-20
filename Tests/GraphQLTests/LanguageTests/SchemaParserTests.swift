@@ -377,27 +377,3 @@ class SchemaParserTests : XCTestCase {
         XCTAssertThrowsError(try parse(source: source))
     }
 }
-
-extension SchemaParserTests {
-    static var allTests: [(String, (SchemaParserTests) -> () throws -> Void)] {
-        return [
-            ("testSimpleType", testSimpleType),
-            ("testSimpleExtension", testSimpleExtension),
-            ("testSimpleNonNullType", testSimpleNonNullType),
-            ("testSimpleTypeInheritingInterface", testSimpleTypeInheritingInterface),
-            ("testSimpleTypeInheritingMultipleInterfaces", testSimpleTypeInheritingMultipleInterfaces),
-            ("testSingleValueEnum", testSingleValueEnum),
-            ("testDoubleValueEnum", testDoubleValueEnum),
-            ("testSimpleInterface", testSimpleInterface),
-            ("testSimpleFieldWithArg", testSimpleFieldWithArg),
-            ("testSimpleFieldWithArgDefaultValue", testSimpleFieldWithArgDefaultValue),
-            ("testSimpleFieldWithListArg", testSimpleFieldWithListArg),
-            ("testSimpleFieldWithTwoArgs", testSimpleFieldWithTwoArgs),
-            ("testSimpleUnion", testSimpleUnion),
-            ("testUnionTwoTypes", testUnionTwoTypes),
-            ("testScalar", testScalar),
-            ("testSimpleInputObject", testSimpleInputObject),
-            ("testSimpleInputObjectWithArgs", testSimpleInputObjectWithArgs),
-        ]
-    }
-}

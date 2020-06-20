@@ -16,7 +16,7 @@ import Foundation
      return message
 }
 
- func KnownArgumentNames(context: ValidationContext) -> Visitor {
+ func KnownArgumentNamesRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, key, parent, path, ancestors in
             if let node = node as? Argument, context.argument == nil, let field = context.fieldDef, let type = context.parentType {

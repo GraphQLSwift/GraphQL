@@ -327,21 +327,3 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
 }
-
-extension FieldExecutionStrategyTests {
-    static var allTests: [(String, (FieldExecutionStrategyTests) -> () throws -> Void)] {
-        return [
-            ("testSerialFieldExecutionStrategyWithSingleField", testSerialFieldExecutionStrategyWithSingleField),
-            ("testSerialFieldExecutionStrategyWithSingleFieldError", testSerialFieldExecutionStrategyWithSingleFieldError),
-            ("testSerialFieldExecutionStrategyWithSingleFieldFailedFuture", testSerialFieldExecutionStrategyWithSingleFieldFailedFuture),
-            ("testSerialFieldExecutionStrategyWithMultipleFields", testSerialFieldExecutionStrategyWithMultipleFields),
-            ("testSerialFieldExecutionStrategyWithMultipleFieldErrors", testSerialFieldExecutionStrategyWithMultipleFieldErrors),
-            ("testConcurrentDispatchFieldExecutionStrategyWithSingleField", testConcurrentDispatchFieldExecutionStrategyWithSingleField),
-            ("testConcurrentDispatchFieldExecutionStrategyWithSingleFieldError", testConcurrentDispatchFieldExecutionStrategyWithSingleFieldError),
-            ("testConcurrentDispatchFieldExecutionStrategyWithMultipleFields", testConcurrentDispatchFieldExecutionStrategyWithMultipleFields),
-            ("testConcurrentDispatchFieldExecutionStrategyWithMultipleFieldErrors", testConcurrentDispatchFieldExecutionStrategyWithMultipleFieldErrors),
-        ]
-    }
-}
-
-

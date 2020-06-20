@@ -253,11 +253,16 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
         "interfaces": GraphQLField(
             type: GraphQLList(GraphQLNonNull(GraphQLTypeReference("__Type"))),
             resolve: { type, _, _, _ -> [GraphQLInterfaceType]? in
-                guard let type = type as? GraphQLObjectType else {
-                    return nil
+                if let type = type as? GraphQLObjectType {
+                    return type.interfaces
                 }
                 
-                return type.interfaces
+                if let type = type as? GraphQLInterfaceType {
+                    return type.interfaces
+                }
+                
+                return nil
+                
             }
         ),
         "possibleTypes": GraphQLField(
@@ -403,7 +408,7 @@ let __TypeKind = try! GraphQLEnumType(
         "INTERFACE": GraphQLEnumValue(
             value: Map(TypeKind.interface.rawValue),
             description: "Indicates this type is an interface. " +
-            "`fields` and `possibleTypes` are valid fields."
+            "`fields`, `interfaces`, and `possibleTypes` are valid fields."
         ),
         "UNION": GraphQLEnumValue(
             value: Map(TypeKind.union.rawValue),

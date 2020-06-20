@@ -35,7 +35,7 @@ let QueryDocumentKeys: [Kind: [String]] = [
     .objectTypeDefinition: ["name", "interfaces", "directives", "fields"],
     .fieldDefinition: ["name", "arguments", "type", "directives"],
     .inputValueDefinition: ["name", "type", "defaultValue", "directives"],
-    .interfaceTypeDefinition: ["name", "directives", "fields"],
+    .interfaceTypeDefinition: ["name", "interfaces", "directives", "fields"],
     .unionTypeDefinition: ["name", "directives", "types"],
     .enumTypeDefinition: ["name", "directives", "values"],
     .enumValueDefinition: ["name", "directives"],

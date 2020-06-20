@@ -742,26 +742,3 @@ class LexerTests : XCTestCase {
         XCTAssertEqual(tokens.map({ $0.kind }), expectedKinds)
     }
 }
-
-extension LexerTests {
-    static var allTests: [(String, (LexerTests) -> () throws -> Void)] {
-        return [
-            ("testInvalidCharacter", testInvalidCharacter),
-            ("testBOMHeader", testBOMHeader),
-            ("testRecordsLineAndColumn", testRecordsLineAndColumn),
-            ("testTokenDescription", testTokenDescription),
-            ("testSkipsWhitespace", testSkipsWhitespace),
-            ("testSkipsComments", testSkipsComments),
-            ("testSkipsCommas", testSkipsCommas),
-            ("testErrorsRespectWhitespaces", testErrorsRespectWhitespaces),
-            ("testStrings", testStrings),
-            ("testStringErrors", testStringErrors),
-            ("testNumbers", testNumbers),
-            ("testNumberErrors", testNumberErrors),
-            ("testSymbols", testSymbols),
-            ("testUnknownCharacterErrors", testUnknownCharacterErrors),
-            ("testDashInName", testDashInName),
-            ("testDoubleLinkedList", testDoubleLinkedList),
-        ]
-    }
-}

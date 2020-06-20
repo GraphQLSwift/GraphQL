@@ -23,7 +23,7 @@ func undefinedFieldMessage(
  * A GraphQL document is only valid if all fields selected are defined by the
  * parent type, or are an allowed meta field such as __typename.
  */
-func FieldsOnCorrectType(context: ValidationContext) -> Visitor {
+func FieldsOnCorrectTypeRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, key, parent, path, ancestors in
             if let node = node as? Field {
