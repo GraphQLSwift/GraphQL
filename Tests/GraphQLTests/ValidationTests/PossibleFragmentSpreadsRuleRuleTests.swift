@@ -119,30 +119,30 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
         )
     }
     
-    func testInterfaceIntoOverlappingInterface() throws {
-        try assertValid(
-            """
-            fragment interfaceWithinInterface on Pet {
-                ...beingFragment
-            }
-            fragment beingFragment on Being {
-                name
-            }
-            """
-        )
-    }
-    
-    func testInterfaceIntoOverlappingInterfaceInInlineFragment() throws {
-        try assertValid(
-            """
-            fragment interfaceWithinInterface on Pet {
-                ... on Being {
-                    name
-                }
-            }
-            """
-        )
-    }
+//    func testInterfaceIntoOverlappingInterface() throws {
+//        try assertValid(
+//            """
+//            fragment interfaceWithinInterface on Pet {
+//                ...beingFragment
+//            }
+//            fragment beingFragment on Being {
+//                name
+//            }
+//            """
+//        )
+//    }
+//
+//    func testInterfaceIntoOverlappingInterfaceInInlineFragment() throws {
+//        try assertValid(
+//            """
+//            fragment interfaceWithinInterface on Pet {
+//                ... on Being {
+//                    name
+//                }
+//            }
+//            """
+//        )
+//    }
     
     func testInterfaceIntoOverlappingUnion() throws {
         try assertValid(
