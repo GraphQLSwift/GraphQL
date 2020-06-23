@@ -42,7 +42,7 @@ func getArgumentValues(argDefs: [GraphQLArgumentDefinition], argASTs: [Argument]
         )
 
         if value == nil {
-            value = argDef.defaultValue
+            value = argDef.defaultValue.map({ .string($0) })
         }
 
         if let value = value {
@@ -150,7 +150,7 @@ func coerceValue(type: GraphQLInputType, value: Map) throws -> Map? {
             var fieldValue = try coerceValue(type: field!.type, value: value[fieldName] ?? .null)
 
             if fieldValue == .null {
-                fieldValue = field?.defaultValue
+                fieldValue = field.flatMap({ $0.defaultValue.map({ .string($0) }) })
             } else {
                 objCopy[fieldName] = fieldValue
             }

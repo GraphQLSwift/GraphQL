@@ -285,7 +285,7 @@ func execute(
             exeContext: buildContext,
             operation: buildContext.operation,
             rootValue: rootValue
-            ).flatMapThrowing { data -> GraphQLResult in
+        ).flatMapThrowing { data -> GraphQLResult in
             var dataMap: Map = [:]
             
             for (key, value) in data {

@@ -1,3 +1,4 @@
+import Foundation
 import NIO
 
 /**
@@ -666,7 +667,7 @@ public struct GraphQLArgument {
 public struct GraphQLArgumentDefinition {
     public let name: String
     public let type: GraphQLInputType
-    public let defaultValue: Map?
+    public let defaultValue: String?
     public let description: String?
 
     init(
@@ -677,7 +678,14 @@ public struct GraphQLArgumentDefinition {
     ) {
         self.name = name
         self.type = type
-        self.defaultValue = defaultValue
+        
+        self.defaultValue = try? defaultValue.flatMap {
+            String(
+                data: try JSONEncoder().encode($0),
+                encoding: .utf8
+            )
+        }
+        
         self.description = description
     }
 }
@@ -1253,12 +1261,19 @@ func defineInputObjectFieldMap(
 
 public struct InputObjectField {
     public let type: GraphQLInputType
-    public let defaultValue: Map?
+    public let defaultValue: String?
     public let description: String?
     
     public init(type: GraphQLInputType, defaultValue: Map? = nil, description: String? = nil) {
         self.type = type
-        self.defaultValue = defaultValue
+        
+        self.defaultValue = try? defaultValue.flatMap {
+            String(
+                data: try JSONEncoder().encode($0),
+                encoding: .utf8
+            )
+        }
+        
         self.description = description
     }
 }
@@ -1269,7 +1284,7 @@ public struct InputObjectFieldDefinition {
     public let name: String
     public let description: String?
     public let type: GraphQLInputType
-    public let defaultValue: Map?
+    public let defaultValue: String?
 }
 
 extension InputObjectFieldDefinition : Encodable {

@@ -75,7 +75,7 @@ func valueFromAST(valueAST: Value?, type: GraphQLInputType, variables: [String: 
             )
 
             if fieldValue == .null {
-                fieldValue = field?.defaultValue
+                fieldValue = field.flatMap({ $0.defaultValue.map({ .string($0) }) })
             } else {
                 obj[fieldName] = fieldValue
             }
