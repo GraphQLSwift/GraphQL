@@ -204,6 +204,27 @@ extension Map {
     }
 }
 
+// MARK: is<Type>
+
+extension Map {
+    public var typeDescription: String {
+        switch self {
+        case .null:
+            return "null"
+        case .bool:
+            return "bool"
+        case .number:
+            return "number"
+        case .string:
+            return "string"
+        case .array:
+            return "array"
+        case .dictionary:
+            return "dictionary"
+        }
+    }
+}
+
 // MARK: as<type>?
 
 extension Map {
