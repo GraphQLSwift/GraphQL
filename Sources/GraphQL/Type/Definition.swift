@@ -678,14 +678,7 @@ public struct GraphQLArgumentDefinition {
     ) {
         self.name = name
         self.type = type
-        
-        self.defaultValue = try? defaultValue.flatMap {
-            String(
-                data: try JSONEncoder().encode($0),
-                encoding: .utf8
-            )
-        }
-        
+        self.defaultValue = defaultValue?.description
         self.description = description
     }
 }
@@ -1266,14 +1259,7 @@ public struct InputObjectField {
     
     public init(type: GraphQLInputType, defaultValue: Map? = nil, description: String? = nil) {
         self.type = type
-        
-        self.defaultValue = try? defaultValue.flatMap {
-            String(
-                data: try JSONEncoder().encode($0),
-                encoding: .utf8
-            )
-        }
-        
+        self.defaultValue = defaultValue?.description
         self.description = description
     }
 }
