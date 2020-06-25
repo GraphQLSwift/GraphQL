@@ -1,7 +1,7 @@
 language: generic
 env:
   global:
-  - SWIFT_VERSION=5.2
+  - SWIFT_VERSION=5.1
 matrix:
   include:
     - os: osx
