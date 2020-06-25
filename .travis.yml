@@ -1,9 +1,7 @@
-notifications:
-  slack: zewo:VjyVCCQvTOw9yrbzQysZezD1
 language: generic
 env:
   global:
-  - SWIFT_VERSION=5.1
+  - SWIFT_VERSION=5.2
 matrix:
   include:
     - os: osx
@@ -11,7 +9,7 @@ matrix:
       osx_image: xcode11
     - os: linux
       env: JOB=SwiftPM_linux
-      dist: bionic
+      dist: focal
       sudo: required
       install:
         -  travis_retry eval "$(curl -sL https://gist.githubusercontent.com/kylef/5c0475ff02b7c7671d2a/raw/9f442512a46d7a2af7b850d65a7e9bd31edfb09b/swiftenv-install.sh)"
@@ -19,7 +17,3 @@ script:
   - swift build -c release
   - swift build
   - swift test --enable-test-discovery
-  - 'if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-       eval "$(curl -sL https://raw.githubusercontent.com/lgaches/swifttravisci/master/codecov)";
-     fi'
-
