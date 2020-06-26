@@ -114,6 +114,25 @@ public struct GraphQLError : Error, Codable {
             originalError: error
         )
     }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        message = try container.decode(String.self, forKey: .message)
+        locations = try container.decode([SourceLocation]?.self, forKey: .locations) ?? []
+        path = try container.decode(IndexPath.self, forKey: .path)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(message, forKey: .message)
+        
+        if !locations.isEmpty {
+            try container.encode(locations, forKey: .locations)
+        }
+        
+        try container.encode(path, forKey: .path)
+    }
 }
 
 extension GraphQLError : CustomStringConvertible {
@@ -143,6 +162,16 @@ public struct IndexPath : Codable {
     
     public func appending(_ elements: IndexPathElement) -> IndexPath {
         return IndexPath(self.elements + [elements])
+    }
+    
+    public init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        elements = try container.decode([IndexPathValue].self)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.unkeyedContainer()
+        try container.encode(contentsOf: elements)
     }
 }
 
