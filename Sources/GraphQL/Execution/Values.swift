@@ -1,3 +1,5 @@
+import Foundation
+
 /**
  * Prepares an object map of variableValues of the correct type based on the
  * provided variable definitions and arbitrary input. If the input cannot be
@@ -42,7 +44,14 @@ func getArgumentValues(argDefs: [GraphQLArgumentDefinition], argASTs: [Argument]
         )
 
         if value == nil {
-            value = argDef.defaultValue.map({ .string($0) })
+            value = try argDef.defaultValue.flatMap { string in
+                guard let data = string.data(using: .utf8) else {
+                    return nil
+                }
+                
+                let object = try JSONSerialization.jsonObject(with: data)
+                return try map(from: object)
+            }
         }
 
         if let value = value {
