@@ -49,7 +49,7 @@ func getArgumentValues(argDefs: [GraphQLArgumentDefinition], argASTs: [Argument]
                     return nil
                 }
                 
-                let object = try JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed)
+                let object = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
                 return try map(from: object)
             }
         }
