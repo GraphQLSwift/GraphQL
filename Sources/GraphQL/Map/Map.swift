@@ -701,7 +701,7 @@ extension Map : ExpressibleByNilLiteral {
 
 extension Map : ExpressibleByBooleanLiteral {
     public init(booleanLiteral value: BooleanLiteralType) {
-        self = .number(Number(value))
+        self = .bool(value)
     }
 }
 
