@@ -606,6 +606,10 @@ extension Map : Codable {
         if container.decodeNil() {
             self = .null
         }
+
+        else if let bool = try? container.decode(Bool.self) {
+            self = .bool(bool)
+        }
             
         else if let double = try? container.decode(Double.self) {
             self = .number(Number(double))
