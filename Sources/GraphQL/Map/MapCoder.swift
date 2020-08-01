@@ -845,7 +845,7 @@ extension _MapEncoder {
             // MapSerialization can consume NSDecimalNumber values.
             return NSDecimalNumber(decimal: value as! Decimal)
         } else if value is _MapStringDictionaryEncodableMarker {
-            return try box(value as! [String : Encodable])
+            return try box((value as Any) as! [String : Encodable])
         }
         
         #else
@@ -862,7 +862,7 @@ extension _MapEncoder {
             // MapSerialization can consume NSDecimalNumber values.
             return NSDecimalNumber(decimal: value as! Decimal)
         } else if value is _MapStringDictionaryEncodableMarker {
-            return try box(value as! [String : Encodable])
+            return try box((value as Any) as! [String : Encodable])
         }
         #endif
         
