@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.2
 import PackageDescription
 
 let package = Package(
@@ -11,7 +11,13 @@ let package = Package(
         .package(url: "https://github.com/wickwirew/Runtime.git", .upToNextMinor(from: "2.1.0"))
     ],
     targets: [
-        .target(name: "GraphQL", dependencies: ["NIO", "Runtime"]),
+        .target(
+            name: "GraphQL", 
+            dependencies: [
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "Runtime", package: "Runtime"),
+            ]
+        ),
         .testTarget(name: "GraphQLTests", dependencies: ["GraphQL"]),
     ]
 )
