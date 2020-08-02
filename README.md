@@ -14,8 +14,6 @@ Looking for help? Find resources [from the community](http://graphql.org/communi
 
 This repo only contains the core GraphQL implementation. For a better experience when creating your GraphQL schema use [Graphiti](https://github.com/GraphQLSwift/Graphiti).
 
-**Graphiti** is a Swift library for building GraphQL schemas safely and easily.
-
 
 ## License
 
