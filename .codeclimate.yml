@@ -1,0 +1,12 @@
+exclude_patterns:
+  - "**/*.json"
+  - ".*.json"
+  - "**/*.yml"
+  - ".*.yml"
+  - "**/*.md"
+  - ".github/"
+  - ".gitignore"
+  - "LICENSE"
+  - "Package*"
+  - "Tests/"
+  - "!Sources/"
