@@ -540,18 +540,44 @@ func readDigits(source: Source, start: Int, firstCode: UInt8) throws -> Int {
 }
 
 /**
- * Reads a string token from the source file.
+ * Reads a `.string` token from the source file.
  *
  * "([^"\\\u000A\u000D]|(\\(u[0-9a-fA-F]{4}|["\\/bfnrt])))*"
+ *
+ * augmented to support blockstrings """ """ and return `.blockString` token if found.
  */
 func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) throws -> Token {
+    let token = try readRawString(source: source, start: start, line: line, col: col, prev: prev)
+    
+    if token.kind == .blockString,
+       let rawString = token.value {
+        let valueString = blockStringValue(rawValue: rawString)
+        return Token(kind: token.kind,
+                     start: token.start,
+                     end: token.end,
+                     line: token.line,
+                     column: token.column,
+                     value: valueString,
+                     prev: token.prev,
+                     next: token.next)
+    }
+    return token
+}
+
+/** Reads a raw string token from the source.
+ *
+ * Doesn't do any clean up of leading indentations or trailing whitespace for blockstring lines;
+ * so if `token.kind` == `.blockString`, call `blockStringValue` with `token.value` for that.
+ *
+ * returns: Token of kind `.string` or `.blockString`
+ */
+func readRawString(source: Source, start: Int, line: Int, col: Int, prev: Token) throws -> Token {
     let body = source.body
     var positionIndex = body.utf8.index(body.utf8.startIndex, offsetBy: start + 1)
     var chunkStartIndex = positionIndex
     var currentCode: UInt8? = 0
     var value = ""
     var blockString = false
-    var chunkEndTrim = 0
     
     // if we have minimum 5 more quotes worth of characters left after eating the first quote, check for block quote
     //         body.utf8.index(positionIndex, offsetBy: 5) < body.utf8.endIndex
@@ -593,12 +619,7 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
            codeNext == 34,
            let codeNextNext = body.charCode(at: body.utf8.index(after: body.utf8.index(after: positionIndex))),
            codeNextNext == 34 {
-            // if closing """ is on a line by itself then we set chunkEndTrim to 1 to trim the last return before it
-            if let code = body.charCode(at: body.utf8.index(before: positionIndex)),
-               (code == 0x000A || code == 0x000D) {
-                chunkEndTrim = 1    // flag the need to trim the last return
-            }
-            positionIndex = body.utf8.index(after: body.utf8.index(after: positionIndex))   // so we clean up on exit
+            positionIndex = body.utf8.index(after: body.utf8.index(after: positionIndex))   // so we clean up quotes on exit
             break
         }
 
@@ -676,22 +697,26 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
         )
     }
 
-    let valueRangeEnd = body.utf8.index(positionIndex, offsetBy: (blockString ? -2 - chunkEndTrim : 0))
-    value += String(body.utf8[chunkStartIndex ..< valueRangeEnd])!
+    if blockString {
+        let valueRangeEnd = body.utf8.index(positionIndex, offsetBy: -2)
+        if chunkStartIndex < valueRangeEnd { // empty string?
+            value += String(body.utf8[chunkStartIndex ..< valueRangeEnd])!
+        }
+    } else {
+        value += String(body.utf8[chunkStartIndex ..< positionIndex])!
+    }
 
-    return Token(
-        kind: .string,
-        start: start,
-        end: body.offset(of: positionIndex) + 1,
-        line: line,
-        column: col,
-        value: value,
-        prev: prev
-    )
+    return Token(kind: blockString ? .blockString : .string,
+                 start: start,
+                 end: body.offset(of: positionIndex) + 1,
+                 line: line,
+                 column: col,
+                 value: value,
+                 prev: prev)
 }
 
 /**
- * BlockStringValue(rawValue: String)
+ * blockStringValue(rawValue: String)
  *
  * Transcription of the algorithm specified in the [spec](http://spec.graphql.org/draft/#BlockStringValue())
  *
@@ -723,8 +748,8 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
  */
 
 func blockStringValue(rawValue: String) -> String {
-    assert(false, "implement this!")
-    return ""
+    print("\n\n **** blockStringValue Not Yet Implemented **** \n\n")
+    return rawValue
 }
 
 /**

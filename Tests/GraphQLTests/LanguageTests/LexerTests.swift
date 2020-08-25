@@ -209,12 +209,9 @@ class LexerTests : XCTestCase {
     }
 
     func testMultiLineStrings() throws {
-        let token = try lexOne(#" """ Multi-line string\n With Inner "foo" \n should be Valid """ "#)
-        XCTAssertEqual(token.start, 1)
-        XCTAssert(token.kind == .string)
-        
+        let token = try lexOne(#" """ Multi-line string\n With Inner "foo" \n should be Valid """ "#)        
         let expected = Token(
-            kind: .string,
+            kind: .blockString,
             start: 1,
             end: 64,
             line: 1,
@@ -235,12 +232,12 @@ class LexerTests : XCTestCase {
                 """#)
                 
         let expected = Token(
-            kind: .string,
+            kind: .blockString,
             start: 0,
             end: 59,
             line: 1,
             column: 1,
-            value: " Multi-line string\nwith Inner \"foo\"\nshould be valid"
+            value: " Multi-line string\nwith Inner \"foo\"\nshould be valid\n"
         )
 
         XCTAssertEqual(token, expected, "expected: \n \(dump(expected))\ngot: \n\(dump(token))\n")
@@ -269,13 +266,27 @@ class LexerTests : XCTestCase {
     }
     
 
-    func fails_testEmptyQuote() throws {
-        XCTFail("Implement This!")
+    func testEmptyQuote() throws {
+        let token = try lexOne(#" "" "#)
+        let expected = Token(kind: .string, start: 1, end: 3, line: 1, column: 2, value: "")
+        XCTAssertEqual(token, expected, "\n\(dump(expected))\n\(dump(token))\n")
     }
     
-    func fails_testEmptyBlockQuote() throws {
-		XCTFail("Implement This!")
+    func testEmptySimpleMultilineBlockQuote() throws {
+        let token = try lexOne(#" """""" "#)
+        let expected = Token(kind: .blockString, start: 1, end: 7, line: 1, column: 2, value: "")
+        XCTAssertEqual(token, expected, "\n\(dump(expected))\n\(dump(token))\n")
     }
+    
+    func testEmptyTrimmedCharactersMultilineBlockQuote() throws {
+        let token = try lexOne(#"""
+            """
+            """
+            """#)
+        let expected = Token(kind: .blockString, start: 0, end: 7, line: 1, column: 1, value: "")
+        XCTAssertEqual(token, expected, "\n\(dump(expected))\n\(dump(token))\n")
+    }
+
 
     func testStringErrors() throws {
         XCTAssertThrowsError(try lexOne("\""))
