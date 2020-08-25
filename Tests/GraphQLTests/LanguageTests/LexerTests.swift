@@ -208,6 +208,75 @@ class LexerTests : XCTestCase {
         }
     }
 
+    func testMultiLineStrings() throws {
+        let token = try lexOne(#" """ Multi-line string\n With Inner "foo" \n should be Valid """ "#)
+        XCTAssertEqual(token.start, 1)
+        XCTAssert(token.kind == .string)
+        
+        let expected = Token(
+            kind: .string,
+            start: 1,
+            end: 64,
+            line: 1,
+            column: 2,
+            value: " Multi-line string\n With Inner \"foo\" \n should be Valid "
+        )
+
+        XCTAssertEqual(token, expected, "\nexpected: \n \(dump(expected))\n\ngot: \n\(dump(token))\n")
+    }
+
+    func testMultiLineStringsUnescapedReturns() throws {
+        let token = try lexOne(#"""
+                """
+                 Multi-line string
+                with Inner "foo"
+                should be valid
+                """
+                """#)
+                
+        let expected = Token(
+            kind: .string,
+            start: 0,
+            end: 59,
+            line: 1,
+            column: 1,
+            value: " Multi-line string\nwith Inner \"foo\"\nshould be valid"
+        )
+
+        XCTAssertEqual(token, expected, "expected: \n \(dump(expected))\ngot: \n\(dump(token))\n")
+    }
+
+    func fails_testMultiLineStringsUnescapedReturnsIndentationTest() throws {
+        let token = try lexOne(#"""
+                """
+                Multi-line string {
+                    with Inner "foo"
+                    should be valid indented
+                }
+                """
+                """#)
+        
+        let expected = Token(
+            kind: .string,
+            start: 0,
+            end: 71,
+            line: 1,
+            column: 1,
+            value: "Multi-line string {\nwith Inner \"foo\"\nshould be valid indented\n}"
+        )
+        
+        XCTAssertEqual(token, expected, "expected: \n \(dump(expected))\ngot: \n\(dump(token))\n")
+    }
+    
+
+    func fails_testEmptyQuote() throws {
+        XCTFail("Implement This!")
+    }
+    
+    func fails_testEmptyBlockQuote() throws {
+		XCTFail("Implement This!")
+    }
+
     func testStringErrors() throws {
         XCTAssertThrowsError(try lexOne("\""))
         // "Syntax Error GraphQL (1:2) Unterminated string"

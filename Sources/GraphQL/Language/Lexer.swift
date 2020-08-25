@@ -550,17 +550,60 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
     var chunkStartIndex = positionIndex
     var currentCode: UInt8? = 0
     var value = ""
+    var blockString = false
+    var chunkEndTrim = 0
+    
+    // if we have minimum 5 more quotes worth of characters left after eating the first quote, check for block quote
+    //         body.utf8.index(positionIndex, offsetBy: 5) < body.utf8.endIndex
+    if  body.utf8.distance(from: positionIndex, to: body.utf8.endIndex) >= 5 {
+        if body.charCode(at: positionIndex) == 34,
+           body.charCode(at: body.utf8.index(after: positionIndex)) == 34 {
+            blockString = true
+            positionIndex = body.utf8.index(positionIndex, offsetBy: 2)
 
+            // if the first character after the """ is a newline, then it is not included in the value
+            if let code = body.charCode(at: positionIndex),
+               (code == 0x000A || code == 0x000D) {
+                positionIndex = body.utf8.index(after: positionIndex)
+            }
+            
+            chunkStartIndex = positionIndex
+        }
+    }
+    
     while positionIndex < body.utf8.endIndex {
         currentCode = body.charCode(at: positionIndex)
 
-        //                     not LineTerminator                  not Quote (")
-        guard let code = currentCode, code != 0x000A && code != 0x000D && code != 34 else {
+        //    not in a block quote      not LineTerminator        not Quote (")
+        guard let code = currentCode,
+              blockString || (code != 0x000A && code != 0x000D && code != 34) else {
+            break
+        }
+        
+        // Exit if:
+        //   - we are parsing a block quote
+        //   - the current code is a Quote (")
+        //   - we have at least two more characters in the input
+        //   - and both remaining characters are Quotes (")
+        if blockString,
+           let code = currentCode,
+           code == 34,
+           body.utf8.index(positionIndex, offsetBy: 2) < body.utf8.endIndex,
+           let codeNext = body.charCode(at: body.utf8.index(after: positionIndex)),
+           codeNext == 34,
+           let codeNextNext = body.charCode(at: body.utf8.index(after: body.utf8.index(after: positionIndex))),
+           codeNextNext == 34 {
+            // if closing """ is on a line by itself then we set chunkEndTrim to 1 to trim the last return before it
+            if let code = body.charCode(at: body.utf8.index(before: positionIndex)),
+               (code == 0x000A || code == 0x000D) {
+                chunkEndTrim = 1    // flag the need to trim the last return
+            }
+            positionIndex = body.utf8.index(after: body.utf8.index(after: positionIndex))   // so we clean up on exit
             break
         }
 
         // SourceCharacter
-        if code < 0x0020 && code != 0x0009 {
+        if code < 0x0020 && code != 0x0009 && !(blockString && (code == 0x000A || code == 0x000D)) {
             throw syntaxError(
                 source: source,
                 position: body.offset(of: positionIndex),
@@ -633,7 +676,8 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
         )
     }
 
-    value += String(body.utf8[chunkStartIndex..<positionIndex])!
+    let valueRangeEnd = body.utf8.index(positionIndex, offsetBy: (blockString ? -2 - chunkEndTrim : 0))
+    value += String(body.utf8[chunkStartIndex ..< valueRangeEnd])!
 
     return Token(
         kind: .string,
@@ -644,6 +688,43 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
         value: value,
         prev: prev
     )
+}
+
+/**
+ * BlockStringValue(rawValue: String)
+ *
+ * Transcription of the algorithm specified in the [spec](http://spec.graphql.org/draft/#BlockStringValue())
+ *
+ *    1. Let `lines` be the result of splitting `rawValue` by *LineTerminator*.
+ *    2. Let `commonIndent` be **null**.
+ *    3. For each `line` in `lines`:
+ *        a. If `line` is the first item in `lines`, continue to the next line.
+ *        b. Let `length` be the number of characters in `line`.
+ *        c. Let `indent` be the number of leading consecutive *WhiteSpace* characters in `line`.
+ *        d. If `indent` is less than `length`:
+ *            i. If `commonIndent` is null or `indent` is less than `commonIndent`:
+ *                1. Let `commonIndent` be `indent`.
+ *    4. If `commonIndent` is not null:
+ *        a. For each `line` in `lines`:
+ *            i. If `line` is the first item in `lines`, continue to the next line.
+ *            ii. Remove `commonIndent` characters from the beginning of `line`.
+ *    5. While the first item `line` in `lines` contains only *WhiteSpace*:
+ *        a. Remove the first item from `lines`.
+ *    6. While the last item `line` in `lines` contains only *WhiteSpace*:
+ *        a. Remove the last item from `lines`.
+ *    7. Let `formatted` be the empty character sequence.
+ *    8. For each `line` in `lines`:
+ *        a. If `line` is the first item in `lines`:
+ *            i. Append `formatted` with `line`.
+ *        b. Otherwise:
+ *            i. Append `formatted` with a line feed character (U+000A).
+ *            ii. Append `formatted` with `line`.
+ *    9. Return `formatted`.
+ */
+
+func blockStringValue(rawValue: String) -> String {
+    assert(false, "implement this!")
+    return ""
 }
 
 /**
