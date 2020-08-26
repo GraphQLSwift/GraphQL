@@ -741,4 +741,201 @@ class LexerTests : XCTestCase {
 
         XCTAssertEqual(tokens.map({ $0.kind }), expectedKinds)
     }
+
+    //
+    // Tests for Blockstring support
+    //
+
+    // Tests for sub-routines of `readString` for Blockstring handling
+    
+    func testReadRawString() throws {
+        let sourceStr = #"""
+            """
+                TopLevel {
+                    indented
+                    alsoIndented
+                }
+            """
+            """#
+        
+        let expected = Token(kind: .string,
+                             start: 0,
+                             end: 66,
+                             line: 1,
+                             column: 1,
+                             value: "\n    TopLevel {\n        indented\n        alsoIndented\n    }\n",
+                             prev: nil, next: nil)
+        
+        let source = Source(body: sourceStr, name: "TestSource")
+        let (token, isBlockString) = try readRawString(source: source,
+                                                       start: 0,
+                                                       line: 1,
+                                                       col: 1,
+                                                       prev: Token(kind: .sof, start: 0, end: 0, line: 1, column: 1))
+        XCTAssert(isBlockString)
+        XCTAssertEqual(token, expected, "\n\(dump(expected))\n\(dump(token))\n")
+    }
+    
+    func testBlockStringIndentationAndBlankLine() throws {
+        let rawString = "\n\n\n    TopLevel {\n        indented\n        alsoIndented\n    }\n\n\n\t\t\n"
+        let cleanedString = blockStringValue(rawValue: rawString)
+        
+        XCTAssertEqual(cleanedString, "TopLevel {\n    indented\n    alsoIndented\n}")
+    }
+    
+    func testBlockStringDoubleIndentationAndBlankLine() throws {
+        let rawString = "\n\n\n    TopLevel {\n        indented: {\n            foo: String\n        }\n        alsoIndented\n    }\n\n\n\t\t\n"
+        let cleanedString = blockStringValue(rawValue: rawString)
+        
+        XCTAssertEqual(cleanedString, "TopLevel {\n    indented: {\n        foo: String\n    }\n    alsoIndented\n}")
+    }
+
+    func testBlockStringIndentationAndBlankLineFirstLineNotIndentedWeird() throws {
+        let rawString = "\n\n\nTopLevel {\n        indented\n        alsoIndented\n}\n\n\n\t\t\n"
+        let cleanedString = blockStringValue(rawValue: rawString)
+        
+        XCTAssertEqual(cleanedString, "TopLevel {\n        indented\n        alsoIndented\n}")
+    }
+
+    func testBlockStringIndentationMultilineAndBlankLineFirstLineNotIndentedWeird() throws {
+        let rawString = """
+            
+            
+            TopLevel {
+                indented
+                alsoIndented
+            }
+            
+            
+            \t
+            """
+        let cleanedString = blockStringValue(rawValue: rawString)
+        
+        XCTAssertEqual(cleanedString, "TopLevel {\n    indented\n    alsoIndented\n}")
+    }
+
+    
+    // Lexer tests for multi-line string token parsing
+    
+    func testMultiLineStrings() throws {
+        let token = try lexOne(#" """ Multi-line string\n With Inner "foo" \nshould be Valid """ "#)
+        let expected = Token(
+            kind: .string,
+            start: 1,
+            end: 63,
+            line: 1,
+            column: 2,
+            value: " Multi-line string\n With Inner \"foo\" \nshould be Valid "
+        )
+
+        XCTAssertEqual(token, expected, "\nexpected: \n \(dump(expected))\n\ngot: \n\(dump(token))\n")
+    }
+
+    func testMultiLineStringsSingleSpaceIndent() throws {
+        let token = try lexOne(#" """ Multi-line string\n With Inner "foo" \n should be Valid """ "#)
+        let expected = Token(
+            kind: .string,
+            start: 1,
+            end: 64,
+            line: 1,
+            column: 2,
+            value: " Multi-line string\nWith Inner \"foo\" \nshould be Valid "
+        )
+
+        XCTAssertEqual(token, expected, "\nexpected: \n \(dump(expected))\n\ngot: \n\(dump(token))\n")
+    }
+
+    func testMultiLineStringsUnescapedReturns() throws {
+        let token = try lexOne(#"""
+                """
+                 Multi-line string
+                with Inner "foo"
+                should be valid
+                """
+                """#)
+                
+        let expected = Token(
+            kind: .string,
+            start: 0,
+            end: 59,
+            line: 1,
+            column: 1,
+            value: " Multi-line string\nwith Inner \"foo\"\nshould be valid"
+        )
+
+        XCTAssertEqual(token, expected, "expected: \n \(dump(expected))\ngot: \n\(dump(token))\n")
+    }
+
+    func testMultiLineStringsUnescapedReturnsIndentationTest() throws {
+        let token = try lexOne(#"""
+                """
+                Multi-line string {
+                    with Inner "foo"
+                    should be valid indented
+                }
+                """
+                """#)
+        
+        let expected = Token(
+            kind: .string,
+            start: 0,
+            end: 79,
+            line: 1,
+            column: 1,
+            value: "Multi-line string {\n    with Inner \"foo\"\n    should be valid indented\n}"
+        )
+        
+        XCTAssertEqual(token, expected, "expected: \n \(dump(expected))\ngot: \n\(dump(token))\n")
+    }
+    
+    func testMultilineStrings_stringIndentedInStream() throws {
+        let sourceStr =
+            #"""
+                """
+                Multi-line string {
+                    with Inner "foo"
+                    should be valid indented
+                }
+                """
+            """#
+        
+        let token = try lexOne(sourceStr)
+        
+        let expected = Token(
+            kind: .string,
+            start: 4,
+            end: 103,
+            line: 1,
+            column: 5,
+            value: "Multi-line string {\n    with Inner \"foo\"\n    should be valid indented\n}"
+        )
+        
+        print(sourceStr)
+        
+        XCTAssertEqual(token, expected, "expected: \n \(dump(expected))\ngot: \n\(dump(token))\n")
+    }
+
+
+    // Test empty strings & multi-line string lexer token parsing
+    
+    func testEmptyQuote() throws {
+        let token = try lexOne(#" "" "#)
+        let expected = Token(kind: .string, start: 1, end: 3, line: 1, column: 2, value: "")
+        XCTAssertEqual(token, expected, "\n\(dump(expected))\n\(dump(token))\n")
+    }
+    
+    func testEmptySimpleMultilineBlockQuote() throws {
+        let token = try lexOne(#" """""" "#)
+        let expected = Token(kind: .string, start: 1, end: 7, line: 1, column: 2, value: "")
+        XCTAssertEqual(token, expected, "\n\(dump(expected))\n\(dump(token))\n")
+    }
+    
+    func testEmptyTrimmedCharactersMultilineBlockQuote() throws {
+        let token = try lexOne(#"""
+            """
+            """
+            """#)
+        let expected = Token(kind: .string, start: 0, end: 7, line: 1, column: 1, value: "")
+        XCTAssertEqual(token, expected, "\n\(dump(expected))\n\(dump(token))\n")
+    }
 }

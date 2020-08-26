@@ -540,27 +540,84 @@ func readDigits(source: Source, start: Int, firstCode: UInt8) throws -> Int {
 }
 
 /**
- * Reads a string token from the source file.
+ * Reads a `.string` token from the source file.
  *
  * "([^"\\\u000A\u000D]|(\\(u[0-9a-fA-F]{4}|["\\/bfnrt])))*"
+ *
+ * augmented to support blockstrings """ """ and return `.blockString` token if found.
  */
 func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) throws -> Token {
+    let (token, isBlockString) = try readRawString(source: source, start: start, line: line, col: col, prev: prev)
+    
+    if isBlockString,
+       let rawString = token.value {
+        let valueString = blockStringValue(rawValue: rawString)
+        return Token(kind: token.kind,
+                     start: token.start,
+                     end: token.end,
+                     line: token.line,
+                     column: token.column,
+                     value: valueString,
+                     prev: token.prev,
+                     next: token.next)
+    }
+    return token
+}
+
+/** Reads a raw string token from the source.
+ *
+ * Doesn't do any clean up of leading indentations or trailing whitespace for blockstring lines;
+ * so if `token.kind` == `.blockString`, call `blockStringValue` with `token.value` for that.
+ *
+ * returns: tuple of Token of kind `.string and Bool of true if it was a block string or not
+ */
+func readRawString(source: Source, start: Int, line: Int, col: Int, prev: Token) throws -> (token: Token, isBlockString: Bool) {
     let body = source.body
     var positionIndex = body.utf8.index(body.utf8.startIndex, offsetBy: start + 1)
     var chunkStartIndex = positionIndex
     var currentCode: UInt8? = 0
     var value = ""
-
+    var blockString = false
+    
+    // if we have minimum 5 more quotes worth of characters left after eating the first quote, check for block quote
+    //         body.utf8.index(positionIndex, offsetBy: 5) < body.utf8.endIndex
+    if  body.utf8.distance(from: positionIndex, to: body.utf8.endIndex) >= 5 {
+        if body.charCode(at: positionIndex) == 34,
+           body.charCode(at: body.utf8.index(after: positionIndex)) == 34 {
+            blockString = true
+            positionIndex = body.utf8.index(positionIndex, offsetBy: 2)
+			chunkStartIndex = positionIndex
+        }
+    }
+    
     while positionIndex < body.utf8.endIndex {
         currentCode = body.charCode(at: positionIndex)
 
-        //                     not LineTerminator                  not Quote (")
-        guard let code = currentCode, code != 0x000A && code != 0x000D && code != 34 else {
+        //    not in a block quote      not LineTerminator        not Quote (")
+        guard let code = currentCode,
+              blockString || (code != 0x000A && code != 0x000D && code != 34) else {
+            break
+        }
+        
+        // Exit if:
+        //   - we are parsing a block quote
+        //   - the current code is a Quote (")
+        //   - we have at least two more characters in the input
+        //   - and both remaining characters are Quotes (")
+        if blockString,
+           let code = currentCode,
+           code == 34,
+           body.utf8.index(positionIndex, offsetBy: 2) < body.utf8.endIndex,
+           let codeNext = body.charCode(at: body.utf8.index(after: positionIndex)),
+           codeNext == 34,
+           let codeNextNext = body.charCode(at: body.utf8.index(after: body.utf8.index(after: positionIndex))),
+           codeNextNext == 34 {
+            positionIndex = body.utf8.index(after: body.utf8.index(after: positionIndex))  // position after quotes
             break
         }
 
         // SourceCharacter
-        if code < 0x0020 && code != 0x0009 {
+        if code < 0x0020 && code != 0x0009 && !(blockString && (code == 0x000A || code == 0x000D)) {
             throw syntaxError(
                 source: source,
                 position: body.offset(of: positionIndex),
@@ -633,17 +690,121 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
         )
     }
 
-    value += String(body.utf8[chunkStartIndex..<positionIndex])!
+    if blockString {
+        let valueRangeEnd = body.utf8.index(positionIndex, offsetBy: -2)
+        if chunkStartIndex < valueRangeEnd { // empty string?
+            value += String(body.utf8[chunkStartIndex ..< valueRangeEnd])!
+        }
+    } else {
+        value += String(body.utf8[chunkStartIndex ..< positionIndex])!
+    }
+    
+    return (token: Token(kind: .string,
+                         start: start,
+                         end: body.offset(of: positionIndex) + 1,
+                         line: line,
+                         column: col,
+                         value: value,
+                         prev: prev),
+            isBlockString: blockString)
+}
 
-    return Token(
-        kind: .string,
-        start: start,
-        end: body.offset(of: positionIndex) + 1,
-        line: line,
-        column: col,
-        value: value,
-        prev: prev
-    )
+/**
+ * blockStringValue(rawValue: String)
+ *
+ * Transcription of the algorithm specified in the [spec](http://spec.graphql.org/draft/#BlockStringValue())
+ *
+ *    1. Let `lines` be the result of splitting `rawValue` by *LineTerminator*.
+ *    2. Let `commonIndent` be **null**.
+ *    3. For each `line` in `lines`:
+ *        a. If `line` is the first item in `lines`, continue to the next line.
+ *        b. Let `length` be the number of characters in `line`.
+ *        c. Let `indent` be the number of leading consecutive *WhiteSpace* characters in `line`.
+ *        d. If `indent` is less than `length`:
+ *            i. If `commonIndent` is null or `indent` is less than `commonIndent`:
+ *                1. Let `commonIndent` be `indent`.
+ *    4. If `commonIndent` is not null:
+ *        a. For each `line` in `lines`:
+ *            i. If `line` is the first item in `lines`, continue to the next line.
+ *            ii. Remove `commonIndent` characters from the beginning of `line`.
+ *    5. While the first item `line` in `lines` contains only *WhiteSpace*:
+ *        a. Remove the first item from `lines`.
+ *    6. While the last item `line` in `lines` contains only *WhiteSpace*:
+ *        a. Remove the last item from `lines`.
+ *    7. Let `formatted` be the empty character sequence.
+ *    8. For each `line` in `lines`:
+ *        a. If `line` is the first item in `lines`:
+ *            i. Append `formatted` with `line`.
+ *        b. Otherwise:
+ *            i. Append `formatted` with a line feed character (U+000A).
+ *            ii. Append `formatted` with `line`.
+ *    9. Return `formatted`.
+ */
+
+func blockStringValue(rawValue: String) -> String {
+    var lines = rawValue.utf8.split(omittingEmptySubsequences: false) { (code) -> Bool in
+        return code == 0x000A || code == 0x000D
+    }
+
+    var commonIndent: Int = 0
+
+    for idx in lines.indices {
+        let line = lines[idx]
+        if idx == lines.startIndex { continue }
+        if let indentIndex = line.firstIndex(where: { $0 != 0x0009 && $0 != 0x0020 }) {
+            let indent = line.distance(from: line.startIndex, to: indentIndex)
+            if commonIndent == 0 || indent < commonIndent {
+                commonIndent = indent
+            }
+        }
+    }
+    
+    var newLines: [String.UTF8View.SubSequence] = []
+    if commonIndent != 0 {
+        for idx in lines.indices {
+            let line = lines[idx]
+            if idx == lines.startIndex {
+                newLines.append(line)
+                continue
+            }
+            newLines.append(line.dropFirst(commonIndent))
+        }
+        lines = newLines
+        newLines.removeAll()
+    }
+    
+    for idx in lines.indices {
+        let line = lines[idx]
+        if newLines.count == 0,
+           line.firstIndex(where: { $0 != 0x0009 && $0 != 0x0020 }) == nil {
+            continue
+        }
+        newLines.append(line)
+    }
+    lines = newLines
+
+    newLines.removeAll()
+    for idx in lines.indices.reversed() {
+        let line = lines[idx]
+        if newLines.count == 0,
+           line.firstIndex(where: { $0 != 0x0009 && $0 != 0x0020 }) == nil {
+            continue
+        }
+        newLines.insert(line, at: newLines.startIndex)
+    }
+    lines = newLines
+
+    var result: Substring = Substring()
+    for idx in lines.indices {
+        if idx == lines.startIndex {
+            result.append(contentsOf: Substring(lines[idx]))
+        } else {
+            result.append(contentsOf: Substring("\u{000A}"))
+            result.append(contentsOf: Substring(lines[idx]))
+        }
+    }
+
+    return String(result)
 }
 
 /**
