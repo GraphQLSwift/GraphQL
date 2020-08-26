@@ -748,19 +748,13 @@ func readRawString(source: Source, start: Int, line: Int, col: Int, prev: Token)
  */
 
 func blockStringValue(rawValue: String) -> String {
-    
-    print("inputString: \n>>>\(rawValue)<<<\n")     // debug
-    
     var commonIndent: Int = 0
     var lines = rawValue.utf8.split { (code) -> Bool in
         return code == 0x000A || code == 0x000D
     }
     
-    for line in lines { print(String(line)) }       // debug
-    
     for idx in lines.indices {
         let line = lines[idx]
-        // we already drop this before we get here..
         if idx == lines.startIndex { continue }
         if let indentIndex = line.firstIndex(where: { $0 != 0x0009 && $0 != 0x0020 }) {
             let indent = line.distance(from: line.startIndex, to: indentIndex)
@@ -769,25 +763,17 @@ func blockStringValue(rawValue: String) -> String {
             }
         }
     }
-
-    print("\ncommonIndent: \(commonIndent)\n")      // debug
     
     var newLines: [String.UTF8View.SubSequence] = []
     if commonIndent != 0 {
         for idx in lines.indices {
             let line = lines[idx]
-            // pretty sure they are dropping thinking about """\n which we already drop
             if idx == lines.startIndex {
                 newLines.append(line)
                 continue
             }
             newLines.append(line.dropFirst(commonIndent))
         }
-        
-        for line in lines { print(String(line)) }       // debug
-        print()
-        for line in newLines { print(String(line)) }    // debug
-        
         lines = newLines
         newLines.removeAll()
     }
@@ -800,14 +786,9 @@ func blockStringValue(rawValue: String) -> String {
         }
         newLines.append(line)
     }
-    
-    for line in newLines { print(String(line)) }   // debug
-    
     lines = newLines
+
     newLines.removeAll()
-    print()
-    for line in lines { print(String(line)) }     // debug
-    
     for idx in lines.indices.reversed() {
         let line = lines[idx]
         if newLines.count == 0,
@@ -816,16 +797,9 @@ func blockStringValue(rawValue: String) -> String {
         }
         newLines.insert(line, at: newLines.startIndex)
     }
-    
-    for line in newLines { print(String(line)) }   // debug
-    
     lines = newLines
-    newLines.removeAll()
-    print()
-    for line in lines { print(String(line)) }     // debug
 
     var result: Substring = Substring()
-
     for idx in lines.indices {
         if idx == lines.startIndex {
             result.append(contentsOf: Substring(lines[idx]))
@@ -834,8 +808,6 @@ func blockStringValue(rawValue: String) -> String {
             result.append(contentsOf: Substring(lines[idx]))
         }
     }
-    
-    print( "\n>>>\(result)<<<\n" )                 // debug
     
     return String(result)
 }
