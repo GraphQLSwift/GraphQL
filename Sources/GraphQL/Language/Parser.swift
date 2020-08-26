@@ -124,6 +124,23 @@ func parseName(lexer: Lexer) throws -> Name {
     )
 }
 
+/**
+ * Description is optional string
+ * Returns the string and advances the lexer if current token is a string
+ * otherwise returns nil without advancing the lexer
+ */
+
+func parseDescription(lexer: Lexer) throws -> String? {
+    if peek(lexer: lexer, kind: .string) {
+        let token = lexer.token
+        try lexer.advance()
+        return token.value
+    } else {
+        return nil
+    }
+}
+
+
 // Implements the parsing rules in the Document section.
 
 /**
@@ -155,7 +172,11 @@ func parseDefinition(lexer: Lexer) throws -> Definition {
         return try parseOperationDefinition(lexer: lexer)
     }
 
-    if peek(lexer: lexer, kind: .name) {
+    // Only TypeSystemDefinitions have an optional Description string so test for that string
+    if peek(lexer: lexer, kind: .string) {
+        return try parseTypeSystemDefinition(lexer: lexer)
+    }
+    else if peek(lexer: lexer, kind: .name) {
         switch lexer.token.value! {
         // Note: subscription is an experimental non-spec addition.
         case "query", "mutation", "subscription":
@@ -163,7 +184,8 @@ func parseDefinition(lexer: Lexer) throws -> Definition {
         case "fragment":
             return try parseFragmentDefinition(lexer: lexer)
         // Note: the Type System IDL is an experimental non-spec addition.
-        case "schema", "scalar", "type", "interface", "union", "enum", "input", "extend", "directive": return try parseTypeSystemDefinition(lexer: lexer)
+        case "schema", "scalar", "type", "interface", "union", "enum", "input", "extend", "directive":
+            return try parseTypeSystemDefinition(lexer: lexer)
         default:
             break
         }
@@ -631,6 +653,12 @@ func parseNamedType(lexer: Lexer) throws -> NamedType {
  *   - InputObjectTypeDefinition
  */
 func parseTypeSystemDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
+    if peek(lexer: lexer, kind: .string) {
+        lexer.token = Token(from: lexer.token, as: .description)
+        lexer.token.prev?.next = lexer.token
+        _ = try lexer.advance()  // so next peek will work
+    }
+    
     if peek(lexer: lexer, kind: .name) {
         switch lexer.token.value! {
         case "schema": return try parseSchemaDefinition(lexer: lexer);
@@ -656,6 +684,7 @@ func parseTypeSystemDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
  */
 func parseSchemaDefinition(lexer: Lexer) throws -> SchemaDefinition {
     let start = lexer.token
+    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
     try expectKeyword(lexer: lexer, value: "schema")
     let directives = try parseDirectives(lexer: lexer)
     let operationTypes = try many(
@@ -666,6 +695,7 @@ func parseSchemaDefinition(lexer: Lexer) throws -> SchemaDefinition {
     )
     return SchemaDefinition(
         loc: loc(lexer: lexer, startToken: start),
+        description: description,
         directives: directives,
         operationTypes: operationTypes
     )
@@ -688,11 +718,13 @@ func parseOperationTypeDefinition(lexer: Lexer) throws -> OperationTypeDefinitio
  */
 func parseScalarTypeDefinition(lexer: Lexer) throws -> ScalarTypeDefinition {
     let start = lexer.token
+    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
     try expectKeyword(lexer: lexer, value: "scalar")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
     return ScalarTypeDefinition(
         loc: loc(lexer: lexer, startToken: start),
+        description: description,
         name: name,
         directives: directives
     )
@@ -704,6 +736,7 @@ func parseScalarTypeDefinition(lexer: Lexer) throws -> ScalarTypeDefinition {
  */
 func parseObjectTypeDefinition(lexer: Lexer) throws -> ObjectTypeDefinition {
     let start = lexer.token;
+    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
     try expectKeyword(lexer: lexer, value: "type")
     let name = try parseName(lexer: lexer);
     let interfaces = try parseImplementsInterfaces(lexer: lexer);
@@ -716,6 +749,7 @@ func parseObjectTypeDefinition(lexer: Lexer) throws -> ObjectTypeDefinition {
     )
     return ObjectTypeDefinition(
         loc: loc(lexer: lexer, startToken: start),
+        description: description,
         name: name,
         interfaces: interfaces,
         directives: directives,
@@ -745,6 +779,7 @@ func parseImplementsInterfaces(lexer: Lexer) throws -> [NamedType] {
  */
 func parseFieldDefinition(lexer: Lexer) throws -> FieldDefinition {
     let start = lexer.token
+    let description = try parseDescription(lexer: lexer)
     let name = try parseName(lexer: lexer)
     let args = try parseArgumentDefs(lexer: lexer)
     try expect(lexer: lexer, kind: .colon)
@@ -752,6 +787,7 @@ func parseFieldDefinition(lexer: Lexer) throws -> FieldDefinition {
     let directives = try parseDirectives(lexer: lexer)
     return FieldDefinition(
         loc: loc(lexer: lexer, startToken: start),
+        description: description,
         name: name,
         arguments: args,
         type: type,
@@ -779,6 +815,7 @@ func parseArgumentDefs(lexer: Lexer) throws -> [InputValueDefinition] {
  */
 func parseInputValueDef(lexer: Lexer) throws -> InputValueDefinition {
     let start = lexer.token
+    let description = try parseDescription(lexer: lexer)
     let name = try parseName(lexer: lexer)
     try expect(lexer: lexer, kind: .colon)
     let type = try parseTypeReference(lexer: lexer)
@@ -792,6 +829,7 @@ func parseInputValueDef(lexer: Lexer) throws -> InputValueDefinition {
 
     return InputValueDefinition(
         loc: loc(lexer: lexer, startToken: start),
+        description: description,
         name: name,
         type: type,
         defaultValue: defaultValue,
@@ -804,6 +842,7 @@ func parseInputValueDef(lexer: Lexer) throws -> InputValueDefinition {
  */
 func parseInterfaceTypeDefinition(lexer: Lexer) throws -> InterfaceTypeDefinition {
     let start = lexer.token
+    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
     try expectKeyword(lexer: lexer, value: "interface")
     let name = try parseName(lexer: lexer)
     let interfaces = try parseImplementsInterfaces(lexer: lexer)
@@ -816,6 +855,7 @@ func parseInterfaceTypeDefinition(lexer: Lexer) throws -> InterfaceTypeDefinitio
     )
     return InterfaceTypeDefinition(
         loc: loc(lexer: lexer, startToken: start),
+        description: description,
         name: name,
         interfaces: interfaces,
         directives: directives,
@@ -828,6 +868,7 @@ func parseInterfaceTypeDefinition(lexer: Lexer) throws -> InterfaceTypeDefinitio
  */
 func parseUnionTypeDefinition(lexer: Lexer) throws -> UnionTypeDefinition {
     let start = lexer.token;
+    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
     try expectKeyword(lexer: lexer, value: "union")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
@@ -835,6 +876,7 @@ func parseUnionTypeDefinition(lexer: Lexer) throws -> UnionTypeDefinition {
     let types = try parseUnionMembers(lexer: lexer)
     return UnionTypeDefinition(
         loc: loc(lexer: lexer, startToken: start),
+        description: description,
         name: name,
         directives: directives,
         types: types
@@ -861,6 +903,7 @@ func parseUnionMembers(lexer: Lexer) throws -> [NamedType] {
  */
 func parseEnumTypeDefinition(lexer: Lexer) throws -> EnumTypeDefinition {
     let start = lexer.token;
+    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
     try expectKeyword(lexer: lexer, value: "enum");
     let name = try parseName(lexer: lexer);
     let directives = try parseDirectives(lexer: lexer);
@@ -872,6 +915,7 @@ func parseEnumTypeDefinition(lexer: Lexer) throws -> EnumTypeDefinition {
     )
     return EnumTypeDefinition(
         loc: loc(lexer: lexer, startToken: start),
+        description: description,
         name: name,
         directives: directives,
         values: values
@@ -885,10 +929,12 @@ func parseEnumTypeDefinition(lexer: Lexer) throws -> EnumTypeDefinition {
  */
 func parseEnumValueDefinition(lexer: Lexer) throws -> EnumValueDefinition {
     let start = lexer.token;
+    let description = try parseDescription(lexer: lexer)
     let name = try parseName(lexer: lexer);
     let directives = try parseDirectives(lexer: lexer);
     return EnumValueDefinition(
         loc: loc(lexer: lexer, startToken: start),
+        description: description,
         name: name,
         directives: directives
     )
@@ -899,6 +945,7 @@ func parseEnumValueDefinition(lexer: Lexer) throws -> EnumValueDefinition {
  */
 func parseInputObjectTypeDefinition(lexer: Lexer) throws -> InputObjectTypeDefinition {
     let start = lexer.token
+    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
     try expectKeyword(lexer: lexer, value: "input")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
@@ -910,6 +957,7 @@ func parseInputObjectTypeDefinition(lexer: Lexer) throws -> InputObjectTypeDefin
     )
     return InputObjectTypeDefinition(
         loc: loc(lexer: lexer, startToken: start),
+        description: description,
         name: name,
         directives: directives,
         fields: fields
@@ -935,6 +983,7 @@ func parseTypeExtensionDefinition(lexer: Lexer) throws -> TypeExtensionDefinitio
  */
 func parseDirectiveDefinition(lexer: Lexer) throws -> DirectiveDefinition {
     let start = lexer.token;
+    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
     try expectKeyword(lexer: lexer, value: "directive");
     try expect(lexer: lexer, kind: .at)
     let name = try parseName(lexer: lexer);
@@ -943,6 +992,7 @@ func parseDirectiveDefinition(lexer: Lexer) throws -> DirectiveDefinition {
     let locations = try parseDirectiveLocations(lexer: lexer);
     return DirectiveDefinition(
         loc: loc(lexer: lexer, startToken: start),
+        description: description,
         name: name,
         arguments: args,
         locations: locations

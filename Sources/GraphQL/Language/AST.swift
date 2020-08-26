@@ -56,6 +56,7 @@ final public class Token {
         case float = "Float"
         case string = "String"
         case comment = "Comment"
+        case description = "Description"    // string in a description position
 
         public var description: String {
             return rawValue
@@ -129,6 +130,19 @@ extension Token : CustomStringConvertible {
         description += ", line: \(line), column: \(column))"
 
         return description
+    }
+}
+
+extension Token {
+    convenience init(from token: Token, as kind: Kind ) {
+        self.init(kind: kind,
+                  start: token.start,
+                  end: token.end,
+                  line: token.line,
+                  column: token.column,
+                  value: token.value,
+                  prev: token.prev,
+                  next: token.next)
     }
 }
 
@@ -1075,11 +1089,13 @@ public func == (lhs: TypeSystemDefinition, rhs: TypeSystemDefinition) -> Bool {
 public final class SchemaDefinition {
     public let kind: Kind = .schemaDefinition
     public let loc: Location?
+    public let description: String?
     public let directives: [Directive]
     public let operationTypes: [OperationTypeDefinition]
 
-    init(loc: Location? = nil, directives: [Directive], operationTypes: [OperationTypeDefinition]) {
+    init(loc: Location? = nil, description: String? = nil, directives: [Directive], operationTypes: [OperationTypeDefinition]) {
         self.loc = loc
+        self.description = description
         self.directives = directives
         self.operationTypes = operationTypes
     }
@@ -1087,8 +1103,9 @@ public final class SchemaDefinition {
 
 extension SchemaDefinition : Equatable {
     public static func == (lhs: SchemaDefinition, rhs: SchemaDefinition) -> Bool {
-        return lhs.directives == rhs.directives &&
-        lhs.operationTypes == rhs.operationTypes
+        return lhs.description == rhs.description &&
+            lhs.directives == rhs.directives &&
+            lhs.operationTypes == rhs.operationTypes
     }
 }
 
@@ -1156,11 +1173,13 @@ public func == (lhs: TypeDefinition, rhs: TypeDefinition) -> Bool {
 public final class ScalarTypeDefinition {
     public let kind: Kind = .scalarTypeDefinition
     public let loc: Location?
+    public let description: String?
     public let name: Name
     public let directives: [Directive]
 
-    init(loc: Location? = nil, name: Name, directives: [Directive] = []) {
+    init(loc: Location? = nil, description: String? = nil, name: Name, directives: [Directive] = []) {
         self.loc = loc
+        self.description = description
         self.name = name
         self.directives = directives
     }
@@ -1168,7 +1187,8 @@ public final class ScalarTypeDefinition {
 
 extension ScalarTypeDefinition : Equatable {
     public static func == (lhs: ScalarTypeDefinition, rhs: ScalarTypeDefinition) -> Bool {
-        return lhs.name == rhs.name &&
+        return lhs.description == rhs.description &&
+            lhs.name == rhs.name &&
             lhs.directives == rhs.directives
     }
 }
@@ -1176,13 +1196,15 @@ extension ScalarTypeDefinition : Equatable {
 public final class ObjectTypeDefinition {
     public let kind: Kind = .objectTypeDefinition
     public let loc: Location?
+    public let description: String?
     public let name: Name
     public let interfaces: [NamedType]
     public let directives: [Directive]
     public let fields: [FieldDefinition]
 
-    init(loc: Location? = nil, name: Name, interfaces: [NamedType] = [], directives: [Directive] = [], fields: [FieldDefinition] = []) {
+    init(loc: Location? = nil, description: String? = nil, name: Name, interfaces: [NamedType] = [], directives: [Directive] = [], fields: [FieldDefinition] = []) {
         self.loc = loc
+        self.description = description
         self.name = name
         self.interfaces = interfaces
         self.directives = directives
@@ -1192,7 +1214,8 @@ public final class ObjectTypeDefinition {
 
 extension ObjectTypeDefinition : Equatable {
     public static func == (lhs: ObjectTypeDefinition, rhs: ObjectTypeDefinition) -> Bool {
-        return lhs.name == rhs.name &&
+        return lhs.description == rhs.description &&
+            lhs.name == rhs.name &&
             lhs.interfaces == rhs.interfaces &&
             lhs.directives == rhs.directives &&
             lhs.fields == rhs.fields
@@ -1202,13 +1225,15 @@ extension ObjectTypeDefinition : Equatable {
 public final class FieldDefinition {
     public let kind: Kind = .fieldDefinition
     public let loc: Location?
+    public let description: String?
     public let name: Name
     public let arguments: [InputValueDefinition]
     public let type: Type
     public let directives: [Directive]
 
-    init(loc: Location? = nil,  name: Name, arguments: [InputValueDefinition] = [], type: Type, directives: [Directive] = []) {
+    init(loc: Location? = nil, description: String? = nil, name: Name, arguments: [InputValueDefinition] = [], type: Type, directives: [Directive] = []) {
         self.loc = loc
+        self.description = description
         self.name = name
         self.arguments = arguments
         self.type = type
@@ -1218,7 +1243,8 @@ public final class FieldDefinition {
 
 extension FieldDefinition : Equatable {
     public static func == (lhs: FieldDefinition, rhs: FieldDefinition) -> Bool {
-        return lhs.name == rhs.name &&
+        return lhs.description == rhs.description &&
+            lhs.name == rhs.name &&
             lhs.arguments == rhs.arguments &&
             lhs.type == rhs.type &&
             lhs.directives == rhs.directives
@@ -1228,13 +1254,15 @@ extension FieldDefinition : Equatable {
 public final class InputValueDefinition {
     public let kind: Kind = .inputValueDefinition
     public let loc: Location?
+    public let description: String?
     public let name: Name
     public let type: Type
     public let defaultValue: Value?
     public let directives: [Directive]
 
-    init(loc: Location? = nil, name: Name, type: Type, defaultValue: Value? = nil, directives: [Directive] = []) {
+    init(loc: Location? = nil, description: String? = nil, name: Name, type: Type, defaultValue: Value? = nil, directives: [Directive] = []) {
         self.loc = loc
+        self.description = description
         self.name = name
         self.type = type
         self.defaultValue = defaultValue
@@ -1271,6 +1299,7 @@ extension InputValueDefinition : Equatable {
 public final class InterfaceTypeDefinition {
     public let kind: Kind = .interfaceTypeDefinition
     public let loc: Location?
+    public let description: String?
     public let name: Name
     public let interfaces: [NamedType]
     public let directives: [Directive]
@@ -1278,12 +1307,14 @@ public final class InterfaceTypeDefinition {
 
     init(
         loc: Location? = nil,
+        description: String? = nil,
         name: Name,
         interfaces: [NamedType] = [],
         directives: [Directive] = [],
         fields: [FieldDefinition]
     ) {
         self.loc = loc
+        self.description = description
         self.name = name
         self.interfaces = interfaces
         self.directives = directives
@@ -1293,7 +1324,8 @@ public final class InterfaceTypeDefinition {
 
 extension InterfaceTypeDefinition : Equatable {
     public static func == (lhs: InterfaceTypeDefinition, rhs: InterfaceTypeDefinition) -> Bool {
-        return lhs.name == rhs.name &&
+        return lhs.description == rhs.description &&
+            lhs.name == rhs.name &&
             lhs.directives == rhs.directives &&
             lhs.fields == rhs.fields
     }
@@ -1302,12 +1334,14 @@ extension InterfaceTypeDefinition : Equatable {
 public final class UnionTypeDefinition {
     public let kind: Kind = .unionTypeDefinition
     public let loc: Location?
+    public let description: String?
     public let name: Name
     public let directives: [Directive]
     public let types: [NamedType]
 
-    init(loc: Location? = nil, name: Name, directives: [Directive] = [], types: [NamedType]) {
+    init(loc: Location? = nil, description: String? = nil, name: Name, directives: [Directive] = [], types: [NamedType]) {
         self.loc = loc
+        self.description = description
         self.name = name
         self.directives = directives
         self.types = types
@@ -1316,7 +1350,8 @@ public final class UnionTypeDefinition {
 
 extension UnionTypeDefinition : Equatable {
     public static func == (lhs: UnionTypeDefinition, rhs: UnionTypeDefinition) -> Bool {
-        return lhs.name == rhs.name &&
+        return lhs.description == rhs.description &&
+            lhs.name == rhs.name &&
             lhs.directives == rhs.directives &&
             lhs.types == rhs.types
     }
@@ -1325,12 +1360,14 @@ extension UnionTypeDefinition : Equatable {
 public final class EnumTypeDefinition {
     public let kind: Kind = .enumTypeDefinition
     public let loc: Location?
+    public let description: String?
     public let name: Name
     public let directives: [Directive]
     public let values: [EnumValueDefinition]
 
-    init(loc: Location? = nil, name: Name, directives: [Directive] = [], values: [EnumValueDefinition]) {
+    init(loc: Location? = nil, description: String? = nil, name: Name, directives: [Directive] = [], values: [EnumValueDefinition]) {
         self.loc = loc
+        self.description = description
         self.name = name
         self.directives = directives
         self.values = values
@@ -1339,7 +1376,8 @@ public final class EnumTypeDefinition {
 
 extension EnumTypeDefinition : Equatable {
     public static func == (lhs: EnumTypeDefinition, rhs: EnumTypeDefinition) -> Bool {
-        return lhs.name == rhs.name &&
+        return lhs.description == rhs.description &&
+            lhs.name == rhs.name &&
             lhs.directives == rhs.directives &&
             lhs.values == rhs.values
     }
@@ -1348,11 +1386,13 @@ extension EnumTypeDefinition : Equatable {
 public final class EnumValueDefinition {
     public let kind: Kind = .enumValueDefinition
     public let loc: Location?
+    public let description: String?
     public let name: Name
     public let directives: [Directive]
 
-    init(loc: Location? = nil, name: Name, directives: [Directive] = []) {
+    init(loc: Location? = nil, description: String? = nil, name: Name, directives: [Directive] = []) {
         self.loc = loc
+        self.description = description
         self.name = name
         self.directives = directives
     }
@@ -1360,7 +1400,8 @@ public final class EnumValueDefinition {
 
 extension EnumValueDefinition : Equatable {
     public static func == (lhs: EnumValueDefinition, rhs: EnumValueDefinition) -> Bool {
-        return lhs.name == rhs.name &&
+        return lhs.description == rhs.description &&
+            lhs.name == rhs.name &&
             lhs.directives == rhs.directives
     }
 }
@@ -1368,12 +1409,14 @@ extension EnumValueDefinition : Equatable {
 public final class InputObjectTypeDefinition {
     public let kind: Kind = .inputObjectTypeDefinition
     public let loc: Location?
+    public let description: String?
     public let name: Name
     public let directives: [Directive]
     public let fields: [InputValueDefinition]
 
-    init(loc: Location? = nil, name: Name, directives: [Directive] = [], fields: [InputValueDefinition]) {
+    init(loc: Location? = nil, description: String? = nil, name: Name, directives: [Directive] = [], fields: [InputValueDefinition]) {
         self.loc = loc
+        self.description = description
         self.name = name
         self.directives = directives
         self.fields = fields
@@ -1382,9 +1425,10 @@ public final class InputObjectTypeDefinition {
 
 extension InputObjectTypeDefinition : Equatable {
     public static func == (lhs: InputObjectTypeDefinition, rhs: InputObjectTypeDefinition) -> Bool {
-        return lhs.name == rhs.name &&
-        lhs.directives == rhs.directives &&
-        lhs.fields == rhs.fields
+        return lhs.description == rhs.description &&
+            lhs.name == rhs.name &&
+            lhs.directives == rhs.directives &&
+            lhs.fields == rhs.fields
     }
 }
 
@@ -1408,13 +1452,15 @@ extension TypeExtensionDefinition : Equatable {
 public final class DirectiveDefinition {
     public let kind: Kind = .directiveDefinition
     public let loc: Location?
+    public let description: String?
     public let name: Name
     public let arguments: [InputValueDefinition]
     public let locations: [Name]
     
-    init(loc: Location? = nil, name: Name, arguments: [InputValueDefinition] = [], locations: [Name]) {
+    init(loc: Location? = nil, description: String? = nil, name: Name, arguments: [InputValueDefinition] = [], locations: [Name]) {
         self.loc = loc
         self.name = name
+        self.description = description
         self.arguments = arguments
         self.locations = locations
     }
@@ -1422,8 +1468,9 @@ public final class DirectiveDefinition {
 
 extension DirectiveDefinition : Equatable {
     public static func == (lhs: DirectiveDefinition, rhs: DirectiveDefinition) -> Bool {
-        return lhs.name == rhs.name &&
-        lhs.arguments == rhs.arguments &&
-        lhs.locations == rhs.locations
+        return lhs.description == rhs.description &&
+            lhs.name == rhs.name &&
+            lhs.arguments == rhs.arguments &&
+            lhs.locations == rhs.locations
     }
 }
