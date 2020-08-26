@@ -55,7 +55,6 @@ final public class Token {
         case int = "Int"
         case float = "Float"
         case string = "String"
-        case blockString = "BlockString"
         case comment = "Comment"
 
         public var description: String {

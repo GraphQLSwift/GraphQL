@@ -547,9 +547,9 @@ func readDigits(source: Source, start: Int, firstCode: UInt8) throws -> Int {
  * augmented to support blockstrings """ """ and return `.blockString` token if found.
  */
 func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) throws -> Token {
-    let token = try readRawString(source: source, start: start, line: line, col: col, prev: prev)
+    let (token, isBlockString) = try readRawString(source: source, start: start, line: line, col: col, prev: prev)
     
-    if token.kind == .blockString,
+    if isBlockString,
        let rawString = token.value {
         let valueString = blockStringValue(rawValue: rawString)
         return Token(kind: token.kind,
@@ -569,9 +569,9 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
  * Doesn't do any clean up of leading indentations or trailing whitespace for blockstring lines;
  * so if `token.kind` == `.blockString`, call `blockStringValue` with `token.value` for that.
  *
- * returns: Token of kind `.string` or `.blockString`
+ * returns: tuple of Token of kind `.string and Bool of true if it was a block string or not
  */
-func readRawString(source: Source, start: Int, line: Int, col: Int, prev: Token) throws -> Token {
+func readRawString(source: Source, start: Int, line: Int, col: Int, prev: Token) throws -> (token: Token, isBlockString: Bool) {
     let body = source.body
     var positionIndex = body.utf8.index(body.utf8.startIndex, offsetBy: start + 1)
     var chunkStartIndex = positionIndex
@@ -586,7 +586,7 @@ func readRawString(source: Source, start: Int, line: Int, col: Int, prev: Token)
            body.charCode(at: body.utf8.index(after: positionIndex)) == 34 {
             blockString = true
             positionIndex = body.utf8.index(positionIndex, offsetBy: 2)
-
+            
             // if the first character after the """ is a newline, then it is not included in the value
             if let code = body.charCode(at: positionIndex),
                (code == 0x000A || code == 0x000D) {
@@ -705,14 +705,15 @@ func readRawString(source: Source, start: Int, line: Int, col: Int, prev: Token)
     } else {
         value += String(body.utf8[chunkStartIndex ..< positionIndex])!
     }
-
-    return Token(kind: blockString ? .blockString : .string,
-                 start: start,
-                 end: body.offset(of: positionIndex) + 1,
-                 line: line,
-                 column: col,
-                 value: value,
-                 prev: prev)
+    
+    return (token: Token(kind: .string,
+                         start: start,
+                         end: body.offset(of: positionIndex) + 1,
+                         line: line,
+                         column: col,
+                         value: value,
+                         prev: prev),
+            isBlockString: blockString)
 }
 
 /**
