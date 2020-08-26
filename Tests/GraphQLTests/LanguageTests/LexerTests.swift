@@ -763,7 +763,7 @@ class LexerTests : XCTestCase {
                              end: 66,
                              line: 1,
                              column: 1,
-                             value: "    TopLevel {\n        indented\n        alsoIndented\n    }\n",
+                             value: "\n    TopLevel {\n        indented\n        alsoIndented\n    }\n",
                              prev: nil, next: nil)
         
         let source = Source(body: sourceStr, name: "TestSource")
@@ -777,25 +777,43 @@ class LexerTests : XCTestCase {
     }
     
     func testBlockStringIndentationAndBlankLine() throws {
-        let rawString = "\n\n\n    TopLevel {\n        indented\n        alsoIndented\n    }\n\n\n\t\t\n"   // from testReadRawString() above
-        let cleanedString = blockStringValue(rawValue: rawString)
-        
-        XCTAssertEqual(cleanedString, "    TopLevel {\n    indented\n    alsoIndented\n}")
-    }
-    
-    func testBlockStringDoubleIndentationAndBlankLine() throws {
-        let rawString = "\n\n\n    TopLevel {\n        indented: {\n            foo: String\n        }\n        alsoIndented\n    }\n\n\n\t\t\n"   // from testReadRawString() above
-        let cleanedString = blockStringValue(rawValue: rawString)
-        
-        XCTAssertEqual(cleanedString, "    TopLevel {\n    indented: {\n        foo: String\n    }\n    alsoIndented\n}")
-    }
-
-    func testBlockStringIndentationAndBlankLineFirstLineNotIndentedWeird() throws {
-        let rawString = "\n\n\nTopLevel {\n        indented\n        alsoIndented\n    }\n\n\n\t\t\n"   // from testReadRawString() above
+        let rawString = "\n\n\n    TopLevel {\n        indented\n        alsoIndented\n    }\n\n\n\t\t\n"
         let cleanedString = blockStringValue(rawValue: rawString)
         
         XCTAssertEqual(cleanedString, "TopLevel {\n    indented\n    alsoIndented\n}")
     }
+    
+    func testBlockStringDoubleIndentationAndBlankLine() throws {
+        let rawString = "\n\n\n    TopLevel {\n        indented: {\n            foo: String\n        }\n        alsoIndented\n    }\n\n\n\t\t\n"
+        let cleanedString = blockStringValue(rawValue: rawString)
+        
+        XCTAssertEqual(cleanedString, "TopLevel {\n    indented: {\n        foo: String\n    }\n    alsoIndented\n}")
+    }
+
+    func testBlockStringIndentationAndBlankLineFirstLineNotIndentedWeird() throws {
+        let rawString = "\n\n\nTopLevel {\n        indented\n        alsoIndented\n}\n\n\n\t\t\n"
+        let cleanedString = blockStringValue(rawValue: rawString)
+        
+        XCTAssertEqual(cleanedString, "TopLevel {\n        indented\n        alsoIndented\n}")
+    }
+
+    func testBlockStringIndentationMultilineAndBlankLineFirstLineNotIndentedWeird() throws {
+        let rawString = """
+            
+            
+            TopLevel {
+                indented
+                alsoIndented
+            }
+            
+            
+            \t
+            """
+        let cleanedString = blockStringValue(rawValue: rawString)
+        
+        XCTAssertEqual(cleanedString, "TopLevel {\n    indented\n    alsoIndented\n}")
+    }
+
     
     // Lexer tests for multi-line string token parsing
     
@@ -869,6 +887,34 @@ class LexerTests : XCTestCase {
         
         XCTAssertEqual(token, expected, "expected: \n \(dump(expected))\ngot: \n\(dump(token))\n")
     }
+    
+    func testMultilineStrings_stringIndentedInStream() throws {
+        let sourceStr =
+            #"""
+                """
+                Multi-line string {
+                    with Inner "foo"
+                    should be valid indented
+                }
+                """
+            """#
+        
+        let token = try lexOne(sourceStr)
+        
+        let expected = Token(
+            kind: .string,
+            start: 4,
+            end: 103,
+            line: 1,
+            column: 5,
+            value: "Multi-line string {\n    with Inner \"foo\"\n    should be valid indented\n}"
+        )
+        
+        print(sourceStr)
+        
+        XCTAssertEqual(token, expected, "expected: \n \(dump(expected))\ngot: \n\(dump(token))\n")
+    }
+
 
     // Test empty strings & multi-line string lexer token parsing
     

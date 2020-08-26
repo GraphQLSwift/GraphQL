@@ -586,14 +586,7 @@ func readRawString(source: Source, start: Int, line: Int, col: Int, prev: Token)
            body.charCode(at: body.utf8.index(after: positionIndex)) == 34 {
             blockString = true
             positionIndex = body.utf8.index(positionIndex, offsetBy: 2)
-            
-            // if the first character after the """ is a newline, then it is not included in the value
-            if let code = body.charCode(at: positionIndex),
-               (code == 0x000A || code == 0x000D) {
-                positionIndex = body.utf8.index(after: positionIndex)
-            }
-            
-            chunkStartIndex = positionIndex
+			chunkStartIndex = positionIndex
         }
     }
     
@@ -619,7 +612,7 @@ func readRawString(source: Source, start: Int, line: Int, col: Int, prev: Token)
            codeNext == 34,
            let codeNextNext = body.charCode(at: body.utf8.index(after: body.utf8.index(after: positionIndex))),
            codeNextNext == 34 {
-            positionIndex = body.utf8.index(after: body.utf8.index(after: positionIndex))   // so we clean up quotes on exit
+            positionIndex = body.utf8.index(after: body.utf8.index(after: positionIndex))  // position after quotes
             break
         }
 
@@ -749,11 +742,12 @@ func readRawString(source: Source, start: Int, line: Int, col: Int, prev: Token)
  */
 
 func blockStringValue(rawValue: String) -> String {
-    var commonIndent: Int = 0
-    var lines = rawValue.utf8.split { (code) -> Bool in
+    var lines = rawValue.utf8.split(omittingEmptySubsequences: false) { (code) -> Bool in
         return code == 0x000A || code == 0x000D
     }
-    
+
+    var commonIndent: Int = 0
+
     for idx in lines.indices {
         let line = lines[idx]
         if idx == lines.startIndex { continue }
@@ -809,7 +803,7 @@ func blockStringValue(rawValue: String) -> String {
             result.append(contentsOf: Substring(lines[idx]))
         }
     }
-    
+
     return String(result)
 }
 
