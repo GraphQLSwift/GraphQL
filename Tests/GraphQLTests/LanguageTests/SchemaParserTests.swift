@@ -444,11 +444,12 @@ class SchemaParserTests : XCTestCase {
             type Hello {
                 world: String
             }
-        """#
+            """#
         
         let expected = Document(
             definitions: [
                 ObjectTypeDefinition(
+                    description: "The Hello type.\nMulti-line description",
                     name: nameNode("Hello"),
                     fields: [
                         fieldNode(
@@ -495,7 +496,7 @@ class SchemaParserTests : XCTestCase {
                 directive description
                 """
                 directive @Test(a: String = "hello") on FIELD
-            """#
+                """#
         let expected: Document = Document(
             definitions: [
                 DirectiveDefinition(loc: nil,
@@ -682,6 +683,37 @@ class SchemaParserTests : XCTestCase {
         let result = try parse(source: source)
         XCTAssert(result == expected)
     }
+
+    func fails_testTypeFieldWithMultilineDescription() throws {
+        let source = #"""
+            type Hello {
+                """
+                The world
+                field.
+                """
+                world: String
+            }
+            """#
+        
+        let expected = Document(
+            definitions: [
+                ObjectTypeDefinition(
+                    name: nameNode("Hello"),
+                    fields: [
+                        fieldNodeWithDescription(
+                            "The world\nfield.",
+                            nameNode("world"),
+                            typeNode("String")
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        let result = try parse(source: source)
+        XCTAssert(result == expected, "\(dump(result)) \n\n\(dump(expected))")
+    }
+
     
     func testSimpleInputObjectFieldWithDescription() throws {
         let source = #"input Hello { "World field" world: String }"#
