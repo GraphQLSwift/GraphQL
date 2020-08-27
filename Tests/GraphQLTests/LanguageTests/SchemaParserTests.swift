@@ -435,7 +435,7 @@ class SchemaParserTests : XCTestCase {
         XCTAssert(result == expected)
     }
     
-    func fails_testTypeWitMultilinehDescription() throws {
+    func testTypeWitMultilinehDescription() throws {
         let source = #"""
             """
             The Hello type.
@@ -490,7 +490,7 @@ class SchemaParserTests : XCTestCase {
         XCTAssert(result == expected)
     }
     
-    func fails_testDirectiveMultilineDesciption() throws {
+    func testDirectiveMultilineDesciption() throws {
         let source = #"""
                 """
                 directive description
@@ -684,7 +684,7 @@ class SchemaParserTests : XCTestCase {
         XCTAssert(result == expected)
     }
 
-    func fails_testTypeFieldWithMultilineDescription() throws {
+    func testTypeFieldWithMultilineDescription() throws {
         let source = #"""
             type Hello {
                 """
