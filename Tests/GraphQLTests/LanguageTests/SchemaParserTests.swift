@@ -9,7 +9,7 @@ func fieldNode(_ name: Name, _ type: Type) -> FieldDefinition {
     return FieldDefinition(name: name, type: type)
 }
 
-func fieldNodeWithDescription(_ description: String? = nil, _ name: Name, _ type: Type) -> FieldDefinition {
+func fieldNodeWithDescription(_ description: StringValue? = nil, _ name: Name, _ type: Type) -> FieldDefinition {
     return FieldDefinition(description: description, name: name, type: type)
 }
 
@@ -21,7 +21,7 @@ func enumValueNode(_ name: String) -> EnumValueDefinition {
     return EnumValueDefinition(name: nameNode(name))
 }
 
-func enumValueWithDescriptionNode(_ description: String, _ name: String) -> EnumValueDefinition {
+func enumValueWithDescriptionNode(_ description: StringValue?, _ name: String) -> EnumValueDefinition {
     return EnumValueDefinition(description: description, name: nameNode(name))
 }
 
@@ -33,7 +33,7 @@ func inputValueNode(_ name: Name, _ type: Type, _ defaultValue: Value? = nil) ->
     return InputValueDefinition(name: name, type: type, defaultValue: defaultValue)
 }
 
-func inputValueWithDescriptionNode(_ description: String,
+func inputValueWithDescriptionNode(_ description: StringValue?,
                                    _ name: Name,
                                    _ type: Type,
                                    _ defaultValue: Value? = nil) -> InputValueDefinition {
@@ -416,23 +416,19 @@ class SchemaParserTests : XCTestCase {
     func testTypeWithDescription() throws {
         let source = #""The Hello type" type Hello { world: String }"#
         
-        let expected = Document(
-            definitions: [
-                ObjectTypeDefinition(
-                    description: "The Hello type",
-                    name: nameNode("Hello"),
-                    fields: [
-                        fieldNode(
-                            nameNode("world"),
-                            typeNode("String")
-                        )
-                    ]
+        let expected = ObjectTypeDefinition(
+            description: StringValue(value: "The Hello type", block: false),
+            name: nameNode("Hello"),
+            fields: [
+                fieldNode(
+                    nameNode("world"),
+                    typeNode("String")
                 )
             ]
         )
         
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        XCTAssertEqual(result.definitions[0] as! ObjectTypeDefinition, expected, "\n\(dump(result.definitions[0]))\n\(dump(expected))\n")
     }
     
     func testTypeWitMultilinehDescription() throws {
@@ -449,7 +445,7 @@ class SchemaParserTests : XCTestCase {
         let expected = Document(
             definitions: [
                 ObjectTypeDefinition(
-                    description: "The Hello type.\nMulti-line description",
+                    description: StringValue(value:"The Hello type.\nMulti-line description", block: true),
                     name: nameNode("Hello"),
                     fields: [
                         fieldNode(
@@ -471,13 +467,13 @@ class SchemaParserTests : XCTestCase {
         let expected: Document = Document(
             definitions: [
                 DirectiveDefinition(loc: nil,
-                                    description: "directive description",
+                                    description: StringValue(value: "directive description", block: false),
                                     name:  nameNode("Test"),
                                     arguments: [
                                         inputValueNode(
                                             nameNode("a"),
                                             typeNode("String"),
-                                            StringValue(value: "hello")
+                                            StringValue(value: "hello", block: false)
                                         )
                                     ],
                                     locations: [
@@ -500,13 +496,13 @@ class SchemaParserTests : XCTestCase {
         let expected: Document = Document(
             definitions: [
                 DirectiveDefinition(loc: nil,
-                                    description: "directive description",
+                                    description: StringValue(value: "directive description", block: true),
                                     name:  nameNode("Test"),
                                     arguments: [
                                         inputValueNode(
                                             nameNode("a"),
                                             typeNode("String"),
-                                            StringValue(value: "hello")
+                                            StringValue(value: "hello", block: false)
                                         )
                                     ],
                                     locations: [
@@ -523,7 +519,7 @@ class SchemaParserTests : XCTestCase {
         let source = #""Hello Schema" schema { query: Hello } "#
         
         let expected = SchemaDefinition(
-            description: "Hello Schema",
+            description: StringValue(value: "Hello Schema", block: false),
             directives: [],
             operationTypes: [
                 OperationTypeDefinition(
@@ -542,7 +538,7 @@ class SchemaParserTests : XCTestCase {
         let expected = Document(
             definitions: [
                 ScalarTypeDefinition(
-                    description: "Hello Scaler Test",
+                    description: StringValue(value: "Hello Scaler Test", block: false),
                     name: nameNode("Hello")
                 )
             ]
@@ -558,7 +554,7 @@ class SchemaParserTests : XCTestCase {
         let expected = Document(
             definitions: [
                 InterfaceTypeDefinition(
-                    description: "Hello World Interface",
+                    description: StringValue(value: "Hello World Interface", block: false),
                     name: nameNode("Hello"),
                     fields: [
                         fieldNode(
@@ -580,7 +576,7 @@ class SchemaParserTests : XCTestCase {
         let expected = Document(
             definitions: [
                 UnionTypeDefinition(
-                    description: "Hello World Union!",
+                    description: StringValue(value: "Hello World Union!", block: false),
                     name: nameNode("Hello"),
                     types: [
                         typeNode("World"),
@@ -599,7 +595,7 @@ class SchemaParserTests : XCTestCase {
         let expected = Document(
             definitions: [
                 EnumTypeDefinition(
-                    description: "Hello World Enum...",
+                    description: StringValue(value: "Hello World Enum...", block: false),
                     name: nameNode("Hello"),
                     values: [
                         enumValueNode("WORLD"),
@@ -618,7 +614,7 @@ class SchemaParserTests : XCTestCase {
         let expected = Document(
             definitions: [
                 InputObjectTypeDefinition(
-                    description: "Hello Input Object",
+                    description: StringValue(value: "Hello Input Object", block: false),
                     name: nameNode("Hello"),
                     fields: [
                         inputValueNode(
@@ -651,8 +647,8 @@ class SchemaParserTests : XCTestCase {
                 EnumTypeDefinition(
                     name: nameNode("Hello"),
                     values: [
-                        enumValueWithDescriptionNode("world description", "WORLD"),
-                        enumValueWithDescriptionNode("Hello there", "HELLO")
+                        enumValueWithDescriptionNode(StringValue(value: "world description", block: false), "WORLD"),
+                        enumValueWithDescriptionNode(StringValue(value: "Hello there", block: false), "HELLO")
                     ]
                 )
             ]
@@ -671,7 +667,7 @@ class SchemaParserTests : XCTestCase {
                     name: nameNode("Hello"),
                     fields: [
                         fieldNodeWithDescription(
-                            "The world field.",
+                            StringValue(value: "The world field.", block: false),
                             nameNode("world"),
                             typeNode("String")
                         )
@@ -701,7 +697,7 @@ class SchemaParserTests : XCTestCase {
                     name: nameNode("Hello"),
                     fields: [
                         fieldNodeWithDescription(
-                            "The world\nfield.",
+                            StringValue(value: "The world\nfield.", block: true),
                             nameNode("world"),
                             typeNode("String")
                         )
@@ -724,7 +720,7 @@ class SchemaParserTests : XCTestCase {
                     name: nameNode("Hello"),
                     fields: [
                         inputValueWithDescriptionNode(
-                            "World field",
+                            StringValue(value: "World field", block: false),
                             nameNode("world"),
                             typeNode("String")
                         )

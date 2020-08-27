@@ -124,20 +124,19 @@ func parseName(lexer: Lexer) throws -> Name {
     )
 }
 
+func peekDescription(lexer: Lexer) -> Bool {
+    return peek(lexer: lexer, kind: .string) || peek(lexer: lexer, kind: .blockstring)
+}
+
 /**
- * Description is optional string
- * Returns the string and advances the lexer if current token is a string
- * otherwise returns nil without advancing the lexer
+ * Description is optional StringValue
  */
 
-func parseDescription(lexer: Lexer) throws -> String? {
-    if peek(lexer: lexer, kind: .string) {
-        let token = lexer.token
-        try lexer.advance()
-        return token.value
-    } else {
-        return nil
+func parseDescription(lexer: Lexer) throws -> StringValue? {
+    if peekDescription(lexer: lexer) {
+        return try parseStringLiteral(lexer: lexer, startToken: lexer.token)
     }
+    return nil
 }
 
 
@@ -171,12 +170,8 @@ func parseDefinition(lexer: Lexer) throws -> Definition {
     if peek(lexer: lexer, kind: .openingBrace) {
         return try parseOperationDefinition(lexer: lexer)
     }
-
-    // Only TypeSystemDefinitions have an optional Description string so test for that string
-    if peek(lexer: lexer, kind: .string) {
-        return try parseTypeSystemDefinition(lexer: lexer)
-    }
-    else if peek(lexer: lexer, kind: .name) {
+    
+    if peek(lexer: lexer, kind: .name) {
         switch lexer.token.value! {
         // Note: subscription is an experimental non-spec addition.
         case "query", "mutation", "subscription":
@@ -189,6 +184,8 @@ func parseDefinition(lexer: Lexer) throws -> Definition {
         default:
             break
         }
+    } else if peekDescription(lexer: lexer) {
+        return try parseTypeSystemDefinition(lexer: lexer)
     }
 
     throw unexpected(lexer: lexer)
@@ -471,12 +468,8 @@ func parseValueLiteral(lexer: Lexer, isConst: Bool) throws -> Value {
             loc: loc(lexer: lexer, startToken: token),
             value: token.value!
         )
-    case .string:
-        try lexer.advance();
-        return StringValue(
-            loc: loc(lexer: lexer, startToken: token),
-            value: token.value!
-        )
+    case .string, .blockstring:
+        return try parseStringLiteral(lexer: lexer, startToken: token)
     case .name:
         if (token.value == "true" || token.value == "false") {
             try lexer.advance()
@@ -561,6 +554,18 @@ func parseObjectField(lexer: Lexer, isConst: Bool) throws -> ObjectField {
     )
 }
 
+/**
+ * parseStringLiteral
+ */
+
+func parseStringLiteral(lexer: Lexer, startToken: Token) throws -> StringValue {
+    try lexer.advance();
+    return StringValue(
+        loc: loc(lexer: lexer, startToken: startToken),
+        value: startToken.value!,
+        block: startToken.kind == .blockstring
+    )
+}
 
 // Implements the parsing rules in the Directives section.
 
@@ -653,14 +658,12 @@ func parseNamedType(lexer: Lexer) throws -> NamedType {
  *   - InputObjectTypeDefinition
  */
 func parseTypeSystemDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
-    if peek(lexer: lexer, kind: .string) {
-        lexer.token = Token(from: lexer.token, as: .description)
-        lexer.token.prev?.next = lexer.token
-        _ = try lexer.advance()  // so next peek will work
-    }
+    let keywordToken = peekDescription(lexer: lexer)
+        ? try lexer.lookahead()
+        : lexer.token
     
-    if peek(lexer: lexer, kind: .name) {
-        switch lexer.token.value! {
+    if keywordToken.kind == .name {
+        switch keywordToken.value! {
         case "schema": return try parseSchemaDefinition(lexer: lexer);
         case "scalar": return try parseScalarTypeDefinition(lexer: lexer);
         case "type": return try parseObjectTypeDefinition(lexer: lexer);
@@ -674,7 +677,7 @@ func parseTypeSystemDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
         }
     }
 
-    throw unexpected(lexer: lexer)
+    throw unexpected(lexer: lexer, atToken: keywordToken)
 }
 
 /**
@@ -684,7 +687,7 @@ func parseTypeSystemDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
  */
 func parseSchemaDefinition(lexer: Lexer) throws -> SchemaDefinition {
     let start = lexer.token
-    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
+    let description = try parseDescription(lexer: lexer)
     try expectKeyword(lexer: lexer, value: "schema")
     let directives = try parseDirectives(lexer: lexer)
     let operationTypes = try many(
@@ -718,7 +721,7 @@ func parseOperationTypeDefinition(lexer: Lexer) throws -> OperationTypeDefinitio
  */
 func parseScalarTypeDefinition(lexer: Lexer) throws -> ScalarTypeDefinition {
     let start = lexer.token
-    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
+    let description = try parseDescription(lexer: lexer)
     try expectKeyword(lexer: lexer, value: "scalar")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
@@ -736,7 +739,7 @@ func parseScalarTypeDefinition(lexer: Lexer) throws -> ScalarTypeDefinition {
  */
 func parseObjectTypeDefinition(lexer: Lexer) throws -> ObjectTypeDefinition {
     let start = lexer.token;
-    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
+    let description = try parseDescription(lexer: lexer)
     try expectKeyword(lexer: lexer, value: "type")
     let name = try parseName(lexer: lexer);
     let interfaces = try parseImplementsInterfaces(lexer: lexer);
@@ -842,7 +845,7 @@ func parseInputValueDef(lexer: Lexer) throws -> InputValueDefinition {
  */
 func parseInterfaceTypeDefinition(lexer: Lexer) throws -> InterfaceTypeDefinition {
     let start = lexer.token
-    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
+    let description = try parseDescription(lexer: lexer)
     try expectKeyword(lexer: lexer, value: "interface")
     let name = try parseName(lexer: lexer)
     let interfaces = try parseImplementsInterfaces(lexer: lexer)
@@ -868,7 +871,7 @@ func parseInterfaceTypeDefinition(lexer: Lexer) throws -> InterfaceTypeDefinitio
  */
 func parseUnionTypeDefinition(lexer: Lexer) throws -> UnionTypeDefinition {
     let start = lexer.token;
-    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
+    let description = try parseDescription(lexer: lexer)
     try expectKeyword(lexer: lexer, value: "union")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
@@ -903,7 +906,7 @@ func parseUnionMembers(lexer: Lexer) throws -> [NamedType] {
  */
 func parseEnumTypeDefinition(lexer: Lexer) throws -> EnumTypeDefinition {
     let start = lexer.token;
-    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
+    let description = try parseDescription(lexer: lexer)
     try expectKeyword(lexer: lexer, value: "enum");
     let name = try parseName(lexer: lexer);
     let directives = try parseDirectives(lexer: lexer);
@@ -945,7 +948,7 @@ func parseEnumValueDefinition(lexer: Lexer) throws -> EnumValueDefinition {
  */
 func parseInputObjectTypeDefinition(lexer: Lexer) throws -> InputObjectTypeDefinition {
     let start = lexer.token
-    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
+    let description = try parseDescription(lexer: lexer)
     try expectKeyword(lexer: lexer, value: "input")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
@@ -983,7 +986,7 @@ func parseTypeExtensionDefinition(lexer: Lexer) throws -> TypeExtensionDefinitio
  */
 func parseDirectiveDefinition(lexer: Lexer) throws -> DirectiveDefinition {
     let start = lexer.token;
-    let description = lexer.lastToken.kind == .description ? lexer.lastToken.value : nil
+    let description = try parseDescription(lexer: lexer)
     try expectKeyword(lexer: lexer, value: "directive");
     try expect(lexer: lexer, kind: .at)
     let name = try parseName(lexer: lexer);
