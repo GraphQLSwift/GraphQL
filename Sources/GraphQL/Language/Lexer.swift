@@ -91,6 +91,33 @@ final class Lexer {
     func advance() throws -> Token {
         return try advanceFunction(self)
     }
+    
+    /**
+     * Looks ahead and returns the next non-ignored token, but does not change
+     * the state of Lexer.
+     */
+    func lookahead() throws -> Token {
+        var startToken = token
+        let savedLine = self.line
+        let savedLineStart = self.lineStart
+        
+        guard startToken.kind != .eof else { return startToken }
+        repeat {
+            startToken = try startToken.next ??
+                {
+                    startToken.next = try readToken(lexer: self, prev: startToken)
+                    return startToken.next!
+                }()
+        } while startToken.kind == .comment
+        
+        // restore these since both `positionAfterWhitespace` & `readBlockString`
+        // can potentially modify them and commment for `lookahead` says no lexer modification.
+        // (the latter is true in the canonical js lexer also and is likely a bug)
+        self.line = savedLine
+        self.lineStart = savedLineStart
+        
+        return startToken
+    }
 }
 
 /**

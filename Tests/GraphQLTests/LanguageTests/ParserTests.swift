@@ -266,7 +266,7 @@ class ParserTests : XCTestCase {
         let expected: Value = ListValue(
             values: [
                 IntValue(value: "123"),
-                StringValue(value: "abc")
+                StringValue(value: "abc", block: false)
             ]
         )
 
