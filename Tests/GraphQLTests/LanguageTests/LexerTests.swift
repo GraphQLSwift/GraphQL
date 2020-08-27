@@ -746,28 +746,28 @@ class LexerTests : XCTestCase {
     // Tests for Blockstring support
     //
 
-    func testBlockStringIndentationAndBlankLine() throws {
+    func testBlockStringIndentAndBlankLine() throws {
         let rawString = "\n\n\n    TopLevel {\n        indented\n        alsoIndented\n    }\n\n\n\t\t\n"
         let cleanedString = blockStringValue(rawValue: rawString)
         
         XCTAssertEqual(cleanedString, "TopLevel {\n    indented\n    alsoIndented\n}")
     }
     
-    func testBlockStringDoubleIndentationAndBlankLine() throws {
+    func testBlockStringDoubleIndentAndBlankLine() throws {
         let rawString = "\n\n\n    TopLevel {\n        indented: {\n            foo: String\n        }\n        alsoIndented\n    }\n\n\n\t\t\n"
         let cleanedString = blockStringValue(rawValue: rawString)
         
         XCTAssertEqual(cleanedString, "TopLevel {\n    indented: {\n        foo: String\n    }\n    alsoIndented\n}")
     }
 
-    func testBlockStringIndentationAndBlankLineFirstLineNotIndentedWeird() throws {
+    func testBlockStringIndentAndBlankLineFirstLineNotIndent() throws {
         let rawString = "\n\n\nTopLevel {\n        indented\n        alsoIndented\n}\n\n\n\t\t\n"
         let cleanedString = blockStringValue(rawValue: rawString)
         
         XCTAssertEqual(cleanedString, "TopLevel {\n        indented\n        alsoIndented\n}")
     }
 
-    func testBlockStringIndentationMultilineAndBlankLineFirstLineNotIndentedWeird() throws {
+    func testBlockStringIndentBlankLineFirstLineNotIndentWeird() throws {
         let rawString = """
             
             
@@ -784,14 +784,14 @@ class LexerTests : XCTestCase {
         XCTAssertEqual(cleanedString, "TopLevel {\n    indented\n    alsoIndented\n}")
     }
 
-    func testBlockStringIndentationMultilineWithSingleSpaceIndent() throws {
+    func testBlockStringIndentMultilineWithSingleSpaceIndent() throws {
         let rawString = " Multi-line string\n With Inner \"foo\" \n should be Valid "
         let cleanedString = blockStringValue(rawValue: rawString)
         
         XCTAssertEqual(cleanedString, " Multi-line string\nWith Inner \"foo\" \nshould be Valid ")
     }
     
-    func testBlockStringIndentationMultilineWithSingleSpaceIndentAllLines() throws {
+    func testBlockStringIndentMultilineWithSingleSpaceIndentExtraLines() throws {
         let rawString = "\n Multi-line string\n With Inner \"foo\" \n should be Valid \n"
         let cleanedString = blockStringValue(rawValue: rawString)
         
@@ -799,9 +799,9 @@ class LexerTests : XCTestCase {
     }
     
     
-    // Lexer tests for multi-line string token parsing
+    // Lexer tests for Blockstring token parsing
     
-    func testMultiLineStrings() throws {
+    func testBlockStrings() throws {
         let token = try lexOne(#" """ Multi-line string\n With Inner "foo" \nshould be Valid """ "#)
         let expected = Token(
             kind: .blockstring,
@@ -815,7 +815,7 @@ class LexerTests : XCTestCase {
         XCTAssertEqual(token, expected, "\nexpected: \n \(dump(expected))\n\ngot: \n\(dump(token))\n")
     }
 
-    func testMultiLineStringsSingleSpaceIndent() throws {
+    func testBlockStringSingleSpaceIndent() throws {
         let token = try lexOne(#"""
             """
              Multi-line string
@@ -835,7 +835,7 @@ class LexerTests : XCTestCase {
         XCTAssertEqual(token, expected, "\nexpected: \n \(dump(expected))\n\ngot: \n\(dump(token))\n")
     }
 
-    func testMultiLineStringsUnescapedReturns() throws {
+    func testBlockStringUnescapedReturns() throws {
         let token = try lexOne(#"""
                 """
                  Multi-line string
@@ -856,7 +856,7 @@ class LexerTests : XCTestCase {
         XCTAssertEqual(token, expected, "expected: \n \(dump(expected))\ngot: \n\(dump(token))\n")
     }
 
-    func testMultiLineStringsUnescapedReturnsIndentationTest() throws {
+    func testBlockStringUnescapedReturnsIndentTest() throws {
         let token = try lexOne(#"""
                 """
                 Multi-line string {
@@ -878,7 +878,7 @@ class LexerTests : XCTestCase {
         XCTAssertEqual(token, expected, "expected: \n \(dump(expected))\ngot: \n\(dump(token))\n")
     }
     
-    func testMultilineStrings_stringIndentedInStream() throws {
+    func testIndentedBlockStringWithIndents() throws {
         let sourceStr =
             #"""
                 """
@@ -914,13 +914,13 @@ class LexerTests : XCTestCase {
         XCTAssertEqual(token, expected, "\n\(dump(expected))\n\(dump(token))\n")
     }
     
-    func testEmptySimpleMultilineBlockQuote() throws {
+    func testEmptySimpleBlockString() throws {
         let token = try lexOne(#" """""" "#)
         let expected = Token(kind: .blockstring, start: 1, end: 7, line: 1, column: 2, value: "")
         XCTAssertEqual(token, expected, "\n\(dump(expected))\n\(dump(token))\n")
     }
     
-    func testEmptyTrimmedCharactersMultilineBlockQuote() throws {
+    func testEmptyTrimmedCharactersBlockString() throws {
         let token = try lexOne(#"""
             """
             """
@@ -930,7 +930,7 @@ class LexerTests : XCTestCase {
     }
     
     
-    func testEscapedTripleQuote() throws {
+    func testEscapedTripleQuoteInBlockString() throws {
         let token = try lexOne(#"""
             """
             \"""
