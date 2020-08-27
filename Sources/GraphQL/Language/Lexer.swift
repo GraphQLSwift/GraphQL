@@ -341,6 +341,15 @@ func readToken(lexer: Lexer, prev: Token) throws -> Token {
         )
     // "
     case 34:
+        if body.charCode(at: position + 1) == 34 &&
+            body.charCode(at: position + 2) == 34 {
+            return try readBlockString(lexer: lexer,
+                                       source: source,
+                                       start: position,
+                                       line: line,
+                                       col: col,
+                                       prev: prev)
+        }
         return try readString(
             source: source,
             start: position,
@@ -351,7 +360,7 @@ func readToken(lexer: Lexer, prev: Token) throws -> Token {
     default:
         break
     }
-
+    
     throw syntaxError(
         source: source,
         position: position,
@@ -540,84 +549,27 @@ func readDigits(source: Source, start: Int, firstCode: UInt8) throws -> Int {
 }
 
 /**
- * Reads a `.string` token from the source file.
+ * Reads a string token from the source file.
  *
  * "([^"\\\u000A\u000D]|(\\(u[0-9a-fA-F]{4}|["\\/bfnrt])))*"
- *
- * augmented to support blockstrings """ """ and return `.blockString` token if found.
  */
 func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) throws -> Token {
-    let (token, isBlockString) = try readRawString(source: source, start: start, line: line, col: col, prev: prev)
-    
-    if isBlockString,
-       let rawString = token.value {
-        let valueString = blockStringValue(rawValue: rawString)
-        return Token(kind: token.kind,
-                     start: token.start,
-                     end: token.end,
-                     line: token.line,
-                     column: token.column,
-                     value: valueString,
-                     prev: token.prev,
-                     next: token.next)
-    }
-    return token
-}
-
-/** Reads a raw string token from the source.
- *
- * Doesn't do any clean up of leading indentations or trailing whitespace for blockstring lines;
- * so if `token.kind` == `.blockString`, call `blockStringValue` with `token.value` for that.
- *
- * returns: tuple of Token of kind `.string and Bool of true if it was a block string or not
- */
-func readRawString(source: Source, start: Int, line: Int, col: Int, prev: Token) throws -> (token: Token, isBlockString: Bool) {
     let body = source.body
     var positionIndex = body.utf8.index(body.utf8.startIndex, offsetBy: start + 1)
     var chunkStartIndex = positionIndex
     var currentCode: UInt8? = 0
     var value = ""
-    var blockString = false
-    
-    // if we have minimum 5 more quotes worth of characters left after eating the first quote, check for block quote
-    //         body.utf8.index(positionIndex, offsetBy: 5) < body.utf8.endIndex
-    if  body.utf8.distance(from: positionIndex, to: body.utf8.endIndex) >= 5 {
-        if body.charCode(at: positionIndex) == 34,
-           body.charCode(at: body.utf8.index(after: positionIndex)) == 34 {
-            blockString = true
-            positionIndex = body.utf8.index(positionIndex, offsetBy: 2)
-			chunkStartIndex = positionIndex
-        }
-    }
-    
+
     while positionIndex < body.utf8.endIndex {
         currentCode = body.charCode(at: positionIndex)
 
-        //    not in a block quote      not LineTerminator        not Quote (")
-        guard let code = currentCode,
-              blockString || (code != 0x000A && code != 0x000D && code != 34) else {
-            break
-        }
-        
-        // Exit if:
-        //   - we are parsing a block quote
-        //   - the current code is a Quote (")
-        //   - we have at least two more characters in the input
-        //   - and both remaining characters are Quotes (")
-        if blockString,
-           let code = currentCode,
-           code == 34,
-           body.utf8.index(positionIndex, offsetBy: 2) < body.utf8.endIndex,
-           let codeNext = body.charCode(at: body.utf8.index(after: positionIndex)),
-           codeNext == 34,
-           let codeNextNext = body.charCode(at: body.utf8.index(after: body.utf8.index(after: positionIndex))),
-           codeNextNext == 34 {
-            positionIndex = body.utf8.index(after: body.utf8.index(after: positionIndex))  // position after quotes
+        //                     not LineTerminator                  not Quote (")
+        guard let code = currentCode, code != 0x000A && code != 0x000D && code != 34 else {
             break
         }
 
         // SourceCharacter
-        if code < 0x0020 && code != 0x0009 && !(blockString && (code == 0x000A || code == 0x000D)) {
+        if code < 0x0020 && code != 0x0009 {
             throw syntaxError(
                 source: source,
                 position: body.offset(of: positionIndex),
@@ -690,23 +642,93 @@ func readRawString(source: Source, start: Int, line: Int, col: Int, prev: Token)
         )
     }
 
-    if blockString {
-        let valueRangeEnd = body.utf8.index(positionIndex, offsetBy: -2)
-        if chunkStartIndex < valueRangeEnd { // empty string?
-            value += String(body.utf8[chunkStartIndex ..< valueRangeEnd])!
+    value += String(body.utf8[chunkStartIndex..<positionIndex])!
+
+    return Token(
+        kind: .string,
+        start: start,
+        end: body.offset(of: positionIndex) + 1,
+        line: line,
+        column: col,
+        value: value,
+        prev: prev
+    )
+}
+
+/**
+ * Reads a block string token from the source file.
+ *
+ * """("?"?(\\"""|\\(?!=""")|[^"\\]))*"""
+ */
+func readBlockString(lexer: Lexer, source: Source, start: Int, line: Int, col: Int, prev: Token) throws -> Token {
+    let body = source.body
+    var positionIndex = body.utf8.index(body.utf8.startIndex, offsetBy: start + 3)
+    var chunkStartIndex = positionIndex
+    var code: UInt8 = 0
+    var rawValue = ""
+    
+    while positionIndex < body.utf8.endIndex {
+        code = body.utf8[positionIndex]
+        
+        if code == 34,
+           body.utf8.distance(from: positionIndex, to: body.utf8.endIndex) > 2,
+           body.utf8[body.utf8.index(positionIndex, offsetBy: 1)] == 34,
+           body.utf8[body.utf8.index(positionIndex, offsetBy: 2)] == 34 {
+            
+            rawValue += String(body.utf8[chunkStartIndex..<positionIndex])!
+            return Token(
+                kind: .blockstring,
+                start: start,
+                end: body.offset(of: positionIndex) + 3,
+                line: line,
+                column: col,
+                value: blockStringValue(rawValue: rawValue),
+                prev: prev
+            )
         }
-    } else {
-        value += String(body.utf8[chunkStartIndex ..< positionIndex])!
+        
+        if code < 0x0020 &&
+            code != 0x0009 &&
+            code != 0x000A &&
+            code != 0x000D {
+            throw syntaxError(
+                source: source,
+                position: body.offset(of: positionIndex),
+                description: "Invalid character within BlockString: \(character(code))."
+            )
+        }
+        
+        if code == 0x000A {
+            // new line
+            positionIndex = body.utf8.index(after: positionIndex)
+            lexer.line += 1
+            lexer.lineStart = body.offset(of: positionIndex)
+        } else if code == 0x000D {
+            // carriage return
+            let nextIdx = body.utf8.index(after: positionIndex)
+            if nextIdx < body.utf8.endIndex,
+               body.utf8[nextIdx] == 0x000A {
+                positionIndex = body.utf8.index(after: nextIdx)
+            } else {
+                positionIndex = nextIdx
+            }
+            lexer.line += 1
+            lexer.lineStart = body.offset(of: positionIndex)
+        } else if code == 92,
+                  body.utf8.distance(from: positionIndex, to: body.utf8.endIndex) > 4,
+                  body.utf8[body.utf8.index(positionIndex, offsetBy: 1)] == 34,
+                  body.utf8[body.utf8.index(positionIndex, offsetBy: 2)] == 34,
+                  body.utf8[body.utf8.index(positionIndex, offsetBy: 3)] == 34 {
+            // escaped triple quote (\""")
+            rawValue += String(body.utf8[chunkStartIndex..<positionIndex])! + "\"\"\""
+            positionIndex = body.utf8.index(positionIndex, offsetBy: 4)
+            chunkStartIndex = positionIndex
+        } else {
+            positionIndex = body.utf8.index(after: positionIndex)
+        }
     }
     
-    return (token: Token(kind: .string,
-                         start: start,
-                         end: body.offset(of: positionIndex) + 1,
-                         line: line,
-                         column: col,
-                         value: value,
-                         prev: prev),
-            isBlockString: blockString)
+    throw syntaxError(source: source, position: body.offset(of: positionIndex), description: "Unterminated blockstring")
 }
 
 /**
