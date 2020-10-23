@@ -4,11 +4,6 @@ public enum MapError : Error {
     case incompatibleType
     case outOfBounds
     case valueNotFound
-    case notMapInitializable(Any.Type)
-    case notMapRepresentable(Any.Type)
-    case notMapDictionaryKeyInitializable(Any.Type)
-    case notMapDictionaryKeyRepresentable(Any.Type)
-    case cannotInitialize(type: Any.Type, from: Any.Type)
 }
 
 // MARK: Map
@@ -229,27 +224,27 @@ extension Map {
 
 extension Map {
     public var bool: Bool? {
-        return try? get()
+        return try? boolValue()
     }
     
     public var int: Int? {
-        return try? (get() as Number).intValue
+        return try? intValue()
     }
 
     public var double: Double? {
-        return try? (get() as Number).doubleValue
+        return try? doubleValue()
     }
 
     public var string: String? {
-        return try? get()
+        return try? stringValue()
     }
 
     public var array: [Map]? {
-        return try? get()
+        return try? arrayValue()
     }
 
     public var dictionary: [String: Map]? {
-        return try? get()
+        return try? dictionaryValue()
     }
 }
 
@@ -288,7 +283,7 @@ extension Map {
 
     public func intValue(converting: Bool = false) throws -> Int {
         guard converting else {
-            return try get()
+            return try (get() as Number).intValue
         }
 
         switch self {
@@ -312,7 +307,7 @@ extension Map {
 
     public func doubleValue(converting: Bool = false) throws -> Double {
         guard converting else {
-            return try get()
+            return try (get() as Number).doubleValue
         }
 
         switch self {
