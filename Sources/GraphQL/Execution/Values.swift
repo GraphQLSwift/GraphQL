@@ -37,22 +37,11 @@ func getArgumentValues(argDefs: [GraphQLArgumentDefinition], argASTs: [Argument]
         let name = argDef.name
         let valueAST = argASTMap[name]?.value
 
-        var value = try valueFromAST(
+        let value = try valueFromAST(
             valueAST: valueAST,
             type: argDef.type,
             variables: variableValues
-        )
-
-        if value == nil {
-            value = try argDef.defaultValue.flatMap { string in
-                guard let data = string.data(using: .utf8) else {
-                    return nil
-                }
-                
-                let object = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
-                return try map(from: object)
-            }
-        }
+        ) ?? argDef.defaultValue
 
         if let value = value {
             result[name] = value
