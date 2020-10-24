@@ -360,7 +360,7 @@ let __InputValue = try! GraphQLObjectType(
                     return nil
                 }
 
-                return .string(defaultValue)
+                return .string(defaultValue.description)
             }
         )
     ]

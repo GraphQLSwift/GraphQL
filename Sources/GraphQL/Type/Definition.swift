@@ -667,7 +667,7 @@ public struct GraphQLArgument {
 public struct GraphQLArgumentDefinition {
     public let name: String
     public let type: GraphQLInputType
-    public let defaultValue: String?
+    public let defaultValue: Map?
     public let description: String?
 
     init(
@@ -678,7 +678,7 @@ public struct GraphQLArgumentDefinition {
     ) {
         self.name = name
         self.type = type
-        self.defaultValue = defaultValue?.description
+        self.defaultValue = defaultValue
         self.description = description
     }
 }
