@@ -477,7 +477,12 @@ func parseValueLiteral(lexer: Lexer, isConst: Bool) throws -> Value {
                 loc: loc(lexer: lexer, startToken: token),
                 value: token.value == "true"
             )
-        } else if token.value != "null" {
+        } else if token.value == "null" {
+            try lexer.advance()
+            return NullValue(
+                loc: loc(lexer: lexer, startToken: token)
+            )
+        } else {
             try lexer.advance()
             return EnumValue(
                 loc: loc(lexer: lexer, startToken: token),

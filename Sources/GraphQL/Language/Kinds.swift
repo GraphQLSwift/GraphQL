@@ -14,6 +14,7 @@ public enum Kind {
     case floatValue
     case stringValue
     case booleanValue
+    case nullValue
     case enumValue
     case listValue
     case objectValue
