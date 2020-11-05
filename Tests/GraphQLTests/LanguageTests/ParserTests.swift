@@ -112,10 +112,39 @@ class ParserTests : XCTestCase {
                 "Syntax Error GraphQL (1:39) Unexpected Name \"null\""
             ))
         }
+
+        XCTAssertThrowsError(try parse(source: "type WithImplementsButNoTypes implements {}")) { error in
+            guard let error = error as? GraphQLError else {
+                return XCTFail()
+            }
+
+            XCTAssert(error.message.contains(
+                "Syntax Error GraphQL (1:42) Expected Name, found {"
+            ))
+        }
+
+        XCTAssertThrowsError(try parse(source: "type WithImplementsWithTrailingAmp implements AInterface & {}")) { error in
+            guard let error = error as? GraphQLError else {
+                return XCTFail()
+            }
+
+            XCTAssert(error.message.contains(
+                "Syntax Error GraphQL (1:60) Expected Name, found {"
+            ))
+        }
     }
 
     func testVariableInlineValues() throws {
         _ = try parse(source: "{ field(complex: { a: { b: [ $var ] } }) }")
+    }
+
+    func testImplementsInterface() throws {
+        _ = try parse(source: "type Swallow implements Animal {}")
+        _ = try parse(source: "type Swallow implements Animal & Bird {}")
+        _ = try parse(source: "type Swallow implements & Animal & Bird {}")
+        _ = try parse(source: "interface Bird implements Animal {}")
+        _ = try parse(source: "interface Bird implements Animal & Lifeform {}")
+        _ = try parse(source: "interface Bird implements & Animal {}")
     }
 
 //      it('parses multi-byte characters', async () => {

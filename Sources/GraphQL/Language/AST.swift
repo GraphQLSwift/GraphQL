@@ -40,6 +40,7 @@ final public class Token {
         case eof = "<EOF>"
         case bang = "!"
         case dollar = "$"
+        case amp = "&"
         case openingParenthesis = "("
         case closingParenthesis = ")"
         case spread = "..."
