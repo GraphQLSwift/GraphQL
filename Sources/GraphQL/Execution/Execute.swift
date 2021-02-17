@@ -1229,3 +1229,26 @@ func getFieldDef(
     // we know this field exists because we passed validation before execution
     return parentType.fields[fieldName]!
 }
+
+func buildResolveInfo(
+    context: ExecutionContext,
+    fieldDef: GraphQLFieldDefinition,
+    fieldASTs: [Field],
+    parentType: GraphQLObjectType,
+    path: IndexPath
+) -> GraphQLResolveInfo {
+    // The resolve function's optional fourth argument is a collection of
+    // information about the current execution state.
+    return GraphQLResolveInfo.init(
+        fieldName: fieldDef.name,
+        fieldASTs: fieldASTs,
+        returnType: fieldDef.type,
+        parentType: parentType,
+        path: path,
+        schema: context.schema,
+        fragments: context.fragments,
+        rootValue: context.rootValue,
+        operation: context.operation,
+        variableValues: context.variableValues
+    )
+}
