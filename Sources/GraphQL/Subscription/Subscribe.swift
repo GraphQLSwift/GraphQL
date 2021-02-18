@@ -38,7 +38,7 @@ func subscribe(
     operationName: String? = nil,
     fieldResolver: GraphQLFieldResolve,
     subscribeFieldResolver: GraphQLFieldResolve
-) -> EventLoopFuture<Any?> { // This is either an AsyncIterator or a GraphQLResult
+) -> EventLoopFuture<SubscriptionResult> {
     
     
     let sourceFuture = createSourceEventStream(
@@ -77,16 +77,18 @@ func subscribe(
             operationName: operationName
         )
     }
-    return sourceFuture.flatMap({ (resultOrStream) -> EventLoopFuture<Any?> in
-        if resultOrStream is GraphQLResult { // Return the result directly
-            return eventLoopGroup.next().makeSucceededFuture(resultOrStream)
-        } else { // We can assume that it's an AsyncIterable
-            let stream:AsyncIterable<GraphQLResult>! = resultOrStream
-            return MappedAsyncIterator(from: stream) { payload -> EventLoopFuture<GraphQLResult> in
-                mapSourceToResponse(payload: payload)
+    return sourceFuture.flatMap{ subscriptionResult -> EventLoopFuture<SubscriptionResult> in
+        do {
+            let subscriptionObserver = try subscriptionResult.get()
+            let eventObserver = subscriptionObserver.map { eventPayload -> GraphQLResult in
+                return try! mapSourceToResponse(payload: eventPayload).wait() // TODO Remove this wait
             }
+            // TODO Making a future here feels it indicates a mistake...
+            return eventLoopGroup.next().makeSucceededFuture(SubscriptionResult.success(eventObserver))
+        } catch let graphQLError as GraphQLError {
+            return eventLoopGroup.next().makeSucceededFuture(SubscriptionResult.failure(graphQLError))
         }
-    })
+    }
 }
 
 /**
@@ -130,7 +132,7 @@ func createSourceEventStream(
     variableValues: [String: Map] = [:],
     operationName: String? = nil,
     subscribeFieldResolver: GraphQLFieldResolve
-) -> EventLoopFuture<Any?> { // This is either an AsyncIterator or a GraphQLResult
+) -> EventLoopFuture<SubscriptionResult> {
 
     let executeStarted = instrumentation.now
     let exeContext: ExecutionContext
@@ -168,9 +170,9 @@ func createSourceEventStream(
             result: nil
         )
 
-        return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: [error]))
+        return eventLoopGroup.next().makeSucceededFuture(SubscriptionResult.failure(error))
     } catch {
-        return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: [GraphQLError(error)]))
+        return eventLoopGroup.next().makeSucceededFuture(SubscriptionResult.failure(GraphQLError(error)))
     }
     
     return try! executeSubscription(context: exeContext, eventLoopGroup: eventLoopGroup)
@@ -179,7 +181,7 @@ func createSourceEventStream(
 func executeSubscription(
     context: ExecutionContext,
     eventLoopGroup: EventLoopGroup
-) throws -> EventLoopFuture<Any?> { // This is either an AsyncIterator or a GraphQLResult
+) throws -> EventLoopFuture<SubscriptionResult> {
     
     // Get the first node
     let type = try getOperationRootType(schema: context.schema, operation: context.operation)
@@ -226,7 +228,7 @@ func executeSubscription(
     let contextValue = context.context
 
     // Call the `subscribe()` resolver or the default resolver to produce an
-    // AsyncIterable yielding raw payloads.
+    // Observable yielding raw payloads.
     let resolve = fieldDef.subscribe ?? fieldDef.resolve ?? defaultResolve
     
     // Get the resolve func, regardless of if its result is normal
@@ -247,33 +249,14 @@ func executeSubscription(
         info: info,
         path: path,
         result: result
-    ).flatMap { value -> EventLoopFuture<Any?> in
-        if let asyncIterable = value as? EventLoopFuture<AsyncIterable> {
-            return asyncIterable
+    ).map { value -> SubscriptionResult in
+        if let observable = value as? Observable<GraphQLResult> {
+            return SubscriptionResult.success(observable)
         } else {
-            context.append(error: GraphQLError(message: "Subscription field must return AsyncIterable."))
-            return context.eventLoopGroup.next().makeSucceededFuture(nil)
+            context.append(error: GraphQLError(message: "Subscription field resolver must return Observable of GraphQLResults."))
+            return SubscriptionResult.failure(GraphQLError(message: "Subscription field resolver must return Observable of GraphQLResults."))
         }
     }
 }
 
-protocol AsyncIterable {
-    associatedtype Item
-    func next() -> EventLoopFuture<Item>
-}
-
-class MappedAsyncIterator<OrigType: AsyncIterable, MappedType> : AsyncIterable {
-    let origIterable: OrigType
-    let callback: (OrigType.Item) -> Future<MappedType>
-    
-    init(from: OrigType, by: @escaping (OrigType.Item) -> Future<MappedType>) {
-        origIterable = from
-        callback = by
-    }
-    
-    func next() -> EventLoopFuture<MappedType> {
-        origIterable.next().flatMap { origResult -> Future<MappedType> in
-            self.callback(origResult)
-        }
-    }
-}
+typealias SubscriptionResult = Result<Observable<GraphQLResult>, GraphQLError>
