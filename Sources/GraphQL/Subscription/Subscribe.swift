@@ -255,8 +255,14 @@ func executeSubscription(
             return SourceEventStreamResult.failure(error)
         } else if let observable = resolved as? Observable<Any> {
             return SourceEventStreamResult.success(observable)
+        } else if resolved == nil {
+            return SourceEventStreamResult.failure(
+                GraphQLError(message: "Resolved subscription was nil")
+            )
         } else {
-            return SourceEventStreamResult.failure(GraphQLError(message: "Subscription field resolver must return an Observable<Any>"))
+            return SourceEventStreamResult.failure(
+                GraphQLError(message: "Subscription field resolver must return an Observable<Any>, not \(Swift.type(of:resolved))")
+            )
         }
     }
 }
