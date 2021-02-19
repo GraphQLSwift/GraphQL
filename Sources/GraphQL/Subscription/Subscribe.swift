@@ -36,8 +36,8 @@ func subscribe(
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil,
-    fieldResolver: GraphQLFieldResolve,
-    subscribeFieldResolver: GraphQLFieldResolve
+    fieldResolver: GraphQLFieldResolve? = nil,
+    subscribeFieldResolver: GraphQLFieldResolve? = nil
 ) -> EventLoopFuture<SubscriptionResult> {
     
     
@@ -62,7 +62,7 @@ func subscribe(
     // the GraphQL specification. The `execute` function provides the
     // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
     // "ExecuteQuery" algorithm, for which `execute` is also used.
-    func mapSourceToResponse(payload:GraphQLResult) -> EventLoopFuture<GraphQLResult> {
+    func mapSourceToResponse(payload: Any) -> EventLoopFuture<GraphQLResult> {
         return execute(
             queryStrategy: queryStrategy,
             mutationStrategy: mutationStrategy,
@@ -131,8 +131,8 @@ func createSourceEventStream(
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil,
-    subscribeFieldResolver: GraphQLFieldResolve
-) -> EventLoopFuture<SubscriptionResult> {
+    subscribeFieldResolver: GraphQLFieldResolve? = nil
+) -> EventLoopFuture<SourceEventStreamResult> {
 
     let executeStarted = instrumentation.now
     let exeContext: ExecutionContext
@@ -170,9 +170,9 @@ func createSourceEventStream(
             result: nil
         )
 
-        return eventLoopGroup.next().makeSucceededFuture(SubscriptionResult.failure(error))
+        return eventLoopGroup.next().makeSucceededFuture(SourceEventStreamResult.failure(error))
     } catch {
-        return eventLoopGroup.next().makeSucceededFuture(SubscriptionResult.failure(GraphQLError(error)))
+        return eventLoopGroup.next().makeSucceededFuture(SourceEventStreamResult.failure(GraphQLError(error)))
     }
     
     return try! executeSubscription(context: exeContext, eventLoopGroup: eventLoopGroup)
@@ -181,7 +181,7 @@ func createSourceEventStream(
 func executeSubscription(
     context: ExecutionContext,
     eventLoopGroup: EventLoopGroup
-) throws -> EventLoopFuture<SubscriptionResult> {
+) throws -> EventLoopFuture<SourceEventStreamResult> {
     
     // Get the first node
     let type = try getOperationRootType(schema: context.schema, operation: context.operation)
@@ -241,7 +241,6 @@ func executeSubscription(
         eventLoopGroup: eventLoopGroup,
         info: info
     )
-    
     return try completeValueCatchingError(
         exeContext: context,
         returnType: fieldDef.type,
@@ -249,14 +248,33 @@ func executeSubscription(
         info: info,
         path: path,
         result: result
-    ).map { value -> SubscriptionResult in
-        if let observable = value as? Observable<GraphQLResult> {
-            return SubscriptionResult.success(observable)
+    )
+    // TODO do we need to create this data map?
+//    .flatMapThrowing { data -> Any in
+//        // Translate from raw value completion map into a GraphQLResult
+//        var dataMap: Map = [:]
+//        dataMap[fieldDef.name] = try map(from: data)
+//        var result: GraphQLResult = GraphQLResult(data: dataMap)
+//
+//        if !context.errors.isEmpty {
+//            result.errors = context.errors
+//        }
+//        return result
+//    }
+    .map { value -> SourceEventStreamResult in
+        if !context.errors.isEmpty {
+            // TODO improve this to return multiple errors if we have them.
+            return SourceEventStreamResult.failure(context.errors.first!)
+        } else if value is Observable<Any?> {
+            let observable = value as! Observable<Any>
+            return SourceEventStreamResult.success(observable)
+        } else if let error = value as? GraphQLError {
+            return SourceEventStreamResult.failure(error)
         } else {
-            context.append(error: GraphQLError(message: "Subscription field resolver must return Observable of GraphQLResults."))
-            return SubscriptionResult.failure(GraphQLError(message: "Subscription field resolver must return Observable of GraphQLResults."))
+            return SourceEventStreamResult.failure(GraphQLError(message: "Subscription field resolver must return Observable of GraphQLResults."))
         }
     }
 }
 
 typealias SubscriptionResult = Result<Observable<GraphQLResult>, GraphQLError>
+typealias SourceEventStreamResult = Result<Observable<Any>, GraphQLError>

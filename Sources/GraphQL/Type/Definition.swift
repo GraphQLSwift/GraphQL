@@ -553,6 +553,22 @@ public struct GraphQLField {
         description: String? = nil,
         deprecationReason: String? = nil,
         args: GraphQLArgumentConfigMap = [:],
+        resolve: GraphQLFieldResolve?,
+        subscribe: GraphQLFieldResolve?
+    ) {
+        self.type = type
+        self.args = args
+        self.deprecationReason = deprecationReason
+        self.description = description
+        self.resolve = resolve
+        self.subscribe = subscribe
+    }
+    
+    public init(
+        type: GraphQLOutputType,
+        description: String? = nil,
+        deprecationReason: String? = nil,
+        args: GraphQLArgumentConfigMap = [:],
         subscribe: GraphQLFieldResolve?
     ) {
         self.type = type
@@ -581,6 +597,25 @@ public struct GraphQLField {
         }
         self.subscribe = nil
     }
+    
+//    public init(
+//        type: GraphQLOutputType,
+//        description: String? = nil,
+//        deprecationReason: String? = nil,
+//        args: GraphQLArgumentConfigMap = [:],
+//        subscribe: GraphQLFieldResolveInput
+//    ) {
+//        self.type = type
+//        self.args = args
+//        self.deprecationReason = deprecationReason
+//        self.description = description
+//        
+//        self.resolve = nil
+//        self.subscribe = { source, args, context, eventLoopGroup, info in
+//            let result = try subscribe(source, args, context, info)
+//            return eventLoopGroup.next().makeSucceededFuture(result)
+//        }
+//    }
 }
 
 public typealias GraphQLFieldDefinitionMap = [String: GraphQLFieldDefinition]
