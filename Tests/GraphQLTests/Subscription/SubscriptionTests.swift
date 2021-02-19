@@ -6,7 +6,7 @@ import RxSwift
 class SubscriptionTests : XCTestCase {
     
     private func createSubscription(
-        pubsub:Observable<Email>,
+        pubsub:Observable<Any>,
         schema:GraphQLSchema = emailSchemaWithResolvers(subscribe: nil, resolve: nil),
         document:Document = defaultSubscriptionAST
     ) -> EventLoopFuture<SubscriptionResult> {
@@ -54,12 +54,40 @@ class SubscriptionTests : XCTestCase {
         )
     }
     
+    
+    
+    // TODO Delete me - this just goes thru the entire pipeline
+    func testDELETEME() throws {
+        let pubsub = PublishSubject<Any>()
+        let testSchema = emailSchemaWithResolvers(
+            subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
+                return eventLoopGroup.next().makeSucceededFuture(pubsub)
+            },
+            resolve: nil
+        )
+        let subscriptionResult = try createSubscription(pubsub: pubsub, schema: testSchema).wait()
+        switch subscriptionResult {
+        case .success(let subscription):
+            let subscriber = subscription.subscribe {
+                print("Event: \($0)")
+            }
+            pubsub.onNext(Email(
+                from: "yuzhi@graphql.org",
+                subject: "Alright",
+                message: "Tests are good",
+                unread: true
+            ))
+        case .failure(let error):
+            throw error
+        }
+    }
+    
     // MARK: Subscription Initialization Phase
     
     /// accepts multiple subscription fields defined in schema
     // TODO Finish up this test
     func testAcceptsMultipleSubscriptionFields() throws {
-        let pubsub = PublishSubject<Email>()
+        let pubsub = PublishSubject<Any>()
         let subscriptionTypeMultiple = try GraphQLObjectType(
             name: "Subscription",
             fields: [
@@ -118,45 +146,6 @@ class SubscriptionTests : XCTestCase {
         case .failure(let error):
             let expected = GraphQLError(message:"test error")
             XCTAssertEqual(expected, error)
-        }
-    }
-    
-    // TODO Delete me - this is a test to ensure that we are returning the correct thing.
-    func testDELETEME() throws {
-        let pubsub = PublishSubject<Email>()
-        let subscriptionType = try GraphQLObjectType(
-            name: "Subscription",
-            fields: [
-                "importantEmail": GraphQLField(
-                    type: EmailEventType,
-                    args: [
-                        "priority": GraphQLArgument(
-                            type: GraphQLInt
-                        )
-                    ],
-                    subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                        return eventLoopGroup.next().makeSucceededFuture(pubsub)
-                    }
-                )
-            ]
-        )
-        let testSchema = emailSchemaWithResolvers(
-            subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                return eventLoopGroup.next().makeSucceededFuture(pubsub)
-            },
-            resolve: nil
-        )
-        let subscriptionResult = try createSubscription(pubsub: pubsub, schema: testSchema).wait()
-        switch subscriptionResult {
-        case .success:
-            pubsub.onNext(Email(
-                from: "yuzhi@graphql.org",
-                subject: "Alright",
-                message: "Tests are good",
-                unread: true
-            ))
-        case .failure(let error):
-            throw error
         }
     }
     

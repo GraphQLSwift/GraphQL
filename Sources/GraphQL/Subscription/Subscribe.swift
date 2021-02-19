@@ -135,12 +135,11 @@ func createSourceEventStream(
 ) -> EventLoopFuture<SourceEventStreamResult> {
 
     let executeStarted = instrumentation.now
-    let exeContext: ExecutionContext
     
     do {
         // If a valid context cannot be created due to incorrect arguments,
         // this will throw an error.
-        exeContext = try buildExecutionContext(
+        let exeContext = try buildExecutionContext(
             queryStrategy: queryStrategy,
             mutationStrategy: mutationStrategy,
             subscriptionStrategy: subscriptionStrategy,
@@ -154,6 +153,7 @@ func createSourceEventStream(
             operationName: operationName
             // TODO shouldn't we be including the subscribeFieldResolver??
         )
+        return try executeSubscription(context: exeContext, eventLoopGroup: eventLoopGroup)
     } catch let error as GraphQLError {
         instrumentation.operationExecution(
             processId: processId(),
@@ -174,8 +174,6 @@ func createSourceEventStream(
     } catch {
         return eventLoopGroup.next().makeSucceededFuture(SourceEventStreamResult.failure(GraphQLError(error)))
     }
-    
-    return try! executeSubscription(context: exeContext, eventLoopGroup: eventLoopGroup)
 }
 
 func executeSubscription(
@@ -233,7 +231,7 @@ func executeSubscription(
     
     // Get the resolve func, regardless of if its result is normal
     // or abrupt (error).
-    let result = resolveOrError(
+    let resolvedFutureOrError = resolveOrError(
         resolve: resolve,
         source: context.rootValue,
         args: args,
@@ -241,37 +239,24 @@ func executeSubscription(
         eventLoopGroup: eventLoopGroup,
         info: info
     )
-    return try completeValueCatchingError(
-        exeContext: context,
-        returnType: fieldDef.type,
-        fieldASTs: fieldNodes,
-        info: info,
-        path: path,
-        result: result
-    )
-    // TODO do we need to create this data map?
-//    .flatMapThrowing { data -> Any in
-//        // Translate from raw value completion map into a GraphQLResult
-//        var dataMap: Map = [:]
-//        dataMap[fieldDef.name] = try map(from: data)
-//        var result: GraphQLResult = GraphQLResult(data: dataMap)
-//
-//        if !context.errors.isEmpty {
-//            result.errors = context.errors
-//        }
-//        return result
-//    }
-    .map { value -> SourceEventStreamResult in
+    
+    let resolvedFuture:Future<Any?>
+    switch resolvedFutureOrError {
+    case let .failure(error):
+        throw error
+    case let .success(success):
+        resolvedFuture = success
+    }
+    return resolvedFuture.map { resolved -> SourceEventStreamResult in
         if !context.errors.isEmpty {
             // TODO improve this to return multiple errors if we have them.
             return SourceEventStreamResult.failure(context.errors.first!)
-        } else if value is Observable<Any?> {
-            let observable = value as! Observable<Any>
-            return SourceEventStreamResult.success(observable)
-        } else if let error = value as? GraphQLError {
+        } else if let error = resolved as? GraphQLError {
             return SourceEventStreamResult.failure(error)
+        } else if let observable = resolved as? Observable<Any> {
+            return SourceEventStreamResult.success(observable)
         } else {
-            return SourceEventStreamResult.failure(GraphQLError(message: "Subscription field resolver must return Observable of GraphQLResults."))
+            return SourceEventStreamResult.failure(GraphQLError(message: "Subscription field resolver must return an Observable<Any>"))
         }
     }
 }
