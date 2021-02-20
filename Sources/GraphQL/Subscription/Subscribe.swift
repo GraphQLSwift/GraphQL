@@ -227,7 +227,7 @@ func executeSubscription(
 
     // Call the `subscribe()` resolver or the default resolver to produce an
     // Observable yielding raw payloads.
-    let resolve = fieldDef.subscribe ?? fieldDef.resolve ?? defaultResolve
+    let resolve = fieldDef.subscribe ?? defaultResolve
     
     // Get the resolve func, regardless of if its result is normal
     // or abrupt (error).
