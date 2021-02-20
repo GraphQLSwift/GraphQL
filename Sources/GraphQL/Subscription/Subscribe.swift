@@ -199,7 +199,7 @@ func executeSubscription(
     
     guard let fieldDef = getFieldDef(schema: context.schema, parentType: type, fieldAST: fieldNode) else {
         throw GraphQLError.init(
-            message: "`The subscription field '\(fieldNode.name)' is not defined.`",
+            message: "`The subscription field '\(fieldNode.name.value)' is not defined.`",
             nodes: fieldNodes
         )
     }
