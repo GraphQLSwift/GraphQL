@@ -55,33 +55,33 @@ func subscribe(
         operationName: operationName,
         subscribeFieldResolver: subscribeFieldResolver
     )
-
-    // For each payload yielded from a subscription, map it over the normal
-    // GraphQL `execute` function, with `payload` as the rootValue.
-    // This implements the "MapSourceToResponseEvent" algorithm described in
-    // the GraphQL specification. The `execute` function provides the
-    // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
-    // "ExecuteQuery" algorithm, for which `execute` is also used.
-    func mapSourceToResponse(payload: Any) -> EventLoopFuture<GraphQLResult> {
-        return execute(
-            queryStrategy: queryStrategy,
-            mutationStrategy: mutationStrategy,
-            subscriptionStrategy: subscriptionStrategy,
-            instrumentation: instrumentation,
-            schema: schema,
-            documentAST: documentAST,
-            rootValue: payload, // Make payload the root value
-            context: context,
-            eventLoopGroup: eventLoopGroup,
-            variableValues: variableValues,
-            operationName: operationName
-        )
-    }
+    
     return sourceFuture.flatMap{ subscriptionResult -> EventLoopFuture<SubscriptionResult> in
         do {
             let subscriptionObserver = try subscriptionResult.get()
             let eventObserver = subscriptionObserver.map { eventPayload -> GraphQLResult in
-                return try! mapSourceToResponse(payload: eventPayload).wait() // TODO Remove this wait
+                
+                // For each payload yielded from a subscription, map it over the normal
+                // GraphQL `execute` function, with `payload` as the rootValue.
+                // This implements the "MapSourceToResponseEvent" algorithm described in
+                // the GraphQL specification. The `execute` function provides the
+                // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
+                // "ExecuteQuery" algorithm, for which `execute` is also used.
+                let eventResolved = try execute(
+                    queryStrategy: queryStrategy,
+                    mutationStrategy: mutationStrategy,
+                    subscriptionStrategy: subscriptionStrategy,
+                    instrumentation: instrumentation,
+                    schema: schema,
+                    documentAST: documentAST,
+                    rootValue: eventPayload,
+                    context: context,
+                    eventLoopGroup: eventLoopGroup,
+                    variableValues: variableValues,
+                    operationName: operationName
+                ).wait() // TODO remove this wait
+                
+                return eventResolved
             }
             // TODO Making a future here feels it indicates a mistake...
             return eventLoopGroup.next().makeSucceededFuture(SubscriptionResult.success(eventObserver))
@@ -151,7 +151,6 @@ func createSourceEventStream(
             eventLoopGroup: eventLoopGroup,
             rawVariableValues: variableValues,
             operationName: operationName
-            // TODO shouldn't we be including the subscribeFieldResolver??
         )
         return try executeSubscription(context: exeContext, eventLoopGroup: eventLoopGroup)
     } catch let error as GraphQLError {
