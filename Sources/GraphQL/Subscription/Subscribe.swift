@@ -35,9 +35,7 @@ func subscribe(
     context: Any,
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
-    operationName: String? = nil,
-    fieldResolver: GraphQLFieldResolve? = nil,
-    subscribeFieldResolver: GraphQLFieldResolve? = nil
+    operationName: String? = nil
 ) -> EventLoopFuture<SubscriptionResult> {
     
     
@@ -52,8 +50,7 @@ func subscribe(
         context: context,
         eventLoopGroup: eventLoopGroup,
         variableValues: variableValues,
-        operationName: operationName,
-        subscribeFieldResolver: subscribeFieldResolver
+        operationName: operationName
     )
     
     return sourceFuture.map{ subscriptionResult -> SubscriptionResult in
@@ -129,8 +126,7 @@ func createSourceEventStream(
     context: Any,
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
-    operationName: String? = nil,
-    subscribeFieldResolver: GraphQLFieldResolve? = nil
+    operationName: String? = nil
 ) -> EventLoopFuture<SourceEventStreamResult> {
 
     let executeStarted = instrumentation.now
