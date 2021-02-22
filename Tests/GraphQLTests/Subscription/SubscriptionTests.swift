@@ -25,7 +25,8 @@ class SubscriptionTests : XCTestCase {
             ]]
         )
         let _ = subscription.subscribe { event in
-            XCTAssertEqual(event.element, expected)
+            let payload = try! event.element!.wait()
+            XCTAssertEqual(payload, expected)
         }.disposed(by: disposeBag)
         pubsub.onNext(Email(
             from: "yuzhi@graphql.org",
@@ -105,7 +106,8 @@ class SubscriptionTests : XCTestCase {
             ]]
         )
         let _ = subscription.subscribe { event in
-            XCTAssertEqual(event.element, expected)
+            let payload = try! event.element!.wait()
+            XCTAssertEqual(payload, expected)
         }.disposed(by: disposeBag)
         pubsub.onNext(Email(
             from: "yuzhi@graphql.org",
@@ -158,7 +160,9 @@ class SubscriptionTests : XCTestCase {
             }
         """)
         
-        let _ = subscription.subscribe().disposed(by: disposeBag)
+        let _ = subscription.subscribe{ event in
+            let _ = try! event.element!.wait()
+        }.disposed(by: disposeBag)
         pubsub.onNext(Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
@@ -278,7 +282,7 @@ let defaultEmails = [
 private func createDbAndSubscription(
     pubsub:Observable<Any>,
     query:String
-) throws -> Observable<GraphQLResult> {
+) throws -> SubscriptionObservable {
     
     var emails = defaultEmails
     
@@ -304,7 +308,7 @@ private func createSubscription(
     pubsub: Observable<Any>,
     schema: GraphQLSchema,
     query: String
-) throws -> Observable<GraphQLResult> {
+) throws -> SubscriptionObservable {
     let document = try parse(source: query)
     let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
     let subscriptionOrError = try subscribe(
@@ -344,7 +348,7 @@ private func emailSchemaWithResolvers(resolve: GraphQLFieldResolve?, subscribe: 
     )
 }
 
-private func extractSubscription(_ subscriptionResult: SubscriptionResult) throws -> Observable<GraphQLResult> {
+private func extractSubscription(_ subscriptionResult: SubscriptionResult) throws -> SubscriptionObservable {
     switch subscriptionResult {
     case .success(let subscription):
         return subscription

@@ -59,7 +59,7 @@ func subscribe(
     return sourceFuture.map{ subscriptionResult -> SubscriptionResult in
         do {
             let subscriptionObserver = try subscriptionResult.get()
-            let eventObserver = subscriptionObserver.map { eventPayload -> GraphQLResult in
+            let eventObserver = subscriptionObserver.map { eventPayload -> Future<GraphQLResult> in
                 
                 // For each payload yielded from a subscription, map it over the normal
                 // GraphQL `execute` function, with `payload` as the rootValue.
@@ -67,7 +67,7 @@ func subscribe(
                 // the GraphQL specification. The `execute` function provides the
                 // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
                 // "ExecuteQuery" algorithm, for which `execute` is also used.
-                let eventResolved = try execute(
+                return execute(
                     queryStrategy: queryStrategy,
                     mutationStrategy: mutationStrategy,
                     subscriptionStrategy: subscriptionStrategy,
@@ -79,10 +79,8 @@ func subscribe(
                     eventLoopGroup: eventLoopGroup,
                     variableValues: variableValues,
                     operationName: operationName
-                ).wait() // TODO remove this wait
-                return eventResolved
+                )
             }
-            // TODO Making a future here feels it indicates a mistake...
             return SubscriptionResult.success(eventObserver)
         } catch let graphQLError as GraphQLError {
             return SubscriptionResult.failure(graphQLError)
@@ -253,7 +251,7 @@ func executeSubscription(
             return SourceEventStreamResult.failure(context.errors.first!)
         } else if let error = resolved as? GraphQLError {
             return SourceEventStreamResult.failure(error)
-        } else if let observable = resolved as? Observable<Any> {
+        } else if let observable = resolved as? SourceEventStreamObservable {
             return SourceEventStreamResult.success(observable)
         } else if resolved == nil {
             return SourceEventStreamResult.failure(
@@ -261,11 +259,13 @@ func executeSubscription(
             )
         } else {
             return SourceEventStreamResult.failure(
-                GraphQLError(message: "Subscription field resolver must return an Observable<Any>, not \(Swift.type(of:resolved))")
+                GraphQLError(message: "Subscription field resolver must return an SourceEventStreamObservable, not \(Swift.type(of:resolved))")
             )
         }
     }
 }
 
-typealias SubscriptionResult = Result<Observable<GraphQLResult>, GraphQLError>
-typealias SourceEventStreamResult = Result<Observable<Any>, GraphQLError>
+typealias SubscriptionObservable = Observable<Future<GraphQLResult>>
+typealias SubscriptionResult = Result<SubscriptionObservable, GraphQLError>
+typealias SourceEventStreamObservable = Observable<Any>
+typealias SourceEventStreamResult = Result<SourceEventStreamObservable, GraphQLError>
