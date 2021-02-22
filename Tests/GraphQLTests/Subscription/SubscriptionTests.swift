@@ -11,9 +11,7 @@ class SubscriptionTests : XCTestCase {
     /// accepts multiple subscription fields defined in schema
     func testAcceptsMultipleSubscriptionFields() throws {
         let disposeBag = DisposeBag()
-        let pubsub = PublishSubject<Any>()
-
-        var emails = defaultEmails
+        let db = EmailDb()
         let schema = try GraphQLSchema(
             query: EmailQueryType,
             subscription: try! GraphQLObjectType(
@@ -28,14 +26,13 @@ class SubscriptionTests : XCTestCase {
                         ],
                         resolve: {emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                             let email = emailAny as! Email
-                            emails.append(email)
                             return eventLoopGroup.next().makeSucceededFuture(EmailEvent(
                                 email: email,
-                                inbox: Inbox(emails: emails)
+                                inbox: Inbox(emails: db.emails)
                             ))
                         },
                         subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                            return eventLoopGroup.next().makeSucceededFuture(pubsub)
+                            return eventLoopGroup.next().makeSucceededFuture(db.publisher)
                         }
                     ),
                     "notImportantEmail": GraphQLField(
@@ -47,20 +44,19 @@ class SubscriptionTests : XCTestCase {
                         ],
                         resolve: {emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                             let email = emailAny as! Email
-                            emails.append(email)
                             return eventLoopGroup.next().makeSucceededFuture(EmailEvent(
                                 email: email,
-                                inbox: Inbox(emails: emails)
+                                inbox: Inbox(emails: db.emails)
                             ))
                         },
                         subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                            return eventLoopGroup.next().makeSucceededFuture(pubsub)
+                            return eventLoopGroup.next().makeSucceededFuture(db.publisher)
                         }
                     )
                 ]
             )
         )
-        let subscription = try createSubscription(pubsub: pubsub, schema: schema, query: nestedQuery)
+        let subscription = try createSubscription(pubsub: db.publisher, schema: schema, query: nestedQuery)
 
         let expected = GraphQLResult(
             data: ["importantEmail": [
@@ -78,7 +74,7 @@ class SubscriptionTests : XCTestCase {
             let payload = try! event.element!.wait()
             XCTAssertEqual(payload, expected)
         }.disposed(by: disposeBag)
-        pubsub.onNext(Email(
+        db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
@@ -91,7 +87,7 @@ class SubscriptionTests : XCTestCase {
     /// Note that due to implementation details in Swift, this will not resolve the "first" one, but rather a random one of the two
     func testInvalidMultiField() throws {
         let disposeBag = DisposeBag()
-        let pubsub = PublishSubject<Any>()
+        let db = EmailDb()
 
         var didResolveImportantEmail = false
         var didResolveNonImportantEmail = false
@@ -108,7 +104,7 @@ class SubscriptionTests : XCTestCase {
                         },
                         subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                             didResolveImportantEmail = true
-                            return eventLoopGroup.next().makeSucceededFuture(pubsub)
+                            return eventLoopGroup.next().makeSucceededFuture(db.publisher)
                         }
                     ),
                     "notImportantEmail": GraphQLField(
@@ -118,13 +114,13 @@ class SubscriptionTests : XCTestCase {
                         },
                         subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                             didResolveNonImportantEmail = true
-                            return eventLoopGroup.next().makeSucceededFuture(pubsub)
+                            return eventLoopGroup.next().makeSucceededFuture(db.publisher)
                         }
                     )
                 ]
             )
         )
-        let subscription = try createSubscription(pubsub: pubsub, schema: schema, query: """
+        let subscription = try createSubscription(pubsub: db.publisher, schema: schema, query: """
             subscription {
                 importantEmail
                 notImportantEmail
@@ -134,7 +130,7 @@ class SubscriptionTests : XCTestCase {
         let _ = subscription.subscribe{ event in
             let _ = try! event.element!.wait()
         }.disposed(by: disposeBag)
-        pubsub.onNext(Email(
+        db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
@@ -154,9 +150,9 @@ class SubscriptionTests : XCTestCase {
 
     /// 'resolves to an error for unknown subscription field'
     func testErrorUnknownSubscriptionField() throws {
-        let pubsub = PublishSubject<Any>()
+        let db = EmailDb()
         XCTAssertThrowsError(
-            try createDbAndSubscription(pubsub: pubsub, query: """
+            try defaultSubscription(db: db, query: """
                 subscription {
                     unknownField
                 }
@@ -171,15 +167,15 @@ class SubscriptionTests : XCTestCase {
 
     /// 'should pass through unexpected errors thrown in subscribe'
     func testPassUnexpectedSubscribeErrors() throws {
-        let pubsub = PublishSubject<Any>()
+        let db = EmailDb()
         XCTAssertThrowsError(
-            try createDbAndSubscription(pubsub: pubsub, query: "")
+            try defaultSubscription(db: db, query: "")
         )
     }
 
     /// 'throws an error if subscribe does not return an iterator'
     func testErrorIfSubscribeIsntIterator() throws {
-        let pubsub = PublishSubject<Any>()
+        let db = EmailDb()
         let schema = try GraphQLSchema(
             query: EmailQueryType,
             subscription: try! GraphQLObjectType(
@@ -198,7 +194,7 @@ class SubscriptionTests : XCTestCase {
             )
         )
         XCTAssertThrowsError(
-            try createSubscription(pubsub: pubsub, schema: schema, query: basicQuery)
+            try createSubscription(pubsub: db.publisher, schema: schema, query: basicQuery)
         ) { error in
             let graphQlError = error as! GraphQLError
             XCTAssertEqual(
@@ -210,11 +206,10 @@ class SubscriptionTests : XCTestCase {
 
     /// 'resolves to an error for subscription resolver errors'
     func testErrorForSubscriptionResolverErrors() throws {
-
-        let pubsub = PublishSubject<Any>()
+        let db = EmailDb()
         func verifyError(schema: GraphQLSchema) {
             XCTAssertThrowsError(
-                try createSubscription(pubsub: pubsub, schema: schema, query: basicQuery)
+                try createSubscription(pubsub: db.publisher, schema: schema, query: basicQuery)
             ) { error in
                 let graphQlError = error as! GraphQLError
                 XCTAssertEqual(graphQlError.message, "test error")
@@ -249,8 +244,7 @@ class SubscriptionTests : XCTestCase {
 
     /// 'resolves to an error if variables were wrong type'
     func testErrorVariablesWrongType() throws {
-        let pubsub = PublishSubject<Any>()
-
+        let db = EmailDb()
         let query = """
             subscription ($priority: Int) {
                 importantEmail(priority: $priority) {
@@ -267,8 +261,8 @@ class SubscriptionTests : XCTestCase {
         """
 
         XCTAssertThrowsError(
-            try createDbAndSubscription(
-                pubsub: pubsub,
+            try defaultSubscription(
+                db: db,
                 query: query,
                 variableValues: [
                     "priority": "meow"
@@ -285,13 +279,13 @@ class SubscriptionTests : XCTestCase {
 
 
     // MARK: Subscription Publish Phase
-    
+
     /// 'produces a payload for a single subscriber'
     func testSingleSubscriber() throws {
         let disposeBag = DisposeBag()
-        let pubsub = PublishSubject<Any>()
-        let subscription = try createDbAndSubscription(pubsub: pubsub, query: nestedQuery)
-        
+        let db = EmailDb()
+        let subscription = try defaultSubscription(db: db, query: nestedQuery)
+
         let expected = GraphQLResult(
             data: ["importantEmail": [
                 "inbox":[
@@ -308,7 +302,7 @@ class SubscriptionTests : XCTestCase {
             let payload = try! event.element!.wait()
             XCTAssertEqual(payload, expected)
         }.disposed(by: disposeBag)
-        pubsub.onNext(Email(
+        db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
@@ -319,8 +313,8 @@ class SubscriptionTests : XCTestCase {
     /// 'produces a payload for multiple subscribe in same subscription'
     func testMultipleSubscribers() throws {
         let disposeBag = DisposeBag()
-        let pubsub = PublishSubject<Any>()
-        let subscription = try createDbAndSubscription(pubsub: pubsub, query: nestedQuery)
+        let db = EmailDb()
+        let subscription = try defaultSubscription(db: db, query: nestedQuery)
 
         let expected = GraphQLResult(
             data: ["importantEmail": [
@@ -339,14 +333,12 @@ class SubscriptionTests : XCTestCase {
             XCTAssertEqual(try! event.element!.wait(), expected)
         }.disposed(by: disposeBag)
         
-        // TODO fix our pub/sub implementation so that we don't append an email for every subscriber (instead only on every distinct event)
-        
         // Subscription 2
         let _ = subscription.subscribe { event in
             XCTAssertEqual(try! event.element!.wait(), expected)
         }.disposed(by: disposeBag)
 
-        pubsub.onNext(Email(
+        db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
@@ -357,8 +349,8 @@ class SubscriptionTests : XCTestCase {
     /// 'produces a payload per subscription event'
     func testPayloadPerEvent() throws {
         let disposeBag = DisposeBag()
-        let pubsub = PublishSubject<Any>()
-        let subscription = try createDbAndSubscription(pubsub: pubsub, query: nestedQuery)
+        let db = EmailDb()
+        let subscription = try defaultSubscription(db: db, query: nestedQuery)
 
         let expected = [
             GraphQLResult(
@@ -386,33 +378,33 @@ class SubscriptionTests : XCTestCase {
                 ]]
             ),
         ]
-        
+
         var eventCounter = 0
         let _ = subscription.subscribe { event in
             XCTAssertEqual(try! event.element!.wait(), expected[eventCounter])
             eventCounter += 1
         }.disposed(by: disposeBag)
-        
-        pubsub.onNext(Email(
+
+        db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
             unread: true
         ))
-        pubsub.onNext(Email(
+        db.trigger(email: Email(
             from: "hyo@graphql.org",
             subject: "Tools",
             message: "I <3 making things",
             unread: true
         ))
-        
+
         XCTAssertEqual(eventCounter, 2)
     }
-    
+
     /// 'should not trigger when subscription is already done'
     func testNoTriggerAfterDone() throws {
-        let pubsub = PublishSubject<Any>()
-        let subscription = try createDbAndSubscription(pubsub: pubsub, query: nestedQuery)
+        let db = EmailDb()
+        let subscription = try defaultSubscription(db: db, query: nestedQuery)
 
         let expected = GraphQLResult(
             data: ["importantEmail": [
@@ -426,24 +418,24 @@ class SubscriptionTests : XCTestCase {
                 ]
             ]]
         )
-        
+
         var eventCounter = 0
         let subscriber = subscription.subscribe { event in
             XCTAssertEqual(try! event.element!.wait(), expected)
             eventCounter += 1
         }
-        
-        pubsub.onNext(Email(
+
+        db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
             unread: true
         ))
-        
+
         subscriber.dispose()
-        
+
         // This should not trigger an event.
-        pubsub.onNext(Email(
+        db.trigger(email: Email(
             from: "hyo@graphql.org",
             subject: "Tools",
             message: "I <3 making things",
@@ -451,26 +443,18 @@ class SubscriptionTests : XCTestCase {
         ))
         XCTAssertEqual(eventCounter, 1)
     }
-    
+
     /// 'should not trigger when subscription is thrown'
     // Not necessary - Pub/sub implementation handles throwing/closing itself.
-    
+
     /// 'event order is correct for multiple publishes'
     // Not necessary - Pub/sub implementation handles event ordering
-    
+
     /// 'should handle error during execution of source event'
     func testErrorDuringSubscription() throws {
         let disposeBag = DisposeBag()
-        let pubsub = PublishSubject<Any>()
-        
-        var emails = defaultEmails
-        let observer = pubsub.do(
-            onNext: { emailAny in
-                let email = emailAny as! Email
-                emails.append(email)
-            }
-        )
-        
+        let db = EmailDb()
+
         let schema = emailSchemaWithResolvers(
             resolve: {emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                 let email = emailAny as! Email
@@ -479,15 +463,15 @@ class SubscriptionTests : XCTestCase {
                 }
                 return eventLoopGroup.next().makeSucceededFuture(EmailEvent(
                     email: email,
-                    inbox: Inbox(emails: emails)
+                    inbox: Inbox(emails: db.emails)
                 ))
             },
             subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                return eventLoopGroup.next().makeSucceededFuture(observer)
+                return eventLoopGroup.next().makeSucceededFuture(db.publisher)
             }
         )
-        
-        let subscription = try createSubscription(pubsub: pubsub, schema: schema, query: """
+
+        let subscription = try createSubscription(pubsub: db.publisher, schema: schema, query: """
             subscription {
                 importantEmail {
                     email {
@@ -496,7 +480,7 @@ class SubscriptionTests : XCTestCase {
                 }
             }
         """)
-        
+
         let expected = [
             GraphQLResult(
                 data: ["importantEmail": [
@@ -519,36 +503,36 @@ class SubscriptionTests : XCTestCase {
                 ]]
             )
         ]
-        
+
         var eventCounter = 0
         let _ = subscription.subscribe { event in
             XCTAssertEqual(try! event.element!.wait(), expected[eventCounter])
             eventCounter += 1
         }.disposed(by: disposeBag)
-        
-        pubsub.onNext(Email(
+
+        db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Hello",
             message: "Tests are good",
             unread: true
         ))
-        
+
         // An error in execution is presented as such.
-        pubsub.onNext(Email(
+        db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Goodbye",
             message: "Tests are good",
             unread: true
         ))
-        
+
         // However that does not close the response event stream. Subsequent events are still executed.
-        pubsub.onNext(Email(
+        db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Bonjour",
             message: "Tests are good",
             unread: true
         ))
-        
+
         XCTAssertEqual(eventCounter, 3)
     }
     
@@ -637,6 +621,9 @@ let EmailQueryType = try! GraphQLObjectType(
 )
 
 // MARK: Test Helpers
+
+// TODO: I seem to be getting some thread deadlocking when I set this to system count. FIX
+//let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
 let basicQuery = """
@@ -659,43 +646,49 @@ let nestedQuery = """
       }
 """
 
-let defaultEmails = [
-    Email(
-        from: "joe@graphql.org",
-        subject: "Hello",
-        message: "Hello World",
-        unread: false
-    )
-]
+class EmailDb {
+    var emails: [Email]
+    let publisher: PublishSubject<Any>
+    
+    init() {
+        emails = [
+            Email(
+                from: "joe@graphql.org",
+                subject: "Hello",
+                message: "Hello World",
+                unread: false
+            )
+        ]
+        publisher = PublishSubject<Any>()
+    }
+    
+    func trigger(email:Email) {
+        emails.append(email)
+        publisher.onNext(email)
+    }
+}
 
-/// Generates a default schema and email database, and returns the subscription
-private func createDbAndSubscription(
-    pubsub:PublishSubject<Any>,
+/// Generates a default schema and resolvers, and returns the subscription
+private func defaultSubscription(
+    db:EmailDb,
     query:String,
     variableValues: [String: Map] = [:]
 ) throws -> SubscriptionObservable {
-    var emails = defaultEmails
-    let observer = pubsub.do(
-        onNext: { emailAny in
-            let email = emailAny as! Email
-            emails.append(email)
-        }
-    )
     
     let schema = emailSchemaWithResolvers(
         resolve: {emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
             let email = emailAny as! Email
             return eventLoopGroup.next().makeSucceededFuture(EmailEvent(
                 email: email,
-                inbox: Inbox(emails: emails)
+                inbox: Inbox(emails: db.emails)
             ))
         },
         subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-            return eventLoopGroup.next().makeSucceededFuture(observer)
+            return eventLoopGroup.next().makeSucceededFuture(db.publisher)
         }
     )
     
-    return try createSubscription(pubsub: pubsub, schema: schema, query: query, variableValues: variableValues)
+    return try createSubscription(pubsub: db.publisher, schema: schema, query: query, variableValues: variableValues)
 }
 
 /// Generates a subscription from the given schema and query. It's expected that the database is managed by the caller.
