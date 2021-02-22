@@ -258,8 +258,11 @@ func executeSubscription(
                 GraphQLError(message: "Resolved subscription was nil")
             )
         } else {
+            let resolvedObj = resolved as AnyObject
             return SourceEventStreamResult.failure(
-                GraphQLError(message: "Subscription field resolver must return an SourceEventStreamObservable, not \(Swift.type(of:resolved))")
+                GraphQLError(
+                    message: "Subscription field resolver must return SourceEventStreamObservable. Received: '\(resolvedObj)'"
+                )
             )
         }
     }
