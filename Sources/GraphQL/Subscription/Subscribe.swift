@@ -56,7 +56,7 @@ func subscribe(
         subscribeFieldResolver: subscribeFieldResolver
     )
     
-    return sourceFuture.flatMap{ subscriptionResult -> EventLoopFuture<SubscriptionResult> in
+    return sourceFuture.map{ subscriptionResult -> SubscriptionResult in
         do {
             let subscriptionObserver = try subscriptionResult.get()
             let eventObserver = subscriptionObserver.map { eventPayload -> GraphQLResult in
@@ -80,13 +80,14 @@ func subscribe(
                     variableValues: variableValues,
                     operationName: operationName
                 ).wait() // TODO remove this wait
-                
                 return eventResolved
             }
             // TODO Making a future here feels it indicates a mistake...
-            return eventLoopGroup.next().makeSucceededFuture(SubscriptionResult.success(eventObserver))
+            return SubscriptionResult.success(eventObserver)
         } catch let graphQLError as GraphQLError {
-            return eventLoopGroup.next().makeSucceededFuture(SubscriptionResult.failure(graphQLError))
+            return SubscriptionResult.failure(graphQLError)
+        } catch let error {
+            return SubscriptionResult.failure(GraphQLError(error))
         }
     }
 }
