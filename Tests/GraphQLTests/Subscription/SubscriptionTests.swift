@@ -5,7 +5,62 @@ import RxSwift
 
 /// This follows the graphql-js testing, with deviations where noted.
 class SubscriptionTests : XCTestCase {
-
+    
+    // MARK: Test primary graphqlSubscribe function
+    
+    /// This is not present in graphql-js.
+    func testGraphqlSubscribe() throws {
+        let db = EmailDb()
+        let schema = db.defaultSchema()
+        let query = """
+            subscription ($priority: Int = 0) {
+                importantEmail(priority: $priority) {
+                  email {
+                    from
+                    subject
+                  }
+                  inbox {
+                    unread
+                    total
+                  }
+                }
+              }
+        """
+        
+        let subscriptionResult = try graphqlSubscribe(
+            schema: schema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
+        
+        let observable = subscriptionResult.observable!
+        
+        var currentResult = GraphQLResult()
+        let _ = observable.subscribe { event in
+            currentResult = try! event.element!.wait()
+        }.disposed(by: db.disposeBag)
+        
+        db.trigger(email: Email(
+            from: "yuzhi@graphql.org",
+            subject: "Alright",
+            message: "Tests are good",
+            unread: true
+        ))
+        
+        XCTAssertEqual(currentResult, GraphQLResult(
+            data: ["importantEmail": [
+                "inbox":[
+                    "total": 2,
+                    "unread": 1
+                ],
+                "email":[
+                    "subject": "Alright",
+                    "from": "yuzhi@graphql.org"
+                ]
+            ]]
+        ))
+    }
+    
     // MARK: Subscription Initialization Phase
 
     /// accepts multiple subscription fields defined in schema
@@ -701,12 +756,9 @@ class EmailDb {
         publisher.onNext(email)
     }
     
-    /// Generates a subscription to the database using a default schema and resolvers
-    func subscription (
-        query:String,
-        variableValues: [String: Map] = [:]
-    ) throws -> SubscriptionObservable {
-        let schema = emailSchemaWithResolvers(
+    /// Returns the default email schema, with standard resolvers.
+    func defaultSchema() -> GraphQLSchema {
+        return emailSchemaWithResolvers(
             resolve: {emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                 let email = emailAny as! Email
                 return eventLoopGroup.next().makeSucceededFuture(EmailEvent(
@@ -718,8 +770,14 @@ class EmailDb {
                 return eventLoopGroup.next().makeSucceededFuture(self.publisher)
             }
         )
-        
-        return try createSubscription(schema: schema, query: query, variableValues: variableValues)
+    }
+    
+    /// Generates a subscription to the database using the default schema and resolvers
+    func subscription (
+        query:String,
+        variableValues: [String: Map] = [:]
+    ) throws -> SubscriptionObservable {
+        return try createSubscription(schema: defaultSchema(), query: query, variableValues: variableValues)
     }
 }
 
