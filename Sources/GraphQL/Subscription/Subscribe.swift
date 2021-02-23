@@ -53,10 +53,9 @@ func subscribe(
         operationName: operationName
     )
     
-    return sourceFuture.map{ subscriptionResult -> SubscriptionResult in
-        do {
-            let subscriptionObserver = try subscriptionResult.get()
-            let eventObserver = subscriptionObserver.map { eventPayload -> Future<GraphQLResult> in
+    return sourceFuture.map{ sourceResult -> SubscriptionResult in
+        if let sourceObservable = sourceResult.observable {
+            let subscriptionObservable = sourceObservable.map { eventPayload -> Future<GraphQLResult> in
                 
                 // For each payload yielded from a subscription, map it over the normal
                 // GraphQL `execute` function, with `payload` as the rootValue.
@@ -78,11 +77,9 @@ func subscribe(
                     operationName: operationName
                 )
             }
-            return SubscriptionResult.success(eventObserver)
-        } catch let graphQLError as GraphQLError {
-            return SubscriptionResult.failure(graphQLError)
-        } catch let error {
-            return SubscriptionResult.failure(GraphQLError(error))
+            return SubscriptionResult(observable: subscriptionObservable)
+        } else {
+            return SubscriptionResult(errors: sourceResult.errors)
         }
     }
 }
@@ -164,9 +161,9 @@ func createSourceEventStream(
             result: nil
         )
 
-        return eventLoopGroup.next().makeSucceededFuture(SourceEventStreamResult.failure(error))
+        return eventLoopGroup.next().makeSucceededFuture(SourceEventStreamResult(errors: [error]))
     } catch {
-        return eventLoopGroup.next().makeSucceededFuture(SourceEventStreamResult.failure(GraphQLError(error)))
+        return eventLoopGroup.next().makeSucceededFuture(SourceEventStreamResult(errors: [GraphQLError(error)]))
     }
 }
 
@@ -192,7 +189,7 @@ func executeSubscription(
     let fieldNode = fieldNodes.first!
     
     guard let fieldDef = getFieldDef(schema: context.schema, parentType: type, fieldAST: fieldNode) else {
-        throw GraphQLError.init(
+        throw GraphQLError(
             message: "`The subscription field '\(fieldNode.name.value)' is not defined.`",
             nodes: fieldNodes
         )
@@ -237,34 +234,56 @@ func executeSubscription(
     let resolvedFuture:Future<Any?>
     switch resolvedFutureOrError {
     case let .failure(error):
-        throw error
+        if let graphQLError = error as? GraphQLError {
+            throw graphQLError
+        } else {
+            throw GraphQLError(error)
+        }
     case let .success(success):
         resolvedFuture = success
     }
     return resolvedFuture.map { resolved -> SourceEventStreamResult in
         if !context.errors.isEmpty {
-            // TODO improve this to return multiple errors if we have them.
-            return SourceEventStreamResult.failure(context.errors.first!)
+            return SourceEventStreamResult(errors: context.errors)
         } else if let error = resolved as? GraphQLError {
-            return SourceEventStreamResult.failure(error)
+            return SourceEventStreamResult(errors: [error])
         } else if let observable = resolved as? SourceEventStreamObservable {
-            return SourceEventStreamResult.success(observable)
+            return SourceEventStreamResult(observable: observable)
         } else if resolved == nil {
-            return SourceEventStreamResult.failure(
+            return SourceEventStreamResult(errors: [
                 GraphQLError(message: "Resolved subscription was nil")
-            )
+            ])
         } else {
             let resolvedObj = resolved as AnyObject
-            return SourceEventStreamResult.failure(
+            return SourceEventStreamResult(errors: [
                 GraphQLError(
                     message: "Subscription field resolver must return SourceEventStreamObservable. Received: '\(resolvedObj)'"
                 )
-            )
+            ])
         }
     }
 }
 
-typealias SubscriptionObservable = Observable<Future<GraphQLResult>>
-typealias SubscriptionResult = Result<SubscriptionObservable, GraphQLError>
+public struct SubscriptionResult {
+    public var observable: SubscriptionObservable?
+    public var errors: [GraphQLError]
+    
+    public init(observable: SubscriptionObservable? = nil, errors: [GraphQLError] = []) {
+        self.observable = observable
+        self.errors = errors
+    }
+}
+public typealias SubscriptionObservable = Observable<Future<GraphQLResult>>
+
+struct SourceEventStreamResult {
+    public var observable: SourceEventStreamObservable?
+    public var errors: [GraphQLError]
+    
+    public init(observable: SourceEventStreamObservable? = nil, errors: [GraphQLError] = []) {
+        self.observable = observable
+        self.errors = errors
+    }
+}
 typealias SourceEventStreamObservable = Observable<Any>
-typealias SourceEventStreamResult = Result<SourceEventStreamObservable, GraphQLError>
+
+

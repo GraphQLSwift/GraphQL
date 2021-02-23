@@ -172,9 +172,9 @@ class SubscriptionTests : XCTestCase {
                 """
             )
         ) { error in
-            let graphQlError = error as! GraphQLError
-            XCTAssertEqual(graphQlError.message, "`The subscription field 'unknownField' is not defined.`")
-            XCTAssertEqual(graphQlError.locations, [SourceLocation(line: 2, column: 5)])
+            let graphQLError = error as! GraphQLError
+            XCTAssertEqual(graphQLError.message, "`The subscription field 'unknownField' is not defined.`")
+            XCTAssertEqual(graphQLError.locations, [SourceLocation(line: 2, column: 5)])
         }
     }
 
@@ -203,9 +203,9 @@ class SubscriptionTests : XCTestCase {
                 }
             """)
         ) { error in
-            let graphQlError = error as! GraphQLError
+            let graphQLError = error as! GraphQLError
             XCTAssertEqual(
-                graphQlError.message,
+                graphQLError.message,
                 "Subscription field resolver must return SourceEventStreamObservable. Received: 'test'"
             )
         }
@@ -221,8 +221,8 @@ class SubscriptionTests : XCTestCase {
                     }
                 """)
             ) { error in
-                let graphQlError = error as! GraphQLError
-                XCTAssertEqual(graphQlError.message, "test error")
+                let graphQLError = error as! GraphQLError
+                XCTAssertEqual(graphQLError.message, "test error")
             }
         }
 
@@ -278,9 +278,9 @@ class SubscriptionTests : XCTestCase {
                 ]
             )
         ) { error in
-            let graphQlError = error as! GraphQLError
+            let graphQLError = error as! GraphQLError
             XCTAssertEqual(
-                graphQlError.message,
+                graphQLError.message,
                 "Variable \"$priority\" got invalid value \"meow\".\nExpected type \"Int\", found \"meow\"."
             )
         }
@@ -752,7 +752,7 @@ private func createSubscription(
     variableValues: [String: Map] = [:]
 ) throws -> SubscriptionObservable {
     let document = try parse(source: query)
-    let subscriptionOrError = try subscribe(
+    let result = try subscribe(
         queryStrategy: SerialFieldExecutionStrategy(),
         mutationStrategy: SerialFieldExecutionStrategy(),
         subscriptionStrategy: SerialFieldExecutionStrategy(),
@@ -766,10 +766,9 @@ private func createSubscription(
         operationName: nil
     ).wait()
     
-    switch subscriptionOrError {
-    case .success(let subscription):
-        return subscription
-    case .failure(let error):
-        throw error
+    if let observable = result.observable {
+        return observable
+    } else {
+        throw result.errors.first! // We may have more than one...
     }
 }
