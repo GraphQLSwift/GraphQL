@@ -183,14 +183,14 @@ func executeSubscription(
         fields: &inputFields,
         visitedFragmentNames: &visitedFragmentNames
     )
-    let responseNames = fields.keys
-    let responseName = responseNames.first! // TODO add error handling here
+    // If query is valid, fields is guaranteed to have at least 1 member
+    let responseName = fields.keys.first!
     let fieldNodes = fields[responseName]!
     let fieldNode = fieldNodes.first!
     
     guard let fieldDef = getFieldDef(schema: context.schema, parentType: type, fieldAST: fieldNode) else {
         throw GraphQLError(
-            message: "`The subscription field '\(fieldNode.name.value)' is not defined.`",
+            message: "The subscription field '\(fieldNode.name.value)' is not defined.",
             nodes: fieldNodes
         )
     }
@@ -264,20 +264,22 @@ func executeSubscription(
     }
 }
 
+/// SubscriptionResult wraps the observable and error data returned by the subscribe request.
 public struct SubscriptionResult {
-    public var observable: SubscriptionObservable?
-    public var errors: [GraphQLError]
+    public let observable: SubscriptionObservable?
+    public let errors: [GraphQLError]
     
     public init(observable: SubscriptionObservable? = nil, errors: [GraphQLError] = []) {
         self.observable = observable
         self.errors = errors
     }
 }
+/// SubscriptionObservable represents an event stream of fully resolved GraphQL subscription results. It can be used to add subscribers to this stream
 public typealias SubscriptionObservable = Observable<Future<GraphQLResult>>
 
 struct SourceEventStreamResult {
-    public var observable: SourceEventStreamObservable?
-    public var errors: [GraphQLError]
+    public let observable: SourceEventStreamObservable?
+    public let errors: [GraphQLError]
     
     public init(observable: SourceEventStreamObservable? = nil, errors: [GraphQLError] = []) {
         self.observable = observable

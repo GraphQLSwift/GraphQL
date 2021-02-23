@@ -173,7 +173,7 @@ class SubscriptionTests : XCTestCase {
             )
         ) { error in
             let graphQLError = error as! GraphQLError
-            XCTAssertEqual(graphQLError.message, "`The subscription field 'unknownField' is not defined.`")
+            XCTAssertEqual(graphQLError.message, "The subscription field 'unknownField' is not defined.")
             XCTAssertEqual(graphQLError.locations, [SourceLocation(line: 2, column: 5)])
         }
     }
