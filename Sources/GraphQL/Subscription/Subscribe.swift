@@ -193,15 +193,6 @@ func executeSubscription(
         )
     }
     
-    let path = IndexPath.init().appending(fieldNode.name.value)
-    let info = buildResolveInfo(
-        context: context,
-        fieldDef: fieldDef,
-        fieldASTs: fieldNodes,
-        parentType: type,
-        path: path
-    )
-    
     // Implements the "ResolveFieldEventStream" algorithm from GraphQL specification.
     // It differs from "ResolveFieldValue" due to providing a different `resolveFn`.
 
@@ -213,6 +204,22 @@ func executeSubscription(
     // is provided to every resolve function within an execution. It is commonly
     // used to represent an authenticated user, or request-specific caches.
     let contextValue = context.context
+    
+    // The resolve function's optional fourth argument is a collection of
+    // information about the current execution state.
+    let path = IndexPath.init().appending(fieldNode.name.value)
+    let info = GraphQLResolveInfo.init(
+        fieldName: fieldDef.name,
+        fieldASTs: fieldNodes,
+        returnType: fieldDef.type,
+        parentType: type,
+        path: path,
+        schema: context.schema,
+        fragments: context.fragments,
+        rootValue: context.rootValue,
+        operation: context.operation,
+        variableValues: context.variableValues
+    )
 
     // Call the `subscribe()` resolver or the default resolver to produce an
     // Observable yielding raw payloads.
