@@ -502,6 +502,83 @@ class SubscriptionTests : XCTestCase {
             ]]
         ))
     }
+    
+    /// Tests that subscriptions use arguments correctly.
+    /// This is not in the graphql-js tests.
+    func testArguments() throws {
+        let db = EmailDb()
+        let subscription = try db.subscription(query: """
+            subscription ($priority: Int = 5) {
+                importantEmail(priority: $priority) {
+                  email {
+                    from
+                    subject
+                  }
+                  inbox {
+                    unread
+                    total
+                  }
+                }
+              }
+        """)
+        
+        var currentResult = GraphQLResult()
+        let _ = subscription.subscribe { event in
+            currentResult = try! event.element!.wait()
+        }.disposed(by: db.disposeBag)
+
+        db.trigger(email: Email(
+            from: "yuzhi@graphql.org",
+            subject: "Alright",
+            message: "Tests are good",
+            unread: true,
+            priority: 7
+        ))
+        let firstMessageExpected = GraphQLResult(
+            data: ["importantEmail": [
+                "inbox":[
+                    "total": 2,
+                    "unread": 1
+                ],
+                "email":[
+                    "subject": "Alright",
+                    "from": "yuzhi@graphql.org"
+                ]
+            ]]
+        )
+        XCTAssertEqual(currentResult, firstMessageExpected)
+        
+        // Low priority email shouldn't trigger an event
+        db.trigger(email: Email(
+            from: "hyo@graphql.org",
+            subject: "Not Important",
+            message: "Ignore this email",
+            unread: true,
+            priority: 2
+        ))
+        XCTAssertEqual(currentResult, firstMessageExpected)
+        
+        // Higher priority one should trigger again
+        db.trigger(email: Email(
+            from: "hyo@graphql.org",
+            subject: "Tools",
+            message: "I <3 making things",
+            unread: true,
+            priority: 5
+        ))
+        XCTAssertEqual(currentResult, GraphQLResult(
+            data: ["importantEmail": [
+                "inbox":[
+                    "total": 4,
+                    "unread": 3
+                ],
+                "email":[
+                    "subject": "Tools",
+                    "from": "hyo@graphql.org"
+                ]
+            ]]
+        ))
+    }
 
     /// 'should not trigger when subscription is already done'
     func testNoTriggerAfterDone() throws {
@@ -657,6 +734,15 @@ struct Email : Encodable {
     let subject:String
     let message:String
     let unread:Bool
+    let priority:Int
+    
+    init(from:String, subject:String, message:String, unread:Bool, priority:Int = 0) {
+        self.from = from
+        self.subject = subject
+        self.message = message
+        self.unread = unread
+        self.priority = priority
+    }
 }
 
 struct Inbox : Encodable {
@@ -764,8 +850,13 @@ class EmailDb {
                     inbox: Inbox(emails: self.emails)
                 ))
             },
-            subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                return eventLoopGroup.next().makeSucceededFuture(self.publisher)
+            subscribe: {_, args, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
+                let priority = args["priority"].int ?? 0
+                let filtered = self.publisher.filter { emailAny in
+                    let email = emailAny as! Email
+                    return email.priority >= priority
+                }
+                return eventLoopGroup.next().makeSucceededFuture(filtered)
             }
         )
     }
