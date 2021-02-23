@@ -728,8 +728,6 @@ let EmailQueryType = try! GraphQLObjectType(
 
 // MARK: Test Helpers
 
-// TODO: I seem to be getting some thread deadlocking when I set this to system count. FIX
-//let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
 class EmailDb {
