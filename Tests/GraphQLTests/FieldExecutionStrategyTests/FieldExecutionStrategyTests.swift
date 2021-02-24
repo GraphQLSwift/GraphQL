@@ -201,7 +201,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     private var eventLoopGroup: EventLoopGroup!
     
     override func setUp() {
-        eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
     }
     
     override func tearDown() {
