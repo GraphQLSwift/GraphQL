@@ -726,6 +726,39 @@ class SubscriptionTests : XCTestCase {
     
     /// 'should resolve GraphQL error from source event stream'
     // Not necessary - Pub/sub implementation handles event erroring
+    
+    /// Test incorrect observable publish type errors
+    func testErrorWrongObservableType() throws {
+        let db = EmailDb()
+        let subscription = try db.subscription(query: """
+            subscription ($priority: Int = 0) {
+                importantEmail(priority: $priority) {
+                  email {
+                    from
+                    subject
+                  }
+                  inbox {
+                    unread
+                    total
+                  }
+                }
+              }
+        """)
+        
+        var currentResult = GraphQLResult()
+        let _ = subscription.subscribe { event in
+            currentResult = try! event.element!.wait()
+        }.disposed(by: db.disposeBag)
+        
+        db.publisher.onNext("String instead of email")
+        
+        XCTAssertEqual(currentResult, GraphQLResult(
+            data: ["importantEmail": nil],
+            errors: [
+                GraphQLError(message: "String is not Email")
+            ]
+        ))
+    }
 }
 
 // MARK: Types
@@ -844,17 +877,23 @@ class EmailDb {
     func defaultSchema() -> GraphQLSchema {
         return emailSchemaWithResolvers(
             resolve: {emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                let email = emailAny as! Email
-                return eventLoopGroup.next().makeSucceededFuture(EmailEvent(
-                    email: email,
-                    inbox: Inbox(emails: self.emails)
-                ))
+                if let email = emailAny as? Email {
+                    return eventLoopGroup.next().makeSucceededFuture(EmailEvent(
+                        email: email,
+                        inbox: Inbox(emails: self.emails)
+                    ))
+                } else {
+                    throw GraphQLError(message: "\(type(of:emailAny)) is not Email")
+                }
             },
             subscribe: {_, args, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                 let priority = args["priority"].int ?? 0
-                let filtered = self.publisher.filter { emailAny in
-                    let email = emailAny as! Email
-                    return email.priority >= priority
+                let filtered = self.publisher.filter { emailAny throws in
+                    if let email = emailAny as? Email {
+                        return email.priority >= priority
+                    } else {
+                        return true
+                    }
                 }
                 return eventLoopGroup.next().makeSucceededFuture(filtered)
             }

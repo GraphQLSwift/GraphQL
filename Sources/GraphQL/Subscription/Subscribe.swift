@@ -291,6 +291,7 @@ struct SourceEventStreamResult {
         self.errors = errors
     }
 }
+/// Observables MUST be declared as 'Any' due to Swift not having covariant generic support. Resolvers should handle type checks.
 typealias SourceEventStreamObservable = Observable<Any>
 
 
