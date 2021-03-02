@@ -40,6 +40,19 @@ public struct GraphQLResult : Equatable, Codable, CustomStringConvertible {
     }
 }
 
+/// SubscriptionResult wraps the observable and error data returned by the subscribe request.
+public struct SubscriptionResult {
+    public let observable: SubscriptionObservable?
+    public let errors: [GraphQLError]
+    
+    public init(observable: SubscriptionObservable? = nil, errors: [GraphQLError] = []) {
+        self.observable = observable
+        self.errors = errors
+    }
+}
+/// SubscriptionObservable represents an event stream of fully resolved GraphQL subscription results. Subscribers can be added to this stream.
+public typealias SubscriptionObservable = Observable<Future<GraphQLResult>>
+
 /// This is the primary entry point function for fulfilling GraphQL operations
 /// by parsing, validating, and executing a GraphQL document along side a
 /// GraphQL schema.

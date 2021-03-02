@@ -37,7 +37,6 @@ func subscribe(
     operationName: String? = nil
 ) -> EventLoopFuture<SubscriptionResult> {
     
-    
     let sourceFuture = createSourceEventStream(
         queryStrategy: queryStrategy,
         mutationStrategy: mutationStrategy,
@@ -252,7 +251,7 @@ func executeSubscription(
             return SourceEventStreamResult(errors: context.errors)
         } else if let error = resolved as? GraphQLError {
             return SourceEventStreamResult(errors: [error])
-        } else if let observable = resolved as? SourceEventStreamObservable {
+        } else if let observable = resolved as? SourceEventObservable {
             return SourceEventStreamResult(observable: observable)
         } else if resolved == nil {
             return SourceEventStreamResult(errors: [
@@ -262,36 +261,23 @@ func executeSubscription(
             let resolvedObj = resolved as AnyObject
             return SourceEventStreamResult(errors: [
                 GraphQLError(
-                    message: "Subscription field resolver must return SourceEventStreamObservable. Received: '\(resolvedObj)'"
+                    message: "Subscription field resolver must return SourceEventObservable. Received: '\(resolvedObj)'"
                 )
             ])
         }
     }
 }
 
-/// SubscriptionResult wraps the observable and error data returned by the subscribe request.
-public struct SubscriptionResult {
-    public let observable: SubscriptionObservable?
-    public let errors: [GraphQLError]
-    
-    public init(observable: SubscriptionObservable? = nil, errors: [GraphQLError] = []) {
-        self.observable = observable
-        self.errors = errors
-    }
-}
-/// SubscriptionObservable represents an event stream of fully resolved GraphQL subscription results. It can be used to add subscribers to this stream
-public typealias SubscriptionObservable = Observable<Future<GraphQLResult>>
-
 struct SourceEventStreamResult {
-    public let observable: SourceEventStreamObservable?
+    public let observable: SourceEventObservable?
     public let errors: [GraphQLError]
     
-    public init(observable: SourceEventStreamObservable? = nil, errors: [GraphQLError] = []) {
+    public init(observable: SourceEventObservable? = nil, errors: [GraphQLError] = []) {
         self.observable = observable
         self.errors = errors
     }
 }
-/// Observables MUST be declared as 'Any' due to Swift not having covariant generic support. Resolvers should handle type checks.
-typealias SourceEventStreamObservable = Observable<Any>
 
-
+// Subscription resolvers MUST return observables that are declared as 'Any' due to Swift not having covariant generic support for type
+// checking. Normal resolvers for subscription fields should handle type casting, same as resolvers for query fields.
+typealias SourceEventObservable = Observable<Any>

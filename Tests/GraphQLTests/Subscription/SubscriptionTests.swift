@@ -8,7 +8,7 @@ class SubscriptionTests : XCTestCase {
     
     // MARK: Test primary graphqlSubscribe function
     
-    /// This is not present in graphql-js.
+    /// This test is not present in graphql-js, but just tests basic functionality.
     func testGraphqlSubscribe() throws {
         let db = EmailDb()
         let schema = db.defaultSchema()
@@ -261,7 +261,7 @@ class SubscriptionTests : XCTestCase {
             let graphQLError = error as! GraphQLError
             XCTAssertEqual(
                 graphQLError.message,
-                "Subscription field resolver must return SourceEventStreamObservable. Received: 'test'"
+                "Subscription field resolver must return SourceEventObservable. Received: 'test'"
             )
         }
     }
@@ -462,6 +462,7 @@ class SubscriptionTests : XCTestCase {
         var currentResult = GraphQLResult()
         let _ = subscription.subscribe { event in
             currentResult = try! event.element!.wait()
+            print(currentResult)
         }.disposed(by: db.disposeBag)
 
         db.trigger(email: Email(
