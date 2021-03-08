@@ -28,6 +28,7 @@ extension Collection {
 
 extension Dictionary where Value : FutureType {
     func flatten(on eventLoopGroup: EventLoopGroup) -> Future<[Key: Value.Expectation]> {
+        let queue = DispatchQueue(label: "org.graphQL.elementQueue")
         var elements: [Key: Value.Expectation] = [:]
 
         guard self.count > 0 else {
@@ -39,10 +40,13 @@ extension Dictionary where Value : FutureType {
 
         for (key, value) in self {
             value.whenSuccess { expectation in
-                elements[key] = expectation
-                
-                if elements.count == self.count {
-                    promise.succeed(elements)
+                // Control access to elements to avoid thread conflicts
+                queue.async {
+                    elements[key] = expectation
+                    
+                    if elements.count == self.count {
+                        promise.succeed(elements)
+                    }
                 }
             }
             

@@ -18,7 +18,7 @@ class HelloWorldTests : XCTestCase {
     )
     
     func testHello() throws {
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         
         defer {
             XCTAssertNoThrow(try group.syncShutdownGracefully())
@@ -37,7 +37,7 @@ class HelloWorldTests : XCTestCase {
     }
 
     func testBoyhowdy() throws {
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         
         defer {
             XCTAssertNoThrow(try group.syncShutdownGracefully())
