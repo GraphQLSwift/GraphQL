@@ -32,11 +32,11 @@ class SubscriptionTests : XCTestCase {
             request: query,
             eventLoopGroup: eventLoopGroup
         ).wait()
-        
-        let observable = subscriptionResult.observable!
+        print(subscriptionResult)
+        let subscription = subscriptionResult.stream! as! ObservableEventStream<Future<GraphQLResult>>
         
         var currentResult = GraphQLResult()
-        let _ = observable.subscribe { event in
+        let _ = subscription.observable.subscribe { event in
             currentResult = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
         
@@ -123,10 +123,10 @@ class SubscriptionTests : XCTestCase {
                   }
                 }
               }
-        """)
+        """) as! ObservableEventStream<Future<GraphQLResult>>
         
         var currentResult = GraphQLResult()
-        let _ = subscription.subscribe { event in
+        let _ = subscription.observable.subscribe { event in
             currentResult = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
         
@@ -193,9 +193,9 @@ class SubscriptionTests : XCTestCase {
                 importantEmail
                 notImportantEmail
             }
-        """)
+        """) as! ObservableEventStream<Future<GraphQLResult>>
 
-        let _ = subscription.subscribe{ event in
+        let _ = subscription.observable.subscribe{ event in
             let _ = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
         db.trigger(email: Email(
@@ -261,7 +261,7 @@ class SubscriptionTests : XCTestCase {
             let graphQLError = error as! GraphQLError
             XCTAssertEqual(
                 graphQLError.message,
-                "Subscription field resolver must return SourceEventObservable. Received: 'test'"
+                "Subscription field resolver must return EventStream<Any>. Received: 'test'"
             )
         }
     }
@@ -360,10 +360,10 @@ class SubscriptionTests : XCTestCase {
                   }
                 }
               }
-        """)
+        """) as! ObservableEventStream<Future<GraphQLResult>>
         
         var currentResult = GraphQLResult()
-        let _ = subscription.subscribe { event in
+        let _ = subscription.observable.subscribe { event in
             currentResult = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
         
@@ -403,17 +403,17 @@ class SubscriptionTests : XCTestCase {
                   }
                 }
               }
-        """)
+        """) as! ObservableEventStream<Future<GraphQLResult>>
         
         // Subscription 1
         var sub1Value = GraphQLResult()
-        let _ = subscription.subscribe { event in
+        let _ = subscription.observable.subscribe { event in
             sub1Value = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
         
         // Subscription 2
         var sub2Value = GraphQLResult()
-        let _ = subscription.subscribe { event in
+        let _ = subscription.observable.subscribe { event in
             sub2Value = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
 
@@ -457,10 +457,10 @@ class SubscriptionTests : XCTestCase {
                   }
                 }
               }
-        """)
+        """) as! ObservableEventStream<Future<GraphQLResult>>
         
         var currentResult = GraphQLResult()
-        let _ = subscription.subscribe { event in
+        let _ = subscription.observable.subscribe { event in
             currentResult = try! event.element!.wait()
             print(currentResult)
         }.disposed(by: db.disposeBag)
@@ -521,10 +521,10 @@ class SubscriptionTests : XCTestCase {
                   }
                 }
               }
-        """)
+        """) as! ObservableEventStream<Future<GraphQLResult>>
         
         var currentResult = GraphQLResult()
-        let _ = subscription.subscribe { event in
+        let _ = subscription.observable.subscribe { event in
             currentResult = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
 
@@ -597,10 +597,10 @@ class SubscriptionTests : XCTestCase {
                   }
                 }
               }
-        """)
+        """) as! ObservableEventStream<Future<GraphQLResult>>
         
         var currentResult = GraphQLResult()
-        let subscriber = subscription.subscribe { event in
+        let subscriber = subscription.observable.subscribe { event in
             currentResult = try! event.element!.wait()
         }
         
@@ -671,10 +671,10 @@ class SubscriptionTests : XCTestCase {
                     }
                 }
             }
-        """)
+        """) as! ObservableEventStream<Future<GraphQLResult>>
         
         var currentResult = GraphQLResult()
-        let _ = subscription.subscribe { event in
+        let _ = subscription.observable.subscribe { event in
             currentResult = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
         
@@ -744,10 +744,10 @@ class SubscriptionTests : XCTestCase {
                   }
                 }
               }
-        """)
+        """) as! ObservableEventStream<Future<GraphQLResult>>
         
         var currentResult = GraphQLResult()
-        let _ = subscription.subscribe { event in
+        let _ = subscription.observable.subscribe { event in
             currentResult = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
         
@@ -905,7 +905,7 @@ class EmailDb {
     func subscription (
         query:String,
         variableValues: [String: Map] = [:]
-    ) throws -> SubscriptionObservable {
+    ) throws -> SubscriptionEventStream {
         return try createSubscription(schema: defaultSchema(), query: query, variableValues: variableValues)
     }
 }
@@ -937,7 +937,7 @@ private func createSubscription(
     schema: GraphQLSchema,
     query: String,
     variableValues: [String: Map] = [:]
-) throws -> SubscriptionObservable {
+) throws -> SubscriptionEventStream {
     let document = try parse(source: query)
     let result = try subscribe(
         queryStrategy: SerialFieldExecutionStrategy(),
@@ -953,8 +953,8 @@ private func createSubscription(
         operationName: nil
     ).wait()
     
-    if let observable = result.observable {
-        return observable
+    if let stream = result.stream {
+        return stream
     } else {
         throw result.errors.first! // We may have more than one...
     }

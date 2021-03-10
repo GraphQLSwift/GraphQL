@@ -52,8 +52,8 @@ func subscribe(
     )
     
     return sourceFuture.map{ sourceResult -> SubscriptionResult in
-        if let sourceObservable = sourceResult.observable {
-            let subscriptionObservable = sourceObservable.map { eventPayload -> Future<GraphQLResult> in
+        if let sourceStream = sourceResult.stream {
+            let subscriptionStream = sourceStream.transform { eventPayload -> Future<GraphQLResult> in
                 
                 // For each payload yielded from a subscription, map it over the normal
                 // GraphQL `execute` function, with `payload` as the rootValue.
@@ -75,7 +75,7 @@ func subscribe(
                     operationName: operationName
                 )
             }
-            return SubscriptionResult(observable: subscriptionObservable, errors: sourceResult.errors)
+            return SubscriptionResult(stream: subscriptionStream, errors: sourceResult.errors)
         } else {
             return SubscriptionResult(errors: sourceResult.errors)
         }
@@ -251,8 +251,8 @@ func executeSubscription(
             return SourceEventStreamResult(errors: context.errors)
         } else if let error = resolved as? GraphQLError {
             return SourceEventStreamResult(errors: [error])
-        } else if let observable = resolved as? SourceEventObservable {
-            return SourceEventStreamResult(observable: observable)
+        } else if let stream = resolved as? EventStream<Any> {
+            return SourceEventStreamResult(stream: stream)
         } else if resolved == nil {
             return SourceEventStreamResult(errors: [
                 GraphQLError(message: "Resolved subscription was nil")
@@ -261,23 +261,21 @@ func executeSubscription(
             let resolvedObj = resolved as AnyObject
             return SourceEventStreamResult(errors: [
                 GraphQLError(
-                    message: "Subscription field resolver must return SourceEventObservable. Received: '\(resolvedObj)'"
+                    message: "Subscription field resolver must return EventStream<Any>. Received: '\(resolvedObj)'"
                 )
             ])
         }
     }
 }
 
+// Subscription resolvers MUST return observables that are declared as 'Any' due to Swift not having covariant generic support for type
+// checking. Normal resolvers for subscription fields should handle type casting, same as resolvers for query fields.
 struct SourceEventStreamResult {
-    public let observable: SourceEventObservable?
+    public let stream: EventStream<Any>?
     public let errors: [GraphQLError]
     
-    public init(observable: SourceEventObservable? = nil, errors: [GraphQLError] = []) {
-        self.observable = observable
+    public init(stream: EventStream<Any>? = nil, errors: [GraphQLError] = []) {
+        self.stream = stream
         self.errors = errors
     }
 }
-
-// Subscription resolvers MUST return observables that are declared as 'Any' due to Swift not having covariant generic support for type
-// checking. Normal resolvers for subscription fields should handle type casting, same as resolvers for query fields.
-typealias SourceEventObservable = Observable<Any>
