@@ -3,9 +3,10 @@
 import RxSwift
 
 /// Abstract event stream class - Should be overridden for actual implementations
-public class EventStream<Element> {
+open class EventStream<Element> {
+    public init() { }
     /// Template method for mapping an event stream to a new generic type - MUST be overridden by implementing types.
-    func map<To>(_ closure: @escaping (Element) throws -> To) -> EventStream<To> {
+    open func map<To>(_ closure: @escaping (Element) throws -> To) -> EventStream<To> {
         fatalError("This function should be overridden by implementing classes")
     }
 }
@@ -19,7 +20,7 @@ public class ObservableEventStream<Element> : EventStream<Element> {
     init(_ observable: Observable<Element>) {
         self.observable = observable
     }
-    override func map<To>(_ closure: @escaping (Element) throws -> To) -> EventStream<To> {
+    override open func map<To>(_ closure: @escaping (Element) throws -> To) -> EventStream<To> {
         return ObservableEventStream<To>(observable.map(closure))
     }
 }
