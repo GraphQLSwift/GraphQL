@@ -1,6 +1,5 @@
 import Foundation
 import NIO
-import RxSwift
 
 public struct GraphQLResult : Equatable, Codable, CustomStringConvertible {
     public var data: Map?

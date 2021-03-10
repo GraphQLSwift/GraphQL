@@ -1,6 +1,5 @@
 import Dispatch
 import Runtime
-import RxSwift
 import NIO
 
 /**
@@ -53,7 +52,7 @@ func subscribe(
     
     return sourceFuture.map{ sourceResult -> SubscriptionResult in
         if let sourceStream = sourceResult.stream {
-            let subscriptionStream = sourceStream.transform { eventPayload -> Future<GraphQLResult> in
+            let subscriptionStream = sourceStream.map { eventPayload -> Future<GraphQLResult> in
                 
                 // For each payload yielded from a subscription, map it over the normal
                 // GraphQL `execute` function, with `payload` as the rootValue.

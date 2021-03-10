@@ -32,11 +32,17 @@ class SubscriptionTests : XCTestCase {
             request: query,
             eventLoopGroup: eventLoopGroup
         ).wait()
-        print(subscriptionResult)
-        let subscription = subscriptionResult.stream! as! ObservableEventStream<Future<GraphQLResult>>
+        guard let subscription = subscriptionResult.stream else {
+            XCTFail(subscriptionResult.errors.description)
+            return
+        }
+        guard let stream = subscription as? ObservableSubscriptionEventStream else {
+            XCTFail("stream isn't ObservableSubscriptionEventStream")
+            return
+        }
         
         var currentResult = GraphQLResult()
-        let _ = subscription.observable.subscribe { event in
+        let _ = stream.observable.subscribe { event in
             currentResult = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
         
@@ -86,7 +92,7 @@ class SubscriptionTests : XCTestCase {
                             ))
                         },
                         subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                            return eventLoopGroup.next().makeSucceededFuture(db.publisher)
+                            return eventLoopGroup.next().makeSucceededFuture(db.publisher.toEventStream())
                         }
                     ),
                     "notImportantEmail": GraphQLField(
@@ -104,7 +110,7 @@ class SubscriptionTests : XCTestCase {
                             ))
                         },
                         subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                            return eventLoopGroup.next().makeSucceededFuture(db.publisher)
+                            return eventLoopGroup.next().makeSucceededFuture(db.publisher.toEventStream())
                         }
                     )
                 ]
@@ -123,10 +129,14 @@ class SubscriptionTests : XCTestCase {
                   }
                 }
               }
-        """) as! ObservableEventStream<Future<GraphQLResult>>
+        """)
+        guard let stream = subscription as? ObservableSubscriptionEventStream else {
+            XCTFail("stream isn't ObservableSubscriptionEventStream")
+            return
+        }
         
         var currentResult = GraphQLResult()
-        let _ = subscription.observable.subscribe { event in
+        let _ = stream.observable.subscribe { event in
             currentResult = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
         
@@ -172,7 +182,7 @@ class SubscriptionTests : XCTestCase {
                         },
                         subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                             didResolveImportantEmail = true
-                            return eventLoopGroup.next().makeSucceededFuture(db.publisher)
+                            return eventLoopGroup.next().makeSucceededFuture(db.publisher.toEventStream())
                         }
                     ),
                     "notImportantEmail": GraphQLField(
@@ -182,7 +192,7 @@ class SubscriptionTests : XCTestCase {
                         },
                         subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                             didResolveNonImportantEmail = true
-                            return eventLoopGroup.next().makeSucceededFuture(db.publisher)
+                            return eventLoopGroup.next().makeSucceededFuture(db.publisher.toEventStream())
                         }
                     )
                 ]
@@ -193,9 +203,13 @@ class SubscriptionTests : XCTestCase {
                 importantEmail
                 notImportantEmail
             }
-        """) as! ObservableEventStream<Future<GraphQLResult>>
-
-        let _ = subscription.observable.subscribe{ event in
+        """)
+        guard let stream = subscription as? ObservableSubscriptionEventStream else {
+            XCTFail("stream isn't ObservableSubscriptionEventStream")
+            return
+        }
+        
+        let _ = stream.observable.subscribe{ event in
             let _ = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
         db.trigger(email: Email(
@@ -360,10 +374,14 @@ class SubscriptionTests : XCTestCase {
                   }
                 }
               }
-        """) as! ObservableEventStream<Future<GraphQLResult>>
+        """)
+        guard let stream = subscription as? ObservableSubscriptionEventStream else {
+            XCTFail("stream isn't ObservableSubscriptionEventStream")
+            return
+        }
         
         var currentResult = GraphQLResult()
-        let _ = subscription.observable.subscribe { event in
+        let _ = stream.observable.subscribe { event in
             currentResult = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
         
@@ -403,17 +421,21 @@ class SubscriptionTests : XCTestCase {
                   }
                 }
               }
-        """) as! ObservableEventStream<Future<GraphQLResult>>
+        """)
+        guard let stream = subscription as? ObservableSubscriptionEventStream else {
+            XCTFail("stream isn't ObservableSubscriptionEventStream")
+            return
+        }
         
         // Subscription 1
         var sub1Value = GraphQLResult()
-        let _ = subscription.observable.subscribe { event in
+        let _ = stream.observable.subscribe { event in
             sub1Value = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
         
         // Subscription 2
         var sub2Value = GraphQLResult()
-        let _ = subscription.observable.subscribe { event in
+        let _ = stream.observable.subscribe { event in
             sub2Value = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
 
@@ -457,10 +479,14 @@ class SubscriptionTests : XCTestCase {
                   }
                 }
               }
-        """) as! ObservableEventStream<Future<GraphQLResult>>
+        """)
+        guard let stream = subscription as? ObservableSubscriptionEventStream else {
+            XCTFail("stream isn't ObservableSubscriptionEventStream")
+            return
+        }
         
         var currentResult = GraphQLResult()
-        let _ = subscription.observable.subscribe { event in
+        let _ = stream.observable.subscribe { event in
             currentResult = try! event.element!.wait()
             print(currentResult)
         }.disposed(by: db.disposeBag)
@@ -521,10 +547,14 @@ class SubscriptionTests : XCTestCase {
                   }
                 }
               }
-        """) as! ObservableEventStream<Future<GraphQLResult>>
+        """)
+        guard let stream = subscription as? ObservableSubscriptionEventStream else {
+            XCTFail("stream isn't ObservableSubscriptionEventStream")
+            return
+        }
         
         var currentResult = GraphQLResult()
-        let _ = subscription.observable.subscribe { event in
+        let _ = stream.observable.subscribe { event in
             currentResult = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
 
@@ -597,10 +627,14 @@ class SubscriptionTests : XCTestCase {
                   }
                 }
               }
-        """) as! ObservableEventStream<Future<GraphQLResult>>
+        """)
+        guard let stream = subscription as? ObservableSubscriptionEventStream else {
+            XCTFail("stream isn't ObservableSubscriptionEventStream")
+            return
+        }
         
         var currentResult = GraphQLResult()
-        let subscriber = subscription.observable.subscribe { event in
+        let subscriber = stream.observable.subscribe { event in
             currentResult = try! event.element!.wait()
         }
         
@@ -659,7 +693,7 @@ class SubscriptionTests : XCTestCase {
                 ))
             },
             subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                return eventLoopGroup.next().makeSucceededFuture(db.publisher)
+                return eventLoopGroup.next().makeSucceededFuture(db.publisher.toEventStream())
             }
         )
 
@@ -671,10 +705,14 @@ class SubscriptionTests : XCTestCase {
                     }
                 }
             }
-        """) as! ObservableEventStream<Future<GraphQLResult>>
+        """)
+        guard let stream = subscription as? ObservableSubscriptionEventStream else {
+            XCTFail("stream isn't ObservableSubscriptionEventStream")
+            return
+        }
         
         var currentResult = GraphQLResult()
-        let _ = subscription.observable.subscribe { event in
+        let _ = stream.observable.subscribe { event in
             currentResult = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
         
@@ -744,10 +782,14 @@ class SubscriptionTests : XCTestCase {
                   }
                 }
               }
-        """) as! ObservableEventStream<Future<GraphQLResult>>
+        """)
+        guard let stream = subscription as? ObservableSubscriptionEventStream else {
+            XCTFail("stream isn't ObservableSubscriptionEventStream")
+            return
+        }
         
         var currentResult = GraphQLResult()
-        let _ = subscription.observable.subscribe { event in
+        let _ = stream.observable.subscribe { event in
             currentResult = try! event.element!.wait()
         }.disposed(by: db.disposeBag)
         
@@ -896,7 +938,7 @@ class EmailDb {
                         return true
                     }
                 }
-                return eventLoopGroup.next().makeSucceededFuture(filtered)
+                return eventLoopGroup.next().makeSucceededFuture(filtered.toEventStream())
             }
         )
     }
