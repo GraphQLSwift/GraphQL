@@ -395,7 +395,8 @@ func defineFieldMap(name: String, fields: GraphQLFieldMap) throws -> GraphQLFiel
             description: config.description,
             deprecationReason: config.deprecationReason,
             args: try defineArgumentMap(args: config.args),
-            resolve: config.resolve
+            resolve: config.resolve,
+            subscribe: config.subscribe
         )
 
         fieldMap[name] = field
@@ -516,6 +517,7 @@ public struct GraphQLField {
     public let deprecationReason: String?
     public let description: String?
     public let resolve: GraphQLFieldResolve?
+    public let subscribe: GraphQLFieldResolve?
     
     public init(
         type: GraphQLOutputType,
@@ -528,6 +530,7 @@ public struct GraphQLField {
         self.deprecationReason = deprecationReason
         self.description = description
         self.resolve = nil
+        self.subscribe = nil
     }
     
     public init(
@@ -535,13 +538,15 @@ public struct GraphQLField {
         description: String? = nil,
         deprecationReason: String? = nil,
         args: GraphQLArgumentConfigMap = [:],
-        resolve: GraphQLFieldResolve?
+        resolve: GraphQLFieldResolve?,
+        subscribe: GraphQLFieldResolve? = nil
     ) {
         self.type = type
         self.args = args
         self.deprecationReason = deprecationReason
         self.description = description
         self.resolve = resolve
+        self.subscribe = subscribe
     }
     
     public init(
@@ -560,6 +565,7 @@ public struct GraphQLField {
             let result = try resolve(source, args, context, info)
             return eventLoopGroup.next().makeSucceededFuture(result)
         }
+        self.subscribe = nil
     }
 }
 
@@ -571,6 +577,7 @@ public final class GraphQLFieldDefinition {
     public internal(set) var type: GraphQLOutputType
     public let args: [GraphQLArgumentDefinition]
     public let resolve: GraphQLFieldResolve?
+    public let subscribe: GraphQLFieldResolve?
     public let deprecationReason: String?
     public let isDeprecated: Bool
 
@@ -580,13 +587,15 @@ public final class GraphQLFieldDefinition {
         description: String? = nil,
         deprecationReason: String? = nil,
         args: [GraphQLArgumentDefinition] = [],
-        resolve: GraphQLFieldResolve?
+        resolve: GraphQLFieldResolve?,
+        subscribe: GraphQLFieldResolve? = nil
     ) {
         self.name = name
         self.description = description
         self.type = type
         self.args = args
         self.resolve = resolve
+        self.subscribe = subscribe
         self.deprecationReason = deprecationReason
         self.isDeprecated = deprecationReason != nil
     }

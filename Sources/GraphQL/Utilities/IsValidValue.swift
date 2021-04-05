@@ -75,9 +75,12 @@ func isValidValue(value: Map, type: GraphQLInputType) throws -> [String] {
     
     // Scalar/Enum input checks to ensure the type can parse the value to
     // a non-null value.
-    let parseResult = try type.parseValue(value: value)
-    
-    if parseResult == .null {
+    do {
+        let parseResult = try type.parseValue(value: value)
+        if parseResult == .null {
+            return ["Expected type \"\(type.name)\", found \(value)."]
+        }
+    } catch {
         return ["Expected type \"\(type.name)\", found \(value)."]
     }
     

@@ -15,7 +15,7 @@ let package = Package(
             name: "GraphQL", 
             dependencies: [
                 .product(name: "NIO", package: "swift-nio"),
-                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "Runtime", package: "Runtime")
             ]
         ),
         .testTarget(name: "GraphQLTests", dependencies: ["GraphQL"]),
