@@ -22,7 +22,7 @@ Most of this repo mirrors the structure of the canonical GraphQL implementation 
 
 [/Sources/GraphQL/Language/AST.swift](https://github.com/GraphQLSwift/GraphQL/blob/master/Sources/GraphQL/Language/AST.swift)
 
-### Javascript
+### Javascript/Typescript
 
 [/src/language/ast.js](https://github.com/graphql/graphql-js/blob/master/src/language/ast.js)
 
