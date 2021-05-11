@@ -2058,7 +2058,7 @@ extension _MapDecoder {
         }
 
         // TODO: Add a flag to coerce non-boolean numbers into Bools?
-        guard number._cfTypeID == CFBooleanGetTypeID() else {
+        guard CFGetTypeID(number) == CFBooleanGetTypeID() else {
             throw DecodingError._typeMismatch(at: self.codingPath, expectation: type, reality: value)
         }
 
