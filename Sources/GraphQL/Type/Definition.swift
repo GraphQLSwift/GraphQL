@@ -77,8 +77,9 @@ protocol GraphQLTypeReferenceContainer : GraphQLNamedType {
     func replaceTypeReferences(typeMap: TypeMap) throws
 }
 
-extension GraphQLObjectType    : GraphQLTypeReferenceContainer {}
-extension GraphQLInterfaceType : GraphQLTypeReferenceContainer {}
+extension GraphQLObjectType      : GraphQLTypeReferenceContainer {}
+extension GraphQLInterfaceType   : GraphQLTypeReferenceContainer {}
+extension GraphQLInputObjectType : GraphQLTypeReferenceContainer {}
 
 /**
  * These types may describe the parent context of a selection set.
@@ -1171,13 +1172,13 @@ extension GraphQLEnumValueDefinition : KeySubscriptable {
 public final class GraphQLInputObjectType {
     public let name: String
     public let description: String?
-    public let fields: InputObjectFieldMap
+    public let fields: InputObjectFieldDefinitionMap
     public let kind: TypeKind = .inputObject
 
     public init(
         name: String,
         description: String? = nil,
-        fields: InputObjectConfigFieldMap
+        fields: InputObjectFieldMap = [:]
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -1186,6 +1187,12 @@ public final class GraphQLInputObjectType {
             name: name,
             fields: fields
         )
+    }
+    
+    func replaceTypeReferences(typeMap: TypeMap) throws {
+        for field in fields {
+            try field.value.replaceTypeReferences(typeMap: typeMap)
+        }
     }
 }
 
@@ -1233,32 +1240,32 @@ extension GraphQLInputObjectType : Hashable {
 
 func defineInputObjectFieldMap(
     name: String,
-    fields: InputObjectConfigFieldMap
-) throws -> InputObjectFieldMap {
+    fields: InputObjectFieldMap
+) throws -> InputObjectFieldDefinitionMap {
     guard !fields.isEmpty else {
         throw GraphQLError(
             message:
-            "\(name) fields must be an object with field names as keys or a " +
-            "function which returns such an object."
+            "\(name) fields must be an object with field names as " +
+            "keys or a function which returns such an object."
         )
     }
 
-    var resultFieldMap = InputObjectFieldMap()
+    var definitionMap = InputObjectFieldDefinitionMap()
 
-    for (fieldName, field) in fields {
-        try assertValid(name: fieldName)
+    for (name, field) in fields {
+        try assertValid(name: name)
 
-        let newField = InputObjectFieldDefinition(
-            name: fieldName,
-            description: field.description,
+        let definition = InputObjectFieldDefinition(
+            name: name,
             type: field.type,
+            description: field.description,
             defaultValue: field.defaultValue
         )
 
-        resultFieldMap[fieldName] = newField
+        definitionMap[name] = definition
     }
 
-    return resultFieldMap
+    return definitionMap
 }
 
 public struct InputObjectField {
@@ -1273,13 +1280,37 @@ public struct InputObjectField {
     }
 }
 
-public typealias InputObjectConfigFieldMap = [String: InputObjectField]
+public typealias InputObjectFieldMap = [String: InputObjectField]
 
-public struct InputObjectFieldDefinition {
+public final class InputObjectFieldDefinition {
     public let name: String
+    public internal(set) var type: GraphQLInputType
     public let description: String?
-    public let type: GraphQLInputType
     public let defaultValue: String?
+    
+    init(
+        name: String,
+        type: GraphQLInputType,
+        description: String? = nil,
+        defaultValue: String? = nil
+    ) {
+        self.name = name
+        self.type = type
+        self.description = description
+        self.defaultValue = defaultValue
+    }
+    
+    func replaceTypeReferences(typeMap: TypeMap) throws {
+        let resolvedType = try resolveTypeReference(type: type, typeMap: typeMap)
+
+        guard let inputType = resolvedType as? GraphQLInputType else {
+            throw GraphQLError(
+                message: "Resolved type \"\(resolvedType)\" is not a valid input type."
+            )
+        }
+
+        self.type = inputType
+    }
 }
 
 extension InputObjectFieldDefinition : Encodable {
@@ -1316,7 +1347,7 @@ extension InputObjectFieldDefinition : KeySubscriptable {
     }
 }
 
-public typealias InputObjectFieldMap = [String: InputObjectFieldDefinition]
+public typealias InputObjectFieldDefinitionMap = [String: InputObjectFieldDefinition]
 
 /**
  * List Modifier
@@ -1492,10 +1523,10 @@ extension GraphQLNonNull : Hashable {
 }
 
 /**
- * A special type to allow object/interface types to reference itself. It's replaced with the real type
+ * A special type to allow object/interface/input types to reference itself. It's replaced with the real type
  * object when the schema is built.
  */
-public final class GraphQLTypeReference : GraphQLType, GraphQLOutputType, GraphQLNullableType, GraphQLNamedType {
+public final class GraphQLTypeReference : GraphQLType, GraphQLOutputType, GraphQLInputType, GraphQLNullableType, GraphQLNamedType {
     public let name: String
     public let kind: TypeKind = .typeReference
 
