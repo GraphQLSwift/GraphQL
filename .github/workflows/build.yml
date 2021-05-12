@@ -7,6 +7,8 @@ on:
   pull_request:
     branches: [ master ]
     paths-ignore: [ README.md ]
+  workflow_dispatch:
+  
 jobs:
   macos:
     name: Build and test on macos-latest
@@ -41,4 +43,4 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Test
-      run: swift test --enable-test-discovery --enable-code-coverage --sanitize=thread
+      run: swift test --enable-test-discovery --enable-code-coverage
