@@ -1,5 +1,4 @@
 import Dispatch
-import Runtime
 import NIO
 
 /**
@@ -1175,33 +1174,11 @@ func defaultResolve(
         return eventLoopGroup.next().makeSucceededFuture(value)
     }
 
-    guard let encodable = source as? Encodable else {
+    let mirror = Mirror(reflecting: source)
+    guard let value = mirror.getValue(named: info.fieldName) else {
         return eventLoopGroup.next().makeSucceededFuture(nil)
     }
-    
-    guard
-        let typeInfo = try? typeInfo(of: type(of: encodable)),
-        let property = try? typeInfo.property(named: info.fieldName)
-    else {
-        return eventLoopGroup.next().makeSucceededFuture(nil)
-    }
-    
-    guard let value = try? property.get(from: encodable) else {
-        return eventLoopGroup.next().makeSucceededFuture(nil)
-    }
-    
     return eventLoopGroup.next().makeSucceededFuture(value)
-    
-//    guard let any = try? AnyEncoder().encode(AnyEncodable(encodable)) else {
-//        return eventLoopGroup.next().newSucceededFuture(result: nil)
-//    }
-//
-//    guard let dictionary = any as? [String: Any] else {
-//        return eventLoopGroup.next().newSucceededFuture(result: nil)
-//    }
-//
-//    let value = dictionary[info.fieldName]
-//    return eventLoopGroup.next().newSucceededFuture(result: value)
 }
 
 /**
