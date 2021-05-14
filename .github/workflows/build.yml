@@ -43,4 +43,4 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Test
-      run: swift test --enable-test-discovery --enable-code-coverage
+      run: swift test --enable-test-discovery --sanitize=thread
