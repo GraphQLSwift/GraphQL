@@ -28,34 +28,14 @@ extension Collection {
 
 extension Dictionary where Value : FutureType {
     func flatten(on eventLoopGroup: EventLoopGroup) -> Future<[Key: Value.Expectation]> {
-        let queue = DispatchQueue(label: "org.graphQL.elementQueue")
-        var elements: [Key: Value.Expectation] = [:]
-
-        guard self.count > 0 else {
-            return eventLoopGroup.next().makeSucceededFuture(elements)
+        // create array of futures with (key,value) tuple
+        let futures: [Future<(Key, Value.Expectation)>] = self.map { element in
+            element.value.map(file: #file, line: #line) { (key: element.key, value: $0) }
         }
-
-        let promise: EventLoopPromise<[Key: Value.Expectation]> = eventLoopGroup.next().makePromise()
-        elements.reserveCapacity(self.count)
-
-        for (key, value) in self {
-            value.whenSuccess { expectation in
-                // Control access to elements to avoid thread conflicts
-                queue.async {
-                    elements[key] = expectation
-                    
-                    if elements.count == self.count {
-                        promise.succeed(elements)
-                    }
-                }
-            }
-            
-            value.whenFailure { error in
-                promise.fail(error)
-            }
+        // when all futures have succeeded convert tuple array back to dictionary
+        return EventLoopFuture.whenAllSucceed(futures, on: eventLoopGroup.next()).map {
+            .init(uniqueKeysWithValues: $0)
         }
-
-        return promise.futureResult
     }
 }
 extension Future {
@@ -86,6 +66,7 @@ public protocol FutureType {
     associatedtype Expectation
     func whenSuccess(_ callback: @escaping (Expectation) -> Void)
     func whenFailure(_ callback: @escaping (Error) -> Void)
+    func map<NewValue>(file: StaticString, line: UInt, _ callback: @escaping (Expectation) -> (NewValue)) -> EventLoopFuture<NewValue>
 }
 
 extension Future : FutureType {
