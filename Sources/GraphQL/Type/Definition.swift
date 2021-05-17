@@ -693,6 +693,10 @@ public struct GraphQLArgumentDefinition {
     }
 }
 
+public func isRequiredArgument(_ arg: GraphQLArgumentDefinition) -> Bool {
+    return arg.type is GraphQLNonNull && arg.defaultValue == nil
+}
+
 extension GraphQLArgumentDefinition : Encodable {
     private enum CodingKeys : String, CodingKey {
         case name
