@@ -103,19 +103,120 @@ class ParserTests : XCTestCase {
             ))
         }
 
-        XCTAssertThrowsError(try parse(source: "{ fieldWithNullableStringInput(input: null) }")) { error in
-            guard let error = error as? GraphQLError else {
-                return XCTFail()
-            }
-
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:39) Unexpected Name \"null\""
-            ))
-        }
     }
 
     func testVariableInlineValues() throws {
         _ = try parse(source: "{ field(complex: { a: { b: [ $var ] } }) }")
+    }
+
+    func testFieldWithArguments() throws {
+        let query = """
+        {
+          stringArgField(stringArg: "Hello World")
+          intArgField(intArg: 1)
+          floatArgField(floatArg: 3.14)
+          falseArgField(boolArg: false)
+          trueArgField(boolArg: true)
+          nullArgField(value: null)
+          enumArgField(enumArg: VALUE)
+          multipleArgs(arg1: 1, arg2: false, arg3: THIRD)
+        }
+        """
+
+        let expected = Document(
+            definitions: [
+                OperationDefinition(
+                    operation: .query,
+                    selectionSet: SelectionSet(
+                        selections: [
+                            Field(
+                                name: Name(value: "stringArgField"),
+                                arguments: [
+                                    Argument(
+                                        name: Name(value: "stringArg"),
+                                        value: StringValue(value: "Hello World", block: false)
+                                    )
+                                ]
+                            ),
+                            Field(
+                                name: Name(value: "intArgField"),
+                                arguments: [
+                                    Argument(
+                                        name: Name(value: "intArg"),
+                                        value: IntValue(value: "1")
+                                    )
+                                ]
+                            ),
+                            Field(
+                                name: Name(value: "floatArgField"),
+                                arguments: [
+                                    Argument(
+                                        name: Name(value: "floatArg"),
+                                        value: FloatValue(value: "3.14")
+                                    )
+                                ]
+                            ),
+                            Field(
+                                name: Name(value: "falseArgField"),
+                                arguments: [
+                                    Argument(
+                                        name: Name(value: "boolArg"),
+                                        value: BooleanValue(value: false)
+                                    )
+                                ]
+                            ),
+                            Field(
+                                name: Name(value: "trueArgField"),
+                                arguments: [
+                                    Argument(
+                                        name: Name(value: "boolArg"),
+                                        value: BooleanValue(value: true)
+                                    )
+                                ]
+                            ),
+                            Field(
+                                name: Name(value: "nullArgField"),
+                                arguments: [
+                                    Argument(
+                                        name: Name(value: "value"),
+                                        value: NullValue()
+                                    )
+                                ]
+                            ),
+                            Field(
+                                name: Name(value: "enumArgField"),
+                                arguments: [
+                                    Argument(
+                                        name: Name(value: "enumArg"),
+                                        value: EnumValue(value: "VALUE")
+                                    )
+                                ]
+                            ),
+                            Field(
+                                name: Name(value: "multipleArgs"),
+                                arguments: [
+                                    Argument(
+                                        name: Name(value: "arg1"),
+                                        value: IntValue(value: "1")
+                                    ),
+                                    Argument(
+                                        name: Name(value: "arg2"),
+                                        value: BooleanValue(value: false)
+                                    ),
+                                    Argument(
+                                        name: Name(value: "arg3"),
+                                        value: EnumValue(value: "THIRD")
+                                    ),
+                                ]
+                            ),
+                        ]
+                    )
+                )
+            ]
+        )
+
+        let document = try parse(source: query)
+        XCTAssert(document == expected)
     }
 
 //      it('parses multi-byte characters', async () => {
@@ -324,5 +425,35 @@ class ParserTests : XCTestCase {
         )
 
         XCTAssert(try parseType(source: source) == expected)
+    }
+
+    func testParseDirective() throws {
+        let source = #"""
+        directive @restricted(
+          """The reason for this restriction"""
+          reason: String = null
+        ) on FIELD_DEFINITION
+        """#
+
+        let expected = Document(definitions: [
+            DirectiveDefinition(
+                description: nil,
+                name: Name(value: "restricted"),
+                arguments: [
+                    InputValueDefinition(
+                        description: StringValue(value: "The reason for this restriction", block: true),
+                        name: Name(value: "reason"),
+                        type: NamedType(name: Name(value: "String")),
+                        defaultValue: NullValue()
+                    )
+                ],
+                locations: [
+                    Name(value: "FIELD_DEFINITION")
+                ]
+            )
+        ])
+
+        let document = try parse(source: source)
+        XCTAssert(document == expected)
     }
 }

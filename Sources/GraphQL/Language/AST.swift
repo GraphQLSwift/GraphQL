@@ -728,6 +728,7 @@ extension IntValue     : Value {}
 extension FloatValue   : Value {}
 extension StringValue  : Value {}
 extension BooleanValue : Value {}
+extension NullValue    : Value {}
 extension EnumValue    : Value {}
 extension ListValue    : Value {}
 extension ObjectValue  : Value {}
@@ -752,6 +753,10 @@ public func == (lhs: Value, rhs: Value) -> Bool {
         }
     case let l as BooleanValue:
         if let r = rhs as? BooleanValue {
+            return l == r
+        }
+    case let l as NullValue:
+        if let r = rhs as? NullValue {
             return l == r
         }
     case let l as EnumValue:
@@ -840,6 +845,21 @@ public final class BooleanValue {
 extension BooleanValue : Equatable {
     public static func == (lhs: BooleanValue, rhs: BooleanValue) -> Bool {
         return lhs.value == rhs.value
+    }
+}
+
+public final class NullValue {
+    public let kind: Kind = .nullValue
+    public let loc: Location?
+
+    init(loc: Location? = nil) {
+        self.loc = loc
+    }
+}
+
+extension NullValue : Equatable {
+    public static func == (lhs: NullValue, rhs: NullValue) -> Bool {
+        return true
     }
 }
 
