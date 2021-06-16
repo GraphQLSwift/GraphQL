@@ -1,3 +1,5 @@
+import OrderedCollections
+
 /**
  * Produces a Map value given a GraphQL Value AST.
  *
@@ -64,7 +66,7 @@ func valueFromAST(valueAST: Value?, type: GraphQLInputType, variables: [String: 
 
         let fieldASTs = objectValue.fields.keyMap({ $0.name.value })
 
-        return try .dictionary(fields.keys.reduce([:] as [String: Map]) { obj, fieldName in
+        return try .dictionary(fields.keys.reduce([:] as OrderedDictionary<String, Map>) { obj, fieldName in
             var obj = obj
             let field = fields[fieldName]
             let fieldAST = fieldASTs[fieldName]

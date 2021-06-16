@@ -1,14 +1,16 @@
 import CoreFoundation
 import Foundation
+import OrderedCollections
 
-/// A marker protocol used to determine whether a value is a `String`-keyed `Dictionary`
+
+/// A marker protocol used to determine whether a value is a `String`-keyed `OrderedDictionary`
 /// containing `Encodable` values (in which case it should be exempt from key conversion strategies).
 ///
 fileprivate protocol _MapStringDictionaryEncodableMarker { }
 
-extension Dictionary : _MapStringDictionaryEncodableMarker where Key == String, Value: Encodable { }
+extension OrderedDictionary : _MapStringDictionaryEncodableMarker where Key == String, Value: Encodable { }
 
-/// A marker protocol used to determine whether a value is a `String`-keyed `Dictionary`
+/// A marker protocol used to determine whether a value is a `String`-keyed `OrderedDictionary`
 /// containing `Decodable` values (in which case it should be exempt from key conversion strategies).
 ///
 /// The marker protocol also provides access to the type of the `Decodable` values,
@@ -18,7 +20,7 @@ fileprivate protocol _MapStringDictionaryDecodableMarker {
     static var elementType: Decodable.Type { get }
 }
 
-extension Dictionary : _MapStringDictionaryDecodableMarker where Key == String, Value: Decodable {
+extension OrderedDictionary : _MapStringDictionaryDecodableMarker where Key == String, Value: Decodable {
     static var elementType: Decodable.Type { return Value.self }
 }
 
@@ -798,7 +800,7 @@ extension _MapEncoder {
         }
     }
 
-    fileprivate func box(_ dict: [String : Encodable]) throws -> NSObject? {
+    fileprivate func box(_ dict: OrderedDictionary<String, Encodable>) throws -> NSObject? {
         let depth = self.storage.count
         let result = self.storage.pushKeyedContainer()
         do {
@@ -845,7 +847,7 @@ extension _MapEncoder {
             // MapSerialization can consume NSDecimalNumber values.
             return NSDecimalNumber(decimal: value as! Decimal)
         } else if value is _MapStringDictionaryEncodableMarker {
-            return try box((value as Any) as! [String : Encodable])
+            return try box((value as Any) as! OrderedDictionary<String, Encodable>)
         }
         
         #else
@@ -862,7 +864,7 @@ extension _MapEncoder {
             // MapSerialization can consume NSDecimalNumber values.
             return NSDecimalNumber(decimal: value as! Decimal)
         } else if value is _MapStringDictionaryEncodableMarker {
-            return try box((value as Any) as! [String : Encodable])
+            return try box((value as Any) as! OrderedDictionary<String, Encodable>)
         }
         #endif
         
@@ -2405,11 +2407,11 @@ extension _MapDecoder {
             return Decimal(doubleValue)
         }
     }
-
+    
     fileprivate func unbox<T>(_ value: Any, as type: _MapStringDictionaryDecodableMarker.Type) throws -> T? {
         guard !(value is NSNull) else { return nil }
 
-        var result = [String : Any]()
+        var result: OrderedDictionary<String, Any> = [:]
         guard let dict = value as? NSDictionary else {
             throw DecodingError._typeMismatch(at: self.codingPath, expectation: type, reality: value)
         }
