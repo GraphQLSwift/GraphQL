@@ -16,7 +16,7 @@ let specifiedRules: [(ValidationContext) -> Visitor] = [
 //    NoFragmentCycles,
 //    UniqueVariableNames,
 //    NoUndefinedVariables,
-    NoUnusedVariablesRule,
+//    NoUnusedVariablesRule,
 //    KnownDirectives,
     KnownArgumentNamesRule,
 //    UniqueArgumentNames,
