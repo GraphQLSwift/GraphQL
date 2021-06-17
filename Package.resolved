@@ -2,6 +2,15 @@
   "object": {
     "pins": [
       {
+        "package": "swift-collections",
+        "repositoryURL": "https://github.com/apple/swift-collections",
+        "state": {
+          "branch": null,
+          "revision": "d45e63421d3dff834949ac69d3c37691e994bd69",
+          "version": "0.0.3"
+        }
+      },
+      {
         "package": "swift-nio",
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {

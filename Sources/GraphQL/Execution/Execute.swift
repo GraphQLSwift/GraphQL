@@ -1,5 +1,6 @@
 import Dispatch
 import NIO
+import OrderedCollections
 
 /**
  * Terminology
@@ -97,8 +98,8 @@ public protocol FieldExecutionStrategy {
         parentType: GraphQLObjectType,
         sourceValue: Any,
         path: IndexPath,
-        fields: [String: [Field]]
-    ) throws -> Future<[String: Any]>
+        fields: OrderedDictionary<String, [Field]>
+    ) throws -> Future<OrderedDictionary<String, Any>>
 }
 
 public protocol MutationFieldExecutionStrategy: FieldExecutionStrategy {}
@@ -117,9 +118,9 @@ public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy, Mutatio
         parentType: GraphQLObjectType,
         sourceValue: Any,
         path: IndexPath,
-        fields: [String: [Field]]
-    ) throws -> Future<[String: Any]> {
-        var results = [String: Future<Any>]()
+        fields: OrderedDictionary<String, [Field]>
+    ) throws -> Future<OrderedDictionary<String, Any>> {
+        var results = OrderedDictionary<String, Future<Any>>()
 
         try fields.forEach { field in
             let fieldASTs = field.value
@@ -169,15 +170,16 @@ public struct ConcurrentDispatchFieldExecutionStrategy: QueryFieldExecutionStrat
         parentType: GraphQLObjectType,
         sourceValue: Any,
         path: IndexPath,
-        fields: [String: [Field]]
-    ) throws -> Future<[String: Any]> {
+        fields: OrderedDictionary<String, [Field]>
+    ) throws -> Future<OrderedDictionary<String, Any>> {
         let resultsQueue = DispatchQueue(
             label: "\(dispatchQueue.label) results",
             qos: dispatchQueue.qos
         )
         
         let group = DispatchGroup()
-        var results: [String: Future<Any>] = [:]
+        // preserve field order by assigning to null and filtering later
+        var results: OrderedDictionary<String, Future<Any>?> = fields.mapValues { _ -> Future<Any>? in return nil }
         var err: Error? = nil
 
         fields.forEach { field in
@@ -213,7 +215,7 @@ public struct ConcurrentDispatchFieldExecutionStrategy: QueryFieldExecutionStrat
             throw error
         }
         
-        return results.flatten(on: exeContext.eventLoopGroup)
+        return results.compactMapValues({ $0 }).flatten(on: exeContext.eventLoopGroup)
     }
 
 }
@@ -323,7 +325,6 @@ func execute(
 //                errors: executeErrors,
 //                result: result
 //            )
-
             return result
         }
     } catch let error as GraphQLError {
@@ -417,9 +418,9 @@ func executeOperation(
     exeContext: ExecutionContext,
     operation: OperationDefinition,
     rootValue: Any
-) throws -> Future<[String: Any]> {
+) throws -> Future<OrderedDictionary<String, Any>> {
     let type = try getOperationRootType(schema: exeContext.schema, operation: operation)
-    var inputFields: [String : [Field]] = [:]
+    var inputFields: OrderedDictionary<String, [Field]> = [:]
     var visitedFragmentNames: [String : Bool] = [:]
 
     let fields = try collectFields(
@@ -494,9 +495,9 @@ func collectFields(
     exeContext: ExecutionContext,
     runtimeType: GraphQLObjectType,
     selectionSet: SelectionSet,
-    fields: inout [String: [Field]],
+    fields: inout OrderedDictionary<String, [Field]>,
     visitedFragmentNames: inout [String: Bool]
-) throws -> [String: [Field]] {
+) throws -> OrderedDictionary<String, [Field]> {
     var visitedFragmentNames = visitedFragmentNames
 
     for selection in selectionSet.selections {
@@ -1109,7 +1110,7 @@ func completeObjectValue(
     }
 
     // Collect sub-fields to execute to complete this value.
-    var subFieldASTs: [String: [Field]] = [:]
+    var subFieldASTs: OrderedDictionary<String, [Field]> = [:]
     var visitedFragmentNames: [String: Bool] = [:]
 
     for fieldAST in fieldASTs {

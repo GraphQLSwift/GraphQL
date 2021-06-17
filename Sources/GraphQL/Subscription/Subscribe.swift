@@ -1,4 +1,5 @@
 import NIO
+import OrderedCollections
 
 /**
  * Implements the "Subscribe" algorithm described in the GraphQL specification.
@@ -168,7 +169,7 @@ func executeSubscription(
     
     // Get the first node
     let type = try getOperationRootType(schema: context.schema, operation: context.operation)
-    var inputFields: [String:[Field]] = [:]
+    var inputFields: OrderedDictionary<String, [Field]> = [:]
     var visitedFragmentNames: [String:Bool] = [:]
     let fields = try collectFields(
         exeContext: context,

@@ -661,4 +661,52 @@ class StarWarsQueryTests : XCTestCase {
         let result = try graphql(schema: schema, request: query, eventLoopGroup: eventLoopGroup).wait()
         XCTAssertEqual(result, expected)
     }
+    
+    func testFieldOrderQuery() throws {
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+        
+        defer {
+            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
+        }
+        
+        XCTAssertEqual(try graphql(
+            schema: starWarsSchema,
+            request: """
+                query HeroNameQuery {
+                    hero {
+                        id
+                        name
+                    }
+                }
+                """,
+            eventLoopGroup: eventLoopGroup
+        ).wait(), GraphQLResult(
+            data: [
+                "hero": [
+                    "id": "2001",
+                    "name": "R2-D2"
+                ],
+            ]
+        ))
+        
+        XCTAssertNotEqual(try graphql(
+            schema: starWarsSchema,
+            request: """
+                query HeroNameQuery {
+                    hero {
+                        id
+                        name
+                    }
+                }
+                """,
+            eventLoopGroup: eventLoopGroup
+        ).wait(), GraphQLResult(
+            data: [
+                "hero": [
+                    "name": "R2-D2",
+                    "id": "2001"
+                ],
+            ]
+        ))
+    }
 }
