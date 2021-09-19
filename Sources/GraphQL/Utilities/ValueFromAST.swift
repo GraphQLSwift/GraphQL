@@ -70,6 +70,11 @@ func valueFromAST(valueAST: Value?, type: GraphQLInputType, variables: [String: 
             var obj = obj
             let field = fields[fieldName]
             let fieldAST = fieldASTs[fieldName]
+            guard fieldAST != nil else {
+                obj[fieldName] = .undefined
+                return obj
+            }
+            
             var fieldValue = try valueFromAST(
                 valueAST: fieldAST?.value,
                 type: field!.type,

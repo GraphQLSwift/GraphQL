@@ -34,6 +34,8 @@ public struct MapSerialization {
     
     static func object(with map: Map) throws -> NSObject {
         switch map {
+        case .undefined:
+            fatalError("undefined values should have been excluded from serialization")
         case .null:
             return NSNull()
         case let .bool(value):
@@ -48,7 +50,9 @@ public struct MapSerialization {
             // Coerce to an unordered dictionary
             var unorderedDictionary: [String: NSObject] = [:]
             for (key, value) in dictionary {
-                try unorderedDictionary[key] = object(with: value)
+                if !value.isUndefined {
+                    try unorderedDictionary[key] = object(with: value)
+                }
             }
             return unorderedDictionary as NSDictionary
         }
