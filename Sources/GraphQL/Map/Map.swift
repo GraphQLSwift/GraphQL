@@ -915,12 +915,12 @@ extension Map {
             if debug {
                 indentLevel += 1
             }
+            
+            let filtered = dictionary.filter({ item in
+                !item.value.isUndefined
+            })
 
-            for (key, value) in dictionary.sorted(by: {$0.0 < $1.0}) {
-                guard !value.isUndefined else {
-                    continue // Do not serialize undefined values
-                }
-                
+            for (key, value) in filtered.sorted(by: {$0.0 < $1.0}) {
                 if debug {
                     string += "\n"
                     string += indent()
@@ -929,7 +929,7 @@ extension Map {
                     string += escape(key) + ":" + serialize(map: value)
                 }
 
-                if index != dictionary.count - 1 {
+                if index != filtered.count - 1 {
                     if debug {
                         string += ", "
                     } else {

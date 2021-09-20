@@ -35,16 +35,20 @@ func getArgumentValues(argDefs: [GraphQLArgumentDefinition], argASTs: [Argument]
     return try argDefs.reduce([:]) { result, argDef in
         var result = result
         let name = argDef.name
-        let valueAST = argASTMap[name]?.value
+        let argAST = argASTMap[name]
+        
+        if let argAST = argAST {
+            let valueAST = argAST.value
 
-        let value = try valueFromAST(
-            valueAST: valueAST,
-            type: argDef.type,
-            variables: variableValues
-        ) ?? argDef.defaultValue
+            let value = try valueFromAST(
+                valueAST: valueAST,
+                type: argDef.type,
+                variables: variableValues
+            )
 
-        if let value = value {
             result[name] = value
+        } else {
+            result[name] = .null
         }
 
         return result
@@ -75,7 +79,7 @@ func getVariableValue(schema: GraphQLSchema, definitionAST: VariableDefinition, 
     if errors.isEmpty {
         if input == .null {
             if let defaultValue = definitionAST.defaultValue {
-                return try valueFromAST(valueAST: defaultValue, type: inputType)!
+                return try valueFromAST(valueAST: defaultValue, type: inputType)
             }
             else if !(inputType is GraphQLNonNull) {
                 return .null
