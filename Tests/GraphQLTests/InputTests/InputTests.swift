@@ -5,6 +5,7 @@ import NIO
 
 class InputTests : XCTestCase {
     
+    // Test that input objects parse as expected from non-null literals
     func testInputParsing() throws {
         struct Echo : Codable {
             let field1: String?
@@ -110,6 +111,7 @@ class InputTests : XCTestCase {
         )
     }
     
+    // Test that inputs parse as expected when null literals are present
     func testInputParsingDefinedNull() throws {
         struct Echo : Codable {
             let field1: String?
@@ -215,6 +217,7 @@ class InputTests : XCTestCase {
         )
     }
     
+    // Test that input objects parse as expected when there are missing fields with no default
     func testInputParsingUndefined() throws {
         struct Echo : Codable {
             let field1: String?
@@ -319,6 +322,7 @@ class InputTests : XCTestCase {
         )
     }
     
+    // Test that input objects parse as expected when there are missing fields with defaults
     func testInputParsingUndefinedWithDefault() throws {
         struct Echo : Codable {
             let field1: String?

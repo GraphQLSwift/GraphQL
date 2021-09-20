@@ -68,8 +68,7 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
         return try .dictionary(fields.keys.reduce(OrderedDictionary<String, Map>()) { obj, fieldName in
             var obj = obj
             let field = fields[fieldName]!
-            let fieldAST = fieldASTs[fieldName]
-            if let fieldAST = fieldAST {
+            if let fieldAST = fieldASTs[fieldName] {
                 let fieldValue = try valueFromAST(
                     valueAST: fieldAST.value,
                     type: field.type,
@@ -77,6 +76,7 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
                 )
                 obj[fieldName] = fieldValue
             } else {
+                // If AST doesn't contain field, it is undefined
                 if let defaultValue = field.defaultValue {
                     obj[fieldName] = defaultValue
                 } else {
@@ -92,7 +92,6 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
         throw GraphQLError(message: "Must be leaf type")
     }
     
-    let parsed = try type.parseLiteral(valueAST: valueAST)
-    
-    return parsed
+    // If we've made it this far, it should be a literal
+    return try type.parseLiteral(valueAST: valueAST)
 }
