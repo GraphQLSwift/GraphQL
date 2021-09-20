@@ -1352,7 +1352,7 @@ extension InputObjectFieldDefinition : KeySubscriptable {
     }
 }
 
-public typealias InputObjectFieldDefinitionMap = OrderedDictionary<String, InputObjectFieldDefinition>
+public typealias InputObjectFieldDefinitionMap = [String: InputObjectFieldDefinition]
 
 /**
  * List Modifier
