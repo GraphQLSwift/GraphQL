@@ -75,18 +75,13 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
                     type: field.type,
                     variables: variables
                 )
-
-                if fieldValue == .null {
-                    if let defaultValue = field.defaultValue {
-                        obj[fieldName] = .string(defaultValue)
-                    } else {
-                        obj[fieldName] = .null
-                    }
-                } else {
-                    obj[fieldName] = fieldValue
-                }
+                obj[fieldName] = fieldValue
             } else {
-                obj[fieldName] = .undefined
+                if let defaultValue = field.defaultValue {
+                    obj[fieldName] = defaultValue
+                } else {
+                    obj[fieldName] = .undefined
+                }
             }
             
             return obj

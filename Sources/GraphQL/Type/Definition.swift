@@ -1,3 +1,4 @@
+import OrderedCollections
 import Foundation
 import NIO
 
@@ -1274,12 +1275,12 @@ func defineInputObjectFieldMap(
 
 public struct InputObjectField {
     public let type: GraphQLInputType
-    public let defaultValue: String?
+    public let defaultValue: Map?
     public let description: String?
     
     public init(type: GraphQLInputType, defaultValue: Map? = nil, description: String? = nil) {
         self.type = type
-        self.defaultValue = defaultValue?.description
+        self.defaultValue = defaultValue
         self.description = description
     }
 }
@@ -1290,13 +1291,13 @@ public final class InputObjectFieldDefinition {
     public let name: String
     public internal(set) var type: GraphQLInputType
     public let description: String?
-    public let defaultValue: String?
+    public let defaultValue: Map?
     
     init(
         name: String,
         type: GraphQLInputType,
         description: String? = nil,
-        defaultValue: String? = nil
+        defaultValue: Map? = nil
     ) {
         self.name = name
         self.type = type
@@ -1351,7 +1352,7 @@ extension InputObjectFieldDefinition : KeySubscriptable {
     }
 }
 
-public typealias InputObjectFieldDefinitionMap = [String: InputObjectFieldDefinition]
+public typealias InputObjectFieldDefinitionMap = OrderedDictionary<String, InputObjectFieldDefinition>
 
 /**
  * List Modifier

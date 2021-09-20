@@ -152,7 +152,7 @@ func coerceValue(type: GraphQLInputType, value: Map) throws -> Map? {
             var fieldValue = try coerceValue(type: field!.type, value: value[fieldName] ?? .null)
 
             if fieldValue == .null {
-                fieldValue = field.flatMap({ $0.defaultValue.map({ .string($0) }) })
+                fieldValue = field.flatMap({ $0.defaultValue })
             } else {
                 objCopy[fieldName] = fieldValue
             }
