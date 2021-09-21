@@ -11,6 +11,7 @@ public enum MapError : Error {
 // MARK: Map
 
 public enum Map {
+    case undefined
     case null
     case bool(Bool)
     case number(Number)
@@ -165,6 +166,13 @@ extension Map {
 // MARK: is<Type>
 
 extension Map {
+    public var isUndefined: Bool {
+        if case .undefined = self {
+            return true
+        }
+        return false
+    }
+    
     public var isNull: Bool {
         if case .null = self {
             return true
@@ -206,6 +214,8 @@ extension Map {
 extension Map {
     public var typeDescription: String {
         switch self {
+        case .undefined:
+            return "undefined"
         case .null:
             return "null"
         case .bool:
@@ -259,6 +269,9 @@ extension Map {
         }
 
         switch self {
+        case .undefined:
+            return false
+            
         case .null:
             return false
 
@@ -337,6 +350,9 @@ extension Map {
         }
 
         switch self {
+        case .undefined:
+            return "undefined"
+            
         case .null:
             return "null"
 
@@ -645,6 +661,8 @@ extension Map : Codable {
         var container = encoder.singleValueContainer()
         
         switch self {
+        case .undefined:
+            fatalError("undefined values should have been excluded from encoding")
         case .null:
             try container.encodeNil()
         case let .bool(value):
@@ -660,8 +678,10 @@ extension Map : Codable {
             // Instead decode as a keyed container (like normal Dictionary) in the order of our OrderedDictionary
             var container = encoder.container(keyedBy: _DictionaryCodingKey.self)
             for (key, value) in dictionary {
-              let codingKey = _DictionaryCodingKey(stringValue: key)!
-              try container.encode(value, forKey: codingKey)
+                if !value.isUndefined {
+                    let codingKey = _DictionaryCodingKey(stringValue: key)!
+                    try container.encode(value, forKey: codingKey)
+                }
             }
         }
     }
@@ -711,6 +731,8 @@ public func == (lhs: Map, rhs: Map) -> Bool {
 extension Map : Hashable {
     public func hash(into hasher: inout Hasher) {
         switch self {
+        case .undefined:
+            hasher.combine(0)
         case .null:
             hasher.combine(0)
         case let .bool(value):
@@ -837,6 +859,8 @@ extension Map {
 
         func serialize(map: Map) -> String {
             switch map {
+            case .undefined:
+                return "undefined"
             case .null:
                 return "null"
             case let .bool(value):
@@ -891,8 +915,12 @@ extension Map {
             if debug {
                 indentLevel += 1
             }
+            
+            let filtered = dictionary.filter({ item in
+                !item.value.isUndefined
+            })
 
-            for (key, value) in dictionary.sorted(by: {$0.0 < $1.0}) {
+            for (key, value) in filtered.sorted(by: {$0.0 < $1.0}) {
                 if debug {
                     string += "\n"
                     string += indent()
@@ -901,7 +929,7 @@ extension Map {
                     string += escape(key) + ":" + serialize(map: value)
                 }
 
-                if index != dictionary.count - 1 {
+                if index != filtered.count - 1 {
                     if debug {
                         string += ", "
                     } else {
