@@ -1,4 +1,5 @@
 import Foundation
+import OrderedCollections
 
 /**
  * Prepares an object map of variableValues of the correct type based on the
@@ -96,40 +97,40 @@ func getVariableValue(schema: GraphQLSchema, definitionAST: VariableDefinition, 
         )
     }
     
-    return try coerceValue(type: inputType, value: input)
+    return try coerceValue(value: input, type: inputType)
 }
 
 /**
  * Given a type and any value, return a runtime value coerced to match the type.
  */
-func coerceValue(type: GraphQLInputType, value: Map) throws -> Map {
+func coerceValue(value: Map, type: GraphQLInputType) throws -> Map {
     if let nonNull = type as? GraphQLNonNull {
         // Note: we're not checking that the result of coerceValue is non-null.
         // We only call this function after calling isValidValue.
-        return try coerceValue(type: nonNull.ofType as! GraphQLInputType, value: value)
+        guard let nonNullType = nonNull.ofType as? GraphQLInputType else {
+            throw GraphQLError(message: "NonNull must wrap an input type")
+        }
+        return try coerceValue(value: value, type: nonNullType)
     }
     
-    guard value != .undefined else {
-        return .undefined
-    }
-    guard value != .null else {
-        return .null
+    guard value != .undefined && value != .null else {
+        return value
     }
 
     if let list = type as? GraphQLList {
-        let itemType = list.ofType
-
-        if case .array(let value) = value {
-            var coercedValues: [Map] = []
-
-            for item in value {
-                coercedValues.append(try coerceValue(type: itemType as! GraphQLInputType, value: item))
-            }
-
-            return .array(coercedValues)
+        guard let itemType = list.ofType as? GraphQLInputType else {
+            throw GraphQLError(message: "Input list must wrap an input type")
         }
 
-        return .array([try coerceValue(type: itemType as! GraphQLInputType, value: value)])
+        if case .array(let value) = value {
+            let coercedValues = try value.map { item in
+                try coerceValue(value: item, type: itemType)
+            }
+            return .array(coercedValues)
+        }
+        
+        // Convert solitary value into single-value array
+        return .array([try coerceValue(value: value, type: itemType)])
     }
 
     if let objectType = type as? GraphQLInputObjectType {
@@ -138,38 +139,29 @@ func coerceValue(type: GraphQLInputType, value: Map) throws -> Map {
         }
 
         let fields = objectType.fields
-
-        return try .dictionary(fields.keys.reduce([:]) { obj, fieldName in
-            var obj = obj
-            let field = fields[fieldName]!
-            if let fieldValueMap = value[fieldName] {
-                let fieldValue = try coerceValue(
-                    type: field.type,
-                    value: fieldValueMap
+        
+        var object = OrderedDictionary<String, Map>()
+        for (fieldName, field) in fields {
+            if let fieldValueMap = value[fieldName], fieldValueMap != .undefined {
+                object[fieldName] = try coerceValue(
+                    value: fieldValueMap,
+                    type: field.type
                 )
-                obj[fieldName] = fieldValue
             } else {
                 // If AST doesn't contain field, it is undefined
                 if let defaultValue = field.defaultValue {
-                    obj[fieldName] = defaultValue
+                    object[fieldName] = defaultValue
                 } else {
-                    obj[fieldName] = .undefined
+                    object[fieldName] = .undefined
                 }
             }
-            
-            return obj
-        })
+        }
+        return .dictionary(object)
     }
     
-    guard let type = type as? GraphQLLeafType else {
-        throw GraphQLError(message: "Must be input type")
+    if let leafType = type as? GraphQLLeafType {
+        return try leafType.parseValue(value: value)
     }
     
-    let parsed = try type.parseValue(value: value)
-    
-    guard parsed != .null else {
-        return nil
-    }
-
-    return parsed
+    throw GraphQLError(message: "Must be input type")
 }
