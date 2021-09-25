@@ -6,7 +6,7 @@ import NIO
 class InputTests : XCTestCase {
     
     // Test that input objects parse as expected from non-null literals
-    func testInputParsing() throws {
+    func testInputNoNull() throws {
         struct Echo : Codable {
             let field1: String?
             let field2: String?
@@ -86,6 +86,7 @@ class InputTests : XCTestCase {
             XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
         
+        // Test in arguments
         XCTAssertEqual(
             try graphql(
                 schema: schema,
@@ -101,6 +102,34 @@ class InputTests : XCTestCase {
                 }
                 """,
                 eventLoopGroup: group
+            ).wait(),
+            GraphQLResult(data: [
+                "echo": [
+                    "field1": "value1",
+                    "field2": "value2",
+                ]
+            ])
+        )
+        
+        // Test in variables
+        XCTAssertEqual(
+            try graphql(
+                schema: schema,
+                request: """
+                query echo($input: EchoInput) {
+                    echo(input: $input) {
+                        field1
+                        field2
+                    }
+                }
+                """,
+                eventLoopGroup: group,
+                variableValues: [
+                    "input": [
+                        "field1": "value1",
+                        "field2": "value2"
+                    ]
+                ]
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
@@ -192,6 +221,7 @@ class InputTests : XCTestCase {
             XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
         
+        // Test in arguments
         XCTAssertEqual(
             try graphql(
                 schema: schema,
@@ -207,6 +237,34 @@ class InputTests : XCTestCase {
                 }
                 """,
                 eventLoopGroup: group
+            ).wait(),
+            GraphQLResult(data: [
+                "echo": [
+                    "field1": "value1",
+                    "field2": nil,
+                ]
+            ])
+        )
+        
+        // Test in variables
+        XCTAssertEqual(
+            try graphql(
+                schema: schema,
+                request: """
+                query echo($input: EchoInput) {
+                    echo(input: $input) {
+                        field1
+                        field2
+                    }
+                }
+                """,
+                eventLoopGroup: group,
+                variableValues: [
+                    "input": [
+                        "field1": "value1",
+                        "field2": .null
+                    ]
+                ]
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
@@ -298,6 +356,7 @@ class InputTests : XCTestCase {
             XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
         
+        // Test in arguments
         XCTAssertEqual(
             try graphql(
                 schema: schema,
@@ -312,6 +371,33 @@ class InputTests : XCTestCase {
                 }
                 """,
                 eventLoopGroup: group
+            ).wait(),
+            GraphQLResult(data: [
+                "echo": [
+                    "field1": "value1",
+                    "field2": nil,
+                ]
+            ])
+        )
+        
+        // Test in variables
+        XCTAssertEqual(
+            try graphql(
+                schema: schema,
+                request: """
+                query echo($input: EchoInput) {
+                    echo(input: $input) {
+                        field1
+                        field2
+                    }
+                }
+                """,
+                eventLoopGroup: group,
+                variableValues: [
+                    "input": [
+                        "field1": "value1"
+                    ]
+                ]
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
@@ -404,6 +490,7 @@ class InputTests : XCTestCase {
             XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
         
+        // Undefined with default gets default
         XCTAssertEqual(
             try graphql(
                 schema: schema,
@@ -423,6 +510,85 @@ class InputTests : XCTestCase {
                 "echo": [
                     "field1": "value1",
                     "field2": "value2",
+                ]
+            ])
+        )
+        // Null literal with default gets null
+        XCTAssertEqual(
+            try graphql(
+                schema: schema,
+                request: """
+                {
+                    echo(input:{
+                        field1: "value1"
+                        field2: null
+                    }) {
+                        field1
+                        field2
+                    }
+                }
+                """,
+                eventLoopGroup: group
+            ).wait(),
+            GraphQLResult(data: [
+                "echo": [
+                    "field1": "value1",
+                    "field2": nil,
+                ]
+            ])
+        )
+        
+        // Test in variable
+        // Undefined with default gets default
+        XCTAssertEqual(
+            try graphql(
+                schema: schema,
+                request: """
+                query echo($input: EchoInput) {
+                    echo(input: $input) {
+                        field1
+                        field2
+                    }
+                }
+                """,
+                eventLoopGroup: group,
+                variableValues: [
+                    "input": [
+                        "field1": "value1"
+                    ]
+                ]
+            ).wait(),
+            GraphQLResult(data: [
+                "echo": [
+                    "field1": "value1",
+                    "field2": "value2",
+                ]
+            ])
+        )
+        // Null literal with default gets null
+        XCTAssertEqual(
+            try graphql(
+                schema: schema,
+                request: """
+                query echo($input: EchoInput) {
+                    echo(input: $input) {
+                        field1
+                        field2
+                    }
+                }
+                """,
+                eventLoopGroup: group,
+                variableValues: [
+                    "input": [
+                        "field1": "value1",
+                        "field2": .null
+                    ]
+                ]
+            ).wait(),
+            GraphQLResult(data: [
+                "echo": [
+                    "field1": "value1",
+                    "field2": nil,
                 ]
             ])
         )
