@@ -7,18 +7,25 @@ import OrderedCollections
  * parsed to match the variable definitions, a GraphQLError will be thrown.
  */
 func getVariableValues(schema: GraphQLSchema, definitionASTs: [VariableDefinition], inputs: [String: Map]) throws -> [String: Map] {
-    return try definitionASTs.reduce([:]) { values, defAST in
-        var valuesCopy = values
+    
+    var vars = [String: Map]()
+    for defAST in definitionASTs {
         let varName = defAST.variable.name.value
-
-        valuesCopy[varName] = try getVariableValue(
+        
+        let input: Map
+        if let nonNilInput = inputs[varName] {
+            input = nonNilInput
+        } else {
+            // If variable is not in inputs it is undefined
+            input = .undefined
+        }
+        vars[varName] = try getVariableValue(
             schema: schema,
             definitionAST: defAST,
-            input: inputs[varName] ?? .null
+            input: input
         )
-
-        return valuesCopy
     }
+    return vars
 }
 
 

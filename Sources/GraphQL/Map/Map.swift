@@ -709,6 +709,8 @@ extension Map : Equatable {}
 
 public func == (lhs: Map, rhs: Map) -> Bool {
     switch (lhs, rhs) {
+    case (.undefined, .undefined):
+        return true
     case (.null, .null):
         return true
     case let (.bool(l), .bool(r)) where l == r:
