@@ -37,7 +37,7 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
         if let variable = variables[variableName] {
             return variable
         } else {
-            return .null
+            return .undefined
         }
     }
 
@@ -92,6 +92,6 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
         throw GraphQLError(message: "Must be leaf type")
     }
     
-    // If we've made it this far, it should be a literal
+    // If we've made it this far, it should be a scalar
     return try type.parseLiteral(valueAST: valueAST)
 }

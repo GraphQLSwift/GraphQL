@@ -64,7 +64,7 @@ func getVariableValue(schema: GraphQLSchema, definitionAST: VariableDefinition, 
     let type = typeFromAST(schema: schema, inputTypeAST: definitionAST.type)
     let variable = definitionAST.variable
 
-    if type == nil || !isInputType(type: type) {
+    guard let inputType = type as? GraphQLInputType else {
         throw GraphQLError(
             message:
             "Variable \"$\(variable.name.value)\" expected value of type " +
@@ -72,54 +72,48 @@ func getVariableValue(schema: GraphQLSchema, definitionAST: VariableDefinition, 
             nodes: [definitionAST]
         )
     }
-
-    let inputType = type as! GraphQLInputType
-    let errors = try isValidValue(value: input, type: inputType)
-
-    if errors.isEmpty {
-        if input == .null {
-            if let defaultValue = definitionAST.defaultValue {
-                return try valueFromAST(valueAST: defaultValue, type: inputType)
-            }
-            else if !(inputType is GraphQLNonNull) {
-                return .null
+    
+    if input == .undefined {
+        if let defaultValue = definitionAST.defaultValue {
+            return try valueFromAST(valueAST: defaultValue, type: inputType)
+        } else {
+            if inputType is GraphQLNonNull {
+                throw GraphQLError(message: "Non-nullable type \(inputType) must be provided.")
+            } else {
+                return .undefined
             }
         }
-        
-        return try coerceValue(type: inputType, value: input)!
     }
-
-    guard input != .null else {
+    
+    let errors = try isValidValue(value: input, type: inputType)
+    guard errors.isEmpty else {
+        let message = !errors.isEmpty ? "\n" + errors.joined(separator: "\n") : ""
         throw GraphQLError(
             message:
-            "Variable \"$\(variable.name.value)\" of required type " +
-            "\"\(definitionAST.type)\" was not provided.",
+            "Variable \"$\(variable.name.value)\" got invalid value " +
+            "\(input).\(message)", // TODO: "\(JSON.stringify(input)).\(message)",
             nodes: [definitionAST]
         )
     }
-
-    let message = !errors.isEmpty ? "\n" + errors.joined(separator: "\n") : ""
-
-    throw GraphQLError(
-        message:
-        "Variable \"$\(variable.name.value)\" got invalid value " +
-        "\(input).\(message)", // TODO: "\(JSON.stringify(input)).\(message)",
-        nodes: [definitionAST]
-    )
+    
+    return try coerceValue(type: inputType, value: input)
 }
 
 /**
  * Given a type and any value, return a runtime value coerced to match the type.
  */
-func coerceValue(type: GraphQLInputType, value: Map) throws -> Map? {
+func coerceValue(type: GraphQLInputType, value: Map) throws -> Map {
     if let nonNull = type as? GraphQLNonNull {
         // Note: we're not checking that the result of coerceValue is non-null.
         // We only call this function after calling isValidValue.
-        return try coerceValue(type: nonNull.ofType as! GraphQLInputType, value: value)!
+        return try coerceValue(type: nonNull.ofType as! GraphQLInputType, value: value)
     }
-
+    
+    guard value != .undefined else {
+        return .undefined
+    }
     guard value != .null else {
-        return nil
+        return .null
     }
 
     if let list = type as? GraphQLList {
@@ -129,35 +123,41 @@ func coerceValue(type: GraphQLInputType, value: Map) throws -> Map? {
             var coercedValues: [Map] = []
 
             for item in value {
-                coercedValues.append(try coerceValue(type: itemType as! GraphQLInputType, value: item)!)
+                coercedValues.append(try coerceValue(type: itemType as! GraphQLInputType, value: item))
             }
 
             return .array(coercedValues)
         }
 
-        return .array([try coerceValue(type: itemType as! GraphQLInputType, value: value)!])
+        return .array([try coerceValue(type: itemType as! GraphQLInputType, value: value)])
     }
 
-    if let type = type as? GraphQLInputObjectType {
+    if let objectType = type as? GraphQLInputObjectType {
         guard case .dictionary(let value) = value else {
-            return nil
+            throw GraphQLError(message: "Must be dictionary to extract to an input type")
         }
 
-        let fields = type.fields
+        let fields = objectType.fields
 
         return try .dictionary(fields.keys.reduce([:]) { obj, fieldName in
-            var objCopy = obj
-            let field = fields[fieldName]
-
-            var fieldValue = try coerceValue(type: field!.type, value: value[fieldName] ?? .null)
-
-            if fieldValue == .null {
-                fieldValue = field.flatMap({ $0.defaultValue })
+            var obj = obj
+            let field = fields[fieldName]!
+            if let fieldValueMap = value[fieldName] {
+                let fieldValue = try coerceValue(
+                    type: field.type,
+                    value: fieldValueMap
+                )
+                obj[fieldName] = fieldValue
             } else {
-                objCopy[fieldName] = fieldValue
+                // If AST doesn't contain field, it is undefined
+                if let defaultValue = field.defaultValue {
+                    obj[fieldName] = defaultValue
+                } else {
+                    obj[fieldName] = .undefined
+                }
             }
-
-            return objCopy
+            
+            return obj
         })
     }
     
