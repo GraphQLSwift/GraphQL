@@ -509,7 +509,7 @@ class InputTests : XCTestCase {
             try graphql(
                 schema: schema,
                 request: """
-                query echo($field1: String) {
+                query echo($field1: String! = "defaultValue1") {
                     echo (
                         field1: $field1
                     ) {
@@ -525,6 +525,25 @@ class InputTests : XCTestCase {
                     "field1": "defaultValue1"
                 ]
             ])
+        )
+        
+        // Test variable doesn't get argument default
+        XCTAssertTrue(
+            try graphql(
+                schema: schema,
+                request: """
+                query echo($field1: String!) {
+                    echo (
+                        field1: $field1
+                    ) {
+                        field1
+                    }
+                }
+                """,
+                eventLoopGroup: group,
+                variableValues: [:]
+            ).wait()
+            .errors.count > 0
         )
     }
     
@@ -692,7 +711,7 @@ class InputTests : XCTestCase {
             try graphql(
                 schema: schema,
                 request: """
-                query echo($field1: String) {
+                query echo($field1: String = "defaultValue1") {
                     echo (
                         field1: $field1
                     ) {
@@ -706,6 +725,29 @@ class InputTests : XCTestCase {
             GraphQLResult(data: [
                 "echo": [
                     "field1": "defaultValue1"
+                ]
+            ])
+        )
+        
+        // Test that nullable unprovided variables are coerced to null
+        XCTAssertEqual(
+            try graphql(
+                schema: schema,
+                request: """
+                query echo($field1: String) {
+                    echo (
+                        field1: $field1
+                    ) {
+                        field1
+                    }
+                }
+                """,
+                eventLoopGroup: group,
+                variableValues: [:]
+            ).wait(),
+            GraphQLResult(data: [
+                "echo": [
+                    "field1": .null
                 ]
             ])
         )
