@@ -72,7 +72,7 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
 
     if let objectType = type as? GraphQLInputObjectType {
         guard let objectValue = valueAST as? ObjectValue else {
-            throw GraphQLError(message: "Must be object type")
+            throw GraphQLError(message: "Input object must be object type")
         }
 
         let fields = objectType.fields
@@ -102,5 +102,5 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
         return try leafType.parseLiteral(valueAST: valueAST)
     }
     
-    throw GraphQLError(message: "Must be input type")
+    throw GraphQLError(message: "Provided type is not an input type")
 }

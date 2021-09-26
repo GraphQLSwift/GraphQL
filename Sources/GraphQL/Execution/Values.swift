@@ -43,8 +43,10 @@ func getArgumentValues(argDefs: [GraphQLArgumentDefinition], argASTs: [Argument]
     var args = OrderedDictionary<String, Map>()
     for argDef in argDefs {
         let argName = argDef.name
+        let argValue: Map
+        
         if let argAST = argASTMap[argName] {
-            args[argName] = try valueFromAST(
+            argValue = try valueFromAST(
                 valueAST: argAST.value,
                 type: argDef.type,
                 variables: variables
@@ -52,11 +54,21 @@ func getArgumentValues(argDefs: [GraphQLArgumentDefinition], argASTs: [Argument]
         } else {
             // If AST doesn't contain field, it is undefined
             if let defaultValue = argDef.defaultValue {
-                args[argName] = defaultValue
+                argValue = defaultValue
             } else {
-                args[argName] = .undefined
+                argValue = .undefined
             }
         }
+        
+        let errors = try validate(value: argValue, forType: argDef.type)
+        guard errors.isEmpty else {
+            let message = "\n" + errors.joined(separator: "\n")
+            throw GraphQLError(
+                message:
+                "Argument \"\(argName)\" got invalid value \(argValue).\(message)" // TODO: "\(JSON.stringify(input)).\(message)",
+            )
+        }
+        args[argName] = argValue
     }
     return .dictionary(args)
 }
@@ -79,30 +91,22 @@ func getVariableValue(schema: GraphQLSchema, definitionAST: VariableDefinition, 
         )
     }
     
-    if input == .undefined {
-        if let defaultValue = definitionAST.defaultValue {
-            return try valueFromAST(valueAST: defaultValue, type: inputType)
-        } else {
-            if inputType is GraphQLNonNull {
-                throw GraphQLError(message: "Non-nullable type \(inputType) must be provided.")
-            } else {
-                return .undefined
-            }
-        }
+    var toCoerce = input
+    if input == .undefined, let defaultValue = definitionAST.defaultValue {
+        toCoerce = try valueFromAST(valueAST: defaultValue, type: inputType)
     }
     
-    let errors = try isValidValue(value: input, type: inputType)
+    let errors = try validate(value: toCoerce, forType: inputType)
     guard errors.isEmpty else {
         let message = !errors.isEmpty ? "\n" + errors.joined(separator: "\n") : ""
         throw GraphQLError(
             message:
-            "Variable \"$\(variable.name.value)\" got invalid value " +
-            "\(input).\(message)", // TODO: "\(JSON.stringify(input)).\(message)",
+            "Variable \"$\(variable.name.value)\" got invalid value \"\(toCoerce)\".\(message)", // TODO: "\(JSON.stringify(input)).\(message)",
             nodes: [definitionAST]
         )
     }
     
-    return try coerceValue(value: input, type: inputType)
+    return try coerceValue(value: toCoerce, type: inputType)
 }
 
 /**
@@ -111,7 +115,7 @@ func getVariableValue(schema: GraphQLSchema, definitionAST: VariableDefinition, 
 func coerceValue(value: Map, type: GraphQLInputType) throws -> Map {
     if let nonNull = type as? GraphQLNonNull {
         // Note: we're not checking that the result of coerceValue is non-null.
-        // We only call this function after calling isValidValue.
+        // We only call this function after calling validate.
         guard let nonNullType = nonNull.ofType as? GraphQLInputType else {
             throw GraphQLError(message: "NonNull must wrap an input type")
         }
@@ -168,5 +172,5 @@ func coerceValue(value: Map, type: GraphQLInputType) throws -> Map {
         return try leafType.parseValue(value: value)
     }
     
-    throw GraphQLError(message: "Must be input type")
+    throw GraphQLError(message: "Provided type is not an input type")
 }
