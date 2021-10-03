@@ -81,8 +81,8 @@ public func graphql(
     instrumentation: Instrumentation = NoOpInstrumentation,
     schema: GraphQLSchema,
     request: String,
-    rootValue: Any = Void(),
-    context: Any = Void(),
+    rootValue: Any = (),
+    context: Any = (),
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
@@ -135,8 +135,8 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
     instrumentation: Instrumentation = NoOpInstrumentation,
     queryRetrieval: Retrieval,
     queryId: Retrieval.Id,
-    rootValue: Any = Void(),
-    context: Any = Void(),
+    rootValue: Any = (),
+    context: Any = (),
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
@@ -198,8 +198,8 @@ public func graphqlSubscribe(
     instrumentation: Instrumentation = NoOpInstrumentation,
     schema: GraphQLSchema,
     request: String,
-    rootValue: Any = Void(),
-    context: Any = Void(),
+    rootValue: Any = (),
+    context: Any = (),
     eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
