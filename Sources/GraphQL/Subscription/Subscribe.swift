@@ -195,7 +195,7 @@ func executeSubscription(
 
     // Build a map of arguments from the field.arguments AST, using the
     // variables scope to fulfill any variable references.
-    let args = try getArgumentValues(argDefs: fieldDef.args, argASTs: fieldNode.arguments, variableValues: context.variableValues)
+    let args = try getArgumentValues(argDefs: fieldDef.args, argASTs: fieldNode.arguments, variables: context.variableValues)
 
     // The resolve function's optional third argument is a context value that
     // is provided to every resolve function within an execution. It is commonly

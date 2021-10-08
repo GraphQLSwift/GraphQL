@@ -17,16 +17,15 @@ import OrderedCollections
  * | Enum Value           | .string       |
  *
  */
-func valueFromAST(valueAST: Value?, type: GraphQLInputType, variables: [String: Map] = [:]) throws -> Map? {
-    if let nonNullType = type as? GraphQLNonNull {
+func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: Map] = [:]) throws -> Map {
+    if let nonNull = type as? GraphQLNonNull {
         // Note: we're not checking that the result of valueFromAST is non-null.
         // We're assuming that this query has been validated and the value used
         // here is of the correct type.
-        return try valueFromAST(valueAST: valueAST, type: nonNullType.ofType as! GraphQLInputType, variables: variables)
-    }
-
-    guard let valueAST = valueAST else {
-        return nil
+        guard let nonNullType = nonNull.ofType as? GraphQLInputType else {
+            throw GraphQLError(message: "NonNull must wrap an input type")
+        }
+        return try valueFromAST(valueAST: valueAST, type: nonNullType, variables: variables)
     }
 
     if let variable = valueAST as? Variable {
@@ -38,63 +37,70 @@ func valueFromAST(valueAST: Value?, type: GraphQLInputType, variables: [String: 
         // Note: we're not doing any checking that this variable is correct. We're
         // assuming that this query has been validated and the variable usage here
         // is of the correct type.
-        return variables[variableName]
+        if let variable = variables[variableName] {
+            return variable
+        } else {
+            return .undefined
+        }
     }
 
     if let list = type as? GraphQLList {
-        let itemType = list.ofType
-
-        if let listValue = valueAST as? ListValue {
-            return try .array(listValue.values.map({
-                try valueFromAST(
-                    valueAST: $0,
-                    type: itemType as! GraphQLInputType,
-                    variables: variables
-                )!
-            }))
+        guard let itemType = list.ofType as? GraphQLInputType else {
+            throw GraphQLError(message: "Input list must wrap an input type")
         }
 
-        return try [valueFromAST(valueAST: valueAST, type: itemType as! GraphQLInputType, variables: variables)!]
+        if let listValue = valueAST as? ListValue {
+            let values = try listValue.values.map { item in
+                try valueFromAST(
+                    valueAST: item,
+                    type: itemType,
+                    variables: variables
+                )
+            }
+            return .array(values)
+        }
+        
+        // Convert solitary value into single-value array
+        return .array([
+            try valueFromAST(
+                valueAST: valueAST,
+                type: itemType,
+                variables: variables
+            )
+        ])
     }
 
     if let objectType = type as? GraphQLInputObjectType {
         guard let objectValue = valueAST as? ObjectValue else {
-            return nil
+            throw GraphQLError(message: "Input object must be object type")
         }
 
         let fields = objectType.fields
-
         let fieldASTs = objectValue.fields.keyMap({ $0.name.value })
-
-        return try .dictionary(fields.keys.reduce([:] as OrderedDictionary<String, Map>) { obj, fieldName in
-            var obj = obj
-            let field = fields[fieldName]
-            let fieldAST = fieldASTs[fieldName]
-            var fieldValue = try valueFromAST(
-                valueAST: fieldAST?.value,
-                type: field!.type,
-                variables: variables
-            )
-
-            if fieldValue == .null {
-                fieldValue = field.flatMap({ $0.defaultValue.map({ .string($0) }) })
+        
+        var object = OrderedDictionary<String, Map>()
+        for (fieldName, field) in fields {
+            if let fieldAST = fieldASTs[fieldName] {
+                object[fieldName] = try valueFromAST(
+                    valueAST: fieldAST.value,
+                    type: field.type,
+                    variables: variables
+                )
             } else {
-                obj[fieldName] = fieldValue
+                // If AST doesn't contain field, it is undefined
+                if let defaultValue = field.defaultValue {
+                    object[fieldName] = defaultValue
+                } else {
+                    object[fieldName] = .undefined
+                }
             }
-            
-            return obj
-        })
+        }
+        return .dictionary(object)
     }
     
-    guard let type = type as? GraphQLLeafType else {
-        throw GraphQLError(message: "Must be leaf type")
+    if let leafType = type as? GraphQLLeafType {
+        return try leafType.parseLiteral(valueAST: valueAST)
     }
     
-    let parsed = try type.parseLiteral(valueAST: valueAST)
-    
-    guard parsed != .null else {
-        return nil
-    }
-    
-    return parsed
+    throw GraphQLError(message: "Provided type is not an input type")
 }

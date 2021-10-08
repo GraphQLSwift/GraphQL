@@ -3,33 +3,39 @@
  * accepted for that type. This is primarily useful for validating the
  * runtime values of query variables.
  */
-func isValidValue(value: Map, type: GraphQLInputType) throws -> [String] {
+func validate(value: Map, forType type: GraphQLInputType) throws -> [String] {
     // A value must be provided if the type is non-null.
-    if let type = type as? GraphQLNonNull {
-        if value == .null {
-            if let namedType = type.ofType as? GraphQLNamedType {
-                return ["Expected \"\(namedType.name)!\", found null."]
-            }
-
+    if let nonNullType = type as? GraphQLNonNull {
+        guard let wrappedType = nonNullType.ofType as? GraphQLInputType else {
+            throw GraphQLError(message: "Input non-null type must wrap another input type")
+        }
+        
+        if value == .null{
             return ["Expected non-null value, found null."]
         }
+        if value == .undefined {
+            return ["Expected non-null value was not provided."]
+        }
 
-        return try isValidValue(value: value, type: type.ofType as! GraphQLInputType)
+        return try validate(value: value, forType: wrappedType)
     }
-
-    guard value != .null else {
+    
+    // If nullable, either null or undefined are allowed
+    guard value != .null && value != .undefined else {
         return []
     }
 
     // Lists accept a non-list value as a list of one.
-    if let type = type as? GraphQLList {
-        let itemType = type.ofType
+    if let listType = type as? GraphQLList {
+        guard let itemType = listType.ofType as? GraphQLInputType else {
+            throw GraphQLError(message: "Input list type must wrap another input type")
+        }
 
         if case .array(let values) = value {
             var errors: [String] = []
 
             for (index, item) in values.enumerated() {
-                let e = try isValidValue(value: item, type: itemType as! GraphQLInputType).map {
+                let e = try validate(value: item, forType: itemType).map {
                     "In element #\(index): \($0)"
                 }
                 errors.append(contentsOf: e)
@@ -38,16 +44,16 @@ func isValidValue(value: Map, type: GraphQLInputType) throws -> [String] {
             return errors
         }
 
-        return try isValidValue(value: value, type: itemType as! GraphQLInputType)
+        return try validate(value: value, forType: itemType)
     }
 
     // Input objects check each defined field.
-    if let type = type as? GraphQLInputObjectType {
+    if let objectType = type as? GraphQLInputObjectType {
         guard case .dictionary(let dictionary) = value else {
-            return ["Expected \"\(type.name)\", found not an object."]
+            return ["Expected \"\(objectType.name)\", found not an object."]
         }
 
-        let fields = type.fields
+        let fields = objectType.fields
         var errors: [String] = []
 
         // Ensure every provided field is defined.
@@ -59,7 +65,7 @@ func isValidValue(value: Map, type: GraphQLInputType) throws -> [String] {
 
         // Ensure every defined field is valid.
         for (fieldName, field) in fields {
-            let newErrors = try isValidValue(value: value[fieldName], type: field.type).map {
+            let newErrors = try validate(value: value[fieldName], forType: field.type).map {
                 "In field \"\(fieldName)\": \($0)"
             }
 
@@ -69,20 +75,20 @@ func isValidValue(value: Map, type: GraphQLInputType) throws -> [String] {
         return errors
     }
 
-    guard let type = type as? GraphQLLeafType else {
-        fatalError("Must be input type")
-    }
-    
-    // Scalar/Enum input checks to ensure the type can parse the value to
-    // a non-null value.
-    do {
-        let parseResult = try type.parseValue(value: value)
-        if parseResult == .null {
-            return ["Expected type \"\(type.name)\", found \(value)."]
+    if let leafType = type as? GraphQLLeafType {
+        // Scalar/Enum input checks to ensure the type can parse the value to
+        // a non-null value.
+        do {
+            let parseResult = try leafType.parseValue(value: value)
+            if parseResult == .null || parseResult == .undefined {
+                return ["Expected type \"\(leafType.name)\", found \(value)."]
+            }
+        } catch {
+            return ["Expected type \"\(leafType.name)\", found \(value)."]
         }
-    } catch {
-        return ["Expected type \"\(type.name)\", found \(value)."]
+        
+        return []
     }
     
-    return []
+    throw GraphQLError(message: "Provided type was not provided")
 }

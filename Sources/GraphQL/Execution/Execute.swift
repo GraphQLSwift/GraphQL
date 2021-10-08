@@ -594,7 +594,7 @@ func shouldIncludeNode(exeContext: ExecutionContext, directives: [Directive] = [
         let skip = try getArgumentValues(
             argDefs: GraphQLSkipDirective.args,
             argASTs: skipAST.arguments,
-            variableValues: exeContext.variableValues
+            variables: exeContext.variableValues
         )
 
         if skip["if"] == .bool(true) {
@@ -606,7 +606,7 @@ func shouldIncludeNode(exeContext: ExecutionContext, directives: [Directive] = [
         let include = try getArgumentValues(
             argDefs: GraphQLIncludeDirective.args,
             argASTs: includeAST.arguments,
-            variableValues: exeContext.variableValues
+            variables: exeContext.variableValues
         )
 
         if include["if"] == .bool(false) {
@@ -685,7 +685,7 @@ public func resolveField(
     let args = try getArgumentValues(
         argDefs: fieldDef.args,
         argASTs: fieldAST.arguments,
-        variableValues: exeContext.variableValues
+        variables: exeContext.variableValues
     )
 
     // The resolve func's optional third argument is a context value that
