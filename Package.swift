@@ -1,4 +1,4 @@
-// swift-tools-version:5.2
+// swift-tools-version:5.5
 import PackageDescription
 
 let package = Package(
@@ -7,7 +7,7 @@ let package = Package(
         .library(name: "GraphQL", targets: ["GraphQL"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMajor(from: "2.10.1")),
+        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMajor(from: "2.33.0")),
         .package(url: "https://github.com/apple/swift-collections", .upToNextMajor(from: "1.0.0")),
     ],
     targets: [
@@ -18,6 +18,13 @@ let package = Package(
                 .product(name: "OrderedCollections", package: "swift-collections"),
             ]
         ),
-        .testTarget(name: "GraphQLTests", dependencies: ["GraphQL"]),
+        .testTarget(
+            name: "GraphQLTests",
+            dependencies: ["GraphQL"],
+            exclude: [
+                "LanguageTests/kitchen-sink.graphql",
+                "LanguageTests/schema-kitchen-sink.graphql",
+            ]
+        ),
     ]
 )
