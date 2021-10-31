@@ -475,3 +475,18 @@ let TypeNameMetaFieldDef = GraphQLFieldDefinition(
         eventLoopGroup.next().makeSucceededFuture(info.parentType.name)
     }
 )
+
+let introspectionTypes: [GraphQLNamedType] = [
+    __Schema,
+    __Directive,
+    __DirectiveLocation,
+    __Type,
+    __Field,
+    __InputValue,
+    __EnumValue,
+    __TypeKind,
+]
+
+func isIntrospectionType(type: GraphQLNamedType) -> Bool {
+    introspectionTypes.contains(where: { $0.name == type.name })
+}
