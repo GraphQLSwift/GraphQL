@@ -343,7 +343,7 @@ func printDeprecated(reason: String?) -> String {
         #warning("TODO: Implement print(ast:)")
 //        let astValue = print(ast: ASTValue(kind: Kind.STRING, value: reason))
         let astValue = printString(string: reason)
-        return " @deprecated(reason: \(astValue)"
+        return " @deprecated(reason: \(astValue))"
     }
 
     return " @deprecated'"
