@@ -130,7 +130,7 @@ class MapTests: XCTestCase {
     }
     
     // Ensure that map encoding includes defined nulls, but skips undefined values
-    func testMapEncoding() throws {
+    func testMapEncodingNilAndUndefined() throws {
         let map = Map.dictionary(
             [
                 "first": .number(1),
@@ -139,12 +139,61 @@ class MapTests: XCTestCase {
             ]
         )
         
-        let data = try JSONEncoder().encode(map)
+        let data = try GraphQLJSONEncoder().encode(map)
         let json = String(data: data, encoding: .utf8)
         XCTAssertEqual(
             json,
             """
             {"first":1,"second":null}
+            """
+        )
+    }
+    
+    // Ensure that GraphQLJSONEncoder preserves map dictionary order in output
+    func testMapEncodingOrderPreserved() throws {
+        // Test top level
+        XCTAssertEqual(
+            String(
+                data: try GraphQLJSONEncoder().encode(
+                    Map.dictionary([
+                        "1": .number(1),
+                        "2": .number(2),
+                        "3": .number(3),
+                        "4": .number(4),
+                        "5": .number(5),
+                        "6": .number(6),
+                        "7": .number(7),
+                        "8": .number(8),
+                    ])
+                ),
+                encoding: .utf8
+            ),
+            """
+            {"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8}
+            """
+        )
+        
+        // Test embedded
+        XCTAssertEqual(
+            String(
+                data: try GraphQLJSONEncoder().encode(
+                    Map.array([
+                        Map.dictionary([
+                            "1": .number(1),
+                            "2": .number(2),
+                            "3": .number(3),
+                            "4": .number(4),
+                            "5": .number(5),
+                            "6": .number(6),
+                            "7": .number(7),
+                            "8": .number(8),
+                        ])
+                    ])
+                ),
+                encoding: .utf8
+            ),
+            """
+            [{"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8}]
             """
         )
     }

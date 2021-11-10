@@ -1,3 +1,4 @@
+import Foundation
 import OrderedCollections
 
 // MARK: MapError
@@ -676,6 +677,7 @@ extension Map : Codable {
         case let .dictionary(dictionary):
             // Override OrderedDictionary default (unkeyed alternating key-value)
             // Instead decode as a keyed container (like normal Dictionary) in the order of our OrderedDictionary
+            // Note that `JSONEncoder` will ignore this because it uses `Dictionary` underneath. Instead, use `GraphQLJSONEncoder`.
             var container = encoder.container(keyedBy: _DictionaryCodingKey.self)
             for (key, value) in dictionary {
                 if !value.isUndefined {

@@ -1,5 +1,3 @@
-import Foundation
-
 /**
  * Produces a GraphQL Value AST given a Map value.
  *
@@ -117,7 +115,7 @@ func astFromValue(
             let map: Map
         }
         
-        let data = try JSONEncoder().encode(Wrapper(map: serialized))
+        let data = try GraphQLJSONEncoder().encode(Wrapper(map: serialized))
         let string = String(data: data, encoding: .utf8)!
         return StringValue(value: String(string.dropFirst(8).dropLast(2)))
     }
