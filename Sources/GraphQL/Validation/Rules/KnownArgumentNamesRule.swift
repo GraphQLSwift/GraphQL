@@ -16,27 +16,25 @@ import Foundation
      return message
 }
 
- func KnownArgumentNamesRule(context: ValidationContext) -> Visitor {
-    return Visitor(
-        enter: { node, key, parent, path, ancestors in
-            if let node = node as? Argument, context.argument == nil, let field = context.fieldDef, let type = context.parentType {
-                let argumentName = node.name.value
-                let suggestedArgumentNames = getSuggestedArgumentNames(schema: context.schema, field: field, argumentName: argumentName)
-
-                 context.report(error: GraphQLError(
-                    message: undefinedArgumentMessage(
-                        fieldName: field.name,
-                        type: type.name,
-                        argumentName: argumentName,
-                        suggestedArgumentNames: suggestedArgumentNames
-                    ),
-                    nodes: [node]
-                ))
-            }
-
-             return .continue
+struct KnownArgumentNamesRule: ValidationRule {
+    let context: ValidationContext
+    func enter(argument: Argument, key: AnyKeyPath?, parent: VisitorParent?, ancestors: [VisitorParent]) -> VisitResult<Argument> {
+        if context.argument == nil, let field = context.fieldDef, let type = context.parentType {
+            let argumentName = argument.name.value
+            let suggestedArgumentNames = getSuggestedArgumentNames(schema: context.schema, field: field, argumentName: argumentName)
+            
+            context.report(error: GraphQLError(
+                message: undefinedArgumentMessage(
+                    fieldName: field.name,
+                    type: type.name,
+                    argumentName: argumentName,
+                    suggestedArgumentNames: suggestedArgumentNames
+                ),
+                nodes: [argument]
+            ))
         }
-    )
+        return .continue
+    }
 }
 
  func getSuggestedArgumentNames(

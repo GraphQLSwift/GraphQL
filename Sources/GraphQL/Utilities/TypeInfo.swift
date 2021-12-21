@@ -3,7 +3,7 @@
  * of the current field and type definitions at any point in a GraphQL document
  * AST during a recursive descent by calling `enter(node: node)` and `leave(node: node)`.
  */
-final class TypeInfo {
+public final class TypeInfo {
     let schema: GraphQLSchema;
     var typeStack: [GraphQLOutputType?]
     var parentTypeStack: [GraphQLCompositeType?]
@@ -12,7 +12,7 @@ final class TypeInfo {
     var directive: GraphQLDirective?
     var argument: GraphQLArgumentDefinition?
 
-    init(schema: GraphQLSchema) {
+    public init(schema: GraphQLSchema) {
         self.schema = schema
         self.typeStack = []
         self.parentTypeStack = []
@@ -22,35 +22,35 @@ final class TypeInfo {
         self.argument = nil
     }
 
-    var type: GraphQLOutputType? {
+    public var type: GraphQLOutputType? {
         if !typeStack.isEmpty {
             return typeStack[typeStack.count - 1]
         }
         return nil
     }
 
-    var parentType: GraphQLCompositeType? {
+    public var parentType: GraphQLCompositeType? {
         if !parentTypeStack.isEmpty {
             return parentTypeStack[parentTypeStack.count - 1]
         }
         return nil
     }
 
-    var inputType: GraphQLInputType? {
+    public var inputType: GraphQLInputType? {
         if !inputTypeStack.isEmpty {
             return inputTypeStack[inputTypeStack.count - 1]
         }
         return nil
     }
 
-    var fieldDef: GraphQLFieldDefinition? {
+    public var fieldDef: GraphQLFieldDefinition? {
         if !fieldDefStack.isEmpty {
             return fieldDefStack[fieldDefStack.count - 1]
         }
         return nil
     }
 
-    func enter(node: Node) {
+    public func enter(node: Node) {
         switch node {
         case is SelectionSet:
             let namedType = getNamedType(type: type)
@@ -91,11 +91,11 @@ final class TypeInfo {
 
         case let node as InlineFragment:
             let typeConditionAST = node.typeCondition
-            let outputType = typeConditionAST != nil ? typeFromAST(schema: schema, inputTypeAST: typeConditionAST!) : self.type
+            let outputType = typeConditionAST != nil ? typeFromAST(schema: schema, inputTypeAST: .namedType(typeConditionAST!)) : self.type
             typeStack.append(outputType as? GraphQLOutputType)
 
         case let node as FragmentDefinition:
-            let outputType = typeFromAST(schema: schema, inputTypeAST: node.typeCondition)
+            let outputType = typeFromAST(schema: schema, inputTypeAST: .namedType(node.typeCondition))
             typeStack.append(outputType as? GraphQLOutputType)
 
         case let node as VariableDefinition:
@@ -137,7 +137,7 @@ final class TypeInfo {
         }
     }
 
-    func leave(node: Node) {
+    public func leave(node: Node) {
         switch node {
         case is SelectionSet:
             _ = parentTypeStack.popLast()
@@ -149,7 +149,7 @@ final class TypeInfo {
         case is Directive:
             directive = nil
 
-        case is OperationDefinition, is InlineFragment, is FragmentDefinition:
+        case is Definition, is InlineFragment:
             _ = typeStack.popLast()
 
         case is VariableDefinition:
@@ -173,7 +173,7 @@ final class TypeInfo {
  * statically evaluated environment we do not always have an Object type,
  * and need to handle Interface and Union types.
  */
-func getFieldDef(schema: GraphQLSchema, parentType: GraphQLType, fieldAST: Field) -> GraphQLFieldDefinition? {
+public func getFieldDef(schema: GraphQLSchema, parentType: GraphQLType, fieldAST: Field) -> GraphQLFieldDefinition? {
     let name = fieldAST.name.value
 
     if let parentType = parentType as? GraphQLNamedType {

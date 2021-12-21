@@ -3,7 +3,7 @@ import XCTest
 
 class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
     override func setUp() {
-        rule = PossibleFragmentSpreadsRule
+        rule = PossibleFragmentSpreadsRule.self
     }
     
     func testUsesAllVariables() throws {

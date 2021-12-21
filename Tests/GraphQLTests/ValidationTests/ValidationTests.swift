@@ -2,7 +2,7 @@
 import XCTest
 
 class ValidationTestCase : XCTestCase {
-    typealias Rule = (ValidationContext) -> Visitor
+    typealias Rule = ValidationRule.Type
 
     var rule: Rule!
 
@@ -51,5 +51,3 @@ class ValidationTestCase : XCTestCase {
     }
     
 }
-
-

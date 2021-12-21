@@ -28,7 +28,7 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
         return try valueFromAST(valueAST: valueAST, type: nonNullType, variables: variables)
     }
 
-    if let variable = valueAST as? Variable {
+    if case .variable(let variable) = valueAST {
         let variableName = variable.name.value
 
         //    if (!variables || !variables.hasOwnProperty(variableName)) {
@@ -49,7 +49,7 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
             throw GraphQLError(message: "Input list must wrap an input type")
         }
 
-        if let listValue = valueAST as? ListValue {
+        if case .listValue(let listValue) = valueAST {
             let values = try listValue.values.map { item in
                 try valueFromAST(
                     valueAST: item,
@@ -71,7 +71,7 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
     }
 
     if let objectType = type as? GraphQLInputObjectType {
-        guard let objectValue = valueAST as? ObjectValue else {
+        guard case .objectValue(let objectValue) = valueAST else {
             throw GraphQLError(message: "Input object must be object type")
         }
 
