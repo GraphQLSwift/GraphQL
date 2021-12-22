@@ -373,7 +373,7 @@ func buildExecutionContext(
             fragments[definition.name.value] = definition
         default:
             throw GraphQLError(
-                message: "GraphQL cannot execute a request containing a \(definition.underlyingNode.kind).",
+                message: "GraphQL cannot execute a request containing a \(type(of: definition)).",
                 nodes: [definition]
             )
         }

@@ -201,7 +201,6 @@ extension TypeExtensionDefinition   : Node {}
 extension DirectiveDefinition       : Node {}
 
 public struct Name {
-    public let kind: Kind = .name
     public let loc: Location?
     public let value: String
 
@@ -227,7 +226,6 @@ extension Name: Hashable {
 }
 
 public struct Document {
-    public let kind: Kind = .document
     public let loc: Location?
     public var definitions: [Definition]
 
@@ -341,7 +339,6 @@ public enum OperationType : String {
 }
 
 public struct OperationDefinition {
-    public let kind: Kind = .operationDefinition
     public let loc: Location?
     public var operation: OperationType
     public var name: Name?
@@ -400,7 +397,6 @@ extension OperationDefinition: Equatable {
 }
 
 public struct VariableDefinition {
-    public let kind: Kind = .variableDefinition
     public let loc: Location?
     public var variable: Variable
     public var type: Type
@@ -453,7 +449,6 @@ extension VariableDefinition : Equatable {
 }
 
 public struct Variable {
-    public let kind: Kind = .variable
     public let loc: Location?
     public var name: Name
 
@@ -479,7 +474,6 @@ extension Variable : Equatable {
 }
 
 public struct SelectionSet {
-    public let kind: Kind = .selectionSet
     public let loc: Location?
     public var selections: [Selection]
 
@@ -550,7 +544,6 @@ public enum Selection: EnumNode, Equatable {
 }
 
 public struct Field {
-    public let kind: Kind = .field
     public let loc: Location?
     public var alias: Name?
     public var name: Name
@@ -608,7 +601,6 @@ extension Field : Equatable {
 }
 
 public struct Argument {
-    public let kind: Kind = .argument
     public let loc: Location?
     public var name: Name
     public var value: Value
@@ -651,7 +643,6 @@ extension Argument : Equatable {
 }
 
 public struct FragmentSpread {
-    public let kind: Kind = .fragmentSpread
     public let loc: Location?
     public var name: Name
     public var directives: [Directive]
@@ -701,7 +692,6 @@ extension FragmentDefinition : HasTypeCondition {
 }
 
 public struct InlineFragment {
-    public let kind: Kind = .inlineFragment
     public let loc: Location?
     public var typeCondition: NamedType?
     public var directives: [Directive]
@@ -744,7 +734,6 @@ extension InlineFragment : Equatable {
 }
 
 public struct FragmentDefinition {
-    public let kind: Kind = .fragmentDefinition
     public let loc: Location?
     public var name: Name
     public var typeCondition: NamedType
@@ -857,7 +846,6 @@ public enum Value: EnumNode, Equatable {
 }
 
 public struct IntValue {
-    public let kind: Kind = .intValue
     public let loc: Location?
     public let value: String
 
@@ -880,7 +868,6 @@ extension IntValue : Equatable {
 }
 
 public struct FloatValue {
-    public let kind: Kind = .floatValue
     public let loc: Location?
     public let value: String
 
@@ -903,7 +890,6 @@ extension FloatValue : Equatable {
 }
 
 public struct StringValue {
-    public let kind: Kind = .stringValue
     public let loc: Location?
     public let value: String
     public let block: Bool?
@@ -935,7 +921,6 @@ extension StringValue : Equatable {
 }
 
 public struct BooleanValue {
-    public let kind: Kind = .booleanValue
     public let loc: Location?
     public let value: Bool
 
@@ -958,7 +943,6 @@ extension BooleanValue : Equatable {
 }
 
 public struct NullValue {
-    public let kind: Kind = .nullValue
     public let loc: Location?
 
     init(loc: Location? = nil) {
@@ -979,7 +963,6 @@ extension NullValue : Equatable {
 }
 
 public struct EnumValue {
-    public let kind: Kind = .enumValue
     public let loc: Location?
     public let value: String
 
@@ -1002,7 +985,6 @@ extension EnumValue : Equatable {
 }
 
 public struct ListValue {
-    public let kind: Kind = .listValue
     public let loc: Location?
     public var values: [Value]
 
@@ -1044,7 +1026,6 @@ extension ListValue : Equatable {
 }
 
 public struct ObjectValue {
-    public let kind: Kind = .objectValue
     public let loc: Location?
     public var fields: [ObjectField]
 
@@ -1077,7 +1058,6 @@ extension ObjectValue : Equatable {
 }
 
 public struct ObjectField {
-    public let kind: Kind = .objectField
     public let loc: Location?
     public var name: Name
     public var value: Value
@@ -1108,7 +1088,6 @@ extension ObjectField : Equatable {
 }
 
 public struct Directive {
-    public let kind: Kind = .directive
     public let loc: Location?
     public var name: Name
     public var arguments: [Argument]
@@ -1186,7 +1165,6 @@ public indirect enum Type: EnumNode, Equatable {
 }
 
 public struct NamedType {
-    public let kind: Kind = .namedType
     public let loc: Location?
     public var name: Name
 
@@ -1211,7 +1189,6 @@ extension NamedType : Equatable {
 }
 
 public struct ListType {
-    public let kind: Kind = .listType
     public let loc: Location?
     public var type: Type
 
@@ -1340,7 +1317,6 @@ extension SchemaDefinition : Equatable {
 }
 
 public struct OperationTypeDefinition {
-    public let kind: Kind = .operationDefinition
     public let loc: Location?
     public let operation: OperationType
     public var type: NamedType
@@ -1417,7 +1393,6 @@ public enum TypeDefinition: EnumNode, Equatable {
 }
 
 public struct ScalarTypeDefinition {
-    public let kind: Kind = .scalarTypeDefinition
     public let loc: Location?
     public var description: StringValue?
     public var name: Name
@@ -1450,7 +1425,6 @@ extension ScalarTypeDefinition : Equatable {
 }
 
 public struct ObjectTypeDefinition {
-    public let kind: Kind = .objectTypeDefinition
     public let loc: Location?
     public var description: StringValue?
     public var name: Name
@@ -1491,7 +1465,6 @@ extension ObjectTypeDefinition : Equatable {
 }
 
 public struct FieldDefinition {
-    public let kind: Kind = .fieldDefinition
     public let loc: Location?
     public var description: StringValue?
     public var name: Name
@@ -1532,7 +1505,6 @@ extension FieldDefinition : Equatable {
 }
 
 public struct InputValueDefinition {
-    public let kind: Kind = .inputValueDefinition
     public let loc: Location?
     public var description: StringValue?
     public var name: Name
@@ -1589,7 +1561,6 @@ extension InputValueDefinition : Equatable {
 }
 
 public struct InterfaceTypeDefinition {
-    public let kind: Kind = .interfaceTypeDefinition
     public let loc: Location?
     public var description: StringValue?
     public var name: Name
@@ -1636,7 +1607,6 @@ extension InterfaceTypeDefinition : Equatable {
 }
 
 public struct UnionTypeDefinition {
-    public let kind: Kind = .unionTypeDefinition
     public let loc: Location?
     public var description: StringValue?
     public var name: Name
@@ -1673,7 +1643,6 @@ extension UnionTypeDefinition : Equatable {
 }
 
 public struct EnumTypeDefinition {
-    public let kind: Kind = .enumTypeDefinition
     public let loc: Location?
     public var description: StringValue?
     public var name: Name
@@ -1710,7 +1679,6 @@ extension EnumTypeDefinition : Equatable {
 }
 
 public struct EnumValueDefinition {
-    public let kind: Kind = .enumValueDefinition
     public let loc: Location?
     public var description: StringValue?
     public var name: Name
@@ -1743,7 +1711,6 @@ extension EnumValueDefinition : Equatable {
 }
 
 public struct InputObjectTypeDefinition {
-    public let kind: Kind = .inputObjectTypeDefinition
     public let loc: Location?
     public var description: StringValue?
     public var name: Name
@@ -1780,7 +1747,6 @@ extension InputObjectTypeDefinition : Equatable {
 }
 
 public struct TypeExtensionDefinition {
-    public let kind: Kind = .typeExtensionDefinition
     public let loc: Location?
     public var definition: ObjectTypeDefinition
 
@@ -1805,7 +1771,6 @@ extension TypeExtensionDefinition : Equatable {
 }
 
 public struct DirectiveDefinition {
-    public let kind: Kind = .directiveDefinition
     public let loc: Location?
     public var description: StringValue?
     public var name: Name
