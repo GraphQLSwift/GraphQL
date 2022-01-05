@@ -9,6 +9,7 @@ public struct GraphQLError : Error, Codable {
         case message
         case locations
         case path
+        case extensions
     }
 
     /**
@@ -29,6 +30,18 @@ public struct GraphQLError : Error, Codable {
      * Appears in the result of `description`.
      */
     public let locations: [SourceLocation]
+    
+    /**
+     * A dictionary containing original error reflection
+     * to supply additional data from error extensions.
+     *
+     * Will reflect only Codable objects.
+     *
+     * For more information about supported types look at `AnyCodable` - `init(from:)`
+     *
+     * Appears in the result of `description`.
+     */
+    public let extensions: [String: AnyCodable]?
 
     /**
      * An array describing the index path into the execution response which
@@ -92,6 +105,7 @@ public struct GraphQLError : Error, Codable {
 
         self.path = path
         self.originalError = originalError
+        self.extensions = originalError?.reflection
     }
     
     public init(
@@ -106,6 +120,7 @@ public struct GraphQLError : Error, Codable {
         self.source = nil
         self.positions = []
         self.originalError = nil
+        self.extensions = nil
     }
     
     public init(_ error: Error) {
@@ -120,6 +135,7 @@ public struct GraphQLError : Error, Codable {
         message = try container.decode(String.self, forKey: .message)
         locations = try container.decode([SourceLocation]?.self, forKey: .locations) ?? []
         path = try container.decode(IndexPath.self, forKey: .path)
+        extensions = try container.decodeIfPresent([String: AnyCodable].self, forKey: .extensions)
     }
     
     public func encode(to encoder: Encoder) throws {
@@ -132,6 +148,10 @@ public struct GraphQLError : Error, Codable {
         }
         
         try container.encode(path, forKey: .path)
+        
+        if let extensions = extensions {
+            try container.encode(extensions, forKey: .extensions)
+        }
     }
 }
 
