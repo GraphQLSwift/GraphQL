@@ -915,11 +915,12 @@ public final class GraphQLUnionType {
     public let resolveType: GraphQLTypeResolve?
     private let typesThunk: () -> [GraphQLObjectType]
     public lazy var types = {
-        try! defineTypes(
-           name: name,
-           hasResolve: resolveType != nil,
-           types: typesThunk()
-       )
+        typesThunk()
+//        try! defineTypes(
+//           name: name,
+//           hasResolve: resolveType != nil,
+//           types: typesThunk()
+//       )
     }()
     public let possibleTypeNames: [String: Bool]
     public let kind: TypeKind = .union

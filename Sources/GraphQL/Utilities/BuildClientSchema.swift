@@ -152,9 +152,16 @@ public func buildClientSchema(introspection: IntrospectionQuery) throws -> Graph
     
 //    let directives = []
     
+    let mutationType: GraphQLObjectType?
+    if let mutationTypeRef = schemaIntrospection.mutationType {
+        mutationType = try getObjectType(name: mutationTypeRef.name)
+    } else {
+        mutationType = nil
+    }
+    
     return try GraphQLSchema(
         query: try getObjectType(name: schemaIntrospection.queryType.name),
-        mutation: nil,
+        mutation: mutationType,
         subscription: nil,
         types: Array(typeMap.values),
         directives: []

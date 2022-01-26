@@ -142,7 +142,7 @@ public protocol Node: TextOutputStreamable {
 }
 
 extension Node {
-    var printed: String {
+    public var printed: String {
         var s = ""
         self.write(to: &s)
         return s
@@ -248,17 +248,34 @@ public struct Document {
 
 extension Document : Equatable {
     public static func == (lhs: Document, rhs: Document) -> Bool {
-        guard lhs.definitions.count == rhs.definitions.count else {
-            return false
-        }
+        return lhs.definitions == rhs.definitions
+    }
+}
 
-        for (l, r) in zip(lhs.definitions, rhs.definitions) {
-            guard l == r else {
-                return false
-            }
-        }
+public struct ExecutableDocument {
+    public let loc: Location?
+    public var definitions: [ExecutableDefinition]
 
-        return true
+    init(loc: Location? = nil, definitions: [ExecutableDefinition]) {
+        self.loc = loc
+        self.definitions = definitions
+    }
+
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.definitions)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        definitions.forEach {
+            $0.write(to: &target)
+            target.write("\n\n")
+        }
+    }
+}
+
+extension ExecutableDocument: Equatable {
+    public static func == (lhs: ExecutableDocument, rhs: ExecutableDocument) -> Bool {
+        return lhs.definitions == rhs.definitions
     }
 }
 

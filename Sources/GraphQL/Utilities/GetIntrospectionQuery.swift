@@ -1,4 +1,4 @@
-func getIntrospectionQuery(
+public func getIntrospectionQuery(
     descriptions: Bool = true,
     specifiedByUrl: Bool = false,
     directiveIsRepeatable: Bool = false,

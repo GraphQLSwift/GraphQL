@@ -1,17 +1,19 @@
 public struct Descender {
     
-    enum Mutation<T: Node> {
-        case replace(T)
-        case remove
-    }
     private let visitor: Visitor
     
     fileprivate var parentStack: [VisitorParent] = []
     private var path: [AnyKeyPath] = []
     private var isBreaking = false
     
-    fileprivate mutating func go<H: Node>(node: inout H, key: AnyKeyPath?) -> Mutation<H>? {
-        if isBreaking { return nil }
+    /**
+        The meat of the traversal
+     
+        - Returns
+            `true` if node should be removed
+     */
+    fileprivate mutating func go<H: Node>(node: inout H, key: AnyKeyPath?) -> Bool {
+        if isBreaking { return false }
         let parent = parentStack.last
         let newPath: [AnyKeyPath]
         if let key = key {
@@ -20,23 +22,23 @@ public struct Descender {
             newPath = path
         }
         
-        var mutation: Mutation<H>? = nil
+        var shouldRemove = false
         
         switch visitor.enter(node: node, key: key, parent: parent, path: newPath, ancestors: parentStack) {
         case .skip:
-            return nil// .node(Optional(result))
+            return false
         case .continue:
             break
         case let .node(newNode):
             if let newNode = newNode {
-                mutation = .replace(newNode)
+                node = newNode
             } else {
                 // TODO: Should we still be traversing the children here?
-                mutation = .remove
+                shouldRemove = true
             }
         case .break:
             isBreaking = true
-            return nil
+            return false
         }
         parentStack.append(.node(node))
         if let key = key {
@@ -48,32 +50,28 @@ public struct Descender {
         }
         parentStack.removeLast()
         
-        if isBreaking { return mutation }
+        if isBreaking { return shouldRemove }
         
         switch visitor.leave(node: node, key: key, parent: parent, path: newPath, ancestors: parentStack) {
         case .skip, .continue:
-            return mutation
+            return shouldRemove
         case let .node(newNode):
             if let newNode = newNode {
-                return .replace(newNode)
+                node = newNode
+                return false
             } else {
                 // TODO: Should we still be traversing the children here?
-                return .remove
+                return true
             }
         case .break:
             isBreaking = true
-            return mutation
+            return shouldRemove
         }
     }
     
     
     mutating func descend<T: Node, U: Node>(_ node: inout T, _ kp: WritableKeyPath<T, U>) {
-        switch go(node: &node[keyPath: kp], key: kp) {
-        case nil:
-            break
-        case .replace(let child):
-            node[keyPath: kp] = child
-        case .remove:
+        if go(node: &node[keyPath: kp], key: kp) {
             fatalError("Can't remove this node")
         }
     }
@@ -81,13 +79,10 @@ public struct Descender {
         guard var oldVal = node[keyPath: kp] else {
             return
         }
-        switch go(node: &oldVal, key: kp) {
-        case nil:
-            node[keyPath: kp] = oldVal
-        case .replace(let child):
-            node[keyPath: kp] = child
-        case .remove:
+        if go(node: &oldVal, key: kp) {
             node[keyPath: kp] = nil
+        } else {
+            node[keyPath: kp] = oldVal
         }
     }
     mutating func descend<T, U: Node>(_ node: inout T, _ kp: WritableKeyPath<T, [U]>) {
@@ -97,12 +92,7 @@ public struct Descender {
         
         var i = node[keyPath: kp].startIndex
         while i != node[keyPath: kp].endIndex {
-            switch go(node: &node[keyPath: kp][i], key: \[U].[i]) {
-            case nil:
-                break
-            case .replace(let child):
-                node[keyPath: kp][i] = child
-            case .remove:
+            if go(node: &node[keyPath: kp][i], key: \[U].[i]) {
                 toRemove.append(i)
             }
             i = node[keyPath: kp].index(after: i)
@@ -112,12 +102,7 @@ public struct Descender {
     }
     
     mutating func descend<T: Node>(enumCase: inout T) {
-        switch go(node: &enumCase, key: nil) {
-        case nil:
-            break
-        case .replace(let node):
-            enumCase = node
-        case .remove:
+        if go(node: &enumCase, key: nil) {
             //TODO: figure this out
             fatalError("What happens here?")
         }
@@ -169,14 +154,10 @@ public func visit<T: Node, V: Visitor>(root: T, visitor: V) -> T {
     var descender = Descender(visitor: visitor)
     
     var result = root
-    switch descender.go(node: &result, key: nil) {
-    case .remove:
+    if descender.go(node: &result, key: nil) {
         fatalError("Root node in the AST was removed")
-    case .replace(let node):
-        return node
-    case nil:
-        return result
     }
+    return result
 }
 
 public enum VisitorParent {

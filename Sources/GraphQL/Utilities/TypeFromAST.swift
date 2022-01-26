@@ -1,4 +1,4 @@
-func typeFromAST(schema: GraphQLSchema, inputTypeAST: Type) -> GraphQLType? {
+public func typeFromAST(schema: GraphQLSchema, inputTypeAST: Type) -> GraphQLType? {
     switch inputTypeAST {
     case let .listType(listType):
         if let innerType = typeFromAST(schema: schema, inputTypeAST: listType.type) {

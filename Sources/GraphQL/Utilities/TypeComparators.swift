@@ -1,7 +1,7 @@
 /**
  * Provided two types, return true if the types are equal (invariant).
  */
-func isEqualType(_ typeA: GraphQLType, _ typeB: GraphQLType) -> Bool {
+public func isEqualType(_ typeA: GraphQLType, _ typeB: GraphQLType) -> Bool {
     // Equivalent types are equal.
     if typeA == typeB {
         return true
@@ -70,7 +70,7 @@ func == (lhs: GraphQLType, rhs: GraphQLType) -> Bool {
  * Provided a type and a super type, return true if the first type is either
  * equal or a subset of the second super type (covariant).
  */
-func isTypeSubTypeOf(
+public func isTypeSubTypeOf(
     _ schema: GraphQLSchema,
     _ maybeSubType: GraphQLType,
     _ superType: GraphQLType
