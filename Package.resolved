@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/apple/swift-collections",
         "state": {
           "branch": null,
-          "revision": "2d33a0ea89c961dcb2b3da2157963d9c0370347e",
-          "version": "1.0.1"
+          "revision": "48254824bb4248676bf7ce56014ff57b142b77eb",
+          "version": "1.0.2"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "120acb15c39aa3217e9888e515de160378fbcc1e",
-          "version": "2.18.0"
+          "revision": "51c3fc2e4a0fcdf4a25089b288dd65b73df1b0ef",
+          "version": "2.37.0"
         }
       }
     ]
