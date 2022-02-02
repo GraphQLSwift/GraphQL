@@ -1,4 +1,3 @@
-import Foundation
 import NIO
 
 public struct GraphQLResult : Equatable, Codable, CustomStringConvertible {
@@ -34,7 +33,7 @@ public struct GraphQLResult : Equatable, Codable, CustomStringConvertible {
     }
     
     public var description: String {
-        let data = try! JSONEncoder().encode(self)
+        let data = try! GraphQLJSONEncoder().encode(self)
         return String(data: data, encoding: .utf8)!
     }
 }
