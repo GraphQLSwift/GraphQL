@@ -105,7 +105,7 @@ public func buildClientSchema(introspection: IntrospectionQuery) throws -> Graph
             return try GraphQLInterfaceType(
                 name: type.name,
                 description: type.description,
-                interfaces: buildImplementationsList(interfaces: type.interfaces ?? []),
+                interfaces: { try buildImplementationsList(interfaces: type.interfaces ?? []) },
                 fields: { try! buildFieldDefMap(fields: type.fields ?? []) },
                 resolveType: nil
             )

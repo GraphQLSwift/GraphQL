@@ -791,7 +791,10 @@ public final class GraphQLInterfaceType {
            fields: fieldsThunk()
        )
     }()
-    public let interfaces: [GraphQLInterfaceType]
+    public lazy var interfaces: [GraphQLInterfaceType] = {
+        try! interfacesThunk()
+    }()
+    private let interfacesThunk: () throws -> [GraphQLInterfaceType]
     public let kind: TypeKind = .interface
     
     public convenience init(
@@ -804,7 +807,7 @@ public final class GraphQLInterfaceType {
         try self.init(
             name: name,
             description: description,
-            interfaces: interfaces,
+            interfaces: { interfaces },
             fields: { fields },
             resolveType: resolveType
         )
@@ -813,7 +816,7 @@ public final class GraphQLInterfaceType {
     public init(
         name: String,
         description: String? = nil,
-        interfaces: [GraphQLInterfaceType] = [],
+        interfaces: @escaping () throws -> [GraphQLInterfaceType],
         fields: @escaping () -> GraphQLFieldMap,
         resolveType: GraphQLTypeResolve? = nil
     ) throws {
@@ -823,7 +826,7 @@ public final class GraphQLInterfaceType {
         
         self.fieldsThunk = fields
         
-        self.interfaces = interfaces
+        self.interfacesThunk = interfaces
         self.resolveType = resolveType
     }
 
