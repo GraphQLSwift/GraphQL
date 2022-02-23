@@ -191,18 +191,15 @@ func collectImplementations(
 ) -> [String : InterfaceImplementations] {
     var implementations: [String: InterfaceImplementations] = [:]
 
-    for type in types {
+    var typesToCheck = types
+    while let type = typesToCheck.popLast() {
         if let type = type as? GraphQLInterfaceType {
             if implementations[type.name] == nil {
                 implementations[type.name] = InterfaceImplementations()
             }
 
-            // Store implementations by interface.
-            for iface in type.interfaces {
-                implementations[iface.name] = InterfaceImplementations(
-                    interfaces: (implementations[iface.name]?.interfaces ?? []) + [type]
-                )
-            }
+            // Depth first search of other interface implementations
+            typesToCheck += type.interfaces
         }
         
         if let type = type as? GraphQLObjectType {
