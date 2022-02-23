@@ -171,10 +171,7 @@ func doTypesOverlap(
         }
     }
 
-    if
-        let typeA = typeA as? GraphQLObjectType,
-        let typeB = typeB as? GraphQLAbstractType
-    {
+    if let typeB = typeB as? GraphQLAbstractType {
         // Determine if the former type is a possible concrete type of the latter.
         return schema.isSubType(
             abstractType: typeB,
