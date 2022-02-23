@@ -3,7 +3,7 @@ import XCTest
 
 class KnownArgumentNamesTests : ValidationTestCase {
     override func setUp() {
-        rule = KnownArgumentNamesRule
+        rule = KnownArgumentNamesRule.self
     }
     
     func testValidWithObjectWithoutArguments() throws {

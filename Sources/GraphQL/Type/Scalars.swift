@@ -6,7 +6,7 @@ public let GraphQLInt = try! GraphQLScalarType(
     serialize: { try map(from: $0) } ,
     parseValue: { try .int($0.intValue(converting: true)) },
     parseLiteral: { ast in
-        if let ast = ast as? IntValue, let int = Int(ast.value) {
+        if case .intValue(let ast) = ast, let int = Int(ast.value) {
             return .int(int)
         }
         
@@ -23,11 +23,11 @@ public let GraphQLFloat = try! GraphQLScalarType(
     serialize: { try map(from: $0) } ,
     parseValue: { try .double($0.doubleValue(converting: true)) },
     parseLiteral: { ast in
-        if let ast = ast as? FloatValue, let double = Double(ast.value) {
+        if case .floatValue(let ast) = ast, let double = Double(ast.value) {
             return .double(double)
         }
 
-        if let ast = ast as? IntValue, let double = Double(ast.value) {
+        if case .intValue(let ast) = ast, let double = Double(ast.value) {
             return .double(double)
         }
 
@@ -44,7 +44,7 @@ public let GraphQLString = try! GraphQLScalarType(
     serialize: { try map(from: $0) } ,
     parseValue: { try .string($0.stringValue(converting: true)) },
     parseLiteral: { ast in
-        if let ast = ast as? StringValue {
+        if case .stringValue(let ast) = ast {
             return .string(ast.value)
         }
 
@@ -58,7 +58,7 @@ public let GraphQLBoolean = try! GraphQLScalarType(
     serialize: { try map(from: $0) } ,
     parseValue: { try .bool($0.boolValue(converting: true)) },
     parseLiteral: { ast in
-        if let ast = ast as? BooleanValue {
+        if case .booleanValue(let ast) = ast {
             return .bool(ast.value)
         }
 
@@ -77,14 +77,18 @@ public let GraphQLID = try! GraphQLScalarType(
     serialize: { try map(from: $0) },
     parseValue: { try .string($0.stringValue(converting: true)) },
     parseLiteral: { ast in
-        if let ast = ast as? StringValue {
+        if case .stringValue(let ast) = ast {
             return .string(ast.value)
         }
 
-        if let ast = ast as? IntValue {
+        if case .intValue(let ast) = ast {
             return .string(ast.value)
         }
 
         return .null
     }
 )
+
+public let specifiedScalarTypes = [
+    GraphQLString, GraphQLInt, GraphQLFloat, GraphQLBoolean, GraphQLID
+]

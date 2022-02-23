@@ -1,4 +1,4 @@
-public enum DirectiveLocation : String, Encodable {
+public enum DirectiveLocation : String, Codable {
     // Operations
     case query = "QUERY"
     case mutation = "MUTATION"

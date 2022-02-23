@@ -133,42 +133,30 @@ extension Token : CustomStringConvertible {
     }
 }
 
-public enum NodeResult {
-    case node(Node)
-    case array([Node])
-
-    public var isNode: Bool {
-        if case .node = self {
-            return true
-        }
-        return false
-    }
-
-    public var isArray: Bool {
-        if case .array = self {
-            return true
-        }
-        return false
-    }
-}
-
 /**
  * The list of all possible AST node types.
  */
-public protocol Node {
-    var kind: Kind { get }
+public protocol Node: TextOutputStreamable {
     var loc: Location? { get }
-    func get(key: String) -> NodeResult?
-    func set(value: Node?, key: String)
+    mutating func descend(descender: inout Descender)
 }
 
 extension Node {
-    public func get(key: String) -> NodeResult? {
-        return nil
+    public var printed: String {
+        var s = ""
+        self.write(to: &s)
+        return s
     }
+}
 
-    public func set(value: Node?, key: String) {
-
+private protocol EnumNode: Node {
+    var underlyingNode: Node { get }
+}
+extension EnumNode {
+    public var loc: Location? { underlyingNode.loc }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        underlyingNode.write(to: &target)
     }
 }
 
@@ -178,15 +166,18 @@ extension OperationDefinition       : Node {}
 extension VariableDefinition        : Node {}
 extension Variable                  : Node {}
 extension SelectionSet              : Node {}
+extension Selection                 : Node {}
 extension Field                     : Node {}
 extension Argument                  : Node {}
 extension FragmentSpread            : Node {}
 extension InlineFragment            : Node {}
 extension FragmentDefinition        : Node {}
+extension Value                     : Node {}
 extension IntValue                  : Node {}
 extension FloatValue                : Node {}
 extension StringValue               : Node {}
 extension BooleanValue              : Node {}
+extension NullValue                 : Node {}
 extension EnumValue                 : Node {}
 extension ListValue                 : Node {}
 extension ObjectValue               : Node {}
@@ -209,85 +200,152 @@ extension InputObjectTypeDefinition : Node {}
 extension TypeExtensionDefinition   : Node {}
 extension DirectiveDefinition       : Node {}
 
-public final class Name {
-    public let kind: Kind = .name
+public struct Name {
     public let loc: Location?
     public let value: String
 
-    init(loc: Location? = nil, value: String) {
+    public init(loc: Location? = nil, value: String) {
         self.loc = loc
         self.value = value
     }
+    
+    public mutating func descend(descender: inout Descender) { }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write(value)
+    }
 }
 
-extension Name : Equatable {
+extension Name: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(value)
+    }
     public static func == (lhs: Name, rhs: Name) -> Bool {
         return lhs.value == rhs.value
     }
 }
 
-public final class Document {
-    public let kind: Kind = .document
+public struct Document {
     public let loc: Location?
-    public let definitions: [Definition]
+    public var definitions: [Definition]
 
     init(loc: Location? = nil, definitions: [Definition]) {
         self.loc = loc
         self.definitions = definitions
     }
 
-    public func get(key: String) -> NodeResult? {
-        switch key {
-        case "definitions":
-            guard !definitions.isEmpty else {
-                return nil
-            }
-            return .array(definitions)
-        default:
-            return nil
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.definitions)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        definitions.forEach {
+            $0.write(to: &target)
+            target.write("\n\n")
         }
     }
 }
 
 extension Document : Equatable {
     public static func == (lhs: Document, rhs: Document) -> Bool {
-        guard lhs.definitions.count == rhs.definitions.count else {
-            return false
-        }
-
-        for (l, r) in zip(lhs.definitions, rhs.definitions) {
-            guard l == r else {
-                return false
-            }
-        }
-
-        return true
+        return lhs.definitions == rhs.definitions
     }
 }
 
-public protocol  Definition   : Node       {}
-extension OperationDefinition : Definition {}
-extension FragmentDefinition  : Definition {}
+public struct ExecutableDocument {
+    public let loc: Location?
+    public var definitions: [ExecutableDefinition]
 
-public func == (lhs: Definition, rhs: Definition) -> Bool {
-    switch lhs {
-    case let l as OperationDefinition:
-        if let r = rhs as? OperationDefinition {
-            return l == r
-        }
-    case let l as FragmentDefinition:
-        if let r = rhs as? FragmentDefinition {
-            return l == r
-        }
-    case let l as TypeSystemDefinition:
-        if let r = rhs as? TypeSystemDefinition {
-            return l == r
-        }
-    default:
-        return false
+    init(loc: Location? = nil, definitions: [ExecutableDefinition]) {
+        self.loc = loc
+        self.definitions = definitions
     }
 
-    return false
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.definitions)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        definitions.forEach {
+            $0.write(to: &target)
+            target.write("\n\n")
+        }
+    }
+}
+
+extension ExecutableDocument: Equatable {
+    public static func == (lhs: ExecutableDocument, rhs: ExecutableDocument) -> Bool {
+        return lhs.definitions == rhs.definitions
+    }
+}
+
+public enum Definition: EnumNode, Equatable {
+    case executableDefinition(ExecutableDefinition)
+    case typeSystemDefinitionOrExtension(TypeSystemDefinitionOrExtension)
+
+    var underlyingNode: Node {
+        switch self {
+        case let .executableDefinition(x):
+            return x
+        case let .typeSystemDefinitionOrExtension(x):
+            return x
+        }
+    }
+
+    public mutating func descend(descender: inout Descender) {
+        switch self {
+        case var .executableDefinition(x):
+            descender.descend(enumCase: &x)
+            self = .executableDefinition(x)
+        case var .typeSystemDefinitionOrExtension(x):
+            descender.descend(enumCase: &x)
+            self = .typeSystemDefinitionOrExtension(x)
+        }
+    }
+}
+
+public enum ExecutableDefinition: EnumNode, Equatable {
+    case operation(OperationDefinition)
+    case fragment(FragmentDefinition)
+
+    fileprivate var underlyingNode: Node {
+        switch self {
+        case let .fragment(fragmentDef):
+            return fragmentDef
+        case let .operation(operationDef):
+            return operationDef
+        }
+    }
+
+    public mutating func descend(descender: inout Descender) {
+        switch self {
+        case var .fragment(x):
+            descender.descend(enumCase: &x)
+            self = .fragment(x)
+        case var .operation(x):
+            descender.descend(enumCase: &x)
+            self = .operation(x)
+        }
+    }
+}
+
+public enum TypeSystemDefinitionOrExtension: EnumNode, Equatable {
+    case typeSystemDefinition(TypeSystemDefinition)
+
+    fileprivate var underlyingNode: Node {
+        switch self {
+        case let .typeSystemDefinition(x):
+            return x
+        }
+    }
+
+    public mutating func descend(descender: inout Descender) {
+        switch self {
+        case var .typeSystemDefinition(x):
+            descender.descend(enumCase: &x)
+            self = .typeSystemDefinition(x)
+        }
+    }
 }
 
 public enum OperationType : String {
@@ -297,14 +355,13 @@ public enum OperationType : String {
     case subscription = "subscription"
 }
 
-public final class OperationDefinition {
-    public let kind: Kind = .operationDefinition
+public struct OperationDefinition {
     public let loc: Location?
-    public let operation: OperationType
-    public let name: Name?
-    public let variableDefinitions: [VariableDefinition]
-    public let directives: [Directive]
-    public let selectionSet: SelectionSet
+    public var operation: OperationType
+    public var name: Name?
+    public var variableDefinitions: [VariableDefinition]
+    public var directives: [Directive]
+    public var selectionSet: SelectionSet
 
     init(loc: Location? = nil, operation: OperationType, name: Name? = nil, variableDefinitions: [VariableDefinition] = [], directives: [Directive] = [], selectionSet: SelectionSet) {
         self.loc = loc
@@ -315,48 +372,52 @@ public final class OperationDefinition {
         self.selectionSet = selectionSet
     }
 
-    public func get(key: String) -> NodeResult? {
-        switch key {
-        case "name":
-            return name.map({ .node($0) })
-        case "variableDefinitions":
-            guard !variableDefinitions.isEmpty else {
-                return nil
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.variableDefinitions)
+        descender.descend(&self, \.directives)
+        descender.descend(&self, \.selectionSet)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        let anonymous = operation == .query && directives.isEmpty && variableDefinitions.isEmpty
+        if !anonymous {
+            target.write(operation.rawValue)
+            target.write(" ")
+            name?.write(to: &target)
+            if let first = variableDefinitions.first {
+                target.write(" (")
+                first.write(to: &target)
+                variableDefinitions.suffix(from: 1).forEach {
+                    target.write(", ")
+                    $0.write(to: &target)
+                }
+                target.write(")")
             }
-            return .array(variableDefinitions)
-        case "directives":
-            guard !variableDefinitions.isEmpty else {
-                return nil
+            if !directives.isEmpty {
+                directives.write(to: &target)
             }
-            return .array(directives)
-        case "selectionSet":
-            return .node(selectionSet)
-        default:
-            return nil
         }
+        target.write(" ")
+        selectionSet.write(to: &target)
     }
 }
 
-extension OperationDefinition : Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(ObjectIdentifier(self))
-    }
-
+extension OperationDefinition: Equatable {
     public static func == (lhs: OperationDefinition, rhs: OperationDefinition) -> Bool {
         return lhs.operation == rhs.operation &&
-            lhs.name == rhs.name &&
-            lhs.variableDefinitions == rhs.variableDefinitions &&
-            lhs.directives == rhs.directives &&
-            lhs.selectionSet == rhs.selectionSet
+        lhs.name == rhs.name &&
+        lhs.variableDefinitions == rhs.variableDefinitions &&
+        lhs.directives == rhs.directives &&
+        lhs.selectionSet == rhs.selectionSet
     }
 }
 
-public final class VariableDefinition {
-    public let kind: Kind = .variableDefinition
+public struct VariableDefinition {
     public let loc: Location?
-    public let variable: Variable
-    public let type: Type
-    public let defaultValue: Value?
+    public var variable: Variable
+    public var type: Type
+    public var defaultValue: Value?
 
     init(loc: Location? = nil, variable: Variable, type: Type, defaultValue: Value? = nil) {
         self.loc = loc
@@ -364,17 +425,20 @@ public final class VariableDefinition {
         self.type = type
         self.defaultValue = defaultValue
     }
-
-    public func get(key: String) -> NodeResult? {
-        switch key {
-        case "variable":
-            return .node(variable)
-        case "type":
-            return .node(type)
-        case "defaultValue":
-            return defaultValue.map({ .node($0) })
-        default:
-            return nil
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.variable)
+        descender.descend(&self, \.type)
+        descender.descend(&self, \.defaultValue)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        variable.write(to: &target)
+        target.write(": ")
+        type.write(to: &target)
+        if let defaultValue = defaultValue {
+            target.write(" = ")
+            defaultValue.write(to: &target)
         }
     }
 }
@@ -401,23 +465,22 @@ extension VariableDefinition : Equatable {
     }
 }
 
-public final class Variable {
-    public let kind: Kind = .variable
+public struct Variable {
     public let loc: Location?
-    public let name: Name
+    public var name: Name
 
     init(loc: Location? = nil, name: Name) {
         self.loc = loc
         self.name = name
     }
-
-    public func get(key: String) -> NodeResult? {
-        switch key {
-        case "name":
-            return .node(name)
-        default:
-            return nil
-        }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.name)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write("$")
+        name.write(to: &target)
     }
 }
 
@@ -427,85 +490,85 @@ extension Variable : Equatable {
     }
 }
 
-public final class SelectionSet {
-    public let kind: Kind = .selectionSet
+public struct SelectionSet {
     public let loc: Location?
-    public let selections: [Selection]
+    public var selections: [Selection]
 
-    init(loc: Location? = nil, selections: [Selection]) {
+    public init(loc: Location? = nil, selections: [Selection]) {
         self.loc = loc
         self.selections = selections
     }
-
-    public func get(key: String) -> NodeResult? {
-        switch key {
-        case "selections":
-            guard !selections.isEmpty else {
-                return nil
-            }
-            return .array(selections)
-        default:
-            return nil
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.selections)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write("{\n")
+        selections.forEach {
+            $0.write(to: &target)
+            target.write("\n")
         }
+        target.write("}")
     }
 }
 
-extension SelectionSet : Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(ObjectIdentifier(self))
-    }
-
+extension SelectionSet: Equatable {
     public static func == (lhs: SelectionSet, rhs: SelectionSet) -> Bool {
         guard lhs.selections.count == rhs.selections.count else {
             return false
         }
-
+        
         for (l, r) in zip(lhs.selections, rhs.selections) {
             guard l == r else {
                 return false
             }
         }
-
+        
         return true
     }
 }
 
-public protocol Selection : Node      {}
-extension Field           : Selection {}
-extension FragmentSpread  : Selection {}
-extension InlineFragment  : Selection {}
-
-public func == (lhs: Selection, rhs: Selection) -> Bool {
-    switch lhs {
-    case let l as Field:
-        if let r = rhs as? Field {
-            return l == r
+public enum Selection: EnumNode, Equatable {
+    case field(Field)
+    case fragmentSpread(FragmentSpread)
+    case inlineFragment(InlineFragment)
+    
+    fileprivate var underlyingNode: Node {
+        switch self {
+        case let .field(field):
+            return field
+        case let .fragmentSpread(fragmentSpread):
+            return fragmentSpread
+        case let .inlineFragment(inlineFragment):
+            return inlineFragment
         }
-    case let l as FragmentSpread:
-        if let r = rhs as? FragmentSpread {
-            return l == r
-        }
-    case let l as InlineFragment:
-        if let r = rhs as? InlineFragment {
-            return l == r
-        }
-    default:
-        return false
     }
-
-    return false
+    
+    public mutating func descend(descender: inout Descender) {
+        switch self {
+        case var .field(x):
+            descender.descend(enumCase: &x)
+            self = .field(x)
+        case var .fragmentSpread(x):
+            descender.descend(enumCase: &x)
+            self = .fragmentSpread(x)
+        case var .inlineFragment(x):
+            descender.descend(enumCase: &x)
+            self = .inlineFragment(x)
+        }
+    }
 }
 
-public final class Field {
-    public let kind: Kind = .field
+public struct Field {
     public let loc: Location?
-    public let alias: Name?
-    public let name: Name
-    public let arguments: [Argument]
-    public let directives: [Directive]
-    public let selectionSet: SelectionSet?
+    public var alias: Name?
+    public var name: Name
+    public var arguments: [Argument]
+    public var directives: [Directive]
+    public var selectionSet: SelectionSet?
 
-    init(loc: Location? = nil, alias: Name? = nil, name: Name, arguments: [Argument] = [], directives: [Directive] = [], selectionSet: SelectionSet? = nil) {
+    public init(loc: Location? = nil, alias: Name? = nil, name: Name, arguments: [Argument] = [], directives: [Directive] = [], selectionSet: SelectionSet? = nil) {
         self.loc = loc
         self.alias = alias
         self.name = name
@@ -513,27 +576,33 @@ public final class Field {
         self.directives = directives
         self.selectionSet = selectionSet
     }
-
-    public func get(key: String) -> NodeResult? {
-        switch key {
-        case "alias":
-            return alias.map({ .node($0) })
-        case "name":
-            return .node(name)
-        case "arguments":
-            guard !arguments.isEmpty else {
-                return nil
-            }
-            return .array(arguments)
-        case "directives":
-            guard !directives.isEmpty else {
-                return nil
-            }
-            return .array(directives)
-        case "selectionSet":
-            return selectionSet.map({ .node($0) })
-        default:
-            return nil
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.alias)
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.arguments)
+        descender.descend(&self, \.directives)
+        descender.descend(&self, \.selectionSet)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        if let alias = alias {
+            alias.write(to: &target)
+            target.write(": ")
+        }
+        name.write(to: &target)
+        if !arguments.isEmpty {
+            target.write( "(")
+            arguments.write(to: &target)
+            target.write(")")
+        }
+        if !directives.isEmpty {
+            target.write(" ")
+            directives.write(to: &target)
+        }
+        if let selectionSet = selectionSet {
+            target.write(" ")
+            selectionSet.write(to: &target)
         }
     }
 }
@@ -548,26 +617,37 @@ extension Field : Equatable {
     }
 }
 
-public final class Argument {
-    public let kind: Kind = .argument
+public struct Argument {
     public let loc: Location?
-    public let name: Name
-    public let value: Value
+    public var name: Name
+    public var value: Value
 
     init(loc: Location? = nil, name: Name, value: Value) {
         self.loc = loc
         self.name = name
         self.value = value
     }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.value)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        name.write(to: &target)
+        target.write(": ")
+        value.write(to: &target)
+    }
+}
 
-    public func get(key: String) -> NodeResult? {
-        switch key {
-        case "name":
-            return .node(name)
-        case "value":
-            return .node(value)
-        default:
-            return nil
+extension Array where Element == Argument {
+    func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        if let first = first {
+            first.write(to: &target)
+        }
+        suffix(from: 1).forEach {
+            target.write(", ")
+            $0.write(to: &target)
         }
     }
 }
@@ -579,15 +659,10 @@ extension Argument : Equatable {
     }
 }
 
-public protocol  Fragment : Selection {}
-extension FragmentSpread  : Fragment  {}
-extension InlineFragment  : Fragment  {}
-
-public final class FragmentSpread {
-    public let kind: Kind = .fragmentSpread
+public struct FragmentSpread {
     public let loc: Location?
-    public let name: Name
-    public let directives: [Directive]
+    public var name: Name
+    public var directives: [Directive]
 
     init(loc: Location? = nil, name: Name, directives: [Directive] = []) {
         self.loc = loc
@@ -595,17 +670,17 @@ public final class FragmentSpread {
         self.directives = directives
     }
 
-    public func get(key: String) -> NodeResult? {
-        switch key {
-        case "name":
-            return .node(name)
-        case "directives":
-            guard !directives.isEmpty else {
-                return nil
-            }
-            return .array(directives)
-        default:
-            return nil
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.directives)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write("...")
+        name.write(to: &target)
+        if !directives.isEmpty {
+            target.write(" ")
+            directives.write(to: &target)
         }
     }
 }
@@ -633,12 +708,11 @@ extension FragmentDefinition : HasTypeCondition {
     }
 }
 
-public final class InlineFragment {
-    public let kind: Kind = .inlineFragment
+public struct InlineFragment {
     public let loc: Location?
-    public let typeCondition: NamedType?
-    public let directives: [Directive]
-    public let selectionSet: SelectionSet
+    public var typeCondition: NamedType?
+    public var directives: [Directive]
+    public var selectionSet: SelectionSet
 
     init(loc: Location? = nil, typeCondition: NamedType? = nil, directives: [Directive] = [], selectionSet: SelectionSet) {
         self.loc = loc
@@ -646,23 +720,25 @@ public final class InlineFragment {
         self.directives = directives
         self.selectionSet = selectionSet
     }
-}
-
-extension InlineFragment {
-    public func get(key: String) -> NodeResult? {
-        switch key {
-        case "typeCondition":
-            return typeCondition.map({ .node($0) })
-        case "directives":
-            guard !directives.isEmpty else {
-                return nil
-            }
-            return .array(directives)
-        case "selectionSet":
-            return .node(selectionSet)
-        default:
-            return nil
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.typeCondition)
+        descender.descend(&self, \.directives)
+        descender.descend(&self, \.selectionSet)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write("...")
+        if let typeCondition = typeCondition {
+            target.write(" on ")
+            typeCondition.write(to: &target)
         }
+        if !directives.isEmpty {
+            target.write(" ")
+            directives.write(to: &target)
+        }
+        target.write(" ")
+        selectionSet.write(to: &target)
     }
 }
 
@@ -674,13 +750,12 @@ extension InlineFragment : Equatable {
     }
 }
 
-public final class FragmentDefinition {
-    public let kind: Kind = .fragmentDefinition
+public struct FragmentDefinition {
     public let loc: Location?
-    public let name: Name
-    public let typeCondition: NamedType
-    public let directives: [Directive]
-    public let selectionSet: SelectionSet
+    public var name: Name
+    public var typeCondition: NamedType
+    public var directives: [Directive]
+    public var selectionSet: SelectionSet
 
     init(loc: Location? = nil, name: Name, typeCondition: NamedType, directives: [Directive] = [], selectionSet: SelectionSet) {
         self.loc = loc
@@ -690,30 +765,28 @@ public final class FragmentDefinition {
         self.selectionSet = selectionSet
     }
 
-    public func get(key: String) -> NodeResult? {
-        switch key {
-        case "name":
-            return .node(name)
-        case "typeCondition":
-            return .node(typeCondition)
-        case "directives":
-            guard !directives.isEmpty else {
-                return nil
-            }
-            return .array(directives)
-        case "selectionSet":
-            return .node(selectionSet)
-        default:
-            return nil
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.typeCondition)
+        descender.descend(&self, \.directives)
+        descender.descend(&self, \.selectionSet)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write("fragment ")
+        name.write(to: &target)
+        target.write(" on ")
+        typeCondition.write(to: &target)
+        if !directives.isEmpty {
+            target.write(" ")
+            directives.write(to: &target)
         }
+        target.write(" ")
+        selectionSet.write(to: &target)
     }
 }
 
-extension FragmentDefinition : Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(ObjectIdentifier(self))
-    }
-
+extension FragmentDefinition: Equatable {
     public static func == (lhs: FragmentDefinition, rhs: FragmentDefinition) -> Bool {
         return lhs.name == rhs.name &&
         lhs.typeCondition == rhs.typeCondition &&
@@ -722,70 +795,86 @@ extension FragmentDefinition : Hashable {
     }
 }
 
-public protocol Value  : Node  {}
-extension Variable     : Value {}
-extension IntValue     : Value {}
-extension FloatValue   : Value {}
-extension StringValue  : Value {}
-extension BooleanValue : Value {}
-extension NullValue    : Value {}
-extension EnumValue    : Value {}
-extension ListValue    : Value {}
-extension ObjectValue  : Value {}
-
-public func == (lhs: Value, rhs: Value) -> Bool {
-    switch lhs {
-    case let l as Variable:
-        if let r = rhs as? Variable {
-            return l == r
+public enum Value: EnumNode, Equatable {
+    var underlyingNode: Node {
+        switch self {
+        case let .variable(x):
+            return x
+        case let .intValue(x):
+            return x
+        case let .floatValue(x):
+            return x
+        case let .stringValue(x):
+            return x
+        case let .booleanValue(x):
+            return x
+        case let .nullValue(x):
+            return x
+        case let .enumValue(x):
+            return x
+        case let .listValue(x):
+            return x
+        case let .objectValue(x):
+            return x
         }
-    case let l as IntValue:
-        if let r = rhs as? IntValue {
-            return l == r
-        }
-    case let l as FloatValue:
-        if let r = rhs as? FloatValue {
-            return l == r
-        }
-    case let l as StringValue:
-        if let r = rhs as? StringValue {
-            return l == r
-        }
-    case let l as BooleanValue:
-        if let r = rhs as? BooleanValue {
-            return l == r
-        }
-    case let l as NullValue:
-        if let r = rhs as? NullValue {
-            return l == r
-        }
-    case let l as EnumValue:
-        if let r = rhs as? EnumValue {
-            return l == r
-        }
-    case let l as ListValue:
-        if let r = rhs as? ListValue {
-            return l == r
-        }
-    case let l as ObjectValue:
-        if let r = rhs as? ObjectValue {
-            return l == r
-        }
-    default:
-        return false
     }
-
-    return false
+    
+    public mutating func descend(descender: inout Descender) {
+        switch self {
+        case var .variable(x):
+            descender.descend(enumCase: &x)
+            self = .variable(x)
+        case var .intValue(x):
+            descender.descend(enumCase: &x)
+            self = .intValue(x)
+        case var .floatValue(x):
+            descender.descend(enumCase: &x)
+            self = .floatValue(x)
+        case var .stringValue(x):
+            descender.descend(enumCase: &x)
+            self = .stringValue(x)
+        case var .booleanValue(x):
+            descender.descend(enumCase: &x)
+            self = .booleanValue(x)
+        case var .nullValue(x):
+            descender.descend(enumCase: &x)
+            self = .nullValue(x)
+        case var .enumValue(x):
+            descender.descend(enumCase: &x)
+            self = .enumValue(x)
+        case var .listValue(x):
+            descender.descend(enumCase: &x)
+            self = .listValue(x)
+        case var .objectValue(x):
+            descender.descend(enumCase: &x)
+            self = .objectValue(x)
+        }
+    }
+    
+    case variable(Variable)
+    case intValue(IntValue)
+    case floatValue(FloatValue)
+    case stringValue(StringValue)
+    case booleanValue(BooleanValue)
+    case nullValue(NullValue)
+    case enumValue(EnumValue)
+    case listValue(ListValue)
+    case objectValue(ObjectValue)
 }
 
-public final class IntValue {
-    public let kind: Kind = .intValue
+public struct IntValue {
     public let loc: Location?
     public let value: String
 
     init(loc: Location? = nil, value: String) {
         self.loc = loc
         self.value = value
+    }
+    
+    public mutating func descend(descender: inout Descender) { }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write(value)
     }
 }
 
@@ -795,14 +884,19 @@ extension IntValue : Equatable {
     }
 }
 
-public final class FloatValue {
-    public let kind: Kind = .floatValue
+public struct FloatValue {
     public let loc: Location?
     public let value: String
 
     init(loc: Location? = nil, value: String) {
         self.loc = loc
         self.value = value
+    }
+    
+    public mutating func descend(descender: inout Descender) { }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write(value)
     }
 }
 
@@ -812,8 +906,7 @@ extension FloatValue : Equatable {
     }
 }
 
-public final class StringValue {
-    public let kind: Kind = .stringValue
+public struct StringValue {
     public let loc: Location?
     public let value: String
     public let block: Bool?
@@ -823,6 +916,19 @@ public final class StringValue {
         self.value = value
         self.block = block
     }
+    
+    public mutating func descend(descender: inout Descender) { }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        if block ?? false {
+            //TODO: Implement this!
+            fatalError("Needs implemented")
+        } else {
+            target.write("\"")
+            target.write(value)
+            target.write("\"")
+        }
+    }
 }
 
 extension StringValue : Equatable {
@@ -831,14 +937,19 @@ extension StringValue : Equatable {
     }
 }
 
-public final class BooleanValue {
-    public let kind: Kind = .booleanValue
+public struct BooleanValue {
     public let loc: Location?
     public let value: Bool
 
     init(loc: Location? = nil, value: Bool) {
         self.loc = loc
         self.value = value
+    }
+    
+    public mutating func descend(descender: inout Descender) { }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write(value ? "true" : "false")
     }
 }
 
@@ -848,12 +959,17 @@ extension BooleanValue : Equatable {
     }
 }
 
-public final class NullValue {
-    public let kind: Kind = .nullValue
+public struct NullValue {
     public let loc: Location?
 
     init(loc: Location? = nil) {
         self.loc = loc
+    }
+    
+    public mutating func descend(descender: inout Descender) { }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write("null")
     }
 }
 
@@ -863,14 +979,19 @@ extension NullValue : Equatable {
     }
 }
 
-public final class EnumValue {
-    public let kind: Kind = .enumValue
+public struct EnumValue {
     public let loc: Location?
     public let value: String
 
     init(loc: Location? = nil, value: String) {
         self.loc = loc
         self.value = value
+    }
+    
+    public mutating func descend(descender: inout Descender) { }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write(value)
     }
 }
 
@@ -880,14 +1001,28 @@ extension EnumValue : Equatable {
     }
 }
 
-public final class ListValue {
-    public let kind: Kind = .listValue
+public struct ListValue {
     public let loc: Location?
-    public let values: [Value]
+    public var values: [Value]
 
     init(loc: Location? = nil, values: [Value]) {
         self.loc = loc
         self.values = values
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.values)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write("[")
+        if let first = values.first {
+            first.write(to: &target)
+            values.suffix(from: 1).forEach {
+                target.write(", ")
+                $0.write(to: &target)
+            }
+        }
     }
 }
 
@@ -907,14 +1042,29 @@ extension ListValue : Equatable {
     }
 }
 
-public final class ObjectValue {
-    public let kind: Kind = .objectValue
+public struct ObjectValue {
     public let loc: Location?
-    public let fields: [ObjectField]
+    public var fields: [ObjectField]
 
     init(loc: Location? = nil, fields: [ObjectField]) {
         self.loc = loc
         self.fields = fields
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.fields)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write("{")
+        if let first = fields.first {
+            first.write(to: &target)
+            fields.suffix(from: 1).forEach {
+                target.write(", ")
+                $0.write(to: &target)
+            }
+        }
+        target.write("}")
     }
 }
 
@@ -924,16 +1074,26 @@ extension ObjectValue : Equatable {
     }
 }
 
-public final class ObjectField {
-    public let kind: Kind = .objectField
+public struct ObjectField {
     public let loc: Location?
-    public let name: Name
-    public let value: Value
+    public var name: Name
+    public var value: Value
 
     init(loc: Location? = nil, name: Name, value: Value) {
         self.loc = loc
         self.name = name
         self.value = value
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.value)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        name.write(to: &target)
+        target.write(": ")
+        value.write(to: &target)
     }
 }
 
@@ -944,16 +1104,30 @@ extension ObjectField : Equatable {
     }
 }
 
-public final class Directive {
-    public let kind: Kind = .directive
+public struct Directive {
     public let loc: Location?
-    public let name: Name
-    public let arguments: [Argument]
+    public var name: Name
+    public var arguments: [Argument]
 
     init(loc: Location? = nil, name: Name, arguments: [Argument] = []) {
         self.loc = loc
         self.name = name
         self.arguments = arguments
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.arguments)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write("@")
+        name.write(to: &target)
+        if !arguments.isEmpty {
+            target.write("(")
+            arguments.write(to: &target)
+            target.write(")")
+        }
     }
 }
 
@@ -964,49 +1138,64 @@ extension Directive : Equatable {
     }
 }
 
-public protocol  Type : Node {}
-extension NamedType   : Type {}
-extension ListType    : Type {}
-extension NonNullType : Type {}
-
-public func == (lhs: Type, rhs: Type) -> Bool {
-    switch lhs {
-    case let l as NamedType:
-        if let r = rhs as? NamedType {
-            return l == r
+extension Array where Element == Directive {
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        if let first = first {
+            first.write(to: &target)
+            suffix(from: 1).forEach {
+                $0.write(to: &target)
+                target.write(" ")
+            }
         }
-    case let l as ListType:
-        if let r = rhs as? ListType {
-            return l == r
-        }
-    case let l as NonNullType:
-        if let r = rhs as? NonNullType {
-            return l == r
-        }
-    default:
-        return false
     }
-
-    return false
 }
 
-public final class NamedType {
-    public let kind: Kind = .namedType
+public indirect enum Type: EnumNode, Equatable {
+    var underlyingNode: Node {
+        switch self {
+        case let .namedType(x):
+            return x
+        case let .listType(x):
+            return x
+        case let .nonNullType(x):
+            return x
+        }
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        switch self {
+        case var .namedType(x):
+            descender.descend(enumCase: &x)
+            self = .namedType(x)
+        case var .listType(x):
+            descender.descend(enumCase: &x)
+            self = .listType(x)
+        case var .nonNullType(x):
+            descender.descend(enumCase: &x)
+            self = .nonNullType(x)
+        }
+    }
+    
+    case namedType(NamedType)
+    case listType(ListType)
+    case nonNullType(NonNullType)
+}
+
+public struct NamedType {
     public let loc: Location?
-    public let name: Name
+    public var name: Name
 
     init(loc: Location? = nil, name: Name) {
         self.loc = loc
         self.name = name
     }
 
-    public func get(key: String) -> NodeResult? {
-        switch key {
-        case "name":
-            return .node(name)
-        default:
-            return nil
-        }
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.name)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        name.write(to: &target)
     }
 }
 
@@ -1016,14 +1205,23 @@ extension NamedType : Equatable {
     }
 }
 
-public final class ListType {
-    public let kind: Kind = .listType
+public struct ListType {
     public let loc: Location?
-    public let type: Type
+    public var type: Type
 
     init(loc: Location? = nil, type: Type) {
         self.loc = loc
         self.type = type
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.type)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        target.write("[")
+        type.write(to: &target)
+        target.write("]")
     }
 }
 
@@ -1033,80 +1231,97 @@ extension ListType : Equatable {
     }
 }
 
-public protocol NonNullableType : Type {}
-extension ListType              : NonNullableType {}
-extension NamedType             : NonNullableType {}
+public enum NonNullType: EnumNode, Equatable {
+    var underlyingNode: Node {
+        switch self {
+        case let .namedType(x):
+            return x
+        case let .listType(x):
+            return x
+        }
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        switch self {
+        case var .namedType(x):
+            descender.descend(enumCase: &x)
+            self = .namedType(x)
+        case var .listType(x):
+            descender.descend(enumCase: &x)
+            self = .listType(x)
+        }
+    }
+    
+    case namedType(NamedType)
+    case listType(ListType)
+    
+    var type: Type {
+        switch self {
+        case let .namedType(x):
+            return .namedType(x)
+        case let .listType(x):
+            return .listType(x)
+        }
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        type.write(to: &target)
+        target.write("!")
+    }
+}
 
-public final class NonNullType {
-    public let kind: Kind = .nonNullType
+public enum TypeSystemDefinition: EnumNode, Equatable {
+    var underlyingNode: Node {
+        switch self {
+        case let .schemaDefinition(x):
+            return x
+        case let .typeDefinition(x):
+            return x
+        case let .directiveDefinition(x):
+            return x
+        }
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        switch self {
+        case var .schemaDefinition(x):
+            descender.descend(enumCase: &x)
+            self = .schemaDefinition(x)
+        case var .typeDefinition(x):
+            descender.descend(enumCase: &x)
+            self = .typeDefinition(x)
+        case var .directiveDefinition(x):
+            descender.descend(enumCase: &x)
+            self = .directiveDefinition(x)
+        }
+    }
+    
+    case schemaDefinition(SchemaDefinition)
+    case typeDefinition(TypeDefinition)
+    case directiveDefinition(DirectiveDefinition)
+}
+
+public struct SchemaDefinition {
     public let loc: Location?
-    public let type: NonNullableType
-
-    init(loc: Location? = nil, type: NonNullableType) {
-        self.loc = loc
-        self.type = type
-    }
-
-    public func get(key: String) -> NodeResult? {
-        switch key {
-        case "type":
-            return .node(type)
-        default:
-            return nil
-        }
-    }
-}
-
-extension NonNullType : Equatable {
-    public static func == (lhs: NonNullType, rhs: NonNullType) -> Bool {
-        return lhs.type == rhs.type
-    }
-}
-
-// Type System Definition
-// experimental non-spec addition.
-public protocol  TypeSystemDefinition : Definition           {}
-extension SchemaDefinition            : TypeSystemDefinition {}
-extension TypeExtensionDefinition     : TypeSystemDefinition {}
-extension DirectiveDefinition         : TypeSystemDefinition {}
-
-public func == (lhs: TypeSystemDefinition, rhs: TypeSystemDefinition) -> Bool {
-    switch lhs {
-    case let l as SchemaDefinition:
-        if let r = rhs as? SchemaDefinition {
-            return l == r
-        }
-    case let l as TypeExtensionDefinition:
-        if let r = rhs as? TypeExtensionDefinition {
-            return l == r
-        }
-    case let l as DirectiveDefinition:
-        if let r = rhs as? DirectiveDefinition {
-            return l == r
-        }
-    case let l as TypeDefinition:
-        if let r = rhs as? TypeDefinition {
-            return l == r
-        }
-    default:
-        return false
-    }
-
-    return false
-}
-
-public final class SchemaDefinition {
-    public let kind: Kind = .schemaDefinition
-    public let loc: Location?
-    public let description: StringValue?
-    public let directives: [Directive]
-    public let operationTypes: [OperationTypeDefinition]
+    public var description: StringValue?
+    public var directives: [Directive]
+    public var operationTypes: [OperationTypeDefinition]
 
     init(loc: Location? = nil, description: StringValue? = nil, directives: [Directive], operationTypes: [OperationTypeDefinition]) {
         self.loc = loc
         self.description = description
         self.directives = directives
         self.operationTypes = operationTypes
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.description)
+        descender.descend(&self, \.directives)
+        descender.descend(&self, \.operationTypes)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        fatalError("TODO")
     }
 }
 
@@ -1118,16 +1333,23 @@ extension SchemaDefinition : Equatable {
     }
 }
 
-public final class OperationTypeDefinition {
-    public let kind: Kind = .operationDefinition
+public struct OperationTypeDefinition {
     public let loc: Location?
     public let operation: OperationType
-    public let type: NamedType
+    public var type: NamedType
 
     init(loc: Location? = nil, operation: OperationType, type: NamedType) {
         self.loc = loc
         self.operation = operation
         self.type = type
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.type)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        fatalError("TODO")
     }
 }
 
@@ -1138,59 +1360,76 @@ extension OperationTypeDefinition : Equatable {
     }
 }
 
-public protocol  TypeDefinition     : TypeSystemDefinition {}
-extension ScalarTypeDefinition      : TypeDefinition       {}
-extension ObjectTypeDefinition      : TypeDefinition       {}
-extension InterfaceTypeDefinition   : TypeDefinition       {}
-extension UnionTypeDefinition       : TypeDefinition       {}
-extension EnumTypeDefinition        : TypeDefinition       {}
-extension InputObjectTypeDefinition : TypeDefinition       {}
-
-public func == (lhs: TypeDefinition, rhs: TypeDefinition) -> Bool {
-    switch lhs {
-    case let l as ScalarTypeDefinition:
-        if let r = rhs as? ScalarTypeDefinition {
-            return l == r
+public enum TypeDefinition: EnumNode, Equatable {
+    case scalarTypeDefinition(ScalarTypeDefinition)
+    case objectTypeDefinition(ObjectTypeDefinition)
+    case interfaceTypeDefinition(InterfaceTypeDefinition)
+    case unionTypeDefinition(UnionTypeDefinition)
+    case enumTypeDefinition(EnumTypeDefinition)
+    case inputObjectTypeDefinition(InputObjectTypeDefinition)
+    
+    fileprivate var underlyingNode: Node {
+        switch self {
+        case let .scalarTypeDefinition(x):
+            return x
+        case let .objectTypeDefinition(x):
+            return x
+        case let .interfaceTypeDefinition(x):
+            return x
+        case let .unionTypeDefinition(x):
+            return x
+        case let .enumTypeDefinition(x):
+            return x
+        case let .inputObjectTypeDefinition(x):
+            return x
         }
-    case let l as ObjectTypeDefinition:
-        if let r = rhs as? ObjectTypeDefinition {
-            return l == r
-        }
-    case let l as InterfaceTypeDefinition:
-        if let r = rhs as? InterfaceTypeDefinition {
-            return l == r
-        }
-    case let l as UnionTypeDefinition:
-        if let r = rhs as? UnionTypeDefinition {
-            return l == r
-        }
-    case let l as EnumTypeDefinition:
-        if let r = rhs as? EnumTypeDefinition {
-            return l == r
-        }
-    case let l as InputObjectTypeDefinition:
-        if let r = rhs as? InputObjectTypeDefinition {
-            return l == r
-        }
-    default:
-        return false
     }
-
-    return false
+    
+    public mutating func descend(descender: inout Descender) {
+        switch self {
+        case var .scalarTypeDefinition(x):
+            descender.descend(enumCase: &x)
+            self = .scalarTypeDefinition(x)
+        case var .objectTypeDefinition(x):
+            descender.descend(enumCase: &x)
+            self = .objectTypeDefinition(x)
+        case var .interfaceTypeDefinition(x):
+            descender.descend(enumCase: &x)
+            self = .interfaceTypeDefinition(x)
+        case var .unionTypeDefinition(x):
+            descender.descend(enumCase: &x)
+            self = .unionTypeDefinition(x)
+        case var .enumTypeDefinition(x):
+            descender.descend(enumCase: &x)
+            self = .enumTypeDefinition(x)
+        case var .inputObjectTypeDefinition(x):
+            descender.descend(enumCase: &x)
+            self = .inputObjectTypeDefinition(x)
+        }
+    }
 }
 
-public final class ScalarTypeDefinition {
-    public let kind: Kind = .scalarTypeDefinition
+public struct ScalarTypeDefinition {
     public let loc: Location?
-    public let description: StringValue?
-    public let name: Name
-    public let directives: [Directive]
+    public var description: StringValue?
+    public var name: Name
+    public var directives: [Directive]
 
     init(loc: Location? = nil, description: StringValue? = nil, name: Name, directives: [Directive] = []) {
         self.loc = loc
         self.description = description
         self.name = name
         self.directives = directives
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.description)
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.directives)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        fatalError("TODO")
     }
 }
 
@@ -1202,14 +1441,13 @@ extension ScalarTypeDefinition : Equatable {
     }
 }
 
-public final class ObjectTypeDefinition {
-    public let kind: Kind = .objectTypeDefinition
+public struct ObjectTypeDefinition {
     public let loc: Location?
-    public let description: StringValue?
-    public let name: Name
-    public let interfaces: [NamedType]
-    public let directives: [Directive]
-    public let fields: [FieldDefinition]
+    public var description: StringValue?
+    public var name: Name
+    public var interfaces: [NamedType]
+    public var directives: [Directive]
+    public var fields: [FieldDefinition]
 
     init(loc: Location? = nil, description: StringValue? = nil, name: Name, interfaces: [NamedType] = [], directives: [Directive] = [], fields: [FieldDefinition] = []) {
         self.loc = loc
@@ -1218,6 +1456,18 @@ public final class ObjectTypeDefinition {
         self.interfaces = interfaces
         self.directives = directives
         self.fields = fields
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.description)
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.interfaces)
+        descender.descend(&self, \.directives)
+        descender.descend(&self, \.fields)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        fatalError("TODO")
     }
 }
 
@@ -1231,14 +1481,13 @@ extension ObjectTypeDefinition : Equatable {
     }
 }
 
-public final class FieldDefinition {
-    public let kind: Kind = .fieldDefinition
+public struct FieldDefinition {
     public let loc: Location?
-    public let description: StringValue?
-    public let name: Name
-    public let arguments: [InputValueDefinition]
-    public let type: Type
-    public let directives: [Directive]
+    public var description: StringValue?
+    public var name: Name
+    public var arguments: [InputValueDefinition]
+    public var type: Type
+    public var directives: [Directive]
 
     init(loc: Location? = nil, description: StringValue? = nil, name: Name, arguments: [InputValueDefinition] = [], type: Type, directives: [Directive] = []) {
         self.loc = loc
@@ -1247,6 +1496,18 @@ public final class FieldDefinition {
         self.arguments = arguments
         self.type = type
         self.directives = directives
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.description)
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.arguments)
+        descender.descend(&self, \.type)
+        descender.descend(&self, \.directives)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        fatalError("TODO")
     }
 }
 
@@ -1260,14 +1521,13 @@ extension FieldDefinition : Equatable {
     }
 }
 
-public final class InputValueDefinition {
-    public let kind: Kind = .inputValueDefinition
+public struct InputValueDefinition {
     public let loc: Location?
-    public let description: StringValue?
-    public let name: Name
-    public let type: Type
-    public let defaultValue: Value?
-    public let directives: [Directive]
+    public var description: StringValue?
+    public var name: Name
+    public var type: Type
+    public var defaultValue: Value?
+    public var directives: [Directive]
 
     init(loc: Location? = nil, description: StringValue? = nil, name: Name, type: Type, defaultValue: Value? = nil, directives: [Directive] = []) {
         self.loc = loc
@@ -1276,6 +1536,18 @@ public final class InputValueDefinition {
         self.type = type
         self.defaultValue = defaultValue
         self.directives = directives
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.description)
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.type)
+        descender.descend(&self, \.defaultValue)
+        descender.descend(&self, \.directives)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        fatalError("TODO")
     }
 }
 
@@ -1305,14 +1577,13 @@ extension InputValueDefinition : Equatable {
     }
 }
 
-public final class InterfaceTypeDefinition {
-    public let kind: Kind = .interfaceTypeDefinition
+public struct InterfaceTypeDefinition {
     public let loc: Location?
-    public let description: StringValue?
-    public let name: Name
-    public let interfaces: [NamedType]
-    public let directives: [Directive]
-    public let fields: [FieldDefinition]
+    public var description: StringValue?
+    public var name: Name
+    public var interfaces: [NamedType]
+    public var directives: [Directive]
+    public var fields: [FieldDefinition]
 
     init(
         loc: Location? = nil,
@@ -1329,6 +1600,18 @@ public final class InterfaceTypeDefinition {
         self.directives = directives
         self.fields = fields
     }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.description)
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.interfaces)
+        descender.descend(&self, \.directives)
+        descender.descend(&self, \.fields)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        fatalError("TODO")
+    }
 }
 
 extension InterfaceTypeDefinition : Equatable {
@@ -1340,13 +1623,12 @@ extension InterfaceTypeDefinition : Equatable {
     }
 }
 
-public final class UnionTypeDefinition {
-    public let kind: Kind = .unionTypeDefinition
+public struct UnionTypeDefinition {
     public let loc: Location?
-    public let description: StringValue?
-    public let name: Name
-    public let directives: [Directive]
-    public let types: [NamedType]
+    public var description: StringValue?
+    public var name: Name
+    public var directives: [Directive]
+    public var types: [NamedType]
 
     init(loc: Location? = nil, description: StringValue? = nil, name: Name, directives: [Directive] = [], types: [NamedType]) {
         self.loc = loc
@@ -1354,6 +1636,17 @@ public final class UnionTypeDefinition {
         self.name = name
         self.directives = directives
         self.types = types
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.description)
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.directives)
+        descender.descend(&self, \.types)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        fatalError("TODO")
     }
 }
 
@@ -1366,13 +1659,12 @@ extension UnionTypeDefinition : Equatable {
     }
 }
 
-public final class EnumTypeDefinition {
-    public let kind: Kind = .enumTypeDefinition
+public struct EnumTypeDefinition {
     public let loc: Location?
-    public let description: StringValue?
-    public let name: Name
-    public let directives: [Directive]
-    public let values: [EnumValueDefinition]
+    public var description: StringValue?
+    public var name: Name
+    public var directives: [Directive]
+    public var values: [EnumValueDefinition]
 
     init(loc: Location? = nil, description: StringValue? = nil, name: Name, directives: [Directive] = [], values: [EnumValueDefinition]) {
         self.loc = loc
@@ -1380,6 +1672,17 @@ public final class EnumTypeDefinition {
         self.name = name
         self.directives = directives
         self.values = values
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.description)
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.directives)
+        descender.descend(&self, \.values)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        fatalError("TODO")
     }
 }
 
@@ -1392,18 +1695,27 @@ extension EnumTypeDefinition : Equatable {
     }
 }
 
-public final class EnumValueDefinition {
-    public let kind: Kind = .enumValueDefinition
+public struct EnumValueDefinition {
     public let loc: Location?
-    public let description: StringValue?
-    public let name: Name
-    public let directives: [Directive]
+    public var description: StringValue?
+    public var name: Name
+    public var directives: [Directive]
 
     init(loc: Location? = nil, description: StringValue? = nil, name: Name, directives: [Directive] = []) {
         self.loc = loc
         self.description = description
         self.name = name
         self.directives = directives
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.description)
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.directives)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        fatalError("TODO")
     }
 }
 
@@ -1415,13 +1727,12 @@ extension EnumValueDefinition : Equatable {
     }
 }
 
-public final class InputObjectTypeDefinition {
-    public let kind: Kind = .inputObjectTypeDefinition
+public struct InputObjectTypeDefinition {
     public let loc: Location?
-    public let description: StringValue?
-    public let name: Name
-    public let directives: [Directive]
-    public let fields: [InputValueDefinition]
+    public var description: StringValue?
+    public var name: Name
+    public var directives: [Directive]
+    public var fields: [InputValueDefinition]
 
     init(loc: Location? = nil, description: StringValue? = nil, name: Name, directives: [Directive] = [], fields: [InputValueDefinition]) {
         self.loc = loc
@@ -1429,6 +1740,17 @@ public final class InputObjectTypeDefinition {
         self.name = name
         self.directives = directives
         self.fields = fields
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.description)
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.directives)
+        descender.descend(&self, \.fields)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        fatalError("TODO")
     }
 }
 
@@ -1441,14 +1763,21 @@ extension InputObjectTypeDefinition : Equatable {
     }
 }
 
-public final class TypeExtensionDefinition {
-    public let kind: Kind = .typeExtensionDefinition
+public struct TypeExtensionDefinition {
     public let loc: Location?
-    public let definition: ObjectTypeDefinition
+    public var definition: ObjectTypeDefinition
 
     init(loc: Location? = nil, definition: ObjectTypeDefinition) {
         self.loc = loc
         self.definition = definition
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.definition)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        fatalError("TODO")
     }
 }
 
@@ -1458,13 +1787,12 @@ extension TypeExtensionDefinition : Equatable {
     }
 }
 
-public final class DirectiveDefinition {
-    public let kind: Kind = .directiveDefinition
+public struct DirectiveDefinition {
     public let loc: Location?
-    public let description: StringValue?
-    public let name: Name
-    public let arguments: [InputValueDefinition]
-    public let locations: [Name]
+    public var description: StringValue?
+    public var name: Name
+    public var arguments: [InputValueDefinition]
+    public var locations: [Name]
     
     init(loc: Location? = nil, description: StringValue? = nil, name: Name, arguments: [InputValueDefinition] = [], locations: [Name]) {
         self.loc = loc
@@ -1472,6 +1800,17 @@ public final class DirectiveDefinition {
         self.description = description
         self.arguments = arguments
         self.locations = locations
+    }
+    
+    public mutating func descend(descender: inout Descender) {
+        descender.descend(&self, \.description)
+        descender.descend(&self, \.name)
+        descender.descend(&self, \.arguments)
+        descender.descend(&self, \.locations)
+    }
+    
+    public func write<Target>(to target: inout Target) where Target : TextOutputStream {
+        fatalError("TODO")
     }
 }
 

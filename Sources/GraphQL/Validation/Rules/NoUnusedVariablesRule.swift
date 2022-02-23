@@ -4,51 +4,37 @@
  * A GraphQL operation is only valid if all variables defined by an operation
  * are used, either directly or within a spread fragment.
  */
-func NoUnusedVariablesRule(context: ValidationContext) -> Visitor {
-    var variableDefs: [VariableDefinition] = []
-
-    return Visitor(
-        enter: { node, _, _, _, _ in
-            if node is OperationDefinition {
-                variableDefs = []
-                return .continue
-            }
+class NoUnusedVariablesRule: ValidationRule {
+    private var variableDefs: [VariableDefinition] = []
+    let context: ValidationContext
+    required init(context: ValidationContext) { self.context = context }
+    
+    func enter(operationDefinition: OperationDefinition, key: AnyKeyPath?, parent: VisitorParent?, ancestors: [VisitorParent]) -> VisitResult<OperationDefinition> {
+        variableDefs = []
+        return .continue
+    }
+    
+    func enter(variableDefinition: VariableDefinition, key: AnyKeyPath?, parent: VisitorParent?, ancestors: [VisitorParent]) -> VisitResult<VariableDefinition> {
+        variableDefs.append(variableDefinition)
+        return .continue
+    }
+    
+    func leave(operationDefinition: OperationDefinition, key: AnyKeyPath?, parent: VisitorParent?, ancestors: [VisitorParent]) -> VisitResult<OperationDefinition> {
+        let usages = Set(context.getRecursiveVariableUsages(operation: operationDefinition).map { $0.node.name })
+        
+        for variableDef in variableDefs where !usages.contains(variableDef.variable.name) {
+            let variableName = variableDef.variable.name.value
             
-            if let def = node as? VariableDefinition {
-                variableDefs.append(def)
-                return .continue
-            }
-            
-            return .continue
-        },
-        leave: { node, _, _, _, _ -> VisitResult in
-            guard let operation = node as? OperationDefinition else {
-                return .continue
-            }
-            
-            var variableNameUsed: [String: Bool] = [:]
-            let usages = context.getRecursiveVariableUsages(operation: operation)
-            
-            for usage in usages {
-                variableNameUsed[usage.node.name.value] = true
-            }
-            
-            for variableDef in variableDefs {
-                let variableName = variableDef.variable.name.value
-                
-                if variableNameUsed[variableName] != true {
-                    context.report(
-                        error: GraphQLError(
-                            message: operation.name.map {
-                                "Variable \"$\(variableName)\" is never used in operation \"\($0.value)\"."
-                            } ?? "Variable \"$\(variableName)\" is never used.",
-                            nodes: [variableDef]
-                        )
-                    )
-                }
-            }
-            
-            return .continue
+            context.report(
+                error: GraphQLError(
+                    message: operationDefinition.name.map {
+                        "Variable \"$\(variableName)\" is never used in operation \"\($0.value)\"."
+                    } ?? "Variable \"$\(variableName)\" is never used.",
+                    nodes: [variableDef]
+                )
+            )
         }
-    )
+        
+        return .continue
+    }
 }

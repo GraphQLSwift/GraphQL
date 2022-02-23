@@ -3,7 +3,7 @@ import XCTest
 
 class FieldsOnCorrectTypeTests : ValidationTestCase {
     override func setUp() {
-        rule = FieldsOnCorrectTypeRule
+        rule = FieldsOnCorrectTypeRule.self
     }
 
     func testValidWithObjectFieldSelection() throws {

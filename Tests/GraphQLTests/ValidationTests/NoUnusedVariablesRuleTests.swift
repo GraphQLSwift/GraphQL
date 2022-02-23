@@ -3,7 +3,7 @@ import XCTest
 
 class NoUnusedVariablesRuleTests : ValidationTestCase {
     override func setUp() {
-        rule = NoUnusedVariablesRule
+        rule = NoUnusedVariablesRule.self
     }
     
     func testUsesAllVariables() throws {

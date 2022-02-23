@@ -3,7 +3,7 @@ import XCTest
 
 class ProvidedNonNullArgumentsTests : ValidationTestCase {
     override func setUp() {
-        rule = ProvidedNonNullArgumentsRule
+        rule = ProvidedNonNullArgumentsRule.self
     }
     
     func testValidWithObjectWithoutArguments() throws {

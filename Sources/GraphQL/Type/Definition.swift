@@ -297,30 +297,52 @@ extension GraphQLScalarType : Hashable {
 public final class GraphQLObjectType {
     public let name: String
     public let description: String?
-    public let fields: GraphQLFieldDefinitionMap
-    public let interfaces: [GraphQLInterfaceType]
+    private let fieldsThunk: () -> GraphQLFieldMap
+    public lazy var fields: GraphQLFieldDefinitionMap = {
+        try! defineFieldMap(
+            name: name,
+            fields: fieldsThunk()
+        )
+    }()
+    private let interfacesThunk: () -> [GraphQLInterfaceType]
+    public lazy var interfaces: [GraphQLInterfaceType] = {
+        try! defineInterfaces(
+            name: name,
+            hasTypeOf: isTypeOf != nil,
+            interfaces: interfacesThunk()
+        )
+    }()
     public let isTypeOf: GraphQLIsTypeOf?
     public let kind: TypeKind = .object
     
-    public init(
+    public convenience init(
         name: String,
         description: String? = nil,
         fields: GraphQLFieldMap,
         interfaces: [GraphQLInterfaceType] = [],
         isTypeOf: GraphQLIsTypeOf? = nil
     ) throws {
+        try self.init(
+            name: name,
+            description: description,
+            fields: { fields },
+            interfaces: { interfaces },
+            isTypeOf: isTypeOf
+        )
+    }
+    
+    public init(
+        name: String,
+        description: String? = nil,
+        fields: @escaping () -> GraphQLFieldMap,
+        interfaces: @escaping () -> [GraphQLInterfaceType],
+        isTypeOf: GraphQLIsTypeOf? = nil
+    ) throws {
         try assertValid(name: name)
         self.name = name
         self.description = description
-        self.fields = try defineFieldMap(
-            name: name,
-            fields: fields
-        )
-        self.interfaces = try defineInterfaces(
-            name: name,
-            hasTypeOf: isTypeOf != nil,
-            interfaces: interfaces
-        )
+        self.fieldsThunk = fields
+        self.interfacesThunk = interfaces
         self.isTypeOf = isTypeOf
     }
 
@@ -338,6 +360,15 @@ extension GraphQLObjectType : Encodable {
         case fields
         case interfaces
         case kind
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(description, forKey: .description)
+        try container.encode(fields, forKey: .fields)
+        try container.encode(interfaces, forKey: .interfaces)
+        try container.encode(kind, forKey: .kind)
     }
 }
 
@@ -432,19 +463,19 @@ func defineInterfaces(
         return []
     }
 
-    if !hasTypeOf {
-        for interface in interfaces {
-            guard interface.resolveType != nil else {
-                throw GraphQLError(
-                    message:
-                    "Interface Type \(interface.name) does not provide a \"resolveType\" " +
-                    "function and implementing Type \(name) does not provide a " +
-                    "\"isTypeOf\" function. There is no way to resolve this implementing " +
-                    "type during execution."
-                )
-            }
-        }
-    }
+//    if !hasTypeOf {
+//        for interface in interfaces {
+//            guard interface.resolveType != nil else {
+//                throw GraphQLError(
+//                    message:
+//                    "Interface Type \(interface.name) does not provide a \"resolveType\" " +
+//                    "function and implementing Type \(name) does not provide a " +
+//                    "\"isTypeOf\" function. There is no way to resolve this implementing " +
+//                    "type during execution."
+//                )
+//            }
+//        }
+//    }
 
     return interfaces
 }
@@ -753,27 +784,49 @@ public final class GraphQLInterfaceType {
     public let name: String
     public let description: String?
     public let resolveType: GraphQLTypeResolve?
-    public let fields: GraphQLFieldDefinitionMap
-    public let interfaces: [GraphQLInterfaceType]
+    private let fieldsThunk: () -> GraphQLFieldMap
+    public lazy var fields: GraphQLFieldDefinitionMap = {
+        try! defineFieldMap(
+           name: name,
+           fields: fieldsThunk()
+       )
+    }()
+    public lazy var interfaces: [GraphQLInterfaceType] = {
+        try! interfacesThunk()
+    }()
+    private let interfacesThunk: () throws -> [GraphQLInterfaceType]
     public let kind: TypeKind = .interface
-
-    public init(
+    
+    public convenience init(
         name: String,
         description: String? = nil,
         interfaces: [GraphQLInterfaceType] = [],
         fields: GraphQLFieldMap,
         resolveType: GraphQLTypeResolve? = nil
     ) throws {
+        try self.init(
+            name: name,
+            description: description,
+            interfaces: { interfaces },
+            fields: { fields },
+            resolveType: resolveType
+        )
+    }
+
+    public init(
+        name: String,
+        description: String? = nil,
+        interfaces: @escaping () throws -> [GraphQLInterfaceType],
+        fields: @escaping () -> GraphQLFieldMap,
+        resolveType: GraphQLTypeResolve? = nil
+    ) throws {
         try assertValid(name: name)
         self.name = name
         self.description = description
         
-        self.fields = try defineFieldMap(
-            name: name,
-            fields: fields
-        )
+        self.fieldsThunk = fields
         
-        self.interfaces = interfaces
+        self.interfacesThunk = interfaces
         self.resolveType = resolveType
     }
 
@@ -790,6 +843,14 @@ extension GraphQLInterfaceType : Encodable {
         case description
         case fields
         case kind
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(description, forKey: .description)
+        try container.encode(fields, forKey: .fields)
+        try container.encode(kind, forKey: .kind)
     }
 }
 
@@ -855,26 +916,44 @@ public final class GraphQLUnionType {
     public let name: String
     public let description: String?
     public let resolveType: GraphQLTypeResolve?
-    public let types: [GraphQLObjectType]
+    private let typesThunk: () -> [GraphQLObjectType]
+    public lazy var types = {
+        typesThunk()
+//        try! defineTypes(
+//           name: name,
+//           hasResolve: resolveType != nil,
+//           types: typesThunk()
+//       )
+    }()
     public let possibleTypeNames: [String: Bool]
     public let kind: TypeKind = .union
+    
+    public convenience init(
+        name: String,
+        description: String? = nil,
+        resolveType: GraphQLTypeResolve? = nil,
+        types: [GraphQLObjectType]
+    ) throws {
+        try self.init(
+            name: name,
+            description: description,
+            resolveType: resolveType,
+            types: { types }
+        )
+    }
 
     public init(
         name: String,
         description: String? = nil,
         resolveType: GraphQLTypeResolve? = nil,
-        types: [GraphQLObjectType]
+        types: @escaping () -> [GraphQLObjectType]
     ) throws {
         try assertValid(name: name)
         self.name = name
         self.description = description
         self.resolveType = resolveType
         
-        self.types = try defineTypes(
-            name: name,
-            hasResolve: resolveType != nil,
-            types: types
-        )
+        self.typesThunk = types
         
         self.possibleTypeNames = [:]
     }
@@ -886,6 +965,14 @@ extension GraphQLUnionType : Encodable {
         case description
         case types
         case kind
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(description, forKey: .description)
+        try container.encode(types, forKey: .types)
+        try container.encode(kind, forKey: .kind)
     }
 }
 
@@ -1024,7 +1111,7 @@ public final class GraphQLEnumType {
     }
 
     public func parseLiteral(valueAST: Value) -> Map {
-        if let enumValue = valueAST as? EnumValue {
+        if case .enumValue(let enumValue) = valueAST {
             return nameLookup[enumValue.value]?.value ?? .null
         }
 

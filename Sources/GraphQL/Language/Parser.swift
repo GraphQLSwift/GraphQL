@@ -168,24 +168,24 @@ func parseDocument(lexer: Lexer) throws -> Document {
  */
 func parseDefinition(lexer: Lexer) throws -> Definition {
     if peek(lexer: lexer, kind: .openingBrace) {
-        return try parseOperationDefinition(lexer: lexer)
+        return .executableDefinition(.operation(try parseOperationDefinition(lexer: lexer)))
     }
     
     if peek(lexer: lexer, kind: .name) {
         switch lexer.token.value! {
         // Note: subscription is an experimental non-spec addition.
         case "query", "mutation", "subscription":
-            return try parseOperationDefinition(lexer: lexer);
+            return .executableDefinition(.operation(try parseOperationDefinition(lexer: lexer)))
         case "fragment":
-            return try parseFragmentDefinition(lexer: lexer)
+            return .executableDefinition(.fragment(try parseFragmentDefinition(lexer: lexer)))
         // Note: the Type System IDL is an experimental non-spec addition.
         case "schema", "scalar", "type", "interface", "union", "enum", "input", "extend", "directive":
-            return try parseTypeSystemDefinition(lexer: lexer)
+            return .typeSystemDefinitionOrExtension(.typeSystemDefinition(try parseTypeSystemDefinition(lexer: lexer)))
         default:
             break
         }
     } else if peekDescription(lexer: lexer) {
-        return try parseTypeSystemDefinition(lexer: lexer)
+        return .typeSystemDefinitionOrExtension(.typeSystemDefinition(try parseTypeSystemDefinition(lexer: lexer)))
     }
 
     throw unexpected(lexer: lexer)
@@ -318,7 +318,7 @@ func parseSelection(lexer: Lexer) throws -> Selection {
  *
  * Alias : Name :
  */
-func parseField(lexer: Lexer) throws -> Field {
+func parseField(lexer: Lexer) throws -> Selection {
     let start = lexer.token;
 
     let nameOrAlias = try parseName(lexer: lexer)
@@ -333,13 +333,15 @@ func parseField(lexer: Lexer) throws -> Field {
         name = nameOrAlias
     }
 
-    return Field(
-        loc: loc(lexer: lexer, startToken: start),
-        alias: alias,
-        name: name,
-        arguments: try parseArguments(lexer: lexer),
-        directives: try parseDirectives(lexer: lexer),
-        selectionSet: peek(lexer: lexer, kind: .openingBrace) ? try parseSelectionSet(lexer: lexer) : nil
+    return .field(
+        Field(
+            loc: loc(lexer: lexer, startToken: start),
+            alias: alias,
+            name: name,
+            arguments: try parseArguments(lexer: lexer),
+            directives: try parseDirectives(lexer: lexer),
+            selectionSet: peek(lexer: lexer, kind: .openingBrace) ? try parseSelectionSet(lexer: lexer) : nil
+        )
     )
 }
 
@@ -378,14 +380,16 @@ func parseArgument(lexer: Lexer) throws -> Argument {
  *
  * InlineFragment : ... TypeCondition? Directives? SelectionSet
  */
-func parseFragment(lexer: Lexer) throws -> Fragment {
+func parseFragment(lexer: Lexer) throws -> Selection {
     let start = lexer.token
     try expect(lexer: lexer, kind: .spread)
     if peek(lexer: lexer, kind: .name) && lexer.token.value != "on" {
-        return FragmentSpread(
-            loc: loc(lexer: lexer, startToken: start),
-            name: try parseFragmentName(lexer: lexer),
-            directives: try parseDirectives(lexer: lexer)
+        return .fragmentSpread(
+                FragmentSpread(
+                loc: loc(lexer: lexer, startToken: start),
+                name: try parseFragmentName(lexer: lexer),
+                directives: try parseDirectives(lexer: lexer)
+            )
         )
     }
 
@@ -395,11 +399,13 @@ func parseFragment(lexer: Lexer) throws -> Fragment {
         try lexer.advance()
         typeCondition = try parseNamedType(lexer: lexer)
     }
-    return InlineFragment(
-        loc: loc(lexer: lexer, startToken: start),
-        typeCondition: typeCondition,
-        directives: try parseDirectives(lexer: lexer),
-        selectionSet: try parseSelectionSet(lexer: lexer)
+    return .inlineFragment(
+        InlineFragment(
+            loc: loc(lexer: lexer, startToken: start),
+            typeCondition: typeCondition,
+            directives: try parseDirectives(lexer: lexer),
+            selectionSet: try parseSelectionSet(lexer: lexer)
+        )
     )
 }
 
@@ -453,45 +459,45 @@ func parseValueLiteral(lexer: Lexer, isConst: Bool) throws -> Value {
     let token = lexer.token
     switch token.kind {
     case .openingBracket:
-        return try parseList(lexer: lexer, isConst: isConst)
+        return .listValue(try parseList(lexer: lexer, isConst: isConst))
     case .openingBrace:
-        return try parseObject(lexer: lexer, isConst: isConst)
+        return .objectValue(try parseObject(lexer: lexer, isConst: isConst))
     case .int:
         try lexer.advance()
-        return IntValue(
+        return .intValue(IntValue(
             loc: loc(lexer: lexer, startToken: token),
             value: token.value!
-        )
+        ))
     case .float:
         try lexer.advance()
-        return FloatValue(
+        return .floatValue(FloatValue(
             loc: loc(lexer: lexer, startToken: token),
             value: token.value!
-        )
+        ))
     case .string, .blockstring:
-        return try parseStringLiteral(lexer: lexer, startToken: token)
+        return .stringValue(try parseStringLiteral(lexer: lexer, startToken: token))
     case .name:
         if (token.value == "true" || token.value == "false") {
             try lexer.advance()
-            return BooleanValue(
+            return .booleanValue(BooleanValue(
                 loc: loc(lexer: lexer, startToken: token),
                 value: token.value == "true"
-            )
+            ))
         } else if token.value == "null" {
             try lexer.advance()
-            return NullValue(
+            return .nullValue(NullValue(
                 loc: loc(lexer: lexer, startToken: token)
-            )
+            ))
         } else {
             try lexer.advance()
-            return EnumValue(
+            return .enumValue(EnumValue(
                 loc: loc(lexer: lexer, startToken: token),
                 value: token.value!
-            )
+            ))
         }
     case .dollar:
         if !isConst {
-            return try parseVariable(lexer: lexer)
+            return .variable(try parseVariable(lexer: lexer))
         }
     default:
         break
@@ -616,19 +622,23 @@ func parseTypeReference(lexer: Lexer) throws -> Type {
     if try skip(lexer: lexer, kind: .openingBracket) {
         type = try parseTypeReference(lexer: lexer)
         try expect(lexer: lexer, kind: .closingBracket)
-        type = ListType(
+        type = .listType(ListType(
             loc: loc(lexer: lexer, startToken: start),
             type: type
-        )
+        ))
     } else {
-        type = try parseNamedType(lexer: lexer)
+        type = .namedType(try parseNamedType(lexer: lexer))
     }
 
     if try skip(lexer: lexer, kind: .bang) {
-        return NonNullType(
-            loc: loc(lexer: lexer, startToken: start),
-            type: type as! NonNullableType
-        )
+        switch type {
+        case let .namedType(x):
+            return .nonNullType(.namedType(x))
+        case let .listType(x):
+            return .nonNullType(.listType(x))
+        default:
+            fatalError()
+        }
     }
 
     return type
@@ -666,22 +676,31 @@ func parseTypeSystemDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
     let keywordToken = peekDescription(lexer: lexer)
         ? try lexer.lookahead()
         : lexer.token
-    
+
     if keywordToken.kind == .name {
         switch keywordToken.value! {
-        case "schema": return try parseSchemaDefinition(lexer: lexer);
-        case "scalar": return try parseScalarTypeDefinition(lexer: lexer);
-        case "type": return try parseObjectTypeDefinition(lexer: lexer);
-        case "interface": return try parseInterfaceTypeDefinition(lexer: lexer);
-        case "union": return try parseUnionTypeDefinition(lexer: lexer);
-        case "enum": return try parseEnumTypeDefinition(lexer: lexer);
-        case "input": return try parseInputObjectTypeDefinition(lexer: lexer);
-        case "extend": return try parseTypeExtensionDefinition(lexer: lexer);
-        case "directive": return try parseDirectiveDefinition(lexer: lexer);
-        default: break
+        case "schema":
+            return .schemaDefinition(try parseSchemaDefinition(lexer: lexer))
+        case "scalar":
+            return .typeDefinition(.scalarTypeDefinition(try parseScalarTypeDefinition(lexer: lexer)))
+        case "type":
+            return .typeDefinition(.objectTypeDefinition(try parseObjectTypeDefinition(lexer: lexer)))
+        case "interface":
+            return .typeDefinition(.interfaceTypeDefinition(try parseInterfaceTypeDefinition(lexer: lexer)))
+        case "union":
+            return .typeDefinition(.unionTypeDefinition(try parseUnionTypeDefinition(lexer: lexer)))
+        case "enum":
+            return .typeDefinition(.enumTypeDefinition(try parseEnumTypeDefinition(lexer: lexer)))
+        case "input":
+            return .typeDefinition(.inputObjectTypeDefinition(try parseInputObjectTypeDefinition(lexer: lexer)))
+//        case "extend":
+//            return try parseTypeExtensionDefinition(lexer: lexer);
+        case "directive":
+            return .directiveDefinition(try parseDirectiveDefinition(lexer: lexer))
+        default:
+            break
         }
     }
-
     throw unexpected(lexer: lexer, atToken: keywordToken)
 }
 

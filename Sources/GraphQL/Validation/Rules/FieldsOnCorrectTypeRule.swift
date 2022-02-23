@@ -23,48 +23,45 @@ func undefinedFieldMessage(
  * A GraphQL document is only valid if all fields selected are defined by the
  * parent type, or are an allowed meta field such as __typename.
  */
-func FieldsOnCorrectTypeRule(context: ValidationContext) -> Visitor {
-    return Visitor(
-        enter: { node, key, parent, path, ancestors in
-            if let node = node as? Field {
-                if let type = context.parentType {
-                    let fieldDef = context.fieldDef
-                    if fieldDef == nil {
-                        // This field doesn't exist, lets look for suggestions.
-                        let schema = context.schema
-                        let fieldName = node.name.value
-
-                        // First determine if there are any suggested types to condition on.
-                        let suggestedTypeNames = getSuggestedTypeNames(
-                            schema: schema,
-                            type: type,
-                            fieldName: fieldName
-                        )
-
-                        // If there are no suggested types, then perhaps this was a typo?
-                        let suggestedFieldNames = !suggestedTypeNames.isEmpty ? [] : getSuggestedFieldNames(
-                            schema: schema,
-                            type: type,
-                            fieldName: fieldName
-                        )
-
-                        // Report an error, including helpful suggestions.
-                        context.report(error: GraphQLError(
-                            message: undefinedFieldMessage(
-                                fieldName: fieldName,
-                                type: type.name,
-                                suggestedTypeNames: suggestedTypeNames,
-                                suggestedFieldNames: suggestedFieldNames
-                            ),
-                            nodes: [node]
-                        ))
-                    }
-                }
-            }
-
+struct FieldsOnCorrectTypeRule: ValidationRule {
+    let context: ValidationContext
+    func enter(field: Field, key: AnyKeyPath?, parent: VisitorParent?, ancestors: [VisitorParent]) -> VisitResult<Field> {
+        guard let type = context.parentType else {
             return .continue
         }
-    )
+        guard context.fieldDef == nil else {
+            return .continue
+        }
+        // This field doesn't exist, lets look for suggestions.
+        let schema = context.schema
+        let fieldName = field.name.value
+        
+        // First determine if there are any suggested types to condition on.
+        let suggestedTypeNames = getSuggestedTypeNames(
+            schema: schema,
+            type: type,
+            fieldName: fieldName
+        )
+        
+        // If there are no suggested types, then perhaps this was a typo?
+        let suggestedFieldNames = !suggestedTypeNames.isEmpty ? [] : getSuggestedFieldNames(
+            schema: schema,
+            type: type,
+            fieldName: fieldName
+        )
+        
+        // Report an error, including helpful suggestions.
+        context.report(error: GraphQLError(
+            message: undefinedFieldMessage(
+                fieldName: fieldName,
+                type: type.name,
+                suggestedTypeNames: suggestedTypeNames,
+                suggestedFieldNames: suggestedFieldNames
+            ),
+            nodes: [field]
+        ))
+        return .continue
+    }
 }
 
 /**

@@ -42,7 +42,7 @@ func astFromValue(
                 }
             }
 
-            return ListValue(values: valuesASTs)
+            return .listValue(ListValue(values: valuesASTs))
         }
 
         return try astFromValue(value: value, type: itemType)
@@ -67,7 +67,7 @@ func astFromValue(
             }
         }
 
-        return ObjectValue(fields: fieldASTs)
+        return .objectValue(ObjectValue(fields: fieldASTs))
     }
 
     guard let leafType = type as? GraphQLLeafType else {
@@ -88,11 +88,11 @@ func astFromValue(
     if case let .number(number) = serialized {
         switch number.storageType {
         case .bool:
-            return BooleanValue(value: number.boolValue)
+            return .booleanValue(BooleanValue(value: number.boolValue))
         case .int:
-            return IntValue(value: String(number.intValue))
+            return .intValue(IntValue(value: String(number.intValue)))
         case .double:
-            return FloatValue(value: String(number.doubleValue))
+            return .floatValue(FloatValue(value: String(number.doubleValue)))
         case .unknown:
             break
         }
@@ -101,12 +101,12 @@ func astFromValue(
     if case let .string(string) = serialized {
         // Enum types use Enum literals.
         if type is GraphQLEnumType {
-            return EnumValue(value: string)
+            return .enumValue(EnumValue(value: string))
         }
 
         // ID types can use Int literals.
         if type == GraphQLID && Int(string) != nil {
-            return IntValue(value: string)
+            return .intValue(IntValue(value: string))
         }
         
         // Use JSON stringify, which uses the same string encoding as GraphQL,
@@ -117,7 +117,7 @@ func astFromValue(
         
         let data = try GraphQLJSONEncoder().encode(Wrapper(map: serialized))
         let string = String(data: data, encoding: .utf8)!
-        return StringValue(value: String(string.dropFirst(8).dropLast(2)))
+        return .stringValue(StringValue(value: String(string.dropFirst(8).dropLast(2))))
     }
     
     throw GraphQLError(message: "Cannot convert value to AST: \(serialized)")

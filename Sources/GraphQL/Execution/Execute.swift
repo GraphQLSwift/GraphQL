@@ -359,23 +359,21 @@ func buildExecutionContext(
 
     for definition in documentAST.definitions {
         switch definition {
-        case let definition as OperationDefinition:
+        case .executableDefinition(.operation(let definition)):
             guard !(operationName == nil && possibleOperation != nil) else {
                 throw GraphQLError(
                     message: "Must provide operation name if query contains multiple operations."
                 )
             }
-
+            
             if operationName == nil || definition.name?.value == operationName {
                 possibleOperation = definition
             }
-
-        case let definition as FragmentDefinition:
+        case .executableDefinition(.fragment(let definition)):
             fragments[definition.name.value] = definition
-
         default:
             throw GraphQLError(
-                message: "GraphQL cannot execute a request containing a \(definition.kind).",
+                message: "GraphQL cannot execute a request containing a \(type(of: definition)).",
                 nodes: [definition]
             )
         }
@@ -502,7 +500,7 @@ func collectFields(
 
     for selection in selectionSet.selections {
         switch selection {
-        case let field as Field:
+        case .field(let field):
             let shouldInclude = try shouldIncludeNode(
                 exeContext: exeContext,
                 directives: field.directives
@@ -519,7 +517,7 @@ func collectFields(
             }
 
             fields[name]?.append(field)
-        case let inlineFragment as InlineFragment:
+        case .inlineFragment(let inlineFragment):
             let shouldInclude = try shouldIncludeNode(
                 exeContext: exeContext,
                 directives: inlineFragment.directives
@@ -542,34 +540,34 @@ func collectFields(
                 fields: &fields,
                 visitedFragmentNames: &visitedFragmentNames
             )
-        case let fragmentSpread as FragmentSpread:
+        case .fragmentSpread(let fragmentSpread):
             let fragmentName = fragmentSpread.name.value
-
+            
             let shouldInclude = try shouldIncludeNode(
                 exeContext: exeContext,
                 directives: fragmentSpread.directives
             )
-
+            
             guard visitedFragmentNames[fragmentName] == nil && shouldInclude else {
                 continue
             }
-
+            
             visitedFragmentNames[fragmentName] = true
-
+            
             guard let fragment = exeContext.fragments[fragmentName] else {
                 continue
             }
-
+            
             let fragmentConditionMatches = try doesFragmentConditionMatch(
                 exeContext: exeContext,
                 fragment: fragment,
                 type: runtimeType
             )
-
+            
             guard fragmentConditionMatches else {
                 continue
             }
-
+            
             try collectFields(
                 exeContext: exeContext,
                 runtimeType: runtimeType,
@@ -577,8 +575,6 @@ func collectFields(
                 fields: &fields,
                 visitedFragmentNames: &visitedFragmentNames
             )
-        default:
-            break
         }
     }
     
@@ -629,7 +625,7 @@ func doesFragmentConditionMatch(
         return true
     }
 
-    guard let conditionalType = typeFromAST(schema: exeContext.schema, inputTypeAST: typeConditionAST) else {
+    guard let conditionalType = typeFromAST(schema: exeContext.schema, inputTypeAST: .namedType(typeConditionAST)) else {
         return true
     }
 
