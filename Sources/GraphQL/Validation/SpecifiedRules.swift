@@ -26,4 +26,5 @@ let specifiedRules: [ValidationRule.Type] = [
     //    VariablesInAllowedPosition,
     //    OverlappingFieldsCanBeMerged,
     //    UniqueInputFieldNames,
+    VariablesAreInputTypesRule.self
 ]
