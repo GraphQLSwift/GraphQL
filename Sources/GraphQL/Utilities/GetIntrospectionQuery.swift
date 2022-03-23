@@ -124,13 +124,13 @@ struct IntrospectionSchema: Codable {
     let types: [AnyIntrospectionType]
 //    let directives: [IntrospectionDirective]
     
-    func encode(to encoder: Encoder) throws {
-        try types.encode(to: encoder)
-    }
+//    func encode(to encoder: Encoder) throws {
+//        try types.encode(to: encoder)
+//    }
 }
 
 protocol IntrospectionType: Codable {
-    static var kind: TypeKind2 { get }
+    var kind: TypeKind2 { get }
     var name: String { get }
 }
 
@@ -212,14 +212,14 @@ struct AnyIntrospectionType: Codable {
 //extension IntrospectionInputObjectType: IntrospectionInputType {}
 //
 struct IntrospectionScalarType: IntrospectionType {
-    static let kind = TypeKind2.scalar
+    var kind = TypeKind2.scalar
     let name: String
     let description: String?
     let specifiedByURL: String?
 }
 
 struct IntrospectionObjectType: IntrospectionType {
-    static let kind = TypeKind2.object
+    var kind = TypeKind2.object
     let name: String
     let description: String?
     let fields: [IntrospectionField]?
@@ -227,7 +227,7 @@ struct IntrospectionObjectType: IntrospectionType {
 }
 
 struct IntrospectionInterfaceType: IntrospectionType {
-    static let kind = TypeKind2.interface
+    var kind = TypeKind2.interface
     let name: String
     let description: String?
     let fields: [IntrospectionField]?
@@ -236,21 +236,21 @@ struct IntrospectionInterfaceType: IntrospectionType {
 }
 
 struct IntrospectionUnionType: IntrospectionType {
-    static let kind = TypeKind2.union
+    var kind = TypeKind2.union
     let name: String
     let description: String?
     let possibleTypes: [IntrospectionTypeRef]
 }
 
 struct IntrospectionEnumType: IntrospectionType {
-    static let kind = TypeKind2.enum
+    var kind = TypeKind2.enum
     let name: String
     let description: String?
     let enumValues: [IntrospectionEnumValue]
 }
 
 struct IntrospectionInputObjectType: IntrospectionType {
-    static let kind = TypeKind2.inputObject
+    var kind = TypeKind2.inputObject
     let name: String
     let description: String?
     let inputFields: [IntrospectionInputValue]
