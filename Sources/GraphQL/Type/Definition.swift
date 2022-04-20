@@ -165,6 +165,7 @@ extension GraphQLNonNull : GraphQLWrapperType {}
 public final class GraphQLScalarType {
     public let name: String
     public let description: String?
+    public let specifiedByURL: String?
     public let kind: TypeKind = .scalar
     
     let serialize: (Any) throws -> Map
@@ -174,11 +175,13 @@ public final class GraphQLScalarType {
     public init(
         name: String,
         description: String? = nil,
+        specifiedByURL: String? = nil,
         serialize: @escaping (Any) throws -> Map
     ) throws {
         try assertValid(name: name)
         self.name = name
         self.description = description
+        self.specifiedByURL = specifiedByURL
         self.serialize = serialize
         self.parseValue = nil
         self.parseLiteral = nil
@@ -187,6 +190,7 @@ public final class GraphQLScalarType {
     public init(
         name: String,
         description: String? = nil,
+        specifiedByURL: String? = nil,
         serialize: @escaping (Any) throws -> Map,
         parseValue: @escaping (Map) throws -> Map,
         parseLiteral: @escaping (Value) throws -> Map
@@ -194,6 +198,7 @@ public final class GraphQLScalarType {
         try assertValid(name: name)
         self.name = name
         self.description = description
+        self.specifiedByURL = specifiedByURL
         self.serialize = serialize
         self.parseValue = parseValue
         self.parseLiteral = parseLiteral

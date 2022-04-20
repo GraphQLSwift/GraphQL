@@ -92,6 +92,7 @@ public func buildClientSchema(introspection: IntrospectionQuery) throws -> Graph
             return try GraphQLScalarType(
                 name: type.name,
                 description: type.description,
+                specifiedByURL: type.specifiedByURL,
                 serialize: { try map(from: $0) }
             )
         case let type as IntrospectionObjectType:

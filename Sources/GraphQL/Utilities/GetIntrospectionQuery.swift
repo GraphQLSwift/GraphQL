@@ -1,13 +1,13 @@
 public func getIntrospectionQuery(
     descriptions: Bool = true,
-    specifiedByUrl: Bool = false,
+    specifiedByURL: Bool = false,
     directiveIsRepeatable: Bool = false,
     schemaDescription: Bool = false,
     inputValueDeprecation: Bool = false
 ) -> String {
     
     let descriptions = descriptions ? "description" : ""
-    let specifiedByUrl = specifiedByUrl ? "specifiedByURL" : ""
+    let specifiedByURL = specifiedByURL ? "specifiedByURL" : ""
     let directiveIsRepeatable = directiveIsRepeatable ? "isRepeatable" : ""
     let schemaDescription = schemaDescription ? descriptions : ""
     
@@ -40,7 +40,7 @@ public func getIntrospectionQuery(
       kind
       name
       \(descriptions)
-      \(specifiedByUrl)
+      \(specifiedByURL)
       fields(includeDeprecated: true) {
         name
         \(descriptions)
