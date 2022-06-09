@@ -4,7 +4,7 @@ import NIO
 /**
  * These are all of the possible kinds of types.
  */
-public protocol GraphQLType      : CustomDebugStringConvertible, Encodable, KeySubscriptable, AnyObject, Equatable {}
+public protocol GraphQLType      : CustomDebugStringConvertible, Encodable, KeySubscriptable, AnyObject {}
 extension GraphQLScalarType      : GraphQLType                             {}
 extension GraphQLObjectType      : GraphQLType                             {}
 extension GraphQLInterfaceType   : GraphQLType                             {}
@@ -13,12 +13,6 @@ extension GraphQLEnumType        : GraphQLType                             {}
 extension GraphQLInputObjectType : GraphQLType                             {}
 extension GraphQLList            : GraphQLType                             {}
 extension GraphQLNonNull         : GraphQLType                             {}
-
-extension GraphQLType {
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-        ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
-    }
-}
 
 /**
  * These types may be used as input types for arguments and directives.
@@ -120,8 +114,18 @@ func getNullableType(type: (any GraphQLType)?) -> (any GraphQLNullableType)? {
 /**
  * These named types do not include modifiers like List or NonNull.
  */
-public protocol GraphQLNamedType : GraphQLNullableType {
+public protocol GraphQLNamedType : GraphQLNullableType, Hashable {
     var name: String { get }
+}
+
+extension GraphQLNamedType {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.name == rhs.name
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        name.hash(into: &hasher)
+    }
 }
 
 extension GraphQLScalarType      : GraphQLNamedType {}
