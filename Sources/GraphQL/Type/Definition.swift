@@ -84,7 +84,7 @@ extension GraphQLInputObjectType : GraphQLTypeReferenceContainer {}
 /**
  * These types may describe the parent context of a selection set.
  */
-public protocol GraphQLAbstractType : GraphQLNamedType {
+public protocol GraphQLAbstractType : GraphQLCompositeType {
     var resolveType: GraphQLTypeResolve? { get }
 }
 

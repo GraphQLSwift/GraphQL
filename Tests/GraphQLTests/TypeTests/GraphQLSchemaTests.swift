@@ -151,4 +151,14 @@ class GraphQLSchemaTests: XCTestCase {
             XCTAssertEqual(graphQLError.message, "Object.fieldWithoutArg includes required argument (addedRequiredArg:) that is missing from the Interface field Interface.fieldWithoutArg.")
         }
     }
+    
+    func testSubtypingIsReflexive() throws {
+        let object = try GraphQLObjectType(
+            name: "Object",
+            fields: ["foo": GraphQLField(type: GraphQLInt)],
+            interfaces: []
+        )
+        let schema = try GraphQLSchema(query: object, types: [object])
+        XCTAssert(schema.isSubType(abstractType: object, maybeSubType: object))
+    }
 }

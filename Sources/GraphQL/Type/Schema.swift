@@ -120,13 +120,17 @@ public final class GraphQLSchema {
     }
     
     public func isSubType(
-      abstractType: GraphQLAbstractType,
+      abstractType: GraphQLCompositeType,
       maybeSubType: GraphQLNamedType
     ) -> Bool {
         var map = subTypeMap[abstractType.name]
 
         if map == nil {
             map = [:]
+            
+            if let objectType = abstractType as? GraphQLObjectType {
+                map?[objectType.name] = true
+            }
 
             if let unionType = abstractType as? GraphQLUnionType {
                 for type in unionType.types {
