@@ -4,7 +4,7 @@ import NIO
 /**
  * These are all of the possible kinds of types.
  */
-public protocol GraphQLType      : CustomDebugStringConvertible, Encodable, KeySubscriptable {}
+public protocol GraphQLType      : CustomDebugStringConvertible, Encodable, KeySubscriptable, AnyObject, Equatable {}
 extension GraphQLScalarType      : GraphQLType                             {}
 extension GraphQLObjectType      : GraphQLType                             {}
 extension GraphQLInterfaceType   : GraphQLType                             {}
@@ -13,6 +13,12 @@ extension GraphQLEnumType        : GraphQLType                             {}
 extension GraphQLInputObjectType : GraphQLType                             {}
 extension GraphQLList            : GraphQLType                             {}
 extension GraphQLNonNull         : GraphQLType                             {}
+
+extension GraphQLType {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+    }
+}
 
 /**
  * These types may be used as input types for arguments and directives.
@@ -27,9 +33,9 @@ extension GraphQLNonNull         : GraphQLInputType {}
 //extension GraphQLList : GraphQLInputType where Element : GraphQLInputType {}
 //extension GraphQLNonNull : GraphQLInputType where Element : (GraphQLScalarType | GraphQLEnumType | GraphQLInputObjectType | GraphQLList<GraphQLInputType>) {}
 
-func isInputType(type: GraphQLType?) -> Bool {
+func isInputType(type: (any GraphQLType)?) -> Bool {
     let namedType = getNamedType(type: type)
-    return namedType is GraphQLInputType
+    return namedType is any GraphQLInputType
 }
 
 /**
@@ -59,7 +65,7 @@ public protocol GraphQLLeafType : GraphQLNamedType {
 extension GraphQLScalarType : GraphQLLeafType {}
 extension GraphQLEnumType : GraphQLLeafType {}
 
-func isLeafType(type: GraphQLType?) -> Bool {
+func isLeafType(type: (any GraphQLType)?) -> Bool {
     let namedType = getNamedType(type: type)
     return namedType is GraphQLScalarType ||
            namedType is GraphQLEnumType
@@ -103,12 +109,12 @@ extension GraphQLEnumType           : GraphQLNullableType {}
 extension GraphQLInputObjectType    : GraphQLNullableType {}
 extension GraphQLList               : GraphQLNullableType {}
 
-func getNullableType(type: GraphQLType?) -> GraphQLNullableType? {
+func getNullableType(type: (any GraphQLType)?) -> (any GraphQLNullableType)? {
     if let type = type as? GraphQLNonNull {
         return type.ofType
     }
 
-    return type as? GraphQLNullableType
+    return type as? any GraphQLNullableType
 }
 
 /**
@@ -125,21 +131,21 @@ extension GraphQLUnionType       : GraphQLNamedType {}
 extension GraphQLEnumType        : GraphQLNamedType {}
 extension GraphQLInputObjectType : GraphQLNamedType {}
 
-public func getNamedType(type: GraphQLType?) -> GraphQLNamedType? {
+public func getNamedType(type: (any GraphQLType)?) -> (any GraphQLNamedType)? {
     var unmodifiedType = type
 
-    while let type = unmodifiedType as? GraphQLWrapperType {
+    while let type = unmodifiedType as? (any GraphQLWrapperType) {
         unmodifiedType = type.wrappedType
     }
 
-    return unmodifiedType as? GraphQLNamedType
+    return unmodifiedType as? (any GraphQLNamedType)
 }
 
 /**
  * These types wrap other types.
  */
 protocol GraphQLWrapperType : GraphQLType {
-    var wrappedType: GraphQLType { get }
+    var wrappedType: any GraphQLType { get }
 }
 
 extension GraphQLList    : GraphQLWrapperType {}
@@ -536,8 +542,8 @@ public typealias GraphQLFieldResolveInput = (
 public struct GraphQLResolveInfo {
     public let fieldName: String
     public let fieldASTs: [Field]
-    public let returnType: GraphQLOutputType
-    public let parentType: GraphQLCompositeType
+    public let returnType: any GraphQLOutputType
+    public let parentType: any GraphQLCompositeType
     public let path: IndexPath
     public let schema: GraphQLSchema
     public let fragments: [String: FragmentDefinition]
@@ -549,7 +555,7 @@ public struct GraphQLResolveInfo {
 public typealias GraphQLFieldMap = [String: GraphQLField]
 
 public struct GraphQLField {
-    public let type: GraphQLOutputType
+    public let type: any GraphQLOutputType
     public let args: GraphQLArgumentConfigMap
     public let deprecationReason: String?
     public let description: String?
@@ -557,7 +563,7 @@ public struct GraphQLField {
     public let subscribe: GraphQLFieldResolve?
     
     public init(
-        type: GraphQLOutputType,
+        type: any GraphQLOutputType,
         description: String? = nil,
         deprecationReason: String? = nil,
         args: GraphQLArgumentConfigMap = [:]
@@ -571,7 +577,7 @@ public struct GraphQLField {
     }
     
     public init(
-        type: GraphQLOutputType,
+        type: any GraphQLOutputType,
         description: String? = nil,
         deprecationReason: String? = nil,
         args: GraphQLArgumentConfigMap = [:],
@@ -587,7 +593,7 @@ public struct GraphQLField {
     }
     
     public init(
-        type: GraphQLOutputType,
+        type: any GraphQLOutputType,
         description: String? = nil,
         deprecationReason: String? = nil,
         args: GraphQLArgumentConfigMap = [:],
@@ -611,7 +617,7 @@ public typealias GraphQLFieldDefinitionMap = [String: GraphQLFieldDefinition]
 public final class GraphQLFieldDefinition {
     public let name: String
     public let description: String?
-    public internal(set) var type: GraphQLOutputType
+    public internal(set) var type: any GraphQLOutputType
     public let args: [GraphQLArgumentDefinition]
     public let resolve: GraphQLFieldResolve?
     public let subscribe: GraphQLFieldResolve?
@@ -620,7 +626,7 @@ public final class GraphQLFieldDefinition {
 
     init(
         name: String,
-        type: GraphQLOutputType,
+        type: any GraphQLOutputType,
         description: String? = nil,
         deprecationReason: String? = nil,
         args: [GraphQLArgumentDefinition] = [],
@@ -640,7 +646,7 @@ public final class GraphQLFieldDefinition {
     func replaceTypeReferences(typeMap: TypeMap) throws {
         let resolvedType = try resolveTypeReference(type: type, typeMap: typeMap)
 
-        guard let outputType = resolvedType as? GraphQLOutputType else {
+        guard let outputType = resolvedType as? (any GraphQLOutputType) else {
             throw GraphQLError(
                 message: "Resolved type \"\(resolvedType)\" is not a valid output type."
             )
@@ -695,12 +701,12 @@ extension GraphQLFieldDefinition : KeySubscriptable {
 public typealias GraphQLArgumentConfigMap = [String: GraphQLArgument]
 
 public struct GraphQLArgument {
-    public let type: GraphQLInputType
+    public let type: any GraphQLInputType
     public let description: String?
     public let defaultValue: Map?
 
     public init(
-        type: GraphQLInputType,
+        type: any GraphQLInputType,
         description: String? = nil,
         defaultValue: Map? = nil
     ) {
@@ -712,13 +718,13 @@ public struct GraphQLArgument {
 
 public struct GraphQLArgumentDefinition {
     public let name: String
-    public let type: GraphQLInputType
+    public let type: any GraphQLInputType
     public let defaultValue: Map?
     public let description: String?
 
     init(
         name: String,
-        type: GraphQLInputType,
+        type: any GraphQLInputType,
         defaultValue: Map? = nil,
         description: String? = nil
     ) {
@@ -1365,11 +1371,11 @@ func defineInputObjectFieldMap(
 }
 
 public struct InputObjectField {
-    public let type: GraphQLInputType
+    public let type: any GraphQLInputType
     public let defaultValue: Map?
     public let description: String?
     
-    public init(type: GraphQLInputType, defaultValue: Map? = nil, description: String? = nil) {
+    public init(type: any GraphQLInputType, defaultValue: Map? = nil, description: String? = nil) {
         self.type = type
         self.defaultValue = defaultValue
         self.description = description
@@ -1380,13 +1386,13 @@ public typealias InputObjectFieldMap = [String: InputObjectField]
 
 public final class InputObjectFieldDefinition {
     public let name: String
-    public internal(set) var type: GraphQLInputType
+    public internal(set) var type: any GraphQLInputType
     public let description: String?
     public let defaultValue: Map?
     
     init(
         name: String,
-        type: GraphQLInputType,
+        type: any GraphQLInputType,
         description: String? = nil,
         defaultValue: Map? = nil
     ) {
@@ -1399,7 +1405,7 @@ public final class InputObjectFieldDefinition {
     func replaceTypeReferences(typeMap: TypeMap) throws {
         let resolvedType = try resolveTypeReference(type: type, typeMap: typeMap)
 
-        guard let inputType = resolvedType as? GraphQLInputType else {
+        guard let inputType = resolvedType as? (any GraphQLInputType) else {
             throw GraphQLError(
                 message: "Resolved type \"\(resolvedType)\" is not a valid input type."
             )
@@ -1464,10 +1470,10 @@ public typealias InputObjectFieldDefinitionMap = [String: InputObjectFieldDefini
  *
  */
 public final class GraphQLList {
-    public let ofType: GraphQLType
+    public let ofType: any GraphQLType
     public let kind: TypeKind = .list
 
-    public init(_ type: GraphQLType) {
+    public init(_ type: any GraphQLType) {
         self.ofType = type
     }
 
@@ -1475,7 +1481,7 @@ public final class GraphQLList {
         self.ofType = GraphQLTypeReference(name)
     }
 
-    var wrappedType: GraphQLType {
+    var wrappedType: any GraphQLType {
         return ofType
     }
 
@@ -1548,10 +1554,10 @@ extension GraphQLList : Hashable {
  * Note: the enforcement of non-nullability occurs within the executor.
  */
 public final class GraphQLNonNull {
-    public let ofType: GraphQLNullableType
+    public let ofType: any GraphQLNullableType
     public let kind: TypeKind = .nonNull
 
-    public init(_ type: GraphQLNullableType) {
+    public init(_ type: any GraphQLNullableType) {
         self.ofType = type
     }
 
@@ -1559,14 +1565,14 @@ public final class GraphQLNonNull {
         self.ofType = GraphQLTypeReference(name)
     }
 
-    var wrappedType: GraphQLType {
+    var wrappedType: any GraphQLType {
         return ofType
     }
 
     func replaceTypeReferences(typeMap: TypeMap) throws -> GraphQLNonNull {
         let resolvedType = try resolveTypeReference(type: ofType, typeMap: typeMap)
 
-        guard let nullableType = resolvedType as? GraphQLNullableType else {
+        guard let nullableType = resolvedType as? (any GraphQLNullableType) else {
             throw GraphQLError(
                 message: "Resolved type \"\(resolvedType)\" is not a valid nullable type."
             )

@@ -72,10 +72,10 @@ struct FieldsOnCorrectTypeRule: ValidationRule {
  */
 func getSuggestedTypeNames(
     schema: GraphQLSchema,
-    type: GraphQLOutputType,
+    type: any GraphQLOutputType,
     fieldName: String
 ) -> [String] {
-    if let type = type as? GraphQLAbstractType {
+    if let type = type as? (any GraphQLAbstractType) {
         var suggestedObjectTypes: [String] = []
         var interfaceUsageCount: [String: Int] = [:]
 
@@ -116,7 +116,7 @@ func getSuggestedTypeNames(
  */
 func getSuggestedFieldNames(
     schema: GraphQLSchema,
-    type: GraphQLOutputType,
+    type: any GraphQLOutputType,
     fieldName: String
 ) -> [String] {
     if let type = type as? GraphQLObjectType {

@@ -3,10 +3,10 @@
  * accepted for that type. This is primarily useful for validating the
  * runtime values of query variables.
  */
-func validate(value: Map, forType type: GraphQLInputType) throws -> [String] {
+func validate(value: Map, forType type: any GraphQLInputType) throws -> [String] {
     // A value must be provided if the type is non-null.
     if let nonNullType = type as? GraphQLNonNull {
-        guard let wrappedType = nonNullType.ofType as? GraphQLInputType else {
+        guard let wrappedType = nonNullType.ofType as? (any GraphQLInputType) else {
             throw GraphQLError(message: "Input non-null type must wrap another input type")
         }
         
@@ -27,7 +27,7 @@ func validate(value: Map, forType type: GraphQLInputType) throws -> [String] {
 
     // Lists accept a non-list value as a list of one.
     if let listType = type as? GraphQLList {
-        guard let itemType = listType.ofType as? GraphQLInputType else {
+        guard let itemType = listType.ofType as? (any GraphQLInputType) else {
             throw GraphQLError(message: "Input list type must wrap another input type")
         }
 
@@ -75,7 +75,7 @@ func validate(value: Map, forType type: GraphQLInputType) throws -> [String] {
         return errors
     }
 
-    if let leafType = type as? GraphQLLeafType {
+    if let leafType = type as? (any GraphQLLeafType) {
         // Scalar/Enum input checks to ensure the type can parse the value to
         // a non-null value.
         do {

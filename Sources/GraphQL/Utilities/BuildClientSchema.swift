@@ -3,8 +3,8 @@ enum BuildClientSchemaError: Error {
 }
 public func buildClientSchema(introspection: IntrospectionQuery) throws -> GraphQLSchema {
     let schemaIntrospection = introspection.__schema
-    var typeMap = [String: GraphQLNamedType]()
-    typeMap = try schemaIntrospection.types.reduce(into: [String: GraphQLNamedType]()) {
+    var typeMap = [String: any GraphQLNamedType]()
+    typeMap = try schemaIntrospection.types.reduce(into: [String: any GraphQLNamedType]()) {
         $0[$1.x.name] = try buildType($1.x)
     }
     
@@ -16,7 +16,7 @@ public func buildClientSchema(introspection: IntrospectionQuery) throws -> Graph
         }
     }
     
-    func getNamedType(name: String) throws -> GraphQLNamedType {
+    func getNamedType(name: String) throws -> any GraphQLNamedType {
         guard let type = typeMap[name] else {
             throw BuildClientSchemaError.invalid("Couldn't find type named \(name)")
         }
@@ -41,12 +41,12 @@ public func buildClientSchema(introspection: IntrospectionQuery) throws -> Graph
         return type
     }
     
-    func getType(_ typeRef: IntrospectionTypeRef) throws -> GraphQLType {
+    func getType(_ typeRef: IntrospectionTypeRef) throws -> any GraphQLType {
         switch typeRef {
         case .list(let ofType):
             return GraphQLList(try getType(ofType))
         case .nonNull(let ofType):
-            guard let type = try getType(ofType) as? GraphQLNullableType else {
+            guard let type = try getType(ofType) as? (any GraphQLNullableType) else {
                 throw BuildClientSchemaError.invalid("Expected nullable type")
             }
             return GraphQLNonNull(type)
@@ -77,7 +77,7 @@ public func buildClientSchema(introspection: IntrospectionQuery) throws -> Graph
     }
     
     func buildInputValue(inputValue: IntrospectionInputValue) throws -> GraphQLArgument {
-        guard let type = try getType(inputValue.type) as? GraphQLInputType else {
+        guard let type = try getType(inputValue.type) as? (any GraphQLInputType) else {
             throw BuildClientSchemaError.invalid("Introspection must provide input type for arguments")
         }
         let defaultValue = try inputValue.defaultValue.map {
@@ -86,7 +86,7 @@ public func buildClientSchema(introspection: IntrospectionQuery) throws -> Graph
         return GraphQLArgument(type: type, description: inputValue.description, defaultValue: defaultValue)
     }
 
-    func buildType(_ type: IntrospectionType) throws -> GraphQLNamedType {
+    func buildType(_ type: IntrospectionType) throws -> any GraphQLNamedType {
         switch type {
         case let type as IntrospectionScalarType:
             return try GraphQLScalarType(

@@ -10,7 +10,7 @@ let __Schema = try! GraphQLObjectType(
         "types": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__Type))),
             description: "A list of all types supported by this server.",
-            resolve: { schema, _, _, _ -> [GraphQLNamedType]? in
+            resolve: { schema, _, _, _ -> [any GraphQLNamedType]? in
                 guard let schema = schema as? GraphQLSchema else {
                     return nil
                 }
@@ -474,6 +474,6 @@ let TypeNameMetaFieldDef = GraphQLFieldDefinition(
     }
 )
 
-let introspectionTypes: [GraphQLNamedType] = [
+let introspectionTypes: [any GraphQLNamedType] = [
     __Schema, __Directive, __DirectiveLocation, __Type, __Field, __InputValue, __EnumValue, __TypeKind
 ]

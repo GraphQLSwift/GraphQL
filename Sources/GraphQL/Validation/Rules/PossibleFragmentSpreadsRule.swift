@@ -10,7 +10,7 @@ struct PossibleFragmentSpreadsRule: ValidationRule {
     
     func enter(inlineFragment: InlineFragment, key: AnyKeyPath?, parent: VisitorParent?, ancestors: [VisitorParent]) -> VisitResult<InlineFragment> {
         guard
-            let fragType = context.type as? GraphQLCompositeType,
+            let fragType = context.type as? (any GraphQLCompositeType),
             let parentType = context.parentType
         else {
             return .continue
@@ -69,14 +69,14 @@ struct PossibleFragmentSpreadsRule: ValidationRule {
 func getFragmentType(
     context: ValidationContext,
     name: String
-) -> GraphQLCompositeType? {
+) -> (any GraphQLCompositeType)? {
     if let fragment = context.getFragment(name: name) {
         let type = typeFromAST(
             schema: context.schema,
             inputTypeAST: .namedType(fragment.typeCondition)
         )
         
-        if let type = type as? GraphQLCompositeType {
+        if let type = type as? (any GraphQLCompositeType) {
             return type
         }
     }

@@ -1,9 +1,9 @@
-func noSubselectionAllowedMessage(fieldName: String, type: GraphQLType) -> String {
+func noSubselectionAllowedMessage(fieldName: String, type: any GraphQLType) -> String {
     return "Field \"\(fieldName)\" must not have a selection since " +
            "type \"\(type)\" has no subfields."
 }
 
-func requiredSubselectionMessage(fieldName: String, type: GraphQLType) -> String {
+func requiredSubselectionMessage(fieldName: String, type: any GraphQLType) -> String {
     return "Field \"\(fieldName)\" of type \"\(type)\" must have a " +
            "selection of subfields. Did you mean \"\(fieldName) { ... }\"?"
 }

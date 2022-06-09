@@ -17,12 +17,12 @@ import OrderedCollections
  * | Enum Value           | .string       |
  *
  */
-func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: Map] = [:]) throws -> Map {
+func valueFromAST(valueAST: Value, type: any GraphQLInputType, variables: [String: Map] = [:]) throws -> Map {
     if let nonNull = type as? GraphQLNonNull {
         // Note: we're not checking that the result of valueFromAST is non-null.
         // We're assuming that this query has been validated and the value used
         // here is of the correct type.
-        guard let nonNullType = nonNull.ofType as? GraphQLInputType else {
+        guard let nonNullType = nonNull.ofType as? (any GraphQLInputType) else {
             throw GraphQLError(message: "NonNull must wrap an input type")
         }
         return try valueFromAST(valueAST: valueAST, type: nonNullType, variables: variables)
@@ -45,7 +45,7 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
     }
 
     if let list = type as? GraphQLList {
-        guard let itemType = list.ofType as? GraphQLInputType else {
+        guard let itemType = list.ofType as? (any GraphQLInputType) else {
             throw GraphQLError(message: "Input list must wrap an input type")
         }
 
@@ -98,7 +98,7 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
         return .dictionary(object)
     }
     
-    if let leafType = type as? GraphQLLeafType {
+    if let leafType = type as? (any GraphQLLeafType) {
         return try leafType.parseLiteral(valueAST: valueAST)
     }
     

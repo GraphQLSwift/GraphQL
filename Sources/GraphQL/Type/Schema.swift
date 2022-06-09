@@ -38,7 +38,7 @@ public final class GraphQLSchema {
         query: GraphQLObjectType,
         mutation: GraphQLObjectType? = nil,
         subscription: GraphQLObjectType? = nil,
-        types: [GraphQLNamedType] = [],
+        types: [any GraphQLNamedType] = [],
         directives: [GraphQLDirective] = []
     ) throws {
         self.queryType = query
@@ -49,7 +49,7 @@ public final class GraphQLSchema {
         self.directives = directives.isEmpty ? specifiedDirectives : directives
 
         // Build type map now to detect any errors within this schema.
-        var initialTypes: [GraphQLNamedType] = [
+        var initialTypes: [any GraphQLNamedType] = [
             queryType,
         ]
 
@@ -89,11 +89,11 @@ public final class GraphQLSchema {
         }
     }
 
-    public func getType(name: String) -> GraphQLNamedType? {
+    public func getType(name: String) -> (any GraphQLNamedType)? {
         return typeMap[name]
     }
 
-    public func getPossibleTypes(abstractType: GraphQLAbstractType) -> [GraphQLObjectType] {
+    public func getPossibleTypes(abstractType: any GraphQLAbstractType) -> [GraphQLObjectType] {
         if let unionType = abstractType as? GraphQLUnionType {
             return unionType.types
         }
@@ -113,15 +113,15 @@ public final class GraphQLSchema {
 
     // @deprecated: use isSubType instead - will be removed in the future.
     public func isPossibleType(
-        abstractType: GraphQLAbstractType,
+        abstractType: any GraphQLAbstractType,
         possibleType: GraphQLObjectType
     ) throws -> Bool {
         isSubType(abstractType: abstractType, maybeSubType: possibleType)
     }
     
     public func isSubType(
-      abstractType: GraphQLCompositeType,
-      maybeSubType: GraphQLNamedType
+        abstractType: any GraphQLCompositeType,
+      maybeSubType: any GraphQLNamedType
     ) -> Bool {
         var map = subTypeMap[abstractType.name]
 
@@ -175,7 +175,7 @@ extension GraphQLSchema : Encodable {
     }
 }
 
-public typealias TypeMap = [String: GraphQLNamedType]
+public typealias TypeMap = [String: any GraphQLNamedType]
 
 public struct InterfaceImplementations {
     public let objects: [GraphQLObjectType]
@@ -191,7 +191,7 @@ public struct InterfaceImplementations {
 }
 
 func collectImplementations(
-  types: [GraphQLNamedType]
+    types: [any GraphQLNamedType]
 ) -> [String : InterfaceImplementations] {
     var implementations: [String: InterfaceImplementations] = [:]
 
@@ -219,14 +219,14 @@ func collectImplementations(
     return implementations
 }
 
-func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
+func typeMapReducer(typeMap: TypeMap, type: any GraphQLType) throws -> TypeMap {
     var typeMap = typeMap
 
-    if let type = type as? GraphQLWrapperType {
+    if let type = type as? (any GraphQLWrapperType) {
         return try typeMapReducer(typeMap: typeMap, type: type.wrappedType)
     }
 
-    guard let type = type as? GraphQLNamedType else {
+    guard let type = type as? (any GraphQLNamedType) else {
         return typeMap // Should never happen
     }
 
@@ -353,13 +353,13 @@ func assert(
 
 func replaceTypeReferences(typeMap: TypeMap) throws {
     for type in typeMap {
-        if let typeReferenceContainer = type.value as? GraphQLTypeReferenceContainer {
+        if let typeReferenceContainer = type.value as? (any GraphQLTypeReferenceContainer) {
             try typeReferenceContainer.replaceTypeReferences(typeMap: typeMap)
         }
     }
 }
 
-func resolveTypeReference(type: GraphQLType, typeMap: TypeMap) throws -> GraphQLType {
+func resolveTypeReference(type: any GraphQLType, typeMap: TypeMap) throws -> any GraphQLType {
     if let type = type as? GraphQLTypeReference {
         guard let resolvedType = typeMap[type.name] else {
             throw GraphQLError(
@@ -381,8 +381,8 @@ func resolveTypeReference(type: GraphQLType, typeMap: TypeMap) throws -> GraphQL
     return type
 }
 
-func resolveTypeReferences(types: [GraphQLType], typeMap: TypeMap) throws -> [GraphQLType] {
-    var resolvedTypes: [GraphQLType] = []
+func resolveTypeReferences(types: [any GraphQLType], typeMap: TypeMap) throws -> [any GraphQLType] {
+    var resolvedTypes: [any GraphQLType] = []
 
     for type in types {
         try resolvedTypes.append(resolveTypeReference(type: type, typeMap: typeMap))

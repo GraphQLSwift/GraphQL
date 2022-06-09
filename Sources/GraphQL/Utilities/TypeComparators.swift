@@ -1,7 +1,7 @@
 /**
  * Provided two types, return true if the types are equal (invariant).
  */
-public func isEqualType(_ typeA: GraphQLType, _ typeB: GraphQLType) -> Bool {
+public func isEqualType(_ typeA: any GraphQLType, _ typeB: any GraphQLType) -> Bool {
     // Equivalent types are equal.
     if typeA == typeB {
         return true
@@ -21,7 +21,7 @@ public func isEqualType(_ typeA: GraphQLType, _ typeB: GraphQLType) -> Bool {
     return false
 }
 
-func == (lhs: GraphQLType, rhs: GraphQLType) -> Bool {
+func == (lhs: any GraphQLType, rhs: any GraphQLType) -> Bool {
     switch lhs {
     case let l as GraphQLScalarType:
         if let r = rhs as? GraphQLScalarType {
@@ -72,8 +72,8 @@ func == (lhs: GraphQLType, rhs: GraphQLType) -> Bool {
  */
 public func isTypeSubTypeOf(
     _ schema: GraphQLSchema,
-    _ maybeSubType: GraphQLType,
-    _ superType: GraphQLType
+    _ maybeSubType: any GraphQLType,
+    _ superType: any GraphQLType
 ) throws -> Bool {
     // Equivalent type is a valid subtype
     if maybeSubType == superType {
@@ -106,7 +106,7 @@ public func isTypeSubTypeOf(
 
     // If superType type is an abstract type, check if it is super type of maybeSubType.
     if
-        let superType = superType as? GraphQLAbstractType,
+        let superType = superType as? (any GraphQLAbstractType),
         let maybeSubType = maybeSubType as? GraphQLObjectType,
         schema.isSubType(
             abstractType: superType,
@@ -117,7 +117,7 @@ public func isTypeSubTypeOf(
     }
     
     if
-        let superType = superType as? GraphQLAbstractType,
+        let superType = superType as? (any GraphQLAbstractType),
         let maybeSubType = maybeSubType as? GraphQLInterfaceType,
         schema.isSubType(
             abstractType: superType,
@@ -142,16 +142,16 @@ public func isTypeSubTypeOf(
  */
 func doTypesOverlap(
     schema: GraphQLSchema,
-    typeA: GraphQLCompositeType,
-    typeB: GraphQLCompositeType
+    typeA: any GraphQLCompositeType,
+    typeB: any GraphQLCompositeType
 ) -> Bool {
     // Equivalent types overlap
     if typeA == typeB {
         return true
     }
 
-    if let typeA = typeA as? GraphQLAbstractType {
-        if let typeB = typeB as? GraphQLAbstractType {
+    if let typeA = typeA as? (any GraphQLAbstractType) {
+        if let typeB = typeB as? (any GraphQLAbstractType) {
             // If both types are abstract, then determine if there is any intersection
             // between possible concrete types of each.
             return schema.getPossibleTypes(abstractType: typeA).contains { typeA in
@@ -171,7 +171,7 @@ func doTypesOverlap(
         }
     }
 
-    if let typeB = typeB as? GraphQLAbstractType {
+    if let typeB = typeB as? (any GraphQLAbstractType) {
         // Determine if the former type is a possible concrete type of the latter.
         return schema.isSubType(
             abstractType: typeB,

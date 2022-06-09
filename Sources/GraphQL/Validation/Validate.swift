@@ -78,7 +78,7 @@ extension OperationDefinition: HasSelectionSet { }
 extension FragmentDefinition: HasSelectionSet { }
 
 
-typealias VariableUsage = (node: Variable, type: GraphQLInputType?)
+typealias VariableUsage = (node: Variable, type: (any GraphQLInputType)?)
 
 /**
  * An instance of this class is passed as the "this" context to all validators,
@@ -207,15 +207,15 @@ final class ValidationContext {
         return usages
     }
 
-    var type: GraphQLOutputType? {
+    var type: (any GraphQLOutputType)? {
         return typeInfo.type
     }
 
-    var parentType: GraphQLCompositeType? {
+    var parentType: (any GraphQLCompositeType)? {
         return typeInfo.parentType
     }
 
-    var inputType: GraphQLInputType? {
+    var inputType: (any GraphQLInputType)? {
         return typeInfo.inputType
     }
 

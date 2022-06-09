@@ -18,12 +18,12 @@ import Foundation
  */
 func astFromValue(
     value: Map,
-    type: GraphQLInputType
+    type: any GraphQLInputType
 ) throws -> Value? {
     if let type = type as? GraphQLNonNull {
         // Note: we're not checking that the result is non-null.
         // This function is not responsible for validating the input value.
-        return try astFromValue(value: value, type: type.ofType as! GraphQLInputType)
+        return try astFromValue(value: value, type: type.ofType as! (any GraphQLInputType))
     }
 
     guard value != .null else {
@@ -33,7 +33,7 @@ func astFromValue(
     // Convert array to GraphQL list. If the GraphQLType is a list, but
     // the value is not an array, convert the value using the list's item type.
     if let type = type as? GraphQLList {
-        let itemType = type.ofType as! GraphQLInputType
+        let itemType = type.ofType as! (any GraphQLInputType)
 
         if case .array(let value) = value {
             var valuesASTs: [Value] = []
@@ -72,7 +72,7 @@ func astFromValue(
         return .objectValue(ObjectValue(fields: fieldASTs))
     }
 
-    guard let leafType = type as? GraphQLLeafType else {
+    guard let leafType = type as? (any GraphQLLeafType) else {
         throw GraphQLError(
             message: "Must provide Input Type, cannot use: \(type)"
         )

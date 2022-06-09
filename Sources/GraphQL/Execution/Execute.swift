@@ -633,7 +633,7 @@ func doesFragmentConditionMatch(
         return true
     }
 
-    if let abstractType = conditionalType as? GraphQLAbstractType {
+    if let abstractType = conditionalType as? (any GraphQLAbstractType) {
         return exeContext.schema.isSubType(
             abstractType: abstractType,
             maybeSubType: type
@@ -761,7 +761,7 @@ func resolveOrError(
 // in the execution context.
 func completeValueCatchingError(
     exeContext: ExecutionContext,
-    returnType: GraphQLType,
+    returnType: any GraphQLType,
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: IndexPath,
@@ -813,7 +813,7 @@ func completeValueCatchingError(
 // location information.
 func completeValueWithLocatedError(
     exeContext: ExecutionContext,
-    returnType: GraphQLType,
+    returnType: any GraphQLType,
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: IndexPath,
@@ -863,7 +863,7 @@ func completeValueWithLocatedError(
  */
 func completeValue(
     exeContext: ExecutionContext,
-    returnType: GraphQLType,
+    returnType: any GraphQLType,
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: IndexPath,
@@ -995,7 +995,7 @@ func completeListValue(
  * Complete a Scalar or Enum by serializing to a valid value, returning
  * .null if serialization is not possible.
  */
-func completeLeafValue(returnType: GraphQLLeafType, result: Any?) throws -> Map {
+func completeLeafValue(returnType: any GraphQLLeafType, result: Any?) throws -> Map {
     guard let result = result else {
         return .null
     }
@@ -1019,7 +1019,7 @@ func completeLeafValue(returnType: GraphQLLeafType, result: Any?) throws -> Map 
  */
 func completeAbstractValue(
     exeContext: ExecutionContext,
-    returnType: GraphQLAbstractType,
+    returnType: any GraphQLAbstractType,
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: IndexPath,
@@ -1042,7 +1042,7 @@ func completeAbstractValue(
     }
 
     // If resolveType returns a string, we assume it's a GraphQLObjectType name.
-    var runtimeType: GraphQLType?
+    var runtimeType: (any GraphQLType)?
 
     switch resolveResult {
     case .name(let name):
@@ -1139,7 +1139,7 @@ func defaultResolveType(
     value: Any,
     eventLoopGroup: EventLoopGroup,
     info: GraphQLResolveInfo,
-    abstractType: GraphQLAbstractType
+    abstractType: any GraphQLAbstractType
 ) throws -> TypeResolveResult? {
     let possibleTypes = info.schema.getPossibleTypes(abstractType: abstractType)
 

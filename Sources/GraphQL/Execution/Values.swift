@@ -82,7 +82,7 @@ func getVariableValue(schema: GraphQLSchema, definitionAST: VariableDefinition, 
     let type = typeFromAST(schema: schema, inputTypeAST: definitionAST.type)
     let variable = definitionAST.variable
 
-    guard let inputType = type as? GraphQLInputType else {
+    guard let inputType = type as? (any GraphQLInputType) else {
         throw GraphQLError(
             message:
             "Variable \"$\(variable.name.value)\" expected value of type " +
@@ -112,11 +112,11 @@ func getVariableValue(schema: GraphQLSchema, definitionAST: VariableDefinition, 
 /**
  * Given a type and any value, return a runtime value coerced to match the type.
  */
-func coerceValue(value: Map, type: GraphQLInputType) throws -> Map {
+func coerceValue(value: Map, type: any GraphQLInputType) throws -> Map {
     if let nonNull = type as? GraphQLNonNull {
         // Note: we're not checking that the result of coerceValue is non-null.
         // We only call this function after calling validate.
-        guard let nonNullType = nonNull.ofType as? GraphQLInputType else {
+        guard let nonNullType = nonNull.ofType as? (any GraphQLInputType) else {
             throw GraphQLError(message: "NonNull must wrap an input type")
         }
         return try coerceValue(value: value, type: nonNullType)
@@ -127,7 +127,7 @@ func coerceValue(value: Map, type: GraphQLInputType) throws -> Map {
     }
 
     if let list = type as? GraphQLList {
-        guard let itemType = list.ofType as? GraphQLInputType else {
+        guard let itemType = list.ofType as? (any GraphQLInputType) else {
             throw GraphQLError(message: "Input list must wrap an input type")
         }
 
@@ -168,7 +168,7 @@ func coerceValue(value: Map, type: GraphQLInputType) throws -> Map {
         return .dictionary(object)
     }
     
-    if let leafType = type as? GraphQLLeafType {
+    if let leafType = type as? (any GraphQLLeafType) {
         return try leafType.parseValue(value: value)
     }
     
