@@ -10,7 +10,7 @@ let specifiedRules: [ValidationRule.Type] = [
     ScalarLeafsRule.self,
     FieldsOnCorrectTypeRule.self,
     //    UniqueFragmentNames,
-    //    KnownFragmentNames,
+    KnownFragmentNamesRule.self,
     //    NoUnusedFragments,
     PossibleFragmentSpreadsRule.self,
     //    NoFragmentCycles,
