@@ -29,7 +29,7 @@ public func validate(
  * (see the language/visitor API). Visitor methods are expected to return
  * GraphQLErrors, or Arrays of GraphQLErrors when invalid.
  */
-func validate(
+public func validate(
     instrumentation: Instrumentation = NoOpInstrumentation,
     schema: GraphQLSchema,
     ast: Document,
