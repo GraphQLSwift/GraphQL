@@ -62,11 +62,11 @@ func visit(
     return context.errors
 }
 
-enum HasSelectionSet {
+public enum HasSelectionSet {
     case operation(OperationDefinition)
     case fragment(FragmentDefinition)
 
-    var node: Node {
+    public var node: Node {
         switch self {
         case .operation(let operation):
             return operation
@@ -77,7 +77,7 @@ enum HasSelectionSet {
 }
 
 extension HasSelectionSet : Hashable {
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         switch self {
         case .operation(let operation):
             return hasher.combine(operation.hashValue)
@@ -86,7 +86,7 @@ extension HasSelectionSet : Hashable {
         }
     }
 
-    static func == (lhs: HasSelectionSet, rhs: HasSelectionSet) -> Bool {
+    public static func == (lhs: HasSelectionSet, rhs: HasSelectionSet) -> Bool {
         switch (lhs, rhs) {
         case (.operation(let l), .operation(let r)):
             return l == r
@@ -98,15 +98,15 @@ extension HasSelectionSet : Hashable {
     }
 }
 
-typealias VariableUsage = (node: Variable, type: GraphQLInputType?)
+public typealias VariableUsage = (node: Variable, type: GraphQLInputType?)
 
 /**
  * An instance of this class is passed as the "this" context to all validators,
  * allowing access to commonly useful contextual information from within a
  * validation rule.
  */
-final class ValidationContext {
-    let schema: GraphQLSchema
+public final class ValidationContext {
+    public let schema: GraphQLSchema
     let ast: Document
     let typeInfo: TypeInfo
     var errors: [GraphQLError]
@@ -128,11 +128,11 @@ final class ValidationContext {
         self.recursiveVariableUsages = [:]
     }
 
-    func report(error: GraphQLError) {
+    public func report(error: GraphQLError) {
         errors.append(error)
     }
 
-    func getFragment(name: String) -> FragmentDefinition? {
+    public func getFragment(name: String) -> FragmentDefinition? {
         var fragments = self.fragments
 
         if fragments.isEmpty {
@@ -152,7 +152,7 @@ final class ValidationContext {
         return fragments[name]
     }
 
-    func getFragmentSpreads(node: SelectionSet) -> [FragmentSpread] {
+    public func getFragmentSpreads(node: SelectionSet) -> [FragmentSpread] {
         var spreads = fragmentSpreads[node]
 
         if spreads == nil {
@@ -181,7 +181,7 @@ final class ValidationContext {
         return spreads!
     }
 
-    func getRecursivelyReferencedFragments(operation: OperationDefinition) -> [FragmentDefinition] {
+    public func getRecursivelyReferencedFragments(operation: OperationDefinition) -> [FragmentDefinition] {
         var fragments = recursivelyReferencedFragments[operation]
 
         if fragments == nil {
@@ -210,7 +210,7 @@ final class ValidationContext {
         return fragments!
     }
 
-    func getVariableUsages(node: HasSelectionSet) -> [VariableUsage] {
+    public func getVariableUsages(node: HasSelectionSet) -> [VariableUsage] {
         var usages = variableUsages[node]
 
         if usages == nil {
@@ -236,7 +236,7 @@ final class ValidationContext {
         return usages!
     }
 
-    func getRecursiveVariableUsages(operation: OperationDefinition) -> [VariableUsage] {
+    public func getRecursiveVariableUsages(operation: OperationDefinition) -> [VariableUsage] {
         var usages = recursiveVariableUsages[operation]
 
         if usages == nil {
@@ -254,27 +254,27 @@ final class ValidationContext {
         return usages!
     }
 
-    var type: GraphQLOutputType? {
+    public var type: GraphQLOutputType? {
         return typeInfo.type
     }
 
-    var parentType: GraphQLCompositeType? {
+    public var parentType: GraphQLCompositeType? {
         return typeInfo.parentType
     }
 
-    var inputType: GraphQLInputType? {
+    public var inputType: GraphQLInputType? {
         return typeInfo.inputType
     }
 
-    var fieldDef: GraphQLFieldDefinition? {
+    public var fieldDef: GraphQLFieldDefinition? {
         return typeInfo.fieldDef
     }
 
-    var directive: GraphQLDirective? {
+    public var directive: GraphQLDirective? {
         return typeInfo.directive
     }
 
-    var argument: GraphQLArgumentDefinition? {
+    public var argument: GraphQLArgumentDefinition? {
         return typeInfo.argument
     }
 }
