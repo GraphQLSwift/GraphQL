@@ -605,12 +605,15 @@ class SubscriptionTests : XCTestCase {
         
         var results = [GraphQLResult]()
         var expectation = XCTestExpectation()
-        _ = stream.map { event in
+        
+        // So that the Task won't immediately be cancelled since the ConcurrentEventStream is discarded
+        let keepForNow = stream.map { event in
             event.map { result in
                 results.append(result)
                 expectation.fulfill()
             }
         }
+
         var expected = [GraphQLResult]()
         
         db.trigger(email: Email(
@@ -675,6 +678,9 @@ class SubscriptionTests : XCTestCase {
         )
         wait(for: [expectation], timeout: timeoutDuration)
         XCTAssertEqual(results, expected)
+
+        // So that the Task won't immediately be cancelled since the ConcurrentEventStream is discarded
+        _ = keepForNow
     }
 
     /// 'should not trigger when subscription is already done'
@@ -701,7 +707,8 @@ class SubscriptionTests : XCTestCase {
         
         var results = [GraphQLResult]()
         var expectation = XCTestExpectation()
-        _ = stream.map { event in
+        // So that the Task won't immediately be cancelled since the ConcurrentEventStream is discarded
+        let keepForNow = stream.map { event in
             event.map { result in
                 results.append(result)
                 expectation.fulfill()
@@ -747,6 +754,9 @@ class SubscriptionTests : XCTestCase {
         // Ensure that the current result was the one before the db was stopped
         wait(for: [expectation], timeout: timeoutDuration)
         XCTAssertEqual(results, expected)
+
+        // So that the Task won't immediately be cancelled since the ConcurrentEventStream is discarded
+        _ = keepForNow
     }
 
     /// 'should not trigger when subscription is thrown'
@@ -861,7 +871,8 @@ class SubscriptionTests : XCTestCase {
         
         var results = [GraphQLResult]()
         var expectation = XCTestExpectation()
-        _ = stream.map { event in
+        // So that the Task won't immediately be cancelled since the ConcurrentEventStream is discarded
+        let keepForNow = stream.map { event in
             event.map { result in
                 results.append(result)
                 expectation.fulfill()
@@ -925,6 +936,9 @@ class SubscriptionTests : XCTestCase {
         )
         wait(for: [expectation], timeout: timeoutDuration)
         XCTAssertEqual(results, expected)
+
+        // So that the Task won't immediately be cancelled since the ConcurrentEventStream is discarded
+        _ = keepForNow
     }
     
     /// 'should pass through error thrown in source event stream'
