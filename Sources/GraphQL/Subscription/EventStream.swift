@@ -31,23 +31,41 @@ public class ConcurrentEventStream<Element>: EventStream<Element> {
 extension AsyncThrowingStream {
     func mapStream<To>(_ closure: @escaping (Element) throws -> To) -> AsyncThrowingStream<To, Error> {
         return AsyncThrowingStream<To, Error> { continuation in
-            Task {
-                for try await event in self {
-                    let newEvent = try closure(event)
-                    continuation.yield(newEvent)
+            let task = Task {
+                do {
+                    for try await event in self {
+                        let newEvent = try closure(event)
+                        continuation.yield(newEvent)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
                 }
+            }
+
+            continuation.onTermination = { @Sendable _ in
+                task.cancel()
             }
         }
     }
     
     func filterStream(_ isIncluded: @escaping (Element) throws -> Bool) -> AsyncThrowingStream<Element, Error> {
         return AsyncThrowingStream<Element, Error> { continuation in
-            Task {
-                for try await event in self {
-                    if try isIncluded(event) {
-                        continuation.yield(event)
+            let task = Task {
+                do {
+                    for try await event in self {
+                        if try isIncluded(event) {
+                            continuation.yield(event)
+                        }
                     }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
                 }
+            }
+
+            continuation.onTermination = { @Sendable _ in 
+                task.cancel()
             }
         }
     }
