@@ -43,8 +43,10 @@ extension AsyncThrowingStream {
                 }
             }
 
-            continuation.onTermination = { @Sendable _ in
-                task.cancel()
+            continuation.onTermination = { @Sendable reason in
+                if case .cancelled = reason {
+                    task.cancel()
+                }
             }
         }
     }
@@ -64,8 +66,10 @@ extension AsyncThrowingStream {
                 }
             }
 
-            continuation.onTermination = { @Sendable _ in 
-                task.cancel()
+            continuation.onTermination = { @Sendable reason in 
+                if case .cancelled = reason {
+                    task.cancel()
+                }
             }
         }
     }
