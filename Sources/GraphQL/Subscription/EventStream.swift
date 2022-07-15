@@ -31,7 +31,7 @@ public class ConcurrentEventStream<Element>: EventStream<Element> {
 extension AsyncThrowingStream {
     func mapStream<To>(_ closure: @escaping (Element) throws -> To) -> AsyncThrowingStream<To, Error> {
         return AsyncThrowingStream<To, Error> { continuation in
-            let task = Task {
+            Task {
                 do {
                     for try await event in self {
                         let newEvent = try closure(event)
@@ -42,18 +42,12 @@ extension AsyncThrowingStream {
                     continuation.finish(throwing: error)
                 }
             }
-
-            continuation.onTermination = { @Sendable reason in
-                if case .cancelled = reason {
-                    task.cancel()
-                }
-            }
         }
     }
     
     func filterStream(_ isIncluded: @escaping (Element) throws -> Bool) -> AsyncThrowingStream<Element, Error> {
         return AsyncThrowingStream<Element, Error> { continuation in
-            let task = Task {
+            Task {
                 do {
                     for try await event in self {
                         if try isIncluded(event) {
@@ -63,12 +57,6 @@ extension AsyncThrowingStream {
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
-                }
-            }
-
-            continuation.onTermination = { @Sendable reason in 
-                if case .cancelled = reason {
-                    task.cancel()
                 }
             }
         }
