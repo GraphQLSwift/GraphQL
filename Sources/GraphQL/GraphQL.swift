@@ -78,6 +78,7 @@ public func graphql(
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     instrumentation: Instrumentation = NoOpInstrumentation,
+    validationRules: [(ValidationContext) -> Visitor] = [],
     schema: GraphQLSchema,
     request: String,
     rootValue: Any = (),
@@ -89,7 +90,7 @@ public func graphql(
 
     let source = Source(body: request, name: "GraphQL request")
     let documentAST = try parse(instrumentation: instrumentation, source: source)
-    let validationErrors = validate(instrumentation: instrumentation, schema: schema, ast: documentAST)
+    let validationErrors = validate(instrumentation: instrumentation, schema: schema, ast: documentAST, rules: validationRules)
 
     guard validationErrors.isEmpty else {
         return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: validationErrors))
@@ -195,6 +196,7 @@ public func graphqlSubscribe(
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     instrumentation: Instrumentation = NoOpInstrumentation,
+    validationRules: [(ValidationContext) -> Visitor] = [],
     schema: GraphQLSchema,
     request: String,
     rootValue: Any = (),
@@ -206,7 +208,7 @@ public func graphqlSubscribe(
 
     let source = Source(body: request, name: "GraphQL Subscription request")
     let documentAST = try parse(instrumentation: instrumentation, source: source)
-    let validationErrors = validate(instrumentation: instrumentation, schema: schema, ast: documentAST)
+    let validationErrors = validate(instrumentation: instrumentation, schema: schema, ast: documentAST, rules: validationRules)
 
     guard validationErrors.isEmpty else {
         return eventLoopGroup.next().makeSucceededFuture(SubscriptionResult(errors: validationErrors))

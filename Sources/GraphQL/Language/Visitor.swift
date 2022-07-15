@@ -313,13 +313,13 @@ func visitInParallel(visitors: [Visitor]) -> Visitor {
     )
 }
 
-enum VisitResult {
+public enum VisitResult {
     case `continue`
     case skip
     case `break`
     case node(Node?)
 
-    var isContinue: Bool {
+    public var isContinue: Bool {
         if case .continue = self {
             return true
         }
@@ -327,26 +327,29 @@ enum VisitResult {
     }
 }
 
-struct Visitor {
-    typealias Visit = (Node, IndexPathElement?, NodeResult?, [IndexPathElement], [NodeResult]) -> VisitResult
+/// A visitor is provided to visit, it contains the collection of
+/// relevant functions to be called during the visitor's traversal.
+public struct Visitor {
+    /// A visitor is comprised of visit functions, which are called on each node during the visitor's traversal.
+    public typealias Visit = (Node, IndexPathElement?, NodeResult?, [IndexPathElement], [NodeResult]) -> VisitResult
     private let enter: Visit
     private let leave: Visit
 
-    init(enter: @escaping Visit = ignore, leave: @escaping Visit = ignore) {
+    public init(enter: @escaping Visit = ignore, leave: @escaping Visit = ignore) {
         self.enter = enter
         self.leave = leave
     }
 
-    func enter(node: Node, key: IndexPathElement?, parent: NodeResult?, path: [IndexPathElement], ancestors: [NodeResult]) -> VisitResult {
+    public func enter(node: Node, key: IndexPathElement?, parent: NodeResult?, path: [IndexPathElement], ancestors: [NodeResult]) -> VisitResult {
         return enter(node, key, parent, path, ancestors)
     }
 
-    func leave(node: Node, key: IndexPathElement?, parent: NodeResult?, path: [IndexPathElement], ancestors: [NodeResult]) -> VisitResult {
+    public func leave(node: Node, key: IndexPathElement?, parent: NodeResult?, path: [IndexPathElement], ancestors: [NodeResult]) -> VisitResult {
         return leave(node, key, parent, path, ancestors)
     }
 }
 
-func ignore(node: Node, key: IndexPathElement?, parent: NodeResult?, path: [IndexPathElement], ancestors: [NodeResult]) -> VisitResult {
+public func ignore(node: Node, key: IndexPathElement?, parent: NodeResult?, path: [IndexPathElement], ancestors: [NodeResult]) -> VisitResult {
     return .continue
 }
 
