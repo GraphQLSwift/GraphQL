@@ -21,6 +21,9 @@ jobs:
     - uses: swift-actions/setup-swift@v1
       with:
         swift-version: ${{ matrix.swift }}
+    - uses: actions/checkout@v2
+    - name: Set code coverage path
+      run: echo "codecov_path=$(swift test --show-codecov-path)" >> $GITHUB_ENV
     - name: Test and publish code coverage to Code Climate
       if: ${{ matrix.os }} == "macos-latest"
       uses: paulofaria/codeclimate-action@master
