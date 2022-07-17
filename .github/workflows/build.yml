@@ -8,39 +8,65 @@ on:
     branches: [ master ]
     paths-ignore: [ README.md ]
   workflow_dispatch:
-  
+
 jobs:
-  macos:
-    name: Build and test on macos-latest
-    runs-on: macOS-latest
+  build:
+    name: Build ${{ matrix.swift }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        swift: ["5.4", "5.5", "5.6"]
     steps:
-    - uses: actions/checkout@v2
-    - name: Set code coverage path
-      run: echo "codecov_path=$(swift test --show-codecov-path)" >> $GITHUB_ENV
+    - uses: swift-actions/setup-swift@v1
+      with:
+        swift-version: ${{ matrix.swift }}
     - name: Test and publish code coverage to Code Climate
+      if: ${{os}} == "macos-latest"
       uses: paulofaria/codeclimate-action@master
       env:
         CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
       with:
         downloadUrl: https://github.com/paulofaria/test-reporter/releases/download/0.9.0/test-reporter-0.9.0-darwin-amd64
-        coverageCommand: swift test --enable-test-discovery --enable-code-coverage
+        coverageCommand: swift test --enable-code-coverage
         coverageLocations: ${{ env.codecov_path }}:lcov-json
-
-  linux:
-    name: Build and test on ${{ matrix.tag }}-${{ matrix.os }}
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        os:
-          - focal
-          - bionic
-        tag:
-          - swift:5.3
-          - swift:5.4
-    container:
-      image: ${{ matrix.tag }}-${{ matrix.os }}
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
     - name: Test
-      run: swift test --enable-test-discovery --sanitize=thread
+      if: ${{os}} != "macos-latest"
+      run: swift test
+
+
+
+#  macos:
+#    name: Build and test on macos-latest
+#    runs-on: macOS-latest
+#    steps:
+#    - uses: actions/checkout@v2
+#    - name: Set code coverage path
+#      run: echo "codecov_path=$(swift test --show-codecov-path)" >> $GITHUB_ENV
+#    - name: Test and publish code coverage to Code Climate
+#      uses: paulofaria/codeclimate-action@master
+#      env:
+#        CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
+#      with:
+#        downloadUrl: https://github.com/paulofaria/test-reporter/releases/download/0.9.0/test-reporter-0.9.0-darwin-amd64
+#        coverageCommand: swift test --enable-test-discovery --enable-code-coverage
+#        coverageLocations: ${{ env.codecov_path }}:lcov-json
+
+#  linux:
+#    name: Build and test on ${{ matrix.tag }}-${{ matrix.os }}
+#    runs-on: ubuntu-latest
+#    strategy:
+#      matrix:
+#        os:
+#          - focal
+#          - bionic
+#        tag:
+#          - swift:5.3
+#          - swift:5.4
+#    container:
+#      image: ${{ matrix.tag }}-${{ matrix.os }}
+#    steps:
+#    - name: Checkout
+#      uses: actions/checkout@v2
+#    - name: Test
+#      run: swift test --enable-test-discovery --enable-code-coverage --sanitize=thread
