@@ -22,7 +22,7 @@ jobs:
       with:
         swift-version: ${{ matrix.swift }}
     - name: Test and publish code coverage to Code Climate
-      if: ${{os}} == "macos-latest"
+      if: ${{ matrix.os }} == "macos-latest"
       uses: paulofaria/codeclimate-action@master
       env:
         CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
@@ -31,7 +31,7 @@ jobs:
         coverageCommand: swift test --enable-code-coverage
         coverageLocations: ${{ env.codecov_path }}:lcov-json
     - name: Test
-      if: ${{os}} != "macos-latest"
+      if: ${{ matrix.os }} != "macos-latest"
       run: swift test
 
 
