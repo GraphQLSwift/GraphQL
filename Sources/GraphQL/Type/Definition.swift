@@ -1,5 +1,6 @@
 import Foundation
 import NIO
+import OrderedCollections
 
 /**
  * These are all of the possible kinds of types.
@@ -1205,7 +1206,7 @@ func defineEnumValues(
     return definitions
 }
 
-public typealias GraphQLEnumValueMap = [String: GraphQLEnumValue]
+public typealias GraphQLEnumValueMap = OrderedDictionary<String, GraphQLEnumValue>
 
 public struct GraphQLEnumValue {
     public let value: Map
