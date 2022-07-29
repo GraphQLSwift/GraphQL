@@ -1387,7 +1387,7 @@ public struct InputObjectField {
     }
 }
 
-public typealias InputObjectFieldMap = [String: InputObjectField]
+public typealias InputObjectFieldMap = OrderedDictionary<String, InputObjectField>
 
 public final class InputObjectFieldDefinition {
     public let name: String
