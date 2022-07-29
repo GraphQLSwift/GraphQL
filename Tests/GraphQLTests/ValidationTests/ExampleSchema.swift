@@ -377,6 +377,18 @@ let ValidationExampleHumanOrAlien = try! GraphQLUnionType(
     types: [ValidationExampleHuman, ValidationExampleAlien]
 )
 
+// input Treat {
+//   name: String!
+//   amount: Int!
+// }
+let ValidationExampleTreat = try! GraphQLInputObjectType(
+    name: "Treat",
+    fields: [
+        "name": InputObjectField(type: GraphQLNonNull(GraphQLString)),
+        "amount": InputObjectField(type: GraphQLNonNull(GraphQLInt))
+    ]
+)
+
 // type QueryRoot {
 //   dog: Dog
 // }
@@ -402,5 +414,6 @@ let ValidationExampleSchema = try! GraphQLSchema(
         ValidationExampleDog,
         ValidationExampleHuman,
         ValidationExampleAlien,
+        ValidationExampleTreat
     ]
 )
