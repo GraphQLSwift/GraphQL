@@ -86,6 +86,18 @@ public func buildClientSchema(introspection: IntrospectionQuery) throws -> Graph
         return GraphQLArgument(type: type, description: inputValue.description, defaultValue: defaultValue)
     }
 
+    func buildInputObjectFieldMap(args: [IntrospectionInputValue]) throws -> InputObjectFieldMap {
+        try args.reduce(into: [:]) { acc, inputValue in
+            guard let type = try getType(inputValue.type) as? (any GraphQLInputType) else {
+                throw BuildClientSchemaError.invalid("Introspection must provide input type for arguments")
+            }
+            let defaultValue = try inputValue.defaultValue.map {
+                try valueFromAST(valueAST: parseValue(source: $0), type: type)
+            }
+            acc[inputValue.name] = InputObjectField(type: type, defaultValue: defaultValue, description: inputValue.description)
+        }
+    }
+
     func buildType(_ type: IntrospectionType) throws -> any GraphQLNamedType {
         switch type {
         case let type as IntrospectionScalarType:
@@ -128,10 +140,10 @@ public func buildClientSchema(introspection: IntrospectionQuery) throws -> Graph
                     )
                 }
             )
-//        case .scalar:
-//            return GraphQLScalarType(name: type["name"].string!, description: type["description"].string)
-//        case .object:
-//            return GraphQLObjectType(name: type["name"].string!, description: type["description"].string, fields: buildFieldDefMap(type: type), interfaces: buildImplementationsList(type))
+        case let type as IntrospectionInputObjectType:
+            return try GraphQLInputObjectType(name: type.name,
+                                              description: type.description,
+                                              fields: buildInputObjectFieldMap(args: type.inputFields))
         default:
             fatalError()
         }
