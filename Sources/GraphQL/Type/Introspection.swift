@@ -265,7 +265,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
         "possibleTypes": GraphQLField(
             type: GraphQLList(GraphQLNonNull(GraphQLTypeReference("__Type"))),
             resolve: { type, args, _, info -> [GraphQLObjectType]? in
-                guard let type = type as? GraphQLAbstractType else {
+                guard let type = type as? any GraphQLAbstractType else {
                     return nil
                 }
 

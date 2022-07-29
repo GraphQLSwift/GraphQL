@@ -141,9 +141,11 @@ public func buildClientSchema(introspection: IntrospectionQuery) throws -> Graph
                 }
             )
         case let type as IntrospectionInputObjectType:
-            return try GraphQLInputObjectType(name: type.name,
-                                              description: type.description,
-                                              fields: buildInputObjectFieldMap(args: type.inputFields))
+            return try GraphQLInputObjectType(
+                name: type.name,
+                description: type.description,
+                fields: { try! buildInputObjectFieldMap(args: type.inputFields) }
+            )
         default:
             fatalError()
         }

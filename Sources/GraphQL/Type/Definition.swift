@@ -1279,21 +1279,32 @@ extension GraphQLEnumValueDefinition : KeySubscriptable {
 public final class GraphQLInputObjectType {
     public let name: String
     public let description: String?
-    public let fields: InputObjectFieldDefinitionMap
+    public let fieldsThunk: () -> InputObjectFieldMap
+    public lazy var fields: InputObjectFieldDefinitionMap = {
+        try! defineInputObjectFieldMap(
+            name: name,
+            fields: fieldsThunk()
+        )
+    }()
     public let kind: TypeKind = .inputObject
 
-    public init(
+    public convenience init(
         name: String,
         description: String? = nil,
         fields: InputObjectFieldMap = [:]
     ) throws {
+        try self.init(name: name, description: description, fields: { fields })
+    }
+
+    public init(
+        name: String,
+        description: String? = nil,
+        fields: @escaping () -> InputObjectFieldMap
+    ) throws {
         try assertValid(name: name)
         self.name = name
         self.description = description
-        self.fields = try defineInputObjectFieldMap(
-            name: name,
-            fields: fields
-        )
+        self.fieldsThunk = fields
     }
     
     func replaceTypeReferences(typeMap: TypeMap) throws {
@@ -1309,6 +1320,14 @@ extension GraphQLInputObjectType : Encodable {
         case description
         case fields
         case kind
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(description, forKey: .description)
+        try container.encode(fields, forKey: .fields)
+        try container.encode(kind, forKey: .kind)
     }
 }
 
