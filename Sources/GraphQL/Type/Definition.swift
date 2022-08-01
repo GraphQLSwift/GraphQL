@@ -557,7 +557,7 @@ public struct GraphQLResolveInfo {
     public let variableValues: [String: Any]
 }
 
-public typealias GraphQLFieldMap = [String: GraphQLField]
+public typealias GraphQLFieldMap = OrderedDictionary<String, GraphQLField>
 
 public struct GraphQLField {
     public let type: any GraphQLOutputType
@@ -617,7 +617,7 @@ public struct GraphQLField {
     }
 }
 
-public typealias GraphQLFieldDefinitionMap = [String: GraphQLFieldDefinition]
+public typealias GraphQLFieldDefinitionMap = OrderedDictionary<String, GraphQLFieldDefinition>
 
 public final class GraphQLFieldDefinition {
     public let name: String
@@ -703,7 +703,7 @@ extension GraphQLFieldDefinition : KeySubscriptable {
     }
 }
 
-public typealias GraphQLArgumentConfigMap = [String: GraphQLArgument]
+public typealias GraphQLArgumentConfigMap = OrderedDictionary<String, GraphQLArgument>
 
 public struct GraphQLArgument {
     public let type: any GraphQLInputType
@@ -1473,7 +1473,7 @@ extension InputObjectFieldDefinition : KeySubscriptable {
     }
 }
 
-public typealias InputObjectFieldDefinitionMap = [String: InputObjectFieldDefinition]
+public typealias InputObjectFieldDefinitionMap = OrderedDictionary<String, InputObjectFieldDefinition>
 
 /**
  * List Modifier
