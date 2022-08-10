@@ -1,18 +1,120 @@
 # GraphQL
 
-The Swift implementation for GraphQL, a query language for APIs created by Facebook.
-
 [![Swift][swift-badge]][swift-url]
 [![License][mit-badge]][mit-url]
 [![Slack][slack-badge]][slack-url]
 [![GitHub Actions][gh-actions-badge]][gh-actions-url]
 [![Codebeat][codebeat-badge]][codebeat-url]
 
+The Swift implementation for GraphQL, a query language for APIs created by Facebook.
+
 Looking for help? Find resources [from the community](http://graphql.org/community/).
 
-## Graphiti
+## Usage
 
-This repo only contains the core GraphQL implementation. For a better experience when creating your GraphQL schema use [Graphiti](https://github.com/GraphQLSwift/Graphiti).
+### Schema Definition
+
+The `GraphQLSchema` object can be used to define [GraphQL Schemas and Types](https://graphql.org/learn/schema/).
+These schemas are made up of types, fields, arguments, and resolver functions. Below is an example:
+
+```swift
+let schema = try GraphQLSchema(
+    query: GraphQLObjectType(                   // Defines the special "query" type
+        name: "Query",
+        fields: [
+            "hello": GraphQLField(              // Users may query 'hello'
+                type: GraphQLString,            // The result is a string type
+                resolve: { _, _, _, _ in
+                    "world"                     // The result of querying 'hello' is "world"
+                }
+            )
+        ]
+    )
+)
+```
+
+For more complex schema examples see the test files.
+
+This repo only contains the core GraphQL implementation and does not focus on the ease of schema creation. For a better experience
+when creating your GraphQL schema use [Graphiti](https://github.com/GraphQLSwift/Graphiti).
+
+### Execution
+
+Once a schema has been defined queries may be executed against it using the global `graphql` function:
+
+```swift
+let result = try graphql(
+    schema: schema,
+    request: "{ hello }",
+    eventLoopGroup: eventLoopGroup
+).wait()
+```
+
+The result of this query is a `GraphQLResult` that encodes to the following JSON:
+
+```json
+{ "hello": "world" }
+```
+
+### Subscription
+
+This package supports GraphQL subscription, but until the integration of `AsyncSequence` in Swift 5.5 the standard Swift library did not
+provide an event-stream construct. For historical reasons and backwards compatibility, this library implements subscriptions using an 
+`EventStream` protocol that nearly every asynchronous stream implementation can conform to.
+
+To create a subscription field in a GraphQL schema, use the `subscribe` resolver that returns an `EventStream`. You must also provide a
+`resolver`, which defines how to process each event as it occurs and must return the field result type. Here is an example:
+
+```swift
+let schema = try GraphQLSchema(
+    subscribe: GraphQLObjectType(
+        name: "Subscribe",
+        fields: [
+            "hello": GraphQLField(              
+                type: GraphQLString,
+                resolve: { eventResult, _, _, _, _ in       // Defines how to transform each event when it occurs
+                    return eventResult
+                },
+                subscribe: { _, _, _, _, _ in               // Defines how to construct the event stream
+                    let asyncStream = AsyncThrowingStream<String, Error> { continuation in
+                        let timer = Timer.scheduledTimer(
+                            withTimeInterval: 3,
+                            repeats: true,
+                        ) {
+                            continuation.yield("world")     // Emits "world" every 3 seconds
+                        }
+                    }
+                    return ConcurrentEventStream<String>(asyncStream)
+                }
+            )
+        ]
+    )
+)
+```
+
+To execute a subscription use the `graphqlSubscribe` function:
+
+```swift
+let subscriptionResult = try graphqlSubscribe(
+    schema: schema,
+    request: "{ hello }",
+    eventLoopGroup: eventLoopGroup
+).wait()
+// Must downcast from EventStream to concrete type to use in 'for await' loop below
+let concurrentStream = subscriptionResult.stream! as! ConcurrentEventStream
+for try await result in concurrentStream.stream {
+    print(result)
+}
+```
+
+The code above will print the following JSON every 3 seconds:
+
+```json
+{ "hello": "world" }
+```
+
+The example above assumes that your environment has access to Swift Concurrency. If that is not the case, try using
+[GraphQLRxSwift](https://github.com/GraphQLSwift/GraphQLRxSwift)
 
 ## Encoding Results
 
@@ -22,7 +124,9 @@ should be encoded using the `GraphQLJSONEncoder` provided by this package.
 
 ## Contributing
 
-Most of this repo mirrors the structure of the canonical GraphQL implementation written in Javascript/Typescript. If there is any feature missing, looking at the original code and "translating" it to Swift works, most of the time. For example:
+Most of this repo mirrors the structure of
+(the canonical GraphQL implementation written in Javascript/Typescript)[https://github.com/graphql/graphql-js]. If there is any feature
+missing, looking at the original code and "translating" it to Swift works, most of the time. For example:
 
 ### Swift
 
@@ -37,7 +141,7 @@ Most of this repo mirrors the structure of the canonical GraphQL implementation 
 
 This project is released under the MIT license. See [LICENSE](LICENSE) for details.
 
-[swift-badge]: https://img.shields.io/badge/Swift-5.2-orange.svg?style=flat
+[swift-badge]: https://img.shields.io/badge/Swift-5.5-orange.svg?style=flat
 [swift-url]: https://swift.org
 
 [mit-badge]: https://img.shields.io/badge/License-MIT-blue.svg?style=flat
