@@ -428,7 +428,8 @@ class SchemaParserTests : XCTestCase {
         )
         
         let result = try parse(source: source)
-        XCTAssertEqual(result.definitions[0] as! ObjectTypeDefinition, expected, "\n\(dump(result.definitions[0]))\n\(dump(expected))\n")
+        let firstDefinition = try XCTUnwrap(result.definitions[0] as? ObjectTypeDefinition)
+        XCTAssertEqual(firstDefinition, expected, "\n\(dump(firstDefinition))\n\(dump(expected))\n")
     }
     
     func testTypeWitMultilinehDescription() throws {

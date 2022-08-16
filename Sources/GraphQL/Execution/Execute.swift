@@ -670,7 +670,7 @@ public func resolveField(
     let fieldAST = fieldASTs[0]
     let fieldName = fieldAST.name.value
 
-    let fieldDef = getFieldDef(
+    let fieldDef = try getFieldDef(
         schema: exeContext.schema,
         parentType: parentType,
         fieldName: fieldName
@@ -1195,7 +1195,7 @@ func getFieldDef(
     schema: GraphQLSchema,
     parentType: GraphQLObjectType,
     fieldName: String
-) -> GraphQLFieldDefinition {
+) throws -> GraphQLFieldDefinition {
     if fieldName == SchemaMetaFieldDef.name && schema.queryType.name == parentType.name {
         return SchemaMetaFieldDef
     } else if fieldName == TypeMetaFieldDef.name && schema.queryType.name == parentType.name {
@@ -1203,7 +1203,10 @@ func getFieldDef(
     } else if fieldName == TypeNameMetaFieldDef.name {
         return TypeNameMetaFieldDef
     }
-
-    // we know this field exists because we passed validation before execution
-    return parentType.fields[fieldName]!
+    
+    // This field should exist because we passed validation before execution
+    guard let fieldDefinition = parentType.fields[fieldName] else {
+        throw GraphQLError(message: "Expected field definition not found: '\(fieldName)' on '\(parentType.name)'")
+    }
+    return fieldDefinition
 }

@@ -102,6 +102,7 @@ func getSuggestedTypeNames(
 
         // Suggest interface types based on how common they are.
         let suggestedInterfaceTypes = interfaceUsageCount.keys.sorted {
+            // Unwraps are safe because keys are from object being sorted.
             interfaceUsageCount[$1]! - interfaceUsageCount[$0]! >= 0
         }
 

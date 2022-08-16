@@ -33,8 +33,11 @@ public struct GraphQLResult : Equatable, Codable, CustomStringConvertible {
     }
     
     public var description: String {
-        let data = try! GraphQLJSONEncoder().encode(self)
-        return String(data: data, encoding: .utf8)!
+        guard let data = try? GraphQLJSONEncoder().encode(self),
+              let dataString = String(data: data, encoding: .utf8) else {
+            return "Unable to encode GraphQLResult"
+        }
+        return dataString
     }
 }
 

@@ -178,10 +178,15 @@ func executeSubscription(
         fields: &inputFields,
         visitedFragmentNames: &visitedFragmentNames
     )
-    // If query is valid, fields is guaranteed to have at least 1 member
-    let responseName = fields.keys.first!
-    let fieldNodes = fields[responseName]!
-    let fieldNode = fieldNodes.first!
+    
+    // If query is valid, fields should have at least 1 member
+    guard let responseName = fields.keys.first,
+          let fieldNodes = fields[responseName],
+          let fieldNode = fieldNodes.first else {
+        throw GraphQLError(
+            message: "Subscription field resolution resulted in no field nodes."
+        )
+    }
     
     guard let fieldDef = getFieldDef(schema: context.schema, parentType: type, fieldAST: fieldNode) else {
         throw GraphQLError(

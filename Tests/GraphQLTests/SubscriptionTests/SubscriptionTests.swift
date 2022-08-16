@@ -15,7 +15,7 @@ class SubscriptionTests : XCTestCase {
     /// This test is not present in graphql-js, but just tests basic functionality.
     func testGraphqlSubscribe() async throws {
         let db = EmailDb()
-        let schema = db.defaultSchema()
+        let schema = try db.defaultSchema()
         let query = """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
@@ -78,7 +78,7 @@ class SubscriptionTests : XCTestCase {
         let db = EmailDb()
         let schema = try GraphQLSchema(
             query: EmailQueryType,
-            subscription: try! GraphQLObjectType(
+            subscription: GraphQLObjectType(
                 name: "Subscription",
                 fields: [
                     "importantEmail": GraphQLField(
@@ -180,7 +180,7 @@ class SubscriptionTests : XCTestCase {
 
         let schema = try GraphQLSchema(
             query: EmailQueryType,
-            subscription: try! GraphQLObjectType(
+            subscription: GraphQLObjectType(
                 name: "Subscription",
                 fields: [
                     "importantEmail": GraphQLField(
@@ -270,7 +270,7 @@ class SubscriptionTests : XCTestCase {
 
     /// 'throws an error if subscribe does not return an iterator'
     func testErrorIfSubscribeIsntIterator() throws {
-        let schema = emailSchemaWithResolvers(
+        let schema = try emailSchemaWithResolvers(
             resolve: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                 return eventLoopGroup.next().makeSucceededFuture(nil)
             },
@@ -323,21 +323,21 @@ class SubscriptionTests : XCTestCase {
         }
 
         // Throwing an error
-        verifyError(schema: emailSchemaWithResolvers(
+        try verifyError(schema: emailSchemaWithResolvers(
             subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                 throw GraphQLError(message: "test error")
             }
         ))
 
         // Resolving to an error
-        verifyError(schema: emailSchemaWithResolvers(
+        try verifyError(schema: emailSchemaWithResolvers(
             subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                 return eventLoopGroup.next().makeSucceededFuture(GraphQLError(message: "test error"))
             }
         ))
 
         // Rejecting with an error
-        verifyError(schema: emailSchemaWithResolvers(
+        try verifyError(schema: emailSchemaWithResolvers(
             subscribe: {_, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                 return eventLoopGroup.next().makeFailedFuture(GraphQLError(message: "test error"))
             }
@@ -837,7 +837,7 @@ class SubscriptionTests : XCTestCase {
     func testErrorDuringSubscription() async throws {
         let db = EmailDb()
 
-        let schema = emailSchemaWithResolvers(
+        let schema = try emailSchemaWithResolvers(
             resolve: {emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                 guard let email = emailAny as? Email else {
                     throw GraphQLError(message:"Source is not Email type: \(type(of: emailAny))")

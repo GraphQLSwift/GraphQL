@@ -90,8 +90,12 @@ final class TypeInfo {
             typeStack.append(type)
 
         case let node as InlineFragment:
-            let typeConditionAST = node.typeCondition
-            let outputType = typeConditionAST != nil ? typeFromAST(schema: schema, inputTypeAST: typeConditionAST!) : self.type
+            let outputType: GraphQLType?
+            if let typeConditionAST = node.typeCondition {
+                outputType = typeFromAST(schema: schema, inputTypeAST: typeConditionAST)
+            } else {
+                outputType = self.type
+            }
             typeStack.append(outputType as? GraphQLOutputType)
 
         case let node as FragmentDefinition:

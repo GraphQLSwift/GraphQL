@@ -153,105 +153,100 @@ public final class ValidationContext {
     }
 
     public func getFragmentSpreads(node: SelectionSet) -> [FragmentSpread] {
-        var spreads = fragmentSpreads[node]
-
-        if spreads == nil {
-            spreads = []
-            var setsToVisit: [SelectionSet] = [node]
-
-            while let set = setsToVisit.popLast() {
-                for selection in set.selections {
-                    if let selection = selection as? FragmentSpread {
-                        spreads!.append(selection)
-                    }
-
-                    if let selection = selection as? InlineFragment {
-                        setsToVisit.append(selection.selectionSet)
-                    }
-
-                    if let selection = selection as? Field, let selectionSet = selection.selectionSet {
-                        setsToVisit.append(selectionSet)
-                    }
-                }
-            }
-
-            fragmentSpreads[node] = spreads
+        if let spreads = fragmentSpreads[node] {
+            return spreads
         }
 
-        return spreads!
+        var spreads = [FragmentSpread]()
+        var setsToVisit: [SelectionSet] = [node]
+
+        while let set = setsToVisit.popLast() {
+            for selection in set.selections {
+                if let selection = selection as? FragmentSpread {
+                    spreads.append(selection)
+                }
+
+                if let selection = selection as? InlineFragment {
+                    setsToVisit.append(selection.selectionSet)
+                }
+
+                if let selection = selection as? Field, let selectionSet = selection.selectionSet {
+                    setsToVisit.append(selectionSet)
+                }
+            }
+        }
+
+        fragmentSpreads[node] = spreads
+        return spreads
     }
 
     public func getRecursivelyReferencedFragments(operation: OperationDefinition) -> [FragmentDefinition] {
-        var fragments = recursivelyReferencedFragments[operation]
+        if let fragments = recursivelyReferencedFragments[operation] {
+            return fragments
+        }
+        
+        var fragments = [FragmentDefinition]()
+        var collectedNames: [String: Bool] = [:]
+        var nodesToVisit: [SelectionSet] = [operation.selectionSet]
 
-        if fragments == nil {
-            fragments = []
-            var collectedNames: [String: Bool] = [:]
-            var nodesToVisit: [SelectionSet] = [operation.selectionSet]
+        while let node = nodesToVisit.popLast() {
+            let spreads = getFragmentSpreads(node: node)
 
-            while let node = nodesToVisit.popLast() {
-                let spreads = getFragmentSpreads(node: node)
-
-                for spread in spreads {
-                    let fragName = spread.name.value
-                    if collectedNames[fragName] != true {
-                        collectedNames[fragName] = true
-                        if let fragment = getFragment(name: fragName) {
-                            fragments!.append(fragment)
-                            nodesToVisit.append(fragment.selectionSet)
-                        }
+            for spread in spreads {
+                let fragName = spread.name.value
+                if collectedNames[fragName] != true {
+                    collectedNames[fragName] = true
+                    if let fragment = getFragment(name: fragName) {
+                        fragments.append(fragment)
+                        nodesToVisit.append(fragment.selectionSet)
                     }
                 }
             }
-            
-            recursivelyReferencedFragments[operation] = fragments
         }
         
-        return fragments!
+        recursivelyReferencedFragments[operation] = fragments
+        return fragments
     }
 
     public func getVariableUsages(node: HasSelectionSet) -> [VariableUsage] {
-        var usages = variableUsages[node]
-
-        if usages == nil {
-            var newUsages: [VariableUsage] = []
-            let typeInfo = TypeInfo(schema: schema)
-
-            visit(root: node.node, visitor: visitWithTypeInfo(typeInfo: typeInfo, visitor: Visitor(enter: { node, _, _, _, _ in
-                if node is VariableDefinition {
-                    return .skip
-                }
-
-                if let variable = node as? Variable {
-                    newUsages.append(VariableUsage(node: variable, type: typeInfo.inputType))
-                }
-
-                return .continue
-            })))
-
-            usages = newUsages
-            variableUsages[node] = usages
+        if let usages = variableUsages[node] {
+            return usages
         }
+        
+        var usages = [VariableUsage]()
+        let typeInfo = TypeInfo(schema: schema)
 
-        return usages!
+        visit(root: node.node, visitor: visitWithTypeInfo(typeInfo: typeInfo, visitor: Visitor(enter: { node, _, _, _, _ in
+            if node is VariableDefinition {
+                return .skip
+            }
+
+            if let variable = node as? Variable {
+                usages.append(VariableUsage(node: variable, type: typeInfo.inputType))
+            }
+
+            return .continue
+        })))
+
+        variableUsages[node] = usages
+        return usages
     }
 
     public func getRecursiveVariableUsages(operation: OperationDefinition) -> [VariableUsage] {
-        var usages = recursiveVariableUsages[operation]
-
-        if usages == nil {
-            usages = getVariableUsages(node: .operation(operation))
-            let fragments = getRecursivelyReferencedFragments(operation: operation)
-
-            for fragment in fragments {
-                let newUsages = getVariableUsages(node: .fragment(fragment))
-                usages!.append(contentsOf: newUsages)
-            }
-
-            recursiveVariableUsages[operation] = usages
+        if let usages = recursiveVariableUsages[operation] {
+            return usages
         }
         
-        return usages!
+        var usages = getVariableUsages(node: .operation(operation))
+        let fragments = getRecursivelyReferencedFragments(operation: operation)
+
+        for fragment in fragments {
+            let newUsages = getVariableUsages(node: .fragment(fragment))
+            usages.append(contentsOf: newUsages)
+        }
+
+        recursiveVariableUsages[operation] = usages
+        return usages
     }
 
     public var type: GraphQLOutputType? {

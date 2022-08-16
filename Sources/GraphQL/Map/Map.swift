@@ -687,7 +687,15 @@ extension Map : Codable {
             var container = encoder.container(keyedBy: _DictionaryCodingKey.self)
             for (key, value) in dictionary {
                 if !value.isUndefined {
-                    let codingKey = _DictionaryCodingKey(stringValue: key)!
+                    guard let codingKey = _DictionaryCodingKey(stringValue: key) else {
+                        throw EncodingError.invalidValue(
+                            self,
+                            EncodingError.Context(
+                                codingPath: [],
+                                debugDescription: "codingKey not found for dictionary key: \(key)"
+                            )
+                        )
+                    }
                     try container.encode(value, forKey: codingKey)
                 }
             }
