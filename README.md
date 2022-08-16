@@ -124,6 +124,13 @@ should be encoded using the `GraphQLJSONEncoder` provided by this package.
 
 ## Contributing
 
+If you think you have found a security vulnerability, please follow the
+[Security guidelines](SECURITY.md).
+
+Those contributing to this package are expected to follow the [Swift Code of Conduct](https://www.swift.org/code-of-conduct/), the
+[Swift API Design Guidelines](https://swift.org/documentation/api-design-guidelines/), and the
+[SSWG Technical Best Practices](https://github.com/swift-server/sswg/blob/main/process/incubation.md#technical-best-practices).
+
 Most of this repo mirrors the structure of
 (the canonical GraphQL implementation written in Javascript/Typescript)[https://github.com/graphql/graphql-js]. If there is any feature
 missing, looking at the original code and "translating" it to Swift works, most of the time. For example:
