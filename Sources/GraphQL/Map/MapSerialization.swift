@@ -35,7 +35,13 @@ public struct MapSerialization {
     static func object(with map: Map) throws -> NSObject {
         switch map {
         case .undefined:
-            fatalError("undefined values should have been excluded from serialization")
+            throw EncodingError.invalidValue(
+                self,
+                EncodingError.Context(
+                    codingPath: [],
+                    debugDescription: "undefined values should have been excluded from serialization"
+                )
+            )
         case .null:
             return NSNull()
         case let .bool(value):

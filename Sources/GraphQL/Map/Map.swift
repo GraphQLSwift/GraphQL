@@ -663,7 +663,13 @@ extension Map : Codable {
         
         switch self {
         case .undefined:
-            fatalError("undefined values should have been excluded from encoding")
+            throw EncodingError.invalidValue(
+                self,
+                EncodingError.Context(
+                    codingPath: [],
+                    debugDescription: "undefined values should have been excluded from encoding"
+                )
+            )
         case .null:
             try container.encodeNil()
         case let .bool(value):

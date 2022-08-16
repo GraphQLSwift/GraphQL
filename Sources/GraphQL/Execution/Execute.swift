@@ -796,7 +796,7 @@ func completeValueCatchingError(
             result: result
         ).flatMapError { error -> EventLoopFuture<Any?> in
             guard let error = error as? GraphQLError else {
-                fatalError()
+                return exeContext.eventLoopGroup.next().makeFailedFuture(error)
             }
             exeContext.append(error: error)
             return exeContext.eventLoopGroup.next().makeSucceededFuture(nil)
@@ -809,7 +809,7 @@ func completeValueCatchingError(
         exeContext.append(error: error)
         return exeContext.eventLoopGroup.next().makeSucceededFuture(nil)
     } catch {
-        fatalError()
+        return exeContext.eventLoopGroup.next().makeFailedFuture(error)
     }
 }
 
