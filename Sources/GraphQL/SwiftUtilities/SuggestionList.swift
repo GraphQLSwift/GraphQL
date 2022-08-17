@@ -20,6 +20,7 @@ func suggestionList(
 
     }
     return optionsByDistance.keys.sorted {
+        // Values are guaranteed non-nil since the keys come from the object itself
         optionsByDistance[$0]! - optionsByDistance[$1]! != 0
     }
 }

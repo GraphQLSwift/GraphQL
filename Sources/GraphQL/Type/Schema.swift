@@ -108,7 +108,11 @@ public final class GraphQLSchema {
     public func getImplementations(
         interfaceType: GraphQLInterfaceType
     ) -> InterfaceImplementations {
-        implementations[interfaceType.name]!
+        guard let matchingImplementations = implementations[interfaceType.name] else {
+            // If we ask for an interface that hasn't been defined, just return no types.
+            return InterfaceImplementations.init()
+        }
+        return matchingImplementations
     }
 
     // @deprecated: use isSubType instead - will be removed in the future.

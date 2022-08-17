@@ -19,9 +19,12 @@ func astFromValue(
     type: GraphQLInputType
 ) throws -> Value? {
     if let type = type as? GraphQLNonNull {
-        // Note: we're not checking that the result is non-null.
-        // This function is not responsible for validating the input value.
-        return try astFromValue(value: value, type: type.ofType as! GraphQLInputType)
+        guard let nonNullType = type.ofType as? GraphQLInputType else {
+            throw GraphQLError(
+                message: "Expected GraphQLNonNull to contain an input type \(type)"
+            )
+        }
+        return try astFromValue(value: value, type: nonNullType)
     }
 
     guard value != .null else {
@@ -31,7 +34,11 @@ func astFromValue(
     // Convert array to GraphQL list. If the GraphQLType is a list, but
     // the value is not an array, convert the value using the list's item type.
     if let type = type as? GraphQLList {
-        let itemType = type.ofType as! GraphQLInputType
+        guard let itemType = type.ofType as? GraphQLInputType else {
+            throw GraphQLError(
+                message: "Expected GraphQLList to contain an input type \(type)"
+            )
+        }
 
         if case .array(let value) = value {
             var valuesASTs: [Value] = []
@@ -72,7 +79,7 @@ func astFromValue(
 
     guard let leafType = type as? GraphQLLeafType else {
         throw GraphQLError(
-            message: "Must provide Input Type, cannot use: \(type)"
+            message: "Expected scalar non-object type to be a leaf type: \(type)"
         )
     }
 
@@ -116,7 +123,11 @@ func astFromValue(
         }
         
         let data = try GraphQLJSONEncoder().encode(Wrapper(map: serialized))
-        let string = String(data: data, encoding: .utf8)!
+        guard let string = String(data: data, encoding: .utf8) else {
+            throw GraphQLError(
+                message: "Unable to convert data to utf8 string: \(data)"
+            )
+        }
         return StringValue(value: String(string.dropFirst(8).dropLast(2)))
     }
     

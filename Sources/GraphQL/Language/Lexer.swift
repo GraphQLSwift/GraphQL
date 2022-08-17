@@ -35,8 +35,9 @@ func advanceLexer(lexer: Lexer) throws -> Token {
 
     if token.kind != .eof {
         repeat {
-            token.next = try readToken(lexer: lexer, prev: token)
-            token = token.next!
+            let nextToken = try readToken(lexer: lexer, prev: token)
+            token.next = nextToken
+            token = nextToken
         } while token.kind == .comment
 
         lexer.token = token
@@ -608,7 +609,14 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
         positionIndex = body.utf8.index(after: positionIndex)
 
         if code == 92 { // \
-            value += String(body.utf8[chunkStartIndex..<startIterationIndex])!
+            guard let chunk = String(body.utf8[chunkStartIndex..<startIterationIndex]) else {
+                throw syntaxError(
+                    source: source,
+                    position: body.offset(of: positionIndex),
+                    description: "Unable to initialize String from chunk: \(body.utf8[chunkStartIndex..<startIterationIndex])."
+                )
+            }
+            value += chunk
             currentCode = body.charCode(at: positionIndex)
 
             if let code = currentCode {
@@ -643,8 +651,16 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
                             "\\u\(body.utf8[aIndex...dIndex])."
                         )
                     }
-
-                    value += String(Character(UnicodeScalar(UInt32(charCode))!))
+                    
+                    guard let unicodeScalar = UnicodeScalar(UInt32(charCode)) else {
+                        throw syntaxError(
+                            source: source,
+                            position: body.offset(of: positionIndex),
+                            description:
+                            "Invalid unicode character code: \\u\(charCode)."
+                        )
+                    }
+                    value += String(Character(unicodeScalar))
 
                     positionIndex = dIndex
                 default:
@@ -668,8 +684,15 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
             description: "Unterminated string."
         )
     }
-
-    value += String(body.utf8[chunkStartIndex..<positionIndex])!
+    
+    guard let chunk = String(body.utf8[chunkStartIndex..<positionIndex]) else {
+        throw syntaxError(
+            source: source,
+            position: body.offset(of: positionIndex),
+            description: "Unable to initialize String from chunk: \(body.utf8[chunkStartIndex..<positionIndex])."
+        )
+    }
+    value += chunk
 
     return Token(
         kind: .string,
@@ -702,7 +725,15 @@ func readBlockString(lexer: Lexer, source: Source, start: Int, line: Int, col: I
            body.utf8[body.utf8.index(positionIndex, offsetBy: 1)] == 34,
            body.utf8[body.utf8.index(positionIndex, offsetBy: 2)] == 34 {
             
-            rawValue += String(body.utf8[chunkStartIndex..<positionIndex])!
+            guard let chunk = String(body.utf8[chunkStartIndex..<positionIndex]) else {
+                throw syntaxError(
+                    source: source,
+                    position: body.offset(of: positionIndex),
+                    description: "Unable to initialize String from chunk: \(body.utf8[chunkStartIndex..<positionIndex])."
+                )
+            }
+            rawValue += chunk
+            
             return Token(
                 kind: .blockstring,
                 start: start,
@@ -747,7 +778,15 @@ func readBlockString(lexer: Lexer, source: Source, start: Int, line: Int, col: I
                   body.utf8[body.utf8.index(positionIndex, offsetBy: 2)] == 34,
                   body.utf8[body.utf8.index(positionIndex, offsetBy: 3)] == 34 {
             // escaped triple quote (\""")
-            rawValue += String(body.utf8[chunkStartIndex..<positionIndex])! + "\"\"\""
+            
+            guard let chunk = String(body.utf8[chunkStartIndex..<positionIndex]) else {
+                throw syntaxError(
+                    source: source,
+                    position: body.offset(of: positionIndex),
+                    description: "Unable to initialize String from chunk: \(body.utf8[chunkStartIndex..<positionIndex])."
+                )
+            }
+            rawValue += chunk + "\"\"\""
             positionIndex = body.utf8.index(positionIndex, offsetBy: 4)
             chunkStartIndex = positionIndex
         } else {

@@ -51,6 +51,7 @@ extension OrderedDictionary where Value : FutureType {
         return EventLoopFuture.whenAllSucceed(futures, on: eventLoopGroup.next()).map { unorderedResult in
             var result: OrderedDictionary<Key, Value.Expectation> = [:]
             for key in keys {
+                // Unwrap is guaranteed because keys are from original dictionary and maps preserve all elements
                 result[key] = unorderedResult.first(where: { $0.0 == key })!.1
             }
             return result

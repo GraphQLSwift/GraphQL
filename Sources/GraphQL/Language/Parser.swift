@@ -118,9 +118,12 @@ func parseType(source: Source, noLocation: Bool = false) throws -> Type {
  */
 func parseName(lexer: Lexer) throws -> Name {
     let token = try expect(lexer: lexer, kind: .name)
+    guard let value = token.value else {
+        throw GraphQLError(message: "Expected name token to have value: \(token)")
+    }
     return Name(
         loc: loc(lexer: lexer, startToken: token),
-        value: token.value!
+        value: value
     )
 }
 
@@ -172,8 +175,10 @@ func parseDefinition(lexer: Lexer) throws -> Definition {
     }
     
     if peek(lexer: lexer, kind: .name) {
-        switch lexer.token.value! {
-        // Note: subscription is an experimental non-spec addition.
+        guard let value = lexer.token.value else {
+            throw GraphQLError(message: "Expected name token to have value: \(lexer.token)")
+        }
+        switch value {
         case "query", "mutation", "subscription":
             return try parseOperationDefinition(lexer: lexer);
         case "fragment":
@@ -236,11 +241,13 @@ func parseOperationDefinition(lexer: Lexer) throws -> OperationDefinition {
  */
 func parseOperationType(lexer: Lexer) throws -> OperationType {
     let operationToken = try expect(lexer: lexer, kind: .name)
+    guard let value = operationToken.value else {
+        throw GraphQLError(message: "Expected name token to have value: \(operationToken)")
+    }
 
-    switch operationToken.value! {
+    switch value {
     case "query": return .query
     case "mutation": return .mutation
-    // Note: subscription is an experimental non-spec addition.
     case "subscription": return .subscription
     default: throw unexpected(lexer: lexer, atToken: operationToken)
     }
@@ -458,26 +465,35 @@ func parseValueLiteral(lexer: Lexer, isConst: Bool) throws -> Value {
         return try parseObject(lexer: lexer, isConst: isConst)
     case .int:
         try lexer.advance()
+        guard let value = token.value else {
+            throw GraphQLError(message: "Expected int token to have value: \(token)")
+        }
         return IntValue(
             loc: loc(lexer: lexer, startToken: token),
-            value: token.value!
+            value: value
         )
     case .float:
         try lexer.advance()
+        guard let value = token.value else {
+            throw GraphQLError(message: "Expected float token to have value: \(token)")
+        }
         return FloatValue(
             loc: loc(lexer: lexer, startToken: token),
-            value: token.value!
+            value: value
         )
     case .string, .blockstring:
         return try parseStringLiteral(lexer: lexer, startToken: token)
     case .name:
-        if (token.value == "true" || token.value == "false") {
+        guard let value = token.value else {
+            throw GraphQLError(message: "Expected name token to have value: \(token)")
+        }
+        if (value == "true" || value == "false") {
             try lexer.advance()
             return BooleanValue(
                 loc: loc(lexer: lexer, startToken: token),
-                value: token.value == "true"
+                value: value == "true"
             )
-        } else if token.value == "null" {
+        } else if value == "null" {
             try lexer.advance()
             return NullValue(
                 loc: loc(lexer: lexer, startToken: token)
@@ -486,7 +502,7 @@ func parseValueLiteral(lexer: Lexer, isConst: Bool) throws -> Value {
             try lexer.advance()
             return EnumValue(
                 loc: loc(lexer: lexer, startToken: token),
-                value: token.value!
+                value: value
             )
         }
     case .dollar:
@@ -564,10 +580,13 @@ func parseObjectField(lexer: Lexer, isConst: Bool) throws -> ObjectField {
  */
 
 func parseStringLiteral(lexer: Lexer, startToken: Token) throws -> StringValue {
-    try lexer.advance();
+    try lexer.advance()
+    guard let value = startToken.value else {
+        throw GraphQLError(message: "Expected string literal token to have value: \(startToken)")
+    }
     return StringValue(
         loc: loc(lexer: lexer, startToken: startToken),
-        value: startToken.value!,
+        value: value,
         block: startToken.kind == .blockstring
     )
 }
@@ -668,7 +687,10 @@ func parseTypeSystemDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
         : lexer.token
     
     if keywordToken.kind == .name {
-        switch keywordToken.value! {
+        guard let value = keywordToken.value else {
+            throw GraphQLError(message: "Expected keyword token to have value: \(keywordToken)")
+        }
+        switch value {
         case "schema": return try parseSchemaDefinition(lexer: lexer);
         case "scalar": return try parseScalarTypeDefinition(lexer: lexer);
         case "type": return try parseObjectTypeDefinition(lexer: lexer);

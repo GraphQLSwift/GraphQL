@@ -14,7 +14,7 @@ class InputTests : XCTestCase {
             let field1: String
         }
         
-        let EchoOutputType = try! GraphQLObjectType(
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -27,8 +27,8 @@ class InputTests : XCTestCase {
             }
         )
         
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+        let schema = try GraphQLSchema(
+            query: try GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -180,7 +180,7 @@ class InputTests : XCTestCase {
             let field1: String?
         }
         
-        let EchoOutputType = try! GraphQLObjectType(
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -193,8 +193,8 @@ class InputTests : XCTestCase {
             }
         )
         
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+        let schema = try GraphQLSchema(
+            query: try GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -362,7 +362,7 @@ class InputTests : XCTestCase {
             let field1: String
         }
         
-        let EchoOutputType = try! GraphQLObjectType(
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -375,8 +375,8 @@ class InputTests : XCTestCase {
             }
         )
         
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+        let schema = try GraphQLSchema(
+            query: try GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -556,7 +556,7 @@ class InputTests : XCTestCase {
             let field1: String?
         }
         
-        let EchoOutputType = try! GraphQLObjectType(
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -569,8 +569,8 @@ class InputTests : XCTestCase {
             }
         )
         
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+        let schema = try GraphQLSchema(
+            query: try GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -777,7 +777,7 @@ class InputTests : XCTestCase {
             let input: Echo
         }
 
-        let EchoInputType = try! GraphQLInputObjectType(
+        let EchoInputType = try GraphQLInputObjectType(
             name: "EchoInput",
             fields: [
                 "field1": InputObjectField(
@@ -789,7 +789,7 @@ class InputTests : XCTestCase {
             ]
         )
 
-        let EchoOutputType = try! GraphQLObjectType(
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -805,8 +805,8 @@ class InputTests : XCTestCase {
             }
         )
         
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+        let schema = try GraphQLSchema(
+            query: try GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -912,7 +912,7 @@ class InputTests : XCTestCase {
             let input: Echo
         }
 
-        let EchoInputType = try! GraphQLInputObjectType(
+        let EchoInputType = try GraphQLInputObjectType(
             name: "EchoInput",
             fields: [
                 "field1": InputObjectField(
@@ -924,7 +924,7 @@ class InputTests : XCTestCase {
             ]
         )
 
-        let EchoOutputType = try! GraphQLObjectType(
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -940,8 +940,8 @@ class InputTests : XCTestCase {
             }
         )
         
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+        let schema = try GraphQLSchema(
+            query: try GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -1047,7 +1047,7 @@ class InputTests : XCTestCase {
             let input: Echo
         }
 
-        let EchoInputType = try! GraphQLInputObjectType(
+        let EchoInputType = try GraphQLInputObjectType(
             name: "EchoInput",
             fields: [
                 "field1": InputObjectField(
@@ -1059,7 +1059,7 @@ class InputTests : XCTestCase {
             ]
         )
 
-        let EchoOutputType = try! GraphQLObjectType(
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -1075,8 +1075,8 @@ class InputTests : XCTestCase {
             }
         )
         
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+        let schema = try GraphQLSchema(
+            query: try GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -1180,7 +1180,7 @@ class InputTests : XCTestCase {
             let input: Echo
         }
 
-        let EchoInputType = try! GraphQLInputObjectType(
+        let EchoInputType = try GraphQLInputObjectType(
             name: "EchoInput",
             fields: [
                 "field1": InputObjectField(
@@ -1193,7 +1193,7 @@ class InputTests : XCTestCase {
             ]
         )
 
-        let EchoOutputType = try! GraphQLObjectType(
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -1209,8 +1209,8 @@ class InputTests : XCTestCase {
             }
         )
         
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+        let schema = try GraphQLSchema(
+            query: try GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(

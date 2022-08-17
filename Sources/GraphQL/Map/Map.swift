@@ -663,7 +663,13 @@ extension Map : Codable {
         
         switch self {
         case .undefined:
-            fatalError("undefined values should have been excluded from encoding")
+            throw EncodingError.invalidValue(
+                self,
+                EncodingError.Context(
+                    codingPath: [],
+                    debugDescription: "undefined values should have been excluded from encoding"
+                )
+            )
         case .null:
             try container.encodeNil()
         case let .bool(value):
@@ -681,7 +687,15 @@ extension Map : Codable {
             var container = encoder.container(keyedBy: _DictionaryCodingKey.self)
             for (key, value) in dictionary {
                 if !value.isUndefined {
-                    let codingKey = _DictionaryCodingKey(stringValue: key)!
+                    guard let codingKey = _DictionaryCodingKey(stringValue: key) else {
+                        throw EncodingError.invalidValue(
+                            self,
+                            EncodingError.Context(
+                                codingPath: [],
+                                debugDescription: "codingKey not found for dictionary key: \(key)"
+                            )
+                        )
+                    }
                     try container.encode(value, forKey: codingKey)
                 }
             }

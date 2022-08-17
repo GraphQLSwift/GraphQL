@@ -119,8 +119,8 @@ class EmailDb {
     }
     
     /// Returns the default email schema, with standard resolvers.
-    func defaultSchema() -> GraphQLSchema {
-        return emailSchemaWithResolvers(
+    func defaultSchema() throws -> GraphQLSchema {
+        return try emailSchemaWithResolvers(
             resolve: {emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                 if let email = emailAny as? Email {
                     return eventLoopGroup.next().makeSucceededFuture(EmailEvent(
@@ -155,8 +155,8 @@ class EmailDb {
 }
 
 /// Generates an email schema with the specified resolve and subscribe methods
-func emailSchemaWithResolvers(resolve: GraphQLFieldResolve? = nil, subscribe: GraphQLFieldResolve? = nil) -> GraphQLSchema {
-    return try! GraphQLSchema(
+func emailSchemaWithResolvers(resolve: GraphQLFieldResolve? = nil, subscribe: GraphQLFieldResolve? = nil) throws -> GraphQLSchema {
+    return try GraphQLSchema(
         query: EmailQueryType,
         subscription: try! GraphQLObjectType(
             name: "Subscription",
