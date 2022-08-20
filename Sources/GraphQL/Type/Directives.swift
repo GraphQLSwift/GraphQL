@@ -1,4 +1,4 @@
-public enum DirectiveLocation : String, Encodable {
+public enum DirectiveLocation: String, Encodable {
     // Operations
     case query = "QUERY"
     case mutation = "MUTATION"
@@ -25,7 +25,7 @@ public enum DirectiveLocation : String, Encodable {
  * Directives are used by the GraphQL runtime as a way of modifying execution
  * behavior. Type system creators will usually not create these directly.
  */
-public struct GraphQLDirective : Encodable {
+public struct GraphQLDirective: Encodable {
     public let name: String
     public let description: String
     public let locations: [DirectiveLocation]
@@ -52,7 +52,7 @@ public let GraphQLIncludeDirective = try! GraphQLDirective(
     name: "include",
     description:
     "Directs the executor to include this field or fragment only when " +
-    "the `if` argument is true.",
+        "the `if` argument is true.",
     locations: [
         .field,
         .fragmentSpread,
@@ -62,7 +62,7 @@ public let GraphQLIncludeDirective = try! GraphQLDirective(
         "if": GraphQLArgument(
             type: GraphQLNonNull(GraphQLBoolean),
             description: "Included when true."
-        )
+        ),
     ]
 )
 
@@ -73,7 +73,7 @@ public let GraphQLSkipDirective = try! GraphQLDirective(
     name: "skip",
     description:
     "Directs the executor to skip this field or fragment when the `if` " +
-    "argument is true.",
+        "argument is true.",
     locations: [
         .field,
         .fragmentSpread,
@@ -83,7 +83,7 @@ public let GraphQLSkipDirective = try! GraphQLDirective(
         "if": GraphQLArgument(
             type: GraphQLNonNull(GraphQLBoolean),
             description: "Skipped when true."
-        )
+        ),
     ]
 )
 
@@ -102,16 +102,16 @@ public let GraphQLDeprecatedDirective = try! GraphQLDirective(
     locations: [
         .fieldDefinition,
         .enumValue,
-        ],
+    ],
     args: [
         "reason": GraphQLArgument(
             type: GraphQLString,
             description:
             "Explains why this element was deprecated, usually also including a " +
-            "suggestion for how to access supported similar data. Formatted " +
-            "in [Markdown](https://daringfireball.net/projects/markdown/).",
+                "suggestion for how to access supported similar data. Formatted " +
+                "in [Markdown](https://daringfireball.net/projects/markdown/).",
             defaultValue: defaulDeprecationReason
-        )
+        ),
     ]
 )
 

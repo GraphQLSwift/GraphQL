@@ -3,9 +3,9 @@
  */
 func quotedOrList(items: [String]) -> String {
     let maxLength = min(5, items.count)
-    let selected = items[0..<maxLength]
+    let selected = items[0 ..< maxLength]
 
-    return selected.map({ "\"" + $0 + "\"" }).enumerated().reduce("") { list, quoted in
+    return selected.map { "\"" + $0 + "\"" }.enumerated().reduce("") { list, quoted in
         if selected.count == 1 {
             return quoted.element
         }

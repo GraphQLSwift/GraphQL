@@ -45,13 +45,11 @@ public final class ExecutionContext {
     private var _errors: [GraphQLError]
 
     public var errors: [GraphQLError] {
-        get {
-            errorsSemaphore.wait()
-            defer {
-                errorsSemaphore.signal()
-            }
-            return _errors
+        errorsSemaphore.wait()
+        defer {
+            errorsSemaphore.signal()
         }
+        return _errors
     }
 
     init(
@@ -79,7 +77,7 @@ public final class ExecutionContext {
         self.eventLoopGroup = eventLoopGroup
         self.operation = operation
         self.variableValues = variableValues
-        self._errors = errors
+        _errors = errors
     }
 
     public func append(error: GraphQLError) {
@@ -89,7 +87,6 @@ public final class ExecutionContext {
         }
         _errors.append(error)
     }
-
 }
 
 public protocol FieldExecutionStrategy {
@@ -109,9 +106,10 @@ public protocol SubscriptionFieldExecutionStrategy: FieldExecutionStrategy {}
 /**
  * Serial field execution strategy that's suitable for the "Evaluating selection sets" section of the spec for "write" mode.
  */
-public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy, MutationFieldExecutionStrategy, SubscriptionFieldExecutionStrategy {
-
-    public init () {}
+public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy,
+    MutationFieldExecutionStrategy, SubscriptionFieldExecutionStrategy
+{
+    public init() {}
 
     public func executeFields(
         exeContext: ExecutionContext,
@@ -146,8 +144,9 @@ public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy, Mutatio
  *
  * Each field is resolved as an individual task on a concurrent dispatch queue.
  */
-public struct ConcurrentDispatchFieldExecutionStrategy: QueryFieldExecutionStrategy, SubscriptionFieldExecutionStrategy {
-
+public struct ConcurrentDispatchFieldExecutionStrategy: QueryFieldExecutionStrategy,
+    SubscriptionFieldExecutionStrategy
+{
     let dispatchQueue: DispatchQueue
 
     public init(dispatchQueue: DispatchQueue) {
@@ -158,7 +157,7 @@ public struct ConcurrentDispatchFieldExecutionStrategy: QueryFieldExecutionStrat
         queueLabel: String = "GraphQL field execution",
         queueQoS: DispatchQoS = .userInitiated
     ) {
-        self.dispatchQueue = DispatchQueue(
+        dispatchQueue = DispatchQueue(
             label: queueLabel,
             qos: queueQoS,
             attributes: .concurrent
@@ -176,15 +175,16 @@ public struct ConcurrentDispatchFieldExecutionStrategy: QueryFieldExecutionStrat
             label: "\(dispatchQueue.label) results",
             qos: dispatchQueue.qos
         )
-        
+
         let group = DispatchGroup()
         // preserve field order by assigning to null and filtering later
-        var results: OrderedDictionary<String, Future<Any>?> = fields.mapValues { _ -> Future<Any>? in return nil }
-        var err: Error? = nil
+        var results: OrderedDictionary<String, Future<Any>?> = fields
+            .mapValues { _ -> Future<Any>? in nil }
+        var err: Error?
 
         fields.forEach { field in
             let fieldASTs = field.value
-            let fieldKey  = field.key
+            let fieldKey = field.key
             let fieldPath = path.appending(fieldKey)
             dispatchQueue.async(group: group) {
                 guard err == nil else {
@@ -208,16 +208,15 @@ public struct ConcurrentDispatchFieldExecutionStrategy: QueryFieldExecutionStrat
                 }
             }
         }
-        
+
         group.wait()
-        
+
         if let error = err {
             throw error
         }
-        
-        return results.compactMapValues({ $0 }).flatten(on: exeContext.eventLoopGroup)
-    }
 
+        return results.compactMapValues { $0 }.flatten(on: exeContext.eventLoopGroup)
+    }
 }
 
 /**
@@ -276,7 +275,8 @@ func execute(
 
         return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: [error]))
     } catch {
-        return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: [GraphQLError(error)]))
+        return eventLoopGroup.next()
+            .makeSucceededFuture(GraphQLResult(errors: [GraphQLError(error)]))
     }
 
     do {
@@ -288,17 +288,17 @@ func execute(
             rootValue: rootValue
         ).flatMapThrowing { data -> GraphQLResult in
             var dataMap: Map = [:]
-            
+
             for (key, value) in data {
                 dataMap[key] = try map(from: value)
             }
-            
-            var result: GraphQLResult = GraphQLResult(data: dataMap)
-            
+
+            var result: GraphQLResult = .init(data: dataMap)
+
             if !buildContext.errors.isEmpty {
                 result.errors = buildContext.errors
             }
-            
+
 //            executeErrors = buildContext.errors
             return result
         }.flatMapError { error -> Future<GraphQLResult> in
@@ -325,12 +325,13 @@ func execute(
 //                errors: executeErrors,
 //                result: result
 //            )
-            return result
+            result
         }
     } catch let error as GraphQLError {
         return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: [error]))
     } catch {
-        return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: [GraphQLError(error)]))
+        return eventLoopGroup.next()
+            .makeSucceededFuture(GraphQLResult(errors: [GraphQLError(error)]))
     }
 }
 
@@ -354,7 +355,7 @@ func buildExecutionContext(
     operationName: String?
 ) throws -> ExecutionContext {
     let errors: [GraphQLError] = []
-    var possibleOperation: OperationDefinition? = nil
+    var possibleOperation: OperationDefinition?
     var fragments: [String: FragmentDefinition] = [:]
 
     for definition in documentAST.definitions {
@@ -394,7 +395,7 @@ func buildExecutionContext(
         definitionASTs: operation.variableDefinitions,
         inputs: rawVariableValues
     )
-    
+
     return ExecutionContext(
         queryStrategy: queryStrategy,
         mutationStrategy: mutationStrategy,
@@ -421,7 +422,7 @@ func executeOperation(
 ) throws -> Future<OrderedDictionary<String, Any>> {
     let type = try getOperationRootType(schema: exeContext.schema, operation: operation)
     var inputFields: OrderedDictionary<String, [Field]> = [:]
-    var visitedFragmentNames: [String : Bool] = [:]
+    var visitedFragmentNames: [String: Bool] = [:]
 
     let fields = try collectFields(
         exeContext: exeContext,
@@ -432,7 +433,7 @@ func executeOperation(
     )
 
     let fieldExecutionStrategy: FieldExecutionStrategy
-    
+
     switch operation.operation {
     case .query:
         fieldExecutionStrategy = exeContext.queryStrategy
@@ -458,28 +459,28 @@ func getOperationRootType(
     schema: GraphQLSchema,
     operation: OperationDefinition
 ) throws -> GraphQLObjectType {
-  switch operation.operation {
+    switch operation.operation {
     case .query:
-      return schema.queryType
+        return schema.queryType
     case .mutation:
-      guard let mutationType = schema.mutationType else {
-        throw GraphQLError(
-            message: "Schema is not configured for mutations",
-            nodes: [operation]
-        )
-      }
+        guard let mutationType = schema.mutationType else {
+            throw GraphQLError(
+                message: "Schema is not configured for mutations",
+                nodes: [operation]
+            )
+        }
 
-      return mutationType
+        return mutationType
     case .subscription:
-      guard let subscriptionType = schema.subscriptionType else {
-        throw GraphQLError(
-            message: "Schema is not configured for subscriptions",
-            nodes: [operation]
-        )
-      }
+        guard let subscriptionType = schema.subscriptionType else {
+            throw GraphQLError(
+                message: "Schema is not configured for subscriptions",
+                nodes: [operation]
+            )
+        }
 
-      return subscriptionType
-  }
+        return subscriptionType
+    }
 }
 
 /**
@@ -531,7 +532,7 @@ func collectFields(
                 type: runtimeType
             )
 
-            guard shouldInclude && fragmentConditionMatches else {
+            guard shouldInclude, fragmentConditionMatches else {
                 continue
             }
 
@@ -550,7 +551,7 @@ func collectFields(
                 directives: fragmentSpread.directives
             )
 
-            guard visitedFragmentNames[fragmentName] == nil && shouldInclude else {
+            guard visitedFragmentNames[fragmentName] == nil, shouldInclude else {
                 continue
             }
 
@@ -581,7 +582,7 @@ func collectFields(
             break
         }
     }
-    
+
     return fields
 }
 
@@ -613,7 +614,7 @@ func shouldIncludeNode(exeContext: ExecutionContext, directives: [Directive] = [
             return false
         }
     }
-    
+
     return true
 }
 
@@ -629,11 +630,19 @@ func doesFragmentConditionMatch(
         return true
     }
 
-    guard let conditionalType = typeFromAST(schema: exeContext.schema, inputTypeAST: typeConditionAST) else {
+    guard
+        let conditionalType = typeFromAST(
+            schema: exeContext.schema,
+            inputTypeAST: typeConditionAST
+        )
+    else {
         return true
     }
 
-    if let conditionalType = conditionalType as? GraphQLObjectType, conditionalType.name == type.name {
+    if
+        let conditionalType = conditionalType as? GraphQLObjectType,
+        conditionalType.name == type.name
+    {
         return true
     }
 
@@ -643,7 +652,7 @@ func doesFragmentConditionMatch(
             maybeSubType: type
         )
     }
-    
+
     return false
 }
 
@@ -889,7 +898,9 @@ func completeValue(
                 result: .success(result)
             ).flatMapThrowing { value -> Any? in
                 guard let value = value else {
-                    throw GraphQLError(message: "Cannot return null for non-nullable field \(info.parentType.name).\(info.fieldName).")
+                    throw GraphQLError(
+                        message: "Cannot return null for non-nullable field \(info.parentType.name).\(info.fieldName)."
+                    )
                 }
 
                 return value
@@ -917,7 +928,8 @@ func completeValue(
             // If field type is a leaf type, Scalar or Enum, serialize to a valid value,
             // returning .null if serialization is not possible.
             if let returnType = returnType as? GraphQLLeafType {
-                return exeContext.eventLoopGroup.next().makeSucceededFuture(try completeLeafValue(returnType: returnType, result: r))
+                return exeContext.eventLoopGroup.next()
+                    .makeSucceededFuture(try completeLeafValue(returnType: returnType, result: r))
             }
 
             // If field type is an abstract type, Interface or Union, determine the
@@ -946,7 +958,9 @@ func completeValue(
             }
 
             // Not reachable. All possible output types have been considered.
-            throw GraphQLError(message: "Cannot complete value of unexpected type \"\(returnType)\".")
+            throw GraphQLError(
+                message: "Cannot complete value of unexpected type \"\(returnType)\"."
+            )
         }
     }
 }
@@ -967,7 +981,7 @@ func completeListValue(
         throw GraphQLError(
             message:
             "Expected array, but did not find one for field " +
-            "\(info.parentType.name).\(info.fieldName)."
+                "\(info.parentType.name).\(info.fieldName)."
         )
     }
 
@@ -978,7 +992,8 @@ func completeListValue(
         // No need to modify the info object containing the path,
         // since from here on it is not ever accessed by resolver funcs.
         let fieldPath = path.appending(index)
-        let futureItem = item as? Future<Any?> ?? exeContext.eventLoopGroup.next().makeSucceededFuture(item)
+        let futureItem = item as? Future<Any?> ?? exeContext.eventLoopGroup.next()
+            .makeSucceededFuture(item)
 
         let completedItem = try completeValueCatchingError(
             exeContext: exeContext,
@@ -1003,17 +1018,17 @@ func completeLeafValue(returnType: GraphQLLeafType, result: Any?) throws -> Map 
     guard let result = result else {
         return .null
     }
-    
+
     let serializedResult = try returnType.serialize(value: result)
 
     if serializedResult == .null {
         throw GraphQLError(
             message:
             "Expected a value of type \"\(returnType)\" but " +
-            "received: \(result)"
+                "received: \(result)"
         )
     }
-    
+
     return serializedResult
 }
 
@@ -1029,7 +1044,8 @@ func completeAbstractValue(
     path: IndexPath,
     result: Any
 ) throws -> Future<Any?> {
-    var resolveRes = try returnType.resolveType?(result, exeContext.eventLoopGroup, info).typeResolveResult
+    var resolveRes = try returnType.resolveType?(result, exeContext.eventLoopGroup, info)
+        .typeResolveResult
 
     resolveRes = try resolveRes ?? defaultResolveType(
         value: result,
@@ -1049,9 +1065,9 @@ func completeAbstractValue(
     var runtimeType: GraphQLType?
 
     switch resolveResult {
-    case .name(let name):
+    case let .name(name):
         runtimeType = exeContext.schema.getType(name: name)
-    case .type(let type):
+    case let .type(type):
         runtimeType = type
     }
 
@@ -1059,8 +1075,8 @@ func completeAbstractValue(
         throw GraphQLError(
             message:
             "Abstract type \(returnType.name) must resolve to an Object type at " +
-            "runtime for field \(info.parentType.name).\(info.fieldName) with " +
-            "value \"\(resolveResult)\", received \"\(String(describing:runtimeType))\".",
+                "runtime for field \(info.parentType.name).\(info.fieldName) with " +
+                "value \"\(resolveResult)\", received \"\(String(describing: runtimeType))\".",
             nodes: fieldASTs
         )
     }
@@ -1069,7 +1085,7 @@ func completeAbstractValue(
         throw GraphQLError(
             message:
             "Runtime Object type \"\(objectType.name)\" is not a possible type " +
-            "for \"\(returnType.name)\".",
+                "for \"\(returnType.name)\".",
             nodes: fieldASTs
         )
     }
@@ -1147,7 +1163,10 @@ func defaultResolveType(
 ) throws -> TypeResolveResult? {
     let possibleTypes = info.schema.getPossibleTypes(abstractType: abstractType)
 
-    guard let type = try possibleTypes.find({ try $0.isTypeOf?(value, eventLoopGroup, info) ?? false }) else {
+    guard
+        let type = try possibleTypes
+            .find({ try $0.isTypeOf?(value, eventLoopGroup, info) ?? false })
+    else {
         return nil
     }
 
@@ -1161,15 +1180,15 @@ func defaultResolveType(
  */
 func defaultResolve(
     source: Any,
-    args: Map,
-    context: Any,
+    args _: Map,
+    context _: Any,
     eventLoopGroup: EventLoopGroup,
     info: GraphQLResolveInfo
 ) -> Future<Any?> {
     guard let source = unwrap(source) else {
         return eventLoopGroup.next().makeSucceededFuture(nil)
     }
-    
+
     if let subscriptable = source as? KeySubscriptable {
         let value = subscriptable[info.fieldName]
         return eventLoopGroup.next().makeSucceededFuture(value)
@@ -1196,17 +1215,19 @@ func getFieldDef(
     parentType: GraphQLObjectType,
     fieldName: String
 ) throws -> GraphQLFieldDefinition {
-    if fieldName == SchemaMetaFieldDef.name && schema.queryType.name == parentType.name {
+    if fieldName == SchemaMetaFieldDef.name, schema.queryType.name == parentType.name {
         return SchemaMetaFieldDef
-    } else if fieldName == TypeMetaFieldDef.name && schema.queryType.name == parentType.name {
+    } else if fieldName == TypeMetaFieldDef.name, schema.queryType.name == parentType.name {
         return TypeMetaFieldDef
     } else if fieldName == TypeNameMetaFieldDef.name {
         return TypeNameMetaFieldDef
     }
-    
+
     // This field should exist because we passed validation before execution
     guard let fieldDefinition = parentType.fields[fieldName] else {
-        throw GraphQLError(message: "Expected field definition not found: '\(fieldName)' on '\(parentType.name)'")
+        throw GraphQLError(
+            message: "Expected field definition not found: '\(fieldName)' on '\(parentType.name)'"
+        )
     }
     return fieldDefinition
 }

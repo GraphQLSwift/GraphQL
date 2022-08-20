@@ -1,7 +1,6 @@
-import XCTest
 @testable import GraphQL
+import XCTest
 
-class VisitorTests : XCTestCase {
-    func test() throws {
-    }
+class VisitorTests: XCTestCase {
+    func test() throws {}
 }

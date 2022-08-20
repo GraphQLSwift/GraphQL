@@ -26,27 +26,28 @@ public struct MapSerialization {
             return .array(array)
         case let dictionary as NSDictionary:
             // Extract from an unordered dictionary, using NSDictionary extraction order
-            let orderedDictionary: OrderedDictionary<String, Map> = try dictionary.reduce(into: [:]) { (dictionary, pair) in
-                guard let key = pair.key as? String else {
-                    throw EncodingError.invalidValue(
-                        dictionary,
-                        EncodingError.Context(
-                            codingPath: [],
-                            debugDescription: "Dictionary key was not string: \(pair.key) in \(dictionary)"
+            let orderedDictionary: OrderedDictionary<String, Map> = try dictionary
+                .reduce(into: [:]) { dictionary, pair in
+                    guard let key = pair.key as? String else {
+                        throw EncodingError.invalidValue(
+                            dictionary,
+                            EncodingError.Context(
+                                codingPath: [],
+                                debugDescription: "Dictionary key was not string: \(pair.key) in \(dictionary)"
+                            )
                         )
-                    )
-                }
-                guard let value = pair.value as? NSObject else{
-                    throw EncodingError.invalidValue(
-                        dictionary,
-                        EncodingError.Context(
-                            codingPath: [],
-                            debugDescription: "Dictionary value was not an object: \(key) in \(dictionary)"
+                    }
+                    guard let value = pair.value as? NSObject else {
+                        throw EncodingError.invalidValue(
+                            dictionary,
+                            EncodingError.Context(
+                                codingPath: [],
+                                debugDescription: "Dictionary value was not an object: \(key) in \(dictionary)"
+                            )
                         )
-                    )
+                    }
+                    dictionary[key] = try self.map(with: value)
                 }
-                dictionary[key] = try self.map(with: value)
-            }
             return .dictionary(orderedDictionary)
         default:
             throw EncodingError.invalidValue(
@@ -58,7 +59,7 @@ public struct MapSerialization {
             )
         }
     }
-    
+
     static func object(with map: Map) throws -> NSObject {
         switch map {
         case .undefined:
@@ -78,7 +79,7 @@ public struct MapSerialization {
         case let .string(string):
             return string as NSString
         case let .array(array):
-            return try array.map({ try object(with: $0) }) as NSArray
+            return try array.map { try object(with: $0) } as NSArray
         case let .dictionary(dictionary):
             // Coerce to an unordered dictionary
             var unorderedDictionary: [String: NSObject] = [:]

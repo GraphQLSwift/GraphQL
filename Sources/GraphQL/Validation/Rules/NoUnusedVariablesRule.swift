@@ -13,29 +13,29 @@ func NoUnusedVariablesRule(context: ValidationContext) -> Visitor {
                 variableDefs = []
                 return .continue
             }
-            
+
             if let def = node as? VariableDefinition {
                 variableDefs.append(def)
                 return .continue
             }
-            
+
             return .continue
         },
         leave: { node, _, _, _, _ -> VisitResult in
             guard let operation = node as? OperationDefinition else {
                 return .continue
             }
-            
+
             var variableNameUsed: [String: Bool] = [:]
             let usages = context.getRecursiveVariableUsages(operation: operation)
-            
+
             for usage in usages {
                 variableNameUsed[usage.node.name.value] = true
             }
-            
+
             for variableDef in variableDefs {
                 let variableName = variableDef.variable.name.value
-                
+
                 if variableNameUsed[variableName] != true {
                     context.report(
                         error: GraphQLError(
@@ -47,7 +47,7 @@ func NoUnusedVariablesRule(context: ValidationContext) -> Visitor {
                     )
                 }
             }
-            
+
             return .continue
         }
     )

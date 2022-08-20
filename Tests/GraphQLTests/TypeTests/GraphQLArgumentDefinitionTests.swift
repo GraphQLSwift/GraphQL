@@ -2,7 +2,6 @@
 import XCTest
 
 class GraphQLArgumentDefinitionTests: XCTestCase {
-
     func testArgumentWithNullableTypeIsNotARequiredArgument() {
         let argument = GraphQLArgumentDefinition(
             name: "nullableString",

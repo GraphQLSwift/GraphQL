@@ -2,7 +2,7 @@
  * This set includes all validation rules defined by the GraphQL spec.
  */
 public let specifiedRules: [(ValidationContext) -> Visitor] = [
-//    UniqueOperationNames,
+    //    UniqueOperationNames,
 //    LoneAnonymousOperation,
 //    KnownTypeNames,
 //    FragmentsOnCompositeTypes,

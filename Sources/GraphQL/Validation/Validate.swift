@@ -39,7 +39,15 @@ public func validate(
     let typeInfo = TypeInfo(schema: schema)
     let rules = rules.isEmpty ? specifiedRules : rules
     let errors = visit(usingRules: rules, schema: schema, typeInfo: typeInfo, documentAST: ast)
-    instrumentation.queryValidation(processId: processId(), threadId: threadId(), started: started, finished: instrumentation.now, schema: schema, document: ast, errors: errors)
+    instrumentation.queryValidation(
+        processId: processId(),
+        threadId: threadId(),
+        started: started,
+        finished: instrumentation.now,
+        schema: schema,
+        document: ast,
+        errors: errors
+    )
     return errors
 }
 
@@ -56,9 +64,12 @@ func visit(
     documentAST: Document
 ) -> [GraphQLError] {
     let context = ValidationContext(schema: schema, ast: documentAST, typeInfo: typeInfo)
-    let visitors = rules.map({ rule in rule(context) })
+    let visitors = rules.map { rule in rule(context) }
     // Visit the whole document with each instance of all provided rules.
-    visit(root: documentAST, visitor: visitWithTypeInfo(typeInfo: typeInfo, visitor: visitInParallel(visitors: visitors)))
+    visit(
+        root: documentAST,
+        visitor: visitWithTypeInfo(typeInfo: typeInfo, visitor: visitInParallel(visitors: visitors))
+    )
     return context.errors
 }
 
@@ -68,29 +79,29 @@ public enum HasSelectionSet {
 
     public var node: Node {
         switch self {
-        case .operation(let operation):
+        case let .operation(operation):
             return operation
-        case .fragment(let fragment):
+        case let .fragment(fragment):
             return fragment
         }
     }
 }
 
-extension HasSelectionSet : Hashable {
+extension HasSelectionSet: Hashable {
     public func hash(into hasher: inout Hasher) {
         switch self {
-        case .operation(let operation):
+        case let .operation(operation):
             return hasher.combine(operation.hashValue)
-        case .fragment(let fragment):
+        case let .fragment(fragment):
             return hasher.combine(fragment.hashValue)
         }
     }
 
     public static func == (lhs: HasSelectionSet, rhs: HasSelectionSet) -> Bool {
         switch (lhs, rhs) {
-        case (.operation(let l), .operation(let r)):
+        case let (.operation(l), .operation(r)):
             return l == r
-        case (.fragment(let l), .fragment(let r)):
+        case let (.fragment(l), .fragment(r)):
             return l == r
         default:
             return false
@@ -120,12 +131,12 @@ public final class ValidationContext {
         self.schema = schema
         self.ast = ast
         self.typeInfo = typeInfo
-        self.errors = []
-        self.fragments = [:]
-        self.fragmentSpreads = [:]
-        self.recursivelyReferencedFragments = [:]
-        self.variableUsages = [:]
-        self.recursiveVariableUsages = [:]
+        errors = []
+        fragments = [:]
+        fragmentSpreads = [:]
+        recursivelyReferencedFragments = [:]
+        variableUsages = [:]
+        recursiveVariableUsages = [:]
     }
 
     public func report(error: GraphQLError) {
@@ -180,11 +191,13 @@ public final class ValidationContext {
         return spreads
     }
 
-    public func getRecursivelyReferencedFragments(operation: OperationDefinition) -> [FragmentDefinition] {
+    public func getRecursivelyReferencedFragments(operation: OperationDefinition)
+        -> [FragmentDefinition]
+    {
         if let fragments = recursivelyReferencedFragments[operation] {
             return fragments
         }
-        
+
         var fragments = [FragmentDefinition]()
         var collectedNames: [String: Bool] = [:]
         var nodesToVisit: [SelectionSet] = [operation.selectionSet]
@@ -203,7 +216,7 @@ public final class ValidationContext {
                 }
             }
         }
-        
+
         recursivelyReferencedFragments[operation] = fragments
         return fragments
     }
@@ -212,21 +225,31 @@ public final class ValidationContext {
         if let usages = variableUsages[node] {
             return usages
         }
-        
+
         var usages = [VariableUsage]()
         let typeInfo = TypeInfo(schema: schema)
 
-        visit(root: node.node, visitor: visitWithTypeInfo(typeInfo: typeInfo, visitor: Visitor(enter: { node, _, _, _, _ in
-            if node is VariableDefinition {
-                return .skip
-            }
+        visit(
+            root: node.node,
+            visitor: visitWithTypeInfo(
+                typeInfo: typeInfo,
+                visitor: Visitor(enter: { node, _, _, _, _ in
+                    if node is VariableDefinition {
+                        return .skip
+                    }
 
-            if let variable = node as? Variable {
-                usages.append(VariableUsage(node: variable, type: typeInfo.inputType))
-            }
+                    if let variable = node as? Variable {
+                        usages
+                            .append(VariableUsage(
+                                node: variable,
+                                type: typeInfo.inputType
+                            ))
+                    }
 
-            return .continue
-        })))
+                    return .continue
+                })
+            )
+        )
 
         variableUsages[node] = usages
         return usages
@@ -236,7 +259,7 @@ public final class ValidationContext {
         if let usages = recursiveVariableUsages[operation] {
             return usages
         }
-        
+
         var usages = getVariableUsages(node: .operation(operation))
         let fragments = getRecursivelyReferencedFragments(operation: operation)
 

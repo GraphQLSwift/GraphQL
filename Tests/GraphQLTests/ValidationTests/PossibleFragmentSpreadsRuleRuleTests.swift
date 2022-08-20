@@ -1,11 +1,11 @@
 @testable import GraphQL
 import XCTest
 
-class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
+class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
     override func setUp() {
         rule = PossibleFragmentSpreadsRule
     }
-    
+
     func testUsesAllVariables() throws {
         try assertValid(
             """
@@ -15,7 +15,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             """
         )
     }
-    
+
     func testOfTheSameObject() throws {
         try assertValid(
             """
@@ -28,7 +28,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             """
         )
     }
-    
+
     func testOfTheSameObjectWithInlineFragment() throws {
         try assertValid(
             """
@@ -40,7 +40,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             """
         )
     }
-    
+
     func testObjectIntoAnImplementedInterface() throws {
         try assertValid(
             """
@@ -66,7 +66,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             """
         )
     }
-    
+
     func testUnionIntoContainedObject() throws {
         try assertValid(
             """
@@ -79,7 +79,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             """
         )
     }
-    
+
     func testUnionIntoOverlappingInterface() throws {
         try assertValid(
             """
@@ -92,7 +92,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             """
         )
     }
-    
+
     func testUnionIntoOverlappingUnion() throws {
         try assertValid(
             """
@@ -105,7 +105,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             """
         )
     }
-    
+
     func testInterfaceIntoImplementedObject() throws {
         try assertValid(
             """
@@ -118,7 +118,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             """
         )
     }
-    
+
 //    func testInterfaceIntoOverlappingInterface() throws {
 //        try assertValid(
 //            """
@@ -143,7 +143,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
 //            """
 //        )
 //    }
-    
+
     func testInterfaceIntoOverlappingUnion() throws {
         try assertValid(
             """
@@ -156,7 +156,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             """
         )
     }
-    
+
     func testIgnoresIncorrectTypeCaughtByFragmentsOnCompositeTypesRule() throws {
         try assertValid(
             """
@@ -169,7 +169,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             """
         )
     }
-    
+
     func testIgnoresUnknownFragmentsCaughtByKnownFragmentNamesRule() throws {
         try assertValid(
             """
@@ -192,13 +192,13 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors.first, line: 2, column: 5,
             message: #"Fragment "dogFragment" cannot be spread here as objects of type "Cat" can never be of type "Dog"."#
         )
     }
-    
+
     func testDifferentObjectIntoObjectInInlineFragment() throws {
         let errors = try assertInvalid(
             errorCount: 1,
@@ -208,7 +208,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors.first, line: 2, column: 3,
             message: #"Fragment cannot be spread here as objects of type "Cat" can never be of type "Dog"."#
@@ -229,7 +229,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors.first, line: 2, column: 5,
             message: #"Fragment "humanFragment" cannot be spread here as objects of type "Pet" can never be of type "Human"."#
@@ -250,13 +250,13 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors.first, line: 2, column: 5,
             message: #"Fragment "humanFragment" cannot be spread here as objects of type "CatOrDog" can never be of type "Human"."#
         )
     }
- 
+
     func testUnionIntoNotContainedObject() throws {
         let errors = try assertInvalid(
             errorCount: 1,
@@ -269,13 +269,13 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors.first, line: 2, column: 5,
             message: #"Fragment "catOrDogFragment" cannot be spread here as objects of type "Human" can never be of type "CatOrDog"."#
         )
     }
-    
+
     func testUnionIntoNonOverlappingInterface() throws {
         let errors = try assertInvalid(
             errorCount: 1,
@@ -288,7 +288,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors.first, line: 2, column: 5,
             message: #"Fragment "humanOrAlienFragment" cannot be spread here as objects of type "Pet" can never be of type "HumanOrAlien"."#
@@ -307,13 +307,13 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors.first, line: 2, column: 5,
             message: #"Fragment "humanOrAlienFragment" cannot be spread here as objects of type "CatOrDog" can never be of type "HumanOrAlien"."#
         )
     }
-    
+
     func testInterfaceIntoNonImplementingObject() throws {
         let errors = try assertInvalid(
             errorCount: 1,
@@ -326,13 +326,13 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors.first, line: 2, column: 5,
             message: #"Fragment "intelligentFragment" cannot be spread here as objects of type "Cat" can never be of type "Intelligent"."#
         )
     }
-    
+
     func testInterfaceIntNonOverlappingInterface() throws {
         let errors = try assertInvalid(
             errorCount: 1,
@@ -345,13 +345,13 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors.first, line: 2, column: 5,
             message: #"Fragment "intelligentFragment" cannot be spread here as objects of type "Pet" can never be of type "Intelligent"."#
         )
     }
-    
+
     func testInterfaceIntoNonOverlappingInterfaceInInlineFragment() throws {
         let errors = try assertInvalid(
             errorCount: 1,
@@ -361,13 +361,13 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors.first, line: 2, column: 5,
             message: #"Fragment cannot be spread here as objects of type "Pet" can never be of type "Intelligent"."#
         )
     }
-    
+
     func testInterfaceIntoNonOverlappingUnion() throws {
         let errors = try assertInvalid(
             errorCount: 1,
@@ -380,7 +380,7 @@ class PossibleFragmentSpreadsRuleRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors.first, line: 2, column: 5,
             message: #"Fragment "petFragment" cannot be spread here as objects of type "HumanOrAlien" can never be of type "Pet"."#

@@ -14,9 +14,9 @@ public struct Source {
     }
 }
 
-extension Source : Equatable {
+extension Source: Equatable {
     public static func == (lhs: Source, rhs: Source) -> Bool {
         return lhs.body == rhs.body &&
-               lhs.name == rhs.name
+            lhs.name == rhs.name
     }
 }

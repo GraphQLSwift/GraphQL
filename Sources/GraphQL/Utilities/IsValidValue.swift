@@ -9,8 +9,8 @@ func validate(value: Map, forType type: GraphQLInputType) throws -> [String] {
         guard let wrappedType = nonNullType.ofType as? GraphQLInputType else {
             throw GraphQLError(message: "Input non-null type must wrap another input type")
         }
-        
-        if value == .null{
+
+        if value == .null {
             return ["Expected non-null value, found null."]
         }
         if value == .undefined {
@@ -19,9 +19,9 @@ func validate(value: Map, forType type: GraphQLInputType) throws -> [String] {
 
         return try validate(value: value, forType: wrappedType)
     }
-    
+
     // If nullable, either null or undefined are allowed
-    guard value != .null && value != .undefined else {
+    guard value != .null, value != .undefined else {
         return []
     }
 
@@ -31,7 +31,7 @@ func validate(value: Map, forType type: GraphQLInputType) throws -> [String] {
             throw GraphQLError(message: "Input list type must wrap another input type")
         }
 
-        if case .array(let values) = value {
+        if case let .array(values) = value {
             var errors: [String] = []
 
             for (index, item) in values.enumerated() {
@@ -49,7 +49,7 @@ func validate(value: Map, forType type: GraphQLInputType) throws -> [String] {
 
     // Input objects check each defined field.
     if let objectType = type as? GraphQLInputObjectType {
-        guard case .dictionary(let dictionary) = value else {
+        guard case let .dictionary(dictionary) = value else {
             return ["Expected \"\(objectType.name)\", found not an object."]
         }
 
@@ -86,9 +86,9 @@ func validate(value: Map, forType type: GraphQLInputType) throws -> [String] {
         } catch {
             return ["Expected type \"\(leafType.name)\", found \(value)."]
         }
-        
+
         return []
     }
-    
+
     throw GraphQLError(message: "Provided type was not provided")
 }

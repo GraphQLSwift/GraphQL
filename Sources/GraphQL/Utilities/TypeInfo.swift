@@ -4,7 +4,7 @@
  * AST during a recursive descent by calling `enter(node: node)` and `leave(node: node)`.
  */
 final class TypeInfo {
-    let schema: GraphQLSchema;
+    let schema: GraphQLSchema
     var typeStack: [GraphQLOutputType?]
     var parentTypeStack: [GraphQLCompositeType?]
     var inputTypeStack: [GraphQLInputType?]
@@ -14,12 +14,12 @@ final class TypeInfo {
 
     init(schema: GraphQLSchema) {
         self.schema = schema
-        self.typeStack = []
-        self.parentTypeStack = []
-        self.inputTypeStack = []
-        self.fieldDefStack = []
-        self.directive = nil
-        self.argument = nil
+        typeStack = []
+        parentTypeStack = []
+        inputTypeStack = []
+        fieldDefStack = []
+        directive = nil
+        argument = nil
     }
 
     var type: GraphQLOutputType? {
@@ -54,7 +54,7 @@ final class TypeInfo {
         switch node {
         case is SelectionSet:
             let namedType = getNamedType(type: type)
-            var compositeType: GraphQLCompositeType? = nil
+            var compositeType: GraphQLCompositeType?
 
             if let type = namedType as? GraphQLCompositeType {
                 compositeType = type
@@ -63,9 +63,9 @@ final class TypeInfo {
             parentTypeStack.append(compositeType)
 
         case let node as Field:
-            var fieldDef: GraphQLFieldDefinition? = nil
+            var fieldDef: GraphQLFieldDefinition?
 
-            if let parentType = self.parentType {
+            if let parentType = parentType {
                 fieldDef = getFieldDef(schema: schema, parentType: parentType, fieldAST: node)
             }
 
@@ -76,7 +76,7 @@ final class TypeInfo {
             directive = schema.getDirective(name: node.name.value)
 
         case let node as OperationDefinition:
-            var type: GraphQLOutputType? = nil
+            var type: GraphQLOutputType?
 
             switch node.operation {
             case .query:
@@ -94,7 +94,7 @@ final class TypeInfo {
             if let typeConditionAST = node.typeCondition {
                 outputType = typeFromAST(schema: schema, inputTypeAST: typeConditionAST)
             } else {
-                outputType = self.type
+                outputType = type
             }
             typeStack.append(outputType as? GraphQLOutputType)
 
@@ -107,31 +107,31 @@ final class TypeInfo {
             inputTypeStack.append(inputType as? GraphQLInputType)
 
         case let node as Argument:
-            var argType: GraphQLInputType? = nil
+            var argType: GraphQLInputType?
 
-            if let directive = self.directive {
+            if let directive = directive {
                 if let argDef = directive.args.find({ $0.name == node.name.value }) {
                     argType = argDef.type
-                    self.argument = argDef
+                    argument = argDef
                 }
-            } else if let fieldDef = self.fieldDef {
+            } else if let fieldDef = fieldDef {
                 if let argDef = fieldDef.args.find({ $0.name == node.name.value }) {
                     argType = argDef.type
-                    self.argument = argDef
+                    argument = argDef
                 }
             }
 
             inputTypeStack.append(argType)
 
         case is ListType: // could be ListValue
-            if let listType = getNullableType(type: self.inputType) as? GraphQLList {
+            if let listType = getNullableType(type: inputType) as? GraphQLList {
                 inputTypeStack.append(listType.ofType as? GraphQLInputType)
             }
 
             inputTypeStack.append(nil)
 
         case let node as ObjectField:
-            if let objectType = getNamedType(type: self.inputType) as? GraphQLInputObjectType {
+            if let objectType = getNamedType(type: inputType) as? GraphQLInputObjectType {
                 let inputField = objectType.fields[node.name.value]
                 inputTypeStack.append(inputField?.type)
             }
@@ -177,29 +177,35 @@ final class TypeInfo {
  * statically evaluated environment we do not always have an Object type,
  * and need to handle Interface and Union types.
  */
-func getFieldDef(schema: GraphQLSchema, parentType: GraphQLType, fieldAST: Field) -> GraphQLFieldDefinition? {
+func getFieldDef(
+    schema: GraphQLSchema,
+    parentType: GraphQLType,
+    fieldAST: Field
+) -> GraphQLFieldDefinition? {
     let name = fieldAST.name.value
 
     if let parentType = parentType as? GraphQLNamedType {
-        if name == SchemaMetaFieldDef.name && schema.queryType.name == parentType.name {
+        if name == SchemaMetaFieldDef.name, schema.queryType.name == parentType.name {
             return SchemaMetaFieldDef
         }
 
-        if name == TypeMetaFieldDef.name && schema.queryType.name == parentType.name {
+        if name == TypeMetaFieldDef.name, schema.queryType.name == parentType.name {
             return TypeMetaFieldDef
         }
     }
 
-    if name == TypeNameMetaFieldDef.name && (parentType is GraphQLObjectType ||
-                                             parentType is GraphQLInterfaceType ||
-                                             parentType is GraphQLUnionType) {
+    if
+        name == TypeNameMetaFieldDef.name, parentType is GraphQLObjectType ||
+        parentType is GraphQLInterfaceType ||
+        parentType is GraphQLUnionType
+    {
         return TypeNameMetaFieldDef
     }
 
     if let parentType = parentType as? GraphQLObjectType {
         return parentType.fields[name]
     }
-    
+
     if let parentType = parentType as? GraphQLInterfaceType {
         return parentType.fields[name]
     }

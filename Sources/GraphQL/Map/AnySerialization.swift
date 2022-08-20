@@ -1,10 +1,10 @@
 import Foundation
 
-public struct AnySerialization {
+public enum AnySerialization {
     static func map(with object: NSObject) throws -> Any {
         return object
     }
-    
+
     static func object(with map: Any) throws -> NSObject {
         guard let result = map as? NSObject else {
             throw EncodingError.invalidValue(

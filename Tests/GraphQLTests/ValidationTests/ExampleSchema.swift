@@ -1,8 +1,8 @@
 @testable import GraphQL
 
-//interface Being {
+// interface Being {
 //  name(surname: Boolean): String
-//}
+// }
 let ValidationExampleBeing = try! GraphQLInterfaceType(
     name: "Being",
     fields: [
@@ -15,29 +15,29 @@ let ValidationExampleBeing = try! GraphQLInterfaceType(
             }
         ),
     ],
-    resolveType: { _, _, info in
-        return "Unknown"
+    resolveType: { _, _, _ in
+        "Unknown"
     }
 )
 
-//interface Mammal {
+// interface Mammal {
 //  mother: Mammal
 //  father: Mammal
-//}
+// }
 let ValidationExampleMammal = try! GraphQLInterfaceType(
-  name: "Mammal",
-  fields: [
-    "mother": GraphQLField(type: GraphQLTypeReference("Mammal")),
-    "father": GraphQLField(type: GraphQLTypeReference("Mammal")),
-  ],
-  resolveType: { _, _, _ in
-      return "Unknown"
-  }
+    name: "Mammal",
+    fields: [
+        "mother": GraphQLField(type: GraphQLTypeReference("Mammal")),
+        "father": GraphQLField(type: GraphQLTypeReference("Mammal")),
+    ],
+    resolveType: { _, _, _ in
+        "Unknown"
+    }
 )
 
-//interface Pet implements Being {
+// interface Pet implements Being {
 //  name(surname: Boolean): String
-//}
+// }
 let ValidationExamplePet = try! GraphQLInterfaceType(
     name: "Pet",
     interfaces: [ValidationExampleBeing],
@@ -52,37 +52,36 @@ let ValidationExamplePet = try! GraphQLInterfaceType(
         ),
     ],
     resolveType: { _, _, _ in
-        return "Unknown"
+        "Unknown"
     }
 )
 
-//interface Canine implements Mammal & Being {
+// interface Canine implements Mammal & Being {
 //  name(surname: Boolean): String
 //  mother: Canine
 //  father: Canine
-//}
+// }
 let ValidationExampleCanine = try! GraphQLInterfaceType(
-  name: "Canine",
-  interfaces: [ValidationExampleMammal, ValidationExampleBeing],
-  fields: [
-    "name": GraphQLField(
-      type: GraphQLString,
-      args: ["surname": GraphQLArgument(type: GraphQLBoolean)]
-    ),
-    "mother": GraphQLField(
-        type: GraphQLTypeReference("Mammal")
-    ),
-    "father": GraphQLField(
-        type: GraphQLTypeReference("Mammal")
-    ),
-  ],
-  resolveType: { _, _, info in
-      return "Unknown"
-  }
-    
+    name: "Canine",
+    interfaces: [ValidationExampleMammal, ValidationExampleBeing],
+    fields: [
+        "name": GraphQLField(
+            type: GraphQLString,
+            args: ["surname": GraphQLArgument(type: GraphQLBoolean)]
+        ),
+        "mother": GraphQLField(
+            type: GraphQLTypeReference("Mammal")
+        ),
+        "father": GraphQLField(
+            type: GraphQLTypeReference("Mammal")
+        ),
+    ],
+    resolveType: { _, _, _ in
+        "Unknown"
+    }
 )
 
-//enum DogCommand {
+// enum DogCommand {
 //   SIT
 //   HEEL
 //   DOWN
@@ -102,7 +101,7 @@ let ValidationExampleDogCommand = try! GraphQLEnumType(
     ]
 )
 
-//type Dog implements Being & Pet & Mammal & Canine {
+// type Dog implements Being & Pet & Mammal & Canine {
 //  name(surname: Boolean): String
 //  nickname: String
 //  barkVolume: Int
@@ -112,7 +111,7 @@ let ValidationExampleDogCommand = try! GraphQLEnumType(
 //  isAtLocation(x: Int, y: Int): Boolean
 //  mother: Dog
 //  father: Dog
-//}
+// }
 let ValidationExampleDog = try! GraphQLObjectType(
     name: "Dog",
     fields: [
@@ -139,7 +138,7 @@ let ValidationExampleDog = try! GraphQLObjectType(
         "doesKnowCommand": GraphQLField(
             type: GraphQLBoolean,
             args: [
-                "dogCommand": GraphQLArgument(type: ValidationExampleDogCommand)
+                "dogCommand": GraphQLArgument(type: ValidationExampleDogCommand),
             ],
             resolve: { inputValue, _, _, _ -> String? in
                 print(type(of: inputValue))
@@ -152,7 +151,7 @@ let ValidationExampleDog = try! GraphQLObjectType(
                 "atOtherHomes": GraphQLArgument(
                     type: GraphQLBoolean,
                     defaultValue: true
-                )
+                ),
             ],
             resolve: { inputValue, _, _, _ -> String? in
                 print(type(of: inputValue))
@@ -167,7 +166,7 @@ let ValidationExampleDog = try! GraphQLObjectType(
                 ),
                 "y": GraphQLArgument(
                     type: GraphQLInt
-                )
+                ),
             ],
             resolve: { inputValue, _, _, _ -> String? in
                 print(type(of: inputValue))
@@ -201,33 +200,33 @@ let ValidationExampleDog = try! GraphQLObjectType(
     ]
 )
 
-//enum FurColor {
+// enum FurColor {
 //  BROWN
 //  BLACK
 //  TAN
 //  SPOTTED
 //  NO_FUR
 //  UNKNOWN
-//}
+// }
 let ValidationExampleFurColor = try! GraphQLEnumType(
-  name: "FurColor",
-  values: [
-    "BROWN": GraphQLEnumValue(value: ["value": 0]),
-    "BLACK": GraphQLEnumValue(value: ["value": 1]),
-    "TAN": GraphQLEnumValue(value: ["value": 2]),
-    "SPOTTED": GraphQLEnumValue(value: ["value": 3]),
-    "NO_FUR": GraphQLEnumValue(value: ["value": .null]),
-    "UNKNOWN": GraphQLEnumValue(value: ["value": .null]),
-  ]
+    name: "FurColor",
+    values: [
+        "BROWN": GraphQLEnumValue(value: ["value": 0]),
+        "BLACK": GraphQLEnumValue(value: ["value": 1]),
+        "TAN": GraphQLEnumValue(value: ["value": 2]),
+        "SPOTTED": GraphQLEnumValue(value: ["value": 3]),
+        "NO_FUR": GraphQLEnumValue(value: ["value": .null]),
+        "UNKNOWN": GraphQLEnumValue(value: ["value": .null]),
+    ]
 )
 
-//type Cat implements Being & Pet {
+// type Cat implements Being & Pet {
 //  name(surname: Boolean): String
 //  nickname: String
 //  meows: Boolean
 //  meowsVolume: Int
 //  furColor: FurColor
-//}
+// }
 let ValidationExampleCat = try! GraphQLObjectType(
     name: "Cat",
     fields: [
@@ -263,21 +262,21 @@ let ValidationExampleCat = try! GraphQLObjectType(
 let ValidationExampleCatOrDog = try! GraphQLUnionType(
     name: "CatOrDog",
     resolveType: { _, _, _ in
-        return "Unknown"
+        "Unknown"
     },
     types: [ValidationExampleCat, ValidationExampleDog]
 )
 
-//interface Intelligent {
+// interface Intelligent {
 //   iq: Int
-//}
+// }
 let ValidationExampleIntelligent = try! GraphQLInterfaceType(
     name: "Intelligent",
     fields: [
         "iq": GraphQLField(type: GraphQLInt),
     ],
-    resolveType: { _, _, info in
-        return "Unknown"
+    resolveType: { _, _, _ in
+        "Unknown"
     }
 )
 
@@ -292,8 +291,8 @@ let ValidationExampleSentient = try! GraphQLInterfaceType(
             return nil
         },
     ],
-    resolveType: { _, _, info in
-        return "Unknown"
+    resolveType: { _, _, _ in
+        "Unknown"
     }
 )
 
@@ -362,8 +361,8 @@ let ValidationExampleCatCommand = try! GraphQLEnumType(
 // union DogOrHuman = Dog | Human
 let ValidationExampleDogOrHuman = try! GraphQLUnionType(
     name: "DogOrHuman",
-    resolveType: { _, _, info in
-        return "Unknown"
+    resolveType: { _, _, _ in
+        "Unknown"
     },
     types: [ValidationExampleDog, ValidationExampleHuman]
 )
@@ -371,8 +370,8 @@ let ValidationExampleDogOrHuman = try! GraphQLUnionType(
 // union HumanOrAlien = Human | Alien
 let ValidationExampleHumanOrAlien = try! GraphQLUnionType(
     name: "HumanOrAlien",
-    resolveType: { _, _, info in
-        return "Unknown"
+    resolveType: { _, _, _ in
+        "Unknown"
     },
     types: [ValidationExampleHuman, ValidationExampleAlien]
 )

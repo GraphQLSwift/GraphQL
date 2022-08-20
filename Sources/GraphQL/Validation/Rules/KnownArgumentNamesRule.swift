@@ -1,29 +1,37 @@
 import Foundation
 
- func undefinedArgumentMessage(
+func undefinedArgumentMessage(
     fieldName: String,
     type: String,
     argumentName: String,
     suggestedArgumentNames: [String]
 ) -> String {
-    var message = "Field \"\(fieldName)\" on type \"\(type)\" does not have argument \"\(argumentName)\"."
+    var message =
+        "Field \"\(fieldName)\" on type \"\(type)\" does not have argument \"\(argumentName)\"."
 
-     if !suggestedArgumentNames.isEmpty {
+    if !suggestedArgumentNames.isEmpty {
         let suggestions = quotedOrList(items: suggestedArgumentNames)
         message += " Did you mean \(suggestions)?"
     }
 
-     return message
+    return message
 }
 
- func KnownArgumentNamesRule(context: ValidationContext) -> Visitor {
+func KnownArgumentNamesRule(context: ValidationContext) -> Visitor {
     return Visitor(
-        enter: { node, key, parent, path, ancestors in
-            if let node = node as? Argument, context.argument == nil, let field = context.fieldDef, let type = context.parentType {
+        enter: { node, _, _, _, _ in
+            if
+                let node = node as? Argument, context.argument == nil, let field = context.fieldDef,
+                let type = context.parentType
+            {
                 let argumentName = node.name.value
-                let suggestedArgumentNames = getSuggestedArgumentNames(schema: context.schema, field: field, argumentName: argumentName)
+                let suggestedArgumentNames = getSuggestedArgumentNames(
+                    schema: context.schema,
+                    field: field,
+                    argumentName: argumentName
+                )
 
-                 context.report(error: GraphQLError(
+                context.report(error: GraphQLError(
                     message: undefinedArgumentMessage(
                         fieldName: field.name,
                         type: type.name,
@@ -34,13 +42,13 @@ import Foundation
                 ))
             }
 
-             return .continue
+            return .continue
         }
     )
 }
 
- func getSuggestedArgumentNames(
-    schema: GraphQLSchema,
+func getSuggestedArgumentNames(
+    schema _: GraphQLSchema,
     field: GraphQLFieldDefinition,
     argumentName: String
 ) -> [String] {

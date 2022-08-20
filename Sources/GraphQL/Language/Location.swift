@@ -1,9 +1,9 @@
 import Foundation
 
-public struct SourceLocation : Codable, Equatable {
+public struct SourceLocation: Codable, Equatable {
     public let line: Int
     public let column: Int
-    
+
     public init(line: Int, column: Int) {
         self.line = line
         self.column = column
@@ -20,7 +20,11 @@ func getLocation(source: Source, position: Int) -> SourceLocation {
 
     do {
         let regex = try NSRegularExpression(pattern: "\r\n|[\n\r]", options: [])
-        let matches = regex.matches(in: source.body, options: [], range: NSRange(0..<source.body.utf16.count))
+        let matches = regex.matches(
+            in: source.body,
+            options: [],
+            range: NSRange(0 ..< source.body.utf16.count)
+        )
         for match in matches where match.range.location < position {
             line += 1
             column = position + 1 - (match.range.location + match.range.length)
