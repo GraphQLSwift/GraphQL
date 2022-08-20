@@ -12,9 +12,13 @@ class ParserTests: XCTestCase {
 
             XCTAssertEqual(
                 error.message,
-                "Syntax Error GraphQL (1:2) Expected Name, found <EOF>\n\n" +
-                    " 1: {\n" +
-                    "     ^\n"
+                """
+                Syntax Error GraphQL (1:2) Expected Name, found <EOF>
+
+                 1: {
+                     ^
+
+                """
             )
 
             XCTAssertEqual(error.positions, [1])

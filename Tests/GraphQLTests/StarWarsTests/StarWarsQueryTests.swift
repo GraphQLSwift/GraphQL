@@ -153,11 +153,14 @@ class StarWarsQueryTests: XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query FetchLukeQuery {" +
-            "    human(id: \"1000\") {" +
-            "        name" +
-            "    }" +
-            "}"
+        let query =
+            """
+            query FetchLukeQuery {
+                human(id: "1000") {
+                    name
+                }
+            }
+            """
 
         let expected = GraphQLResult(
             data: [
@@ -181,11 +184,14 @@ class StarWarsQueryTests: XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query FetchHeroByEpisodeQuery($episode: String) {" +
-            "    hero(episode: $episode) {" +
-            "        name" +
-            "    }" +
-            "}"
+        let query =
+            """
+            query FetchHeroByEpisodeQuery($episode: String) {
+                hero(episode: $episode) {
+                    name
+                }
+            }
+            """
 
         var params: [String: Map]
         var expected: GraphQLResult
@@ -238,11 +244,14 @@ class StarWarsQueryTests: XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query FetchSomeIDQuery($someId: String!) {" +
-            "    human(id: $someId) {" +
-            "        name" +
-            "    }" +
-            "}"
+        let query =
+            """
+            query FetchSomeIDQuery($someId: String!) {
+                human(id: $someId) {
+                    name
+                }
+            }
+            """
 
         var params: [String: Map]
         var expected: GraphQLResult
@@ -313,11 +322,14 @@ class StarWarsQueryTests: XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query FetchLukeAliasedQuery {" +
-            "    luke: human(id: \"1000\") {" +
-            "        name" +
-            "    }" +
-            "}"
+        let query =
+            """
+            query FetchLukeAliasedQuery {
+                luke: human(id: "1000") {
+                    name
+                }
+            }
+            """
 
         let expected = GraphQLResult(
             data: [
@@ -341,14 +353,17 @@ class StarWarsQueryTests: XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query FetchLukeAndLeiaAliasedQuery {" +
-            "    luke: human(id: \"1000\") {" +
-            "        name" +
-            "    }" +
-            "    leia: human(id: \"1003\") {" +
-            "        name" +
-            "    }" +
-            "}"
+        let query =
+            """
+            query FetchLukeAndLeiaAliasedQuery {
+                luke: human(id: "1000") {
+                    name
+                }
+                leia: human(id: "1003") {
+                    name
+                }
+            }
+            """
 
         let expected = GraphQLResult(
             data: [
@@ -375,16 +390,19 @@ class StarWarsQueryTests: XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query DuplicateFieldsQuery {" +
-            "    luke: human(id: \"1000\") {" +
-            "        name" +
-            "        homePlanet" +
-            "    }" +
-            "    leia: human(id: \"1003\") {" +
-            "        name" +
-            "        homePlanet" +
-            "    }" +
-            "}"
+        let query =
+            """
+            query DuplicateFieldsQuery {
+                luke: human(id: "1000") {
+                    name
+                    homePlanet
+                }
+                leia: human(id: "1003") {
+                    name
+                    homePlanet
+                }
+            }
+            """
 
         let expected = GraphQLResult(
             data: [
@@ -413,18 +431,21 @@ class StarWarsQueryTests: XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query UseFragmentQuery {" +
-            "    luke: human(id: \"1000\") {" +
-            "        ...HumanFragment" +
-            "    }" +
-            "    leia: human(id: \"1003\") {" +
-            "        ...HumanFragment" +
-            "    }" +
-            "}" +
-            "fragment HumanFragment on Human {" +
-            "    name" +
-            "    homePlanet" +
-            "}"
+        let query =
+            """
+            query UseFragmentQuery {
+                luke: human(id: "1000") {
+                    ...HumanFragment
+                }
+                leia: human(id: "1003") {
+                    ...HumanFragment
+                }
+            }
+            fragment HumanFragment on Human {
+                name
+                homePlanet
+            }
+            """
 
         let expected = GraphQLResult(
             data: [
@@ -453,12 +474,15 @@ class StarWarsQueryTests: XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query CheckTypeOfR2Query {" +
-            "    hero {" +
-            "        __typename" +
-            "        name" +
-            "    }" +
-            "}"
+        let query =
+            """
+            query CheckTypeOfR2Query {
+                hero {
+                    __typename
+                    name
+                }
+            }
+            """
 
         let expected = GraphQLResult(
             data: [
@@ -484,12 +508,15 @@ class StarWarsQueryTests: XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query CheckTypeOfLukeQuery {" +
-            "    hero(episode: EMPIRE) {" +
-            "        __typename" +
-            "        name" +
-            "    }" +
-            "}"
+        let query =
+            """
+            query CheckTypeOfLukeQuery {
+                hero(episode: EMPIRE) {
+                    __typename
+                    name
+                }
+            }
+            """
 
         let expected = GraphQLResult(
             data: [
@@ -514,12 +541,15 @@ class StarWarsQueryTests: XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query SecretBackstoryQuery {\n" +
-            "    hero {\n" +
-            "        name\n" +
-            "        secretBackstory\n" +
-            "    }\n" +
-            "}\n"
+        let query =
+            """
+            query SecretBackstoryQuery {
+                hero {
+                    name
+                    secretBackstory
+                }
+            }
+            """
 
         let expected = GraphQLResult(
             data: [
@@ -551,15 +581,18 @@ class StarWarsQueryTests: XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query SecretBackstoryListQuery {\n" +
-            "    hero {\n" +
-            "        name\n" +
-            "        friends {\n" +
-            "            name\n" +
-            "            secretBackstory\n" +
-            "        }\n" +
-            "    }\n" +
-            "}\n"
+        let query =
+            """
+            query SecretBackstoryListQuery {
+                hero {
+                    name
+                    friends {
+                        name
+                        secretBackstory
+                    }
+                }
+            }
+            """
 
         let expected = GraphQLResult(
             data: [
@@ -614,12 +647,15 @@ class StarWarsQueryTests: XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query SecretBackstoryAliasQuery {\n" +
-            "    mainHero: hero {\n" +
-            "        name\n" +
-            "        story: secretBackstory\n" +
-            "    }\n" +
-            "}\n"
+        let query =
+            """
+            query SecretBackstoryAliasQuery {
+                mainHero: hero {
+                    name
+                    story: secretBackstory
+                }
+            }
+            """
 
         let expected = GraphQLResult(
             data: [
@@ -695,17 +731,20 @@ class StarWarsQueryTests: XCTestCase {
             query: queryType
         )
 
-        let query = "query {\n" +
-            "    nullableA {\n" +
-            "        nullableA {\n" +
-            "            nonNullA {\n" +
-            "                nonNullA {\n" +
-            "                    throws\n" +
-            "                }\n" +
-            "            }\n" +
-            "        }\n" +
-            "    }\n" +
-            "}\n"
+        let query =
+            """
+            query {
+                nullableA {
+                    nullableA {
+                        nonNullA {
+                            nonNullA {
+                                throws
+                            }
+                        }
+                    }
+                }
+            }
+            """
 
         let expected = GraphQLResult(
             data: [
