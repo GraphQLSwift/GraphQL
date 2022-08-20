@@ -25,7 +25,7 @@ func undefinedFieldMessage(
  */
 func FieldsOnCorrectTypeRule(context: ValidationContext) -> Visitor {
     return Visitor(
-        enter: { node, key, parent, path, ancestors in
+        enter: { node, _, _, _, _ in
             if let node = node as? Field {
                 if let type = context.parentType {
                     let fieldDef = context.fieldDef
@@ -42,11 +42,12 @@ func FieldsOnCorrectTypeRule(context: ValidationContext) -> Visitor {
                         )
 
                         // If there are no suggested types, then perhaps this was a typo?
-                        let suggestedFieldNames = !suggestedTypeNames.isEmpty ? [] : getSuggestedFieldNames(
-                            schema: schema,
-                            type: type,
-                            fieldName: fieldName
-                        )
+                        let suggestedFieldNames = !suggestedTypeNames
+                            .isEmpty ? [] : getSuggestedFieldNames(
+                                schema: schema,
+                                type: type,
+                                fieldName: fieldName
+                            )
 
                         // Report an error, including helpful suggestions.
                         context.report(error: GraphQLError(
@@ -83,7 +84,6 @@ func getSuggestedTypeNames(
         var interfaceUsageCount: [String: Int] = [:]
 
         for possibleType in schema.getPossibleTypes(abstractType: type) {
-
             if possibleType.fields[fieldName] == nil {
                 return []
             }
@@ -96,7 +96,8 @@ func getSuggestedTypeNames(
                     return []
                 }
                 // This interface type defines this field.
-                interfaceUsageCount[possibleInterface.name] = (interfaceUsageCount[possibleInterface.name] ?? 0) + 1
+                interfaceUsageCount[possibleInterface.name] =
+                    (interfaceUsageCount[possibleInterface.name] ?? 0) + 1
             }
         }
 
@@ -109,7 +110,7 @@ func getSuggestedTypeNames(
         // Suggest both interface and object types.
         return suggestedInterfaceTypes + suggestedObjectTypes
     }
-    
+
     // Otherwise, must be an Object type, which does not have possible fields.
     return []
 }
@@ -119,7 +120,7 @@ func getSuggestedTypeNames(
  * that may be the result of a typo.
  */
 func getSuggestedFieldNames(
-    schema: GraphQLSchema,
+    schema _: GraphQLSchema,
     type: GraphQLOutputType,
     fieldName: String
 ) -> [String] {

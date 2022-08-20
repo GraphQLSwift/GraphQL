@@ -10,8 +10,8 @@ func syntaxError(source: Source, position: Int, description: String) -> GraphQLE
     let error = GraphQLError(
         message:
         "Syntax Error \(source.name) (\(location.line):\(location.column)) " +
-        description + "\n\n" +
-        highlightSourceAtLocation(source: source, location: location),
+            description + "\n\n" +
+            highlightSourceAtLocation(source: source, location: location),
         source: source,
         positions: [position]
     )
@@ -49,17 +49,16 @@ func highlightSourceAtLocation(source: Source, location: SourceLocation) -> Stri
 }
 
 func splitLines(string: String) -> [String] {
-
     var lines: [String] = []
     var location = 0
-    
+
     let nsstring = NSString(string: string)
     do {
         let regex = try NSRegularExpression(pattern: "\r\n|[\n\r]", options: [])
-        for match in regex.matches(in: string, options: [], range: NSRange(0..<nsstring.length)) {
-            let range = NSRange(location..<match.range.location)
+        for match in regex.matches(in: string, options: [], range: NSRange(0 ..< nsstring.length)) {
+            let range = NSRange(location ..< match.range.location)
             lines.append(nsstring.substring(with: range))
-            location =  match.range.location + match.range.length
+            location = match.range.location + match.range.length
         }
     } catch {
         // Let lines and location remain unchanged
@@ -68,7 +67,7 @@ func splitLines(string: String) -> [String] {
     if lines.isEmpty {
         return [string]
     } else {
-        let range = NSRange(location..<nsstring.length)
+        let range = NSRange(location ..< nsstring.length)
         lines.append(nsstring.substring(with: range))
     }
 

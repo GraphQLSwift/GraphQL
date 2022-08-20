@@ -83,12 +83,12 @@ let QueryDocumentKeys: [Kind: [String]] = [
 func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node {
     let visitorKeys = keyMap.isEmpty ? QueryDocumentKeys : keyMap
 
-    var stack: Stack? = nil
+    var stack: Stack?
     var inArray = false
     var keys: [IndexPathElement] = ["root"]
     var index: Int = -1
     var edits: [(key: IndexPathElement, node: Node)] = []
-    var parent: NodeResult? = nil
+    var parent: NodeResult?
     var path: [IndexPathElement] = []
     var ancestors: [NodeResult] = []
     var newRoot = root
@@ -96,8 +96,8 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
     repeat {
         index += 1
         let isLeaving = index == keys.count
-        var key: IndexPathElement? = nil
-        var node: NodeResult? = nil
+        var key: IndexPathElement?
+        var node: NodeResult?
         let isEdited = isLeaving && !edits.isEmpty
 
         if !isLeaving {
@@ -105,9 +105,9 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
 
             if let parent = parent {
                 switch parent {
-                case .node(let parent):
+                case let .node(parent):
                     node = parent.get(key: key!.keyValue!)
-                case .array(let parent):
+                case let .array(parent):
                     node = .node(parent[key!.indexValue!])
                 }
             } else {
@@ -165,7 +165,7 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
 
         var result: VisitResult
 
-        if case .node(let n) = node! {
+        if case let .node(n) = node! {
             if !isLeaving {
                 result = visitor.enter(
                     node: n,
@@ -191,7 +191,7 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
             if case .skip = result, !isLeaving {
                 _ = path.popLast()
                 continue
-            } else if case .node(let n) = result {
+            } else if case let .node(n) = result {
                 edits.append((key!, n!))
 
                 if !isLeaving {
@@ -214,10 +214,10 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
             inArray = node!.isArray
 
             switch node! {
-            case .node(let node):
+            case let .node(node):
                 keys = visitorKeys[node.kind] ?? []
-            case .array(let array):
-                keys = array.map({ _ in "root" })
+            case let .array(array):
+                keys = array.map { _ in "root" }
             }
 
             index = -1
@@ -229,7 +229,8 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
 
             parent = node
         }
-    } while stack != nil
+    } while
+        stack != nil
 
     if !edits.isEmpty {
         newRoot = edits[edits.count - 1].node
@@ -245,7 +246,13 @@ final class Stack {
     let inArray: Bool
     let prev: Stack?
 
-    init(index: Int, keys: [IndexPathElement], edits: [(key: IndexPathElement, node: Node)], inArray: Bool, prev: Stack?) {
+    init(
+        index: Int,
+        keys: [IndexPathElement],
+        edits: [(key: IndexPathElement, node: Node)],
+        inArray: Bool,
+        prev: Stack?
+    ) {
         self.index = index
         self.keys = keys
         self.edits = edits
@@ -261,11 +268,11 @@ final class Stack {
  * If a prior visitor edits a node, no following visitors will see that node.
  */
 func visitInParallel(visitors: [Visitor]) -> Visitor {
-    var skipping: [Node?] = [Node?](repeating: nil, count: visitors.count)
+    var skipping = [Node?](repeating: nil, count: visitors.count)
 
     return Visitor(
         enter: { node, key, parent, path, ancestors in
-            for i in 0..<visitors.count {
+            for i in 0 ..< visitors.count {
                 if skipping[i] == nil {
                     let result = visitors[i].enter(
                         node: node,
@@ -288,7 +295,7 @@ func visitInParallel(visitors: [Visitor]) -> Visitor {
             return .continue
         },
         leave: { node, key, parent, path, ancestors in
-            for i in 0..<visitors.count {
+            for i in 0 ..< visitors.count {
                 if skipping[i] == nil {
                     let result = visitors[i].leave(
                         node: node,
@@ -303,7 +310,7 @@ func visitInParallel(visitors: [Visitor]) -> Visitor {
                     } else if case .node = result {
                         return result
                     }
-                } //else if skipping[i] == node {
+                } // else if skipping[i] == node {
 //                    skipping[i] = nil
 //                }
             }
@@ -331,7 +338,13 @@ public enum VisitResult {
 /// relevant functions to be called during the visitor's traversal.
 public struct Visitor {
     /// A visitor is comprised of visit functions, which are called on each node during the visitor's traversal.
-    public typealias Visit = (Node, IndexPathElement?, NodeResult?, [IndexPathElement], [NodeResult]) -> VisitResult
+    public typealias Visit = (
+        Node,
+        IndexPathElement?,
+        NodeResult?,
+        [IndexPathElement],
+        [NodeResult]
+    ) -> VisitResult
     private let enter: Visit
     private let leave: Visit
 
@@ -340,19 +353,36 @@ public struct Visitor {
         self.leave = leave
     }
 
-    public func enter(node: Node, key: IndexPathElement?, parent: NodeResult?, path: [IndexPathElement], ancestors: [NodeResult]) -> VisitResult {
+    public func enter(
+        node: Node,
+        key: IndexPathElement?,
+        parent: NodeResult?,
+        path: [IndexPathElement],
+        ancestors: [NodeResult]
+    ) -> VisitResult {
         return enter(node, key, parent, path, ancestors)
     }
 
-    public func leave(node: Node, key: IndexPathElement?, parent: NodeResult?, path: [IndexPathElement], ancestors: [NodeResult]) -> VisitResult {
+    public func leave(
+        node: Node,
+        key: IndexPathElement?,
+        parent: NodeResult?,
+        path: [IndexPathElement],
+        ancestors: [NodeResult]
+    ) -> VisitResult {
         return leave(node, key, parent, path, ancestors)
     }
 }
 
-public func ignore(node: Node, key: IndexPathElement?, parent: NodeResult?, path: [IndexPathElement], ancestors: [NodeResult]) -> VisitResult {
+public func ignore(
+    node _: Node,
+    key _: IndexPathElement?,
+    parent _: NodeResult?,
+    path _: [IndexPathElement],
+    ancestors _: [NodeResult]
+) -> VisitResult {
     return .continue
 }
-
 
 /**
  * Creates a new visitor instance which maintains a provided TypeInfo instance
@@ -374,7 +404,7 @@ func visitWithTypeInfo(typeInfo: TypeInfo, visitor: Visitor) -> Visitor {
             if !result.isContinue {
                 typeInfo.leave(node: node)
 
-                if case .node(let node) = result, let n = node {
+                if case let .node(node) = result, let n = node {
                     typeInfo.enter(node: n)
                 }
             }

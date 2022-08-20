@@ -121,7 +121,6 @@ let CharacterInterface = try! GraphQLInterfaceType(
     }
 )
 
-
 /**
  * We define our human type, which implements the character interface.
  *
@@ -149,7 +148,7 @@ let HumanType = try! GraphQLObjectType(
         "friends": GraphQLField(
             type: GraphQLList(CharacterInterface),
             description: "The friends of the human, or an empty list if they " +
-            "have none.",
+                "have none.",
             resolve: { human, _, _, _ in
                 getFriends(character: human as! Human)
             }
@@ -166,7 +165,7 @@ let HumanType = try! GraphQLObjectType(
             type: GraphQLString,
             description: "Where are they from and how they came to be who they are.",
             resolve: { _, _, _, _ in
-                struct Secret : Error, CustomStringConvertible {
+                struct Secret: Error, CustomStringConvertible {
                     let description: String
                 }
 
@@ -179,7 +178,6 @@ let HumanType = try! GraphQLObjectType(
         source is Human
     }
 )
-
 
 /**
  * The other type of character in Star Wars is a droid.
@@ -221,7 +219,7 @@ let DroidType = try! GraphQLObjectType(
             type: GraphQLString,
             description: "Construction date and the name of the designer.",
             resolve: { _, _, _, _ in
-                struct SecretError : Error, CustomStringConvertible {
+                struct SecretError: Error, CustomStringConvertible {
                     let description: String
                 }
 
@@ -238,7 +236,6 @@ let DroidType = try! GraphQLObjectType(
         source is Droid
     }
 )
-
 
 /**
  * This is the type that will be the root of our query, and the
@@ -264,8 +261,8 @@ let QueryType = try! GraphQLObjectType(
                     type: EpisodeEnum,
                     description:
                     "If omitted, returns the hero of the whole saga. If " +
-                    "provided, returns the hero of that particular episode."
-                )
+                        "provided, returns the hero of that particular episode."
+                ),
             ],
             resolve: { _, arguments, _, _ in
                 let episode = Episode(arguments["episode"].string)
@@ -278,10 +275,10 @@ let QueryType = try! GraphQLObjectType(
                 "id": GraphQLArgument(
                     type: GraphQLNonNull(GraphQLString),
                     description: "id of the human"
-                )
+                ),
             ],
             resolve: { _, arguments, _, _ in
-                return getHuman(id: arguments["id"].string!)
+                getHuman(id: arguments["id"].string!)
             }
         ),
         "droid": GraphQLField(
@@ -290,10 +287,10 @@ let QueryType = try! GraphQLObjectType(
                 "id": GraphQLArgument(
                     type: GraphQLNonNull(GraphQLString),
                     description: "id of the droid"
-                )
+                ),
             ],
             resolve: { _, arguments, _, _ in
-                return getDroid(id: arguments["id"].string!)
+                getDroid(id: arguments["id"].string!)
             }
         ),
     ]

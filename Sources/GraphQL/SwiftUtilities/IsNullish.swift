@@ -3,7 +3,7 @@ protocol OptionalProtocol {
     var isNil: Bool { get }
 }
 
-extension Optional : OptionalProtocol {
+extension Optional: OptionalProtocol {
     var wrappedType: Any.Type {
         return Wrapped.self
     }
@@ -21,10 +21,10 @@ extension Optional : OptionalProtocol {
 /**
  * Returns true if a value is null, or nil.
  */
-//func isNullish(_ value: Any?) -> Bool {
+// func isNullish(_ value: Any?) -> Bool {
 //    guard value != nil else {
 //        return true
 //    }
 //
 //    return false
-//}
+// }

@@ -111,11 +111,11 @@ func isTypeSubTypeOf(
         schema.isSubType(
             abstractType: superType,
             maybeSubType: maybeSubType
-       )
+        )
     {
         return true
     }
-    
+
     if
         let superType = superType as? GraphQLAbstractType,
         let maybeSubType = maybeSubType as? GraphQLInterfaceType,
@@ -181,7 +181,7 @@ func doTypesOverlap(
             maybeSubType: typeA
         )
     }
-    
+
     // Otherwise the types do not overlap.
     return false
 }

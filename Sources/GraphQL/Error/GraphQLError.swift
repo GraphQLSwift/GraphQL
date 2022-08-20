@@ -4,8 +4,8 @@
  * it also includes information about the locations in a
  * GraphQL document and/or execution result that correspond to the error.
  */
-public struct GraphQLError : Error, Codable {
-    enum CodingKeys : String, CodingKey {
+public struct GraphQLError: Error, Codable {
+    enum CodingKeys: String, CodingKey {
         case message
         case locations
         case path
@@ -78,22 +78,22 @@ public struct GraphQLError : Error, Codable {
             self.source = nil
         }
 
-        if positions.isEmpty && !nodes.isEmpty {
-            self.positions = nodes.filter({ $0.loc != nil }).map({ $0.loc!.start })
+        if positions.isEmpty, !nodes.isEmpty {
+            self.positions = nodes.filter { $0.loc != nil }.map { $0.loc!.start }
         } else {
             self.positions = positions
         }
 
         if let source = self.source, !self.positions.isEmpty {
-            self.locations = self.positions.map({ getLocation(source: source, position: $0) })
+            locations = self.positions.map { getLocation(source: source, position: $0) }
         } else {
-            self.locations = []
+            locations = []
         }
 
         self.path = path
         self.originalError = originalError
     }
-    
+
     public init(
         message: String,
         locations: [SourceLocation],
@@ -102,46 +102,46 @@ public struct GraphQLError : Error, Codable {
         self.message = message
         self.locations = locations
         self.path = path
-        self.nodes = []
-        self.source = nil
-        self.positions = []
-        self.originalError = nil
+        nodes = []
+        source = nil
+        positions = []
+        originalError = nil
     }
-    
+
     public init(_ error: Error) {
         self.init(
             message: error.localizedDescription,
             originalError: error
         )
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         message = try container.decode(String.self, forKey: .message)
         locations = try container.decode([SourceLocation]?.self, forKey: .locations) ?? []
         path = try container.decode(IndexPath.self, forKey: .path)
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        
+
         try container.encode(message, forKey: .message)
-        
+
         if !locations.isEmpty {
             try container.encode(locations, forKey: .locations)
         }
-        
+
         try container.encode(path, forKey: .path)
     }
 }
 
-extension GraphQLError : CustomStringConvertible {
+extension GraphQLError: CustomStringConvertible {
     public var description: String {
         return message
     }
 }
 
-extension GraphQLError : Hashable {
+extension GraphQLError: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(message)
     }
@@ -153,41 +153,41 @@ extension GraphQLError : Hashable {
 
 // MARK: IndexPath
 
-public struct IndexPath : Codable {
+public struct IndexPath: Codable {
     public let elements: [IndexPathValue]
-    
+
     public init(_ elements: [IndexPathElement] = []) {
-        self.elements = elements.map({ $0.indexPathValue })
+        self.elements = elements.map { $0.indexPathValue }
     }
-    
+
     public func appending(_ elements: IndexPathElement) -> IndexPath {
         return IndexPath(self.elements + [elements])
     }
-    
+
     public init(from decoder: Decoder) throws {
         var container = try decoder.unkeyedContainer()
         elements = try container.decode([IndexPathValue].self)
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.unkeyedContainer()
         try container.encode(contentsOf: elements)
     }
 }
 
-extension IndexPath : ExpressibleByArrayLiteral {
+extension IndexPath: ExpressibleByArrayLiteral {
     public init(arrayLiteral elements: IndexPathElement...) {
-        self.elements = elements.map({ $0.indexPathValue })
+        self.elements = elements.map { $0.indexPathValue }
     }
 }
 
-public enum IndexPathValue : Codable {
+public enum IndexPathValue: Codable {
     case index(Int)
     case key(String)
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        
+
         if let index = try? container.decode(Int.self) {
             self = .index(index)
         } else if let key = try? container.decode(String.self) {
@@ -196,10 +196,10 @@ public enum IndexPathValue : Codable {
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid type.")
         }
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        
+
         switch self {
         case let .index(index):
             try container.encode(index)
@@ -209,13 +209,13 @@ public enum IndexPathValue : Codable {
     }
 }
 
-extension IndexPathValue : IndexPathElement {
+extension IndexPathValue: IndexPathElement {
     public var indexPathValue: IndexPathValue {
         return self
     }
 }
 
-extension IndexPathValue : CustomStringConvertible {
+extension IndexPathValue: CustomStringConvertible {
     public var description: String {
         switch self {
         case let .index(index):
@@ -239,29 +239,29 @@ extension IndexPathElement {
     }
 }
 
-extension IndexPathElement {
-    public var indexValue: Int? {
-        if case .index(let index) = indexPathValue {
+public extension IndexPathElement {
+    var indexValue: Int? {
+        if case let .index(index) = indexPathValue {
             return index
         }
         return nil
     }
-    
-    public var keyValue: String? {
-        if case .key(let key) = indexPathValue {
+
+    var keyValue: String? {
+        if case let .key(key) = indexPathValue {
             return key
         }
         return nil
     }
 }
 
-extension Int : IndexPathElement {
+extension Int: IndexPathElement {
     public var indexPathValue: IndexPathValue {
         return .index(self)
     }
 }
 
-extension String : IndexPathElement {
+extension String: IndexPathElement {
     public var indexPathValue: IndexPathValue {
         return .key(self)
     }

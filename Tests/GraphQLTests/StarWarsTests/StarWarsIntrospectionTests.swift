@@ -1,9 +1,9 @@
-import XCTest
 import NIO
+import XCTest
 
 @testable import GraphQL
 
-class StarWarsIntrospectionTests : XCTestCase {
+class StarWarsIntrospectionTests: XCTestCase {
     func testIntrospectionTypeQuery() throws {
         let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         defer {
@@ -11,69 +11,73 @@ class StarWarsIntrospectionTests : XCTestCase {
         }
 
         do {
-        let query = "query IntrospectionTypeQuery {" +
-                    "    __schema {" +
-                    "        types {" +
-                    "            name" +
-                    "        }" +
-                    "    }" +
-                    "}"
+            let query = "query IntrospectionTypeQuery {" +
+                "    __schema {" +
+                "        types {" +
+                "            name" +
+                "        }" +
+                "    }" +
+                "}"
 
-        let expected = GraphQLResult(
-            data: [
-                "__schema": [
-                    "types": [
-                        [
-                            "name": "Boolean",
-                        ],
-                        [
-                            "name": "Character",
-                        ],
-                        [
-                            "name": "Droid",
-                        ],
-                        [
-                            "name": "Episode",
-                        ],
-                        [
-                            "name": "Human",
-                        ],
-                        [
-                            "name": "Query",
-                        ],
-                        [
-                            "name": "String",
-                        ],
-                        [
-                            "name": "__Directive",
-                        ],
-                        [
-                            "name": "__DirectiveLocation",
-                        ],
-                        [
-                            "name": "__EnumValue",
-                        ],
-                        [
-                            "name": "__Field",
-                        ],
-                        [
-                            "name": "__InputValue",
-                        ],
-                        [
-                            "name": "__Schema",
-                        ],
-                        [
-                            "name": "__Type",
-                        ],
-                        [
-                            "name": "__TypeKind",
+            let expected = GraphQLResult(
+                data: [
+                    "__schema": [
+                        "types": [
+                            [
+                                "name": "Boolean",
+                            ],
+                            [
+                                "name": "Character",
+                            ],
+                            [
+                                "name": "Droid",
+                            ],
+                            [
+                                "name": "Episode",
+                            ],
+                            [
+                                "name": "Human",
+                            ],
+                            [
+                                "name": "Query",
+                            ],
+                            [
+                                "name": "String",
+                            ],
+                            [
+                                "name": "__Directive",
+                            ],
+                            [
+                                "name": "__DirectiveLocation",
+                            ],
+                            [
+                                "name": "__EnumValue",
+                            ],
+                            [
+                                "name": "__Field",
+                            ],
+                            [
+                                "name": "__InputValue",
+                            ],
+                            [
+                                "name": "__Schema",
+                            ],
+                            [
+                                "name": "__Type",
+                            ],
+                            [
+                                "name": "__TypeKind",
+                            ],
                         ],
                     ],
-                ],
-            ]
-        )
+                ]
+            )
 
-            let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+            let result = try graphql(
+                schema: starWarsSchema,
+                request: query,
+                eventLoopGroup: eventLoopGroup
+            ).wait()
             XCTAssertEqual(result, expected)
         } catch {
             print(error)
@@ -87,12 +91,12 @@ class StarWarsIntrospectionTests : XCTestCase {
         }
 
         let query = "query IntrospectionQueryTypeQuery {" +
-                    "    __schema {" +
-                    "        queryType {" +
-                    "            name" +
-                    "        }" +
-                    "    }" +
-                    "}"
+            "    __schema {" +
+            "        queryType {" +
+            "            name" +
+            "        }" +
+            "    }" +
+            "}"
 
         let expected = GraphQLResult(
             data: [
@@ -104,7 +108,11 @@ class StarWarsIntrospectionTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -115,10 +123,10 @@ class StarWarsIntrospectionTests : XCTestCase {
         }
 
         let query = "query IntrospectionDroidTypeQuery {" +
-                    "    __type(name: \"Droid\") {" +
-                    "        name" +
-                    "    }" +
-                    "}"
+            "    __type(name: \"Droid\") {" +
+            "        name" +
+            "    }" +
+            "}"
 
         let expected = GraphQLResult(
             data: [
@@ -128,7 +136,11 @@ class StarWarsIntrospectionTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -139,11 +151,11 @@ class StarWarsIntrospectionTests : XCTestCase {
         }
 
         let query = "query IntrospectionDroidKindQuery {" +
-                    "    __type(name: \"Droid\") {" +
-                    "        name" +
-                    "        kind" +
-                    "    }" +
-                    "}"
+            "    __type(name: \"Droid\") {" +
+            "        name" +
+            "        kind" +
+            "    }" +
+            "}"
 
         let expected = GraphQLResult(
             data: [
@@ -154,7 +166,11 @@ class StarWarsIntrospectionTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -165,11 +181,11 @@ class StarWarsIntrospectionTests : XCTestCase {
         }
 
         let query = "query IntrospectionCharacterKindQuery {" +
-                    "    __type(name: \"Character\") {" +
-                    "        name" +
-                    "        kind" +
-                    "    }" +
-                    "}"
+            "    __type(name: \"Character\") {" +
+            "        name" +
+            "        kind" +
+            "    }" +
+            "}"
 
         let expected = GraphQLResult(
             data: [
@@ -180,7 +196,11 @@ class StarWarsIntrospectionTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -191,17 +211,17 @@ class StarWarsIntrospectionTests : XCTestCase {
         }
 
         let query = "query IntrospectionDroidFieldsQuery {" +
-                    "    __type(name: \"Droid\") {" +
-                    "        name" +
-                    "        fields {" +
-                    "            name" +
-                    "            type {" +
-                    "                name" +
-                    "                kind" +
-                    "            }" +
-                    "        }" +
-                    "    }" +
-                    "}"
+            "    __type(name: \"Droid\") {" +
+            "        name" +
+            "        fields {" +
+            "            name" +
+            "            type {" +
+            "                name" +
+            "                kind" +
+            "            }" +
+            "        }" +
+            "    }" +
+            "}"
 
         let expected = GraphQLResult(
             data: [
@@ -255,7 +275,11 @@ class StarWarsIntrospectionTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -266,21 +290,21 @@ class StarWarsIntrospectionTests : XCTestCase {
         }
 
         let query = "query IntrospectionDroidNestedFieldsQuery {" +
-                    "    __type(name: \"Droid\") {" +
-                    "        name" +
-                    "        fields {" +
-                    "            name" +
-                    "            type {" +
-                    "                name" +
-                    "                kind" +
-                    "                ofType {" +
-                    "                    name" +
-                    "                    kind" +
-                    "                }" +
-                    "            }" +
-                    "        }" +
-                    "    }" +
-                    "}"
+            "    __type(name: \"Droid\") {" +
+            "        name" +
+            "        fields {" +
+            "            name" +
+            "            type {" +
+            "                name" +
+            "                kind" +
+            "                ofType {" +
+            "                    name" +
+            "                    kind" +
+            "                }" +
+            "            }" +
+            "        }" +
+            "    }" +
+            "}"
 
         let expected = GraphQLResult(
             data: [
@@ -349,7 +373,11 @@ class StarWarsIntrospectionTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -360,27 +388,27 @@ class StarWarsIntrospectionTests : XCTestCase {
         }
 
         let query = "query IntrospectionFieldArgsQuery {" +
-                    "    __schema {" +
-                    "        queryType {" +
-                    "            fields {" +
-                    "                name" +
-                    "                args {" +
-                    "                    name" +
-                    "                    description" +
-                    "                    type {" +
-                    "                        name" +
-                    "                        kind" +
-                    "                        ofType {" +
-                    "                            name" +
-                    "                            kind" +
-                    "                        }" +
-                    "                    }" +
-                    "                    defaultValue" +
-                    "                 }" +
-                    "            }" +
-                    "        }" +
-                    "    }" +
-                    "}"
+            "    __schema {" +
+            "        queryType {" +
+            "            fields {" +
+            "                name" +
+            "                args {" +
+            "                    name" +
+            "                    description" +
+            "                    type {" +
+            "                        name" +
+            "                        kind" +
+            "                        ofType {" +
+            "                            name" +
+            "                            kind" +
+            "                        }" +
+            "                    }" +
+            "                    defaultValue" +
+            "                 }" +
+            "            }" +
+            "        }" +
+            "    }" +
+            "}"
 
         let expected = GraphQLResult(
             data: [
@@ -399,10 +427,10 @@ class StarWarsIntrospectionTests : XCTestCase {
                                             "ofType": [
                                                 "name": "String",
                                                 "kind": "SCALAR",
-                                            ]
+                                            ],
                                         ],
                                         "defaultValue": nil,
-                                        ],
+                                    ],
                                 ],
                             ],
                             [
@@ -414,7 +442,7 @@ class StarWarsIntrospectionTests : XCTestCase {
                                         "type": [
                                             "name": "Episode",
                                             "kind": "ENUM",
-                                            "ofType": nil
+                                            "ofType": nil,
                                         ],
                                         "defaultValue": nil,
                                     ],
@@ -432,7 +460,7 @@ class StarWarsIntrospectionTests : XCTestCase {
                                             "ofType": [
                                                 "name": "String",
                                                 "kind": "SCALAR",
-                                            ]
+                                            ],
                                         ],
                                         "defaultValue": nil,
                                     ],
@@ -444,7 +472,11 @@ class StarWarsIntrospectionTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -455,11 +487,11 @@ class StarWarsIntrospectionTests : XCTestCase {
         }
 
         let query = "query IntrospectionDroidDescriptionQuery {" +
-                    "    __type(name: \"Droid\") {" +
-                    "        name" +
-                    "        description" +
-                    "    }" +
-                    "}"
+            "    __type(name: \"Droid\") {" +
+            "        name" +
+            "        description" +
+            "    }" +
+            "}"
 
         let expected = GraphQLResult(
             data: [
@@ -470,7 +502,11 @@ class StarWarsIntrospectionTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 }

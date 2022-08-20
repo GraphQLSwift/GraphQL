@@ -2,7 +2,6 @@ import GraphQL
 import XCTest
 
 class PersistedQueriesTests: XCTestCase {
-
 //    let schema = try! GraphQLSchema(
 //        query: GraphQLObjectType(
 //            name: "RootQueryType",
@@ -106,9 +105,9 @@ class PersistedQueriesTests: XCTestCase {
 //        XCTAssertEqual(result, expected)
 //    }
 //
-//}
+    // }
 //
-//extension PersistedQueriesTests: PersistedQueryRetrieval {
+    // extension PersistedQueriesTests: PersistedQueryRetrieval {
 //    typealias Id = String
 //
 //    func lookup(_ id: Id) throws -> PersistedQueryRetrievalResult<Id> {
@@ -136,5 +135,4 @@ class PersistedQueriesTests: XCTestCase {
 //            throw error
 //        }
 //    }
-
 }

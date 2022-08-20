@@ -1,11 +1,11 @@
 @testable import GraphQL
 import XCTest
 
-class NoUnusedVariablesRuleTests : ValidationTestCase {
+class NoUnusedVariablesRuleTests: ValidationTestCase {
     override func setUp() {
         rule = NoUnusedVariablesRule
     }
-    
+
     func testUsesAllVariables() throws {
         try assertValid(
             """
@@ -29,7 +29,7 @@ class NoUnusedVariablesRuleTests : ValidationTestCase {
             """
         )
     }
-    
+
     func testUsesAllVariablesDeeplyInInlineFragments() throws {
         try assertValid(
             """
@@ -47,7 +47,7 @@ class NoUnusedVariablesRuleTests : ValidationTestCase {
             """
         )
     }
-    
+
     func testUsesAllVariablesInFragments() throws {
         try assertValid(
             """
@@ -89,7 +89,7 @@ class NoUnusedVariablesRuleTests : ValidationTestCase {
             """
         )
     }
-    
+
     func testVariableUsedByRecursiveFragment() throws {
         try assertValid(
             """
@@ -104,7 +104,7 @@ class NoUnusedVariablesRuleTests : ValidationTestCase {
             """
         )
     }
-    
+
     func testVariableNotUsed() throws {
         let errors = try assertInvalid(
             errorCount: 1,
@@ -114,13 +114,13 @@ class NoUnusedVariablesRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors.first, line: 1, column: 32,
             message: "Variable \"$c\" is never used."
         )
     }
-    
+
     func testMultipleVariablesNotUsed() throws {
         let errors = try assertInvalid(
             errorCount: 2,
@@ -130,18 +130,18 @@ class NoUnusedVariablesRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors[0], line: 1, column: 11,
             message: #"Variable "$a" is never used in operation "Foo"."#
         )
-        
+
         try assertValidationError(
             error: errors[1], line: 1, column: 35,
             message: #"Variable "$c" is never used in operation "Foo"."#
         )
     }
-    
+
     func testVariableNotUsedInFragments() throws {
         let errors = try assertInvalid(
             errorCount: 1,
@@ -164,13 +164,13 @@ class NoUnusedVariablesRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors.first, line: 1, column: 35,
             message: #"Variable "$c" is never used in operation "Foo"."#
         )
     }
-    
+
     func testMultipleVariablesNotUsedInFragments() throws {
         let errors = try assertInvalid(
             errorCount: 2,
@@ -193,12 +193,12 @@ class NoUnusedVariablesRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors[0], line: 1, column: 11,
             message: #"Variable "$a" is never used in operation "Foo"."#
         )
-        
+
         try assertValidationError(
             error: errors[1], line: 1, column: 35,
             message: #"Variable "$c" is never used in operation "Foo"."#
@@ -220,13 +220,13 @@ class NoUnusedVariablesRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors.first, line: 1, column: 11,
             message: #"Variable "$b" is never used in operation "Foo"."#
         )
     }
-    
+
     func testVariableNotUsedByFragmentUsedByOtherOperation() throws {
         let errors = try assertInvalid(
             errorCount: 2,
@@ -245,12 +245,12 @@ class NoUnusedVariablesRuleTests : ValidationTestCase {
             }
             """
         )
-        
+
         try assertValidationError(
             error: errors[0], line: 1, column: 11,
             message: #"Variable "$b" is never used in operation "Foo"."#
         )
-        
+
         try assertValidationError(
             error: errors[1], line: 4, column: 11,
             message: #"Variable "$a" is never used in operation "Bar"."#

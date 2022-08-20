@@ -12,7 +12,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "GraphQL", 
+            name: "GraphQL",
             dependencies: [
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "OrderedCollections", package: "swift-collections"),
