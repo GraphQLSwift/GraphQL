@@ -1012,23 +1012,43 @@ public final class GraphQLEnumType {
     }
 
     public func serialize(value: Any) throws -> Map {
-        return try valueLookup[map(from: value)].map { .string($0.name) } ?? .null
+        let mapValue = try map(from: value)
+        guard let enumValue = valueLookup[mapValue] else {
+            throw GraphQLError(
+                message: "Enum '\(name)' cannot represent value '\(mapValue)'."
+            )
+        }
+        return .string(enumValue.name)
     }
 
     public func parseValue(value: Map) throws -> Map {
-        if case let .string(value) = value {
-            return nameLookup[value]?.value ?? .null
+        guard let valueStr = value.string else {
+            throw GraphQLError(
+                message: "Enum '\(name)' cannot represent non-string value '\(value)'."
+            )
         }
-
-        return .null
+        guard let enumValue = nameLookup[valueStr] else {
+            throw GraphQLError(
+                message: "Value '\(valueStr)' does not exist in '\(name)' enum."
+            )
+        }
+        return enumValue.value
     }
 
-    public func parseLiteral(valueAST: Value) -> Map {
-        if let enumValue = valueAST as? EnumValue {
-            return nameLookup[enumValue.value]?.value ?? .null
+    public func parseLiteral(valueAST: Value) throws -> Map {
+        guard let enumNode = valueAST as? EnumValue else {
+            throw GraphQLError(
+                message: "Enum '\(name)' cannot represent non-enum value '\(valueAST)'.",
+                nodes: [valueAST]
+            )
         }
-
-        return .null
+        guard let enumValue = nameLookup[enumNode.value] else {
+            throw GraphQLError(
+                message: "Value '\(enumNode)' does not exist in '\(name)' enum.",
+                nodes: [valueAST]
+            )
+        }
+        return enumValue.value
     }
 }
 
