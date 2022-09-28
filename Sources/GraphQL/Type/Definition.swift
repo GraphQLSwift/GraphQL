@@ -1024,12 +1024,14 @@ public final class GraphQLEnumType {
     public func parseValue(value: Map) throws -> Map {
         guard let valueStr = value.string else {
             throw GraphQLError(
-                message: "Enum '\(name)' cannot represent non-string value '\(value)'."
+                message: "Enum '\(name)' cannot represent non-string value '\(value)'." +
+                    didYouMeanEnumValue(unknownValueStr: value.description)
             )
         }
         guard let enumValue = nameLookup[valueStr] else {
             throw GraphQLError(
-                message: "Value '\(valueStr)' does not exist in '\(name)' enum."
+                message: "Value '\(valueStr)' does not exist in '\(name)' enum." +
+                    didYouMeanEnumValue(unknownValueStr: valueStr)
             )
         }
         return enumValue.value
@@ -1038,17 +1040,25 @@ public final class GraphQLEnumType {
     public func parseLiteral(valueAST: Value) throws -> Map {
         guard let enumNode = valueAST as? EnumValue else {
             throw GraphQLError(
-                message: "Enum '\(name)' cannot represent non-enum value '\(valueAST)'.",
+                message: "Enum '\(name)' cannot represent non-enum value '\(valueAST)'." +
+                    didYouMeanEnumValue(unknownValueStr: "\(valueAST)"),
                 nodes: [valueAST]
             )
         }
         guard let enumValue = nameLookup[enumNode.value] else {
             throw GraphQLError(
-                message: "Value '\(enumNode)' does not exist in '\(name)' enum.",
+                message: "Value '\(enumNode)' does not exist in '\(name)' enum." +
+                    didYouMeanEnumValue(unknownValueStr: enumNode.value),
                 nodes: [valueAST]
             )
         }
         return enumValue.value
+    }
+
+    private func didYouMeanEnumValue(unknownValueStr: String) -> String {
+        let allNames = values.map { $0.name }
+        let suggestedValues = suggestionList(input: unknownValueStr, options: allNames)
+        return didYouMean("the enum value", suggestions: suggestedValues)
     }
 }
 
