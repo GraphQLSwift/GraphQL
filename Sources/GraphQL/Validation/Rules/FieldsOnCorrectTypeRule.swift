@@ -7,11 +7,9 @@ func undefinedFieldMessage(
     var message = "Cannot query field \"\(fieldName)\" on type \"\(type)\"."
 
     if !suggestedTypeNames.isEmpty {
-        let suggestions = quotedOrList(items: suggestedTypeNames)
-        message += " Did you mean to use an inline fragment on \(suggestions)?"
+        message += didYouMean("to use an inline fragment on", suggestions: suggestedTypeNames)
     } else if !suggestedFieldNames.isEmpty {
-        let suggestions = quotedOrList(items: suggestedFieldNames)
-        message += " Did you mean \(suggestions)?"
+        message += didYouMean(suggestions: suggestedFieldNames)
     }
 
     return message
