@@ -10,8 +10,7 @@ func undefinedArgumentMessage(
         "Field \"\(fieldName)\" on type \"\(type)\" does not have argument \"\(argumentName)\"."
 
     if !suggestedArgumentNames.isEmpty {
-        let suggestions = quotedOrList(items: suggestedArgumentNames)
-        message += " Did you mean \(suggestions)?"
+        message += didYouMean(suggestions: suggestedArgumentNames)
     }
 
     return message

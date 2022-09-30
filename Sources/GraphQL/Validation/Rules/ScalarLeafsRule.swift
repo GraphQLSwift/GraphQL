@@ -5,7 +5,7 @@ func noSubselectionAllowedMessage(fieldName: String, type: GraphQLType) -> Strin
 
 func requiredSubselectionMessage(fieldName: String, type: GraphQLType) -> String {
     return "Field \"\(fieldName)\" of type \"\(type)\" must have a " +
-        "selection of subfields. Did you mean \"\(fieldName) { ... }\"?"
+        "selection of subfields." + didYouMean(suggestions: ["\(fieldName) { ... }"])
 }
 
 /**

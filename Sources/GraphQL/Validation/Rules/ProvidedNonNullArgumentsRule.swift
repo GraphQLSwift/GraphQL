@@ -5,7 +5,7 @@ func missingArgumentsMessage(
     type: String,
     missingArguments: [String]
 ) -> String {
-    let arguments = quotedOrList(items: missingArguments)
+    let arguments = missingArguments.andList()
     return "Field \"\(fieldName)\" on type \"\(type)\" is missing required arguments \(arguments)."
 }
 
