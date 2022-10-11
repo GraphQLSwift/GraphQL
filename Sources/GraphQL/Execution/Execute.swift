@@ -1018,16 +1018,9 @@ func completeLeafValue(returnType: GraphQLLeafType, result: Any?) throws -> Map 
     guard let result = result else {
         return .null
     }
-
     let serializedResult = try returnType.serialize(value: result)
 
-    if serializedResult == .null {
-        throw GraphQLError(
-            message:
-            "Expected a value of type \"\(returnType)\" but " +
-                "received: \(result)"
-        )
-    }
+    // Do not check for serialization to null here. Some scalars may model literals as `Map.null`.
 
     return serializedResult
 }
