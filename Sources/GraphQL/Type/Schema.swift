@@ -235,16 +235,28 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
         return typeMap // Should never happen
     }
 
-    guard typeMap[type.name] == nil || typeMap[type.name] is GraphQLTypeReference else {
-        guard typeMap[type.name]! == type || type is GraphQLTypeReference else {
-            throw GraphQLError(
-                message:
-                "Schema must contain unique named types but contains multiple " +
-                    "types named \"\(type.name)\"."
-            )
+    if let existingType = typeMap[type.name] {
+        if existingType is GraphQLTypeReference {
+            if type is GraphQLTypeReference {
+                // Just short circuit because they're both type references
+                return typeMap
+            }
+            // Otherwise, fall through and override the type reference
+        } else {
+            if type is GraphQLTypeReference {
+                // Just ignore the reference and keep the concrete one
+                return typeMap
+            } else if !(existingType == type) {
+                throw GraphQLError(
+                    message:
+                    "Schema must contain unique named types but contains multiple " +
+                        "types named \"\(type.name)\"."
+                )
+            } else {
+                // Otherwise, it's already been defined so short circuit
+                return typeMap
+            }
         }
-
-        return typeMap
     }
 
     typeMap[type.name] = type
@@ -361,6 +373,15 @@ func replaceTypeReferences(typeMap: TypeMap) throws {
     for type in typeMap {
         if let typeReferenceContainer = type.value as? GraphQLTypeReferenceContainer {
             try typeReferenceContainer.replaceTypeReferences(typeMap: typeMap)
+        }
+    }
+
+    // Check that no type names map to TypeReferences. That is, they have all been resolved to actual types.
+    for (typeName, graphQLNamedType) in typeMap {
+        if graphQLNamedType is GraphQLTypeReference {
+            throw GraphQLError(
+                message: "Type \"\(typeName)\" was referenced but not defined."
+            )
         }
     }
 }
