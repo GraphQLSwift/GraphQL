@@ -1,4 +1,4 @@
-public let QueryDocumentKeys: [Kind: [String]] = [
+let QueryDocumentKeys: [Kind: [String]] = [
     .name: [],
 
     .document: ["definitions"],
