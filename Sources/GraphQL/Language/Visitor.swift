@@ -80,7 +80,7 @@ let QueryDocumentKeys: [Kind: [String]] = [
  *     ))
  */
 @discardableResult
-func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node {
+public func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node {
     let visitorKeys = keyMap.isEmpty ? QueryDocumentKeys : keyMap
 
     var stack: Stack?
