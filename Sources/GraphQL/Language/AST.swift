@@ -213,6 +213,7 @@ extension EnumTypeDefinition: Node {}
 extension EnumValueDefinition: Node {}
 extension InputObjectTypeDefinition: Node {}
 extension TypeExtensionDefinition: Node {}
+extension SchemaExtensionDefinition: Node {}
 extension DirectiveDefinition: Node {}
 
 public final class Name {
@@ -1099,6 +1100,7 @@ extension NonNullType: Equatable {
 public protocol TypeSystemDefinition: Definition {}
 extension SchemaDefinition: TypeSystemDefinition {}
 extension TypeExtensionDefinition: TypeSystemDefinition {}
+extension SchemaExtensionDefinition: TypeSystemDefinition {}
 extension DirectiveDefinition: TypeSystemDefinition {}
 
 public func == (lhs: TypeSystemDefinition, rhs: TypeSystemDefinition) -> Bool {
@@ -1117,6 +1119,10 @@ public func == (lhs: TypeSystemDefinition, rhs: TypeSystemDefinition) -> Bool {
         }
     case let l as TypeDefinition:
         if let r = rhs as? TypeDefinition {
+            return l == r
+        }
+    case let l as SchemaExtensionDefinition:
+        if let r = rhs as? SchemaExtensionDefinition {
             return l == r
         }
     default:
@@ -1539,6 +1545,23 @@ public final class TypeExtensionDefinition {
 
 extension TypeExtensionDefinition: Equatable {
     public static func == (lhs: TypeExtensionDefinition, rhs: TypeExtensionDefinition) -> Bool {
+        return lhs.definition == rhs.definition
+    }
+}
+
+public final class SchemaExtensionDefinition {
+    public let kind: Kind = .schemaExtensionDefinition
+    public let loc: Location?
+    public let definition: SchemaDefinition
+
+    init(loc: Location? = nil, definition: SchemaDefinition) {
+        self.loc = loc
+        self.definition = definition
+    }
+}
+
+extension SchemaExtensionDefinition: Equatable {
+    public static func == (lhs: SchemaExtensionDefinition, rhs: SchemaExtensionDefinition) -> Bool {
         return lhs.definition == rhs.definition
     }
 }

@@ -111,6 +111,64 @@ class SchemaParserTests: XCTestCase {
         XCTAssert(result == expected)
     }
 
+    func testSchemeExtension() throws {
+        // Based on Apollo Federation example schema: https://github.com/apollographql/apollo-federation-subgraph-compatibility/blob/main/COMPATIBILITY.md#products-schema-to-be-implemented-by-library-maintainers
+        let source =
+            """
+            extend schema
+              @link(
+                url: "https://specs.apollo.dev/federation/v2.0",
+                import: [
+                  "@extends",
+                  "@external",
+                  "@key",
+                  "@inaccessible",
+                  "@override",
+                  "@provides",
+                  "@requires",
+                  "@shareable",
+                  "@tag"
+                ]
+              )
+            """
+
+        let expected = Document(
+            definitions: [
+                SchemaExtensionDefinition(
+                    definition: SchemaDefinition(
+                        directives: [
+                            Directive(
+                                name: nameNode("link"),
+                                arguments: [
+                                    Argument(
+                                        name: nameNode("url"),
+                                        value: StringValue(
+                                            value: "https://specs.apollo.dev/federation/v2.0",
+                                            block: false
+                                        )
+                                    ),
+                                    Argument(
+                                        name: nameNode("import"),
+                                        value: ListValue(values: [
+                                            StringValue(value: "@extends", block: false),
+                                            StringValue(value: "@external", block: false),
+                                            StringValue(value: "@key", block: false),
+                                            StringValue(value: "@inaccessible", block: false),
+                                            StringValue(value: "@override", block: false),
+                                            StringValue(value: "@provides", block: false),
+                                            StringValue(value: "@requires", block: false),
+                                            StringValue(value: "@shareable", block: false),
+                                            StringValue(value: "@tag", block: false),
+                                        ]))
+                                ])
+                        ],
+                        operationTypes: []))
+            ])
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
     func testSimpleNonNullType() throws {
         let source = "type Hello { world: String! }"
 
