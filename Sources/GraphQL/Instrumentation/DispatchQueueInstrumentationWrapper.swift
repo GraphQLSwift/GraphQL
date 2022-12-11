@@ -4,8 +4,10 @@ import NIO
 /// Proxies calls through to another `Instrumentation` instance via a DispatchQueue
 ///
 /// Has two primary use cases:
-/// 1. Allows a non thread safe Instrumentation implementation to be used along side a multithreaded execution strategy
-/// 2. Allows slow or heavy instrumentation processing to happen outside of the current query execution
+/// 1. Allows a non thread safe Instrumentation implementation to be used along side a multithreaded
+/// execution strategy
+/// 2. Allows slow or heavy instrumentation processing to happen outside of the current query
+/// execution
 public class DispatchQueueInstrumentationWrapper: Instrumentation {
     let instrumentation: Instrumentation
     let dispatchQueue: DispatchQueue

@@ -1008,7 +1008,11 @@ func parseExtensionDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
     case "type": return try parseTypeExtensionDefinition(lexer: lexer)
     case "schema": return try parseSchemaExtensionDefinition(lexer: lexer)
     default:
-        throw syntaxError(source: lexer.source, position: token.start, description: "expected schema or type after extend")
+        throw syntaxError(
+            source: lexer.source,
+            position: token.start,
+            description: "expected schema or type after extend"
+        )
     }
 }
 
@@ -1041,7 +1045,8 @@ func parseSchemaExtensionDefinition(lexer: Lexer) throws -> SchemaExtensionDefin
             description: description,
             directives: directives,
             operationTypes: []
-    ))
+        )
+    )
 }
 
 /**

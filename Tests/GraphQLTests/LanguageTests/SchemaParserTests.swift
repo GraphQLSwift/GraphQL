@@ -159,11 +159,16 @@ class SchemaParserTests: XCTestCase {
                                             StringValue(value: "@requires", block: false),
                                             StringValue(value: "@shareable", block: false),
                                             StringValue(value: "@tag", block: false),
-                                        ]))
-                                ])
+                                        ])
+                                    ),
+                                ]
+                            ),
                         ],
-                        operationTypes: []))
-            ])
+                        operationTypes: []
+                    )
+                ),
+            ]
+        )
 
         let result = try parse(source: source)
         XCTAssert(result == expected)

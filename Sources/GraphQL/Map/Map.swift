@@ -634,7 +634,8 @@ extension Map: Codable {
             self = .array(array)
         } else if let _ = try? container.decode([String: Map].self) {
             // Override OrderedDictionary default (unkeyed alternating key-value)
-            // Instead decode as a keyed container (like normal Dictionary) but use the order of the input
+            // Instead decode as a keyed container (like normal Dictionary) but use the order of the
+            // input
             let container = try decoder.container(keyedBy: _DictionaryCodingKey.self)
             var orderedDictionary: OrderedDictionary<String, Map> = [:]
             for key in container.allKeys {
@@ -676,8 +677,10 @@ extension Map: Codable {
             try container.encode(array)
         case let .dictionary(dictionary):
             // Override OrderedDictionary default (unkeyed alternating key-value)
-            // Instead decode as a keyed container (like normal Dictionary) in the order of our OrderedDictionary
-            // Note that `JSONEncoder` will ignore this because it uses `Dictionary` underneath. Instead, use `GraphQLJSONEncoder`.
+            // Instead decode as a keyed container (like normal Dictionary) in the order of our
+            // OrderedDictionary
+            // Note that `JSONEncoder` will ignore this because it uses `Dictionary` underneath.
+            // Instead, use `GraphQLJSONEncoder`.
             var container = encoder.container(keyedBy: _DictionaryCodingKey.self)
             for (key, value) in dictionary {
                 if !value.isUndefined {

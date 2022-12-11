@@ -25,7 +25,8 @@ extension GraphQLList: GraphQLInputType {}
 extension GraphQLNonNull: GraphQLInputType {}
 // TODO: Conditional conformances
 // extension GraphQLList : GraphQLInputType where Element : GraphQLInputType {}
-// extension GraphQLNonNull : GraphQLInputType where Element : (GraphQLScalarType | GraphQLEnumType | GraphQLInputObjectType | GraphQLList<GraphQLInputType>) {}
+// extension GraphQLNonNull : GraphQLInputType where Element : (GraphQLScalarType | GraphQLEnumType
+// | GraphQLInputObjectType | GraphQLList<GraphQLInputType>) {}
 
 func isInputType(type: GraphQLType?) -> Bool {
     let namedType = getNamedType(type: type)
@@ -45,7 +46,9 @@ extension GraphQLList: GraphQLOutputType {}
 extension GraphQLNonNull: GraphQLOutputType {}
 // TODO: Conditional conformances
 // extension GraphQLList : GraphQLOutputType where Element : GraphQLOutputType {}
-// extension GraphQLNonNull : GraphQLInputType where Element : (GraphQLScalarType | GraphQLObjectType | GraphQLInterfaceType | GraphQLUnionType | GraphQLEnumType | GraphQLList<GraphQLOutputType>) {}
+// extension GraphQLNonNull : GraphQLInputType where Element : (GraphQLScalarType |
+// GraphQLObjectType | GraphQLInterfaceType | GraphQLUnionType | GraphQLEnumType |
+// GraphQLList<GraphQLOutputType>) {}
 
 /**
  * These types may describe types which may be leaf values.
