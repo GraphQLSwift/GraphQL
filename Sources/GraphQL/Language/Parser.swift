@@ -706,7 +706,7 @@ func parseTypeSystemDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
         case "union": return try parseUnionTypeDefinition(lexer: lexer)
         case "enum": return try parseEnumTypeDefinition(lexer: lexer)
         case "input": return try parseInputObjectTypeDefinition(lexer: lexer)
-        case "extend": return try parseTypeExtensionDefinition(lexer: lexer)
+        case "extend": return try parseExtensionDefinition(lexer: lexer)
         case "directive": return try parseDirectiveDefinition(lexer: lexer)
         default: break
         }
@@ -1002,6 +1002,16 @@ func parseInputObjectTypeDefinition(lexer: Lexer) throws -> InputObjectTypeDefin
     )
 }
 
+func parseExtensionDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
+    let token = try lexer.lookahead()
+    switch token.value {
+    case "type": return try parseTypeExtensionDefinition(lexer: lexer)
+    case "schema": return try parseSchemaExtensionDefinition(lexer: lexer)
+    default:
+        throw syntaxError(source: lexer.source, position: token.start, description: "expected schema or type after extend")
+    }
+}
+
 /**
  * TypeExtensionDefinition : extend ObjectTypeDefinition
  */
@@ -1013,6 +1023,25 @@ func parseTypeExtensionDefinition(lexer: Lexer) throws -> TypeExtensionDefinitio
         loc: loc(lexer: lexer, startToken: start),
         definition: definition
     )
+}
+
+/**
+ * SchemaExtensionDefinition: extend SchemaExtensionDefinition
+ */
+func parseSchemaExtensionDefinition(lexer: Lexer) throws -> SchemaExtensionDefinition {
+    let start = lexer.token
+    try expectKeyword(lexer: lexer, value: "extend")
+    let description = try parseDescription(lexer: lexer)
+    try expectKeyword(lexer: lexer, value: "schema")
+    let directives = try parseDirectives(lexer: lexer)
+    return SchemaExtensionDefinition(
+        loc: loc(lexer: lexer, startToken: start),
+        definition: SchemaDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            description: description,
+            directives: directives,
+            operationTypes: []
+    ))
 }
 
 /**
