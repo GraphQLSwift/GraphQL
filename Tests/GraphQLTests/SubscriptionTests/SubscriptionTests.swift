@@ -174,7 +174,8 @@ import XCTest
 
         /// 'should only resolve the first field of invalid multi-field'
         ///
-        /// Note that due to implementation details in Swift, this will not resolve the "first" one, but rather a random one of the two
+        /// Note that due to implementation details in Swift, this will not resolve the "first" one,
+        /// but rather a random one of the two
         func testInvalidMultiField() async throws {
             let db = EmailDb()
 
@@ -610,7 +611,8 @@ import XCTest
             var results = [GraphQLResult]()
             var expectation = XCTestExpectation()
 
-            // So that the Task won't immediately be cancelled since the ConcurrentEventStream is discarded
+            // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
+            // discarded
             let keepForNow = stream.map { event in
                 event.map { result in
                     results.append(result)
@@ -683,7 +685,8 @@ import XCTest
             wait(for: [expectation], timeout: timeoutDuration)
             XCTAssertEqual(results, expected)
 
-            // So that the Task won't immediately be cancelled since the ConcurrentEventStream is discarded
+            // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
+            // discarded
             _ = keepForNow
         }
 
@@ -711,7 +714,8 @@ import XCTest
 
             var results = [GraphQLResult]()
             var expectation = XCTestExpectation()
-            // So that the Task won't immediately be cancelled since the ConcurrentEventStream is discarded
+            // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
+            // discarded
             let keepForNow = stream.map { event in
                 event.map { result in
                     results.append(result)
@@ -759,7 +763,8 @@ import XCTest
             wait(for: [expectation], timeout: timeoutDuration)
             XCTAssertEqual(results, expected)
 
-            // So that the Task won't immediately be cancelled since the ConcurrentEventStream is discarded
+            // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
+            // discarded
             _ = keepForNow
         }
 
@@ -877,7 +882,8 @@ import XCTest
 
             var results = [GraphQLResult]()
             var expectation = XCTestExpectation()
-            // So that the Task won't immediately be cancelled since the ConcurrentEventStream is discarded
+            // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
+            // discarded
             let keepForNow = stream.map { event in
                 event.map { result in
                     results.append(result)
@@ -924,7 +930,8 @@ import XCTest
             XCTAssertEqual(results, expected)
 
             expectation = XCTestExpectation()
-            // However that does not close the response event stream. Subsequent events are still executed.
+            // However that does not close the response event stream. Subsequent events are still
+            // executed.
             db.trigger(email: Email(
                 from: "yuzhi@graphql.org",
                 subject: "Bonjour",
@@ -943,7 +950,8 @@ import XCTest
             wait(for: [expectation], timeout: timeoutDuration)
             XCTAssertEqual(results, expected)
 
-            // So that the Task won't immediately be cancelled since the ConcurrentEventStream is discarded
+            // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
+            // discarded
             _ = keepForNow
         }
 

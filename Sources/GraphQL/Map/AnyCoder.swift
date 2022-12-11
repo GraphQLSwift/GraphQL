@@ -1,3 +1,4 @@
+// swiftformat:disable all
 import CoreFoundation
 import Foundation
 

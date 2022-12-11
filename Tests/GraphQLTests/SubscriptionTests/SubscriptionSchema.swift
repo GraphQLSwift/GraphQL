@@ -187,7 +187,8 @@ import NIO
         )
     }
 
-    /// Generates a subscription from the given schema and query. It's expected that the resolver/database interactions are configured by the caller.
+    /// Generates a subscription from the given schema and query. It's expected that the
+    /// resolver/database interactions are configured by the caller.
     func createSubscription(
         schema: GraphQLSchema,
         query: String,
