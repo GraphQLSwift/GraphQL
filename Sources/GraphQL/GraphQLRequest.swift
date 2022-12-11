@@ -24,7 +24,8 @@ public struct GraphQLRequest: Equatable, Codable {
     /// This operation performs an entire AST parse on the GraphQL request, so consider
     /// performance when calling multiple times.
     ///
-    /// - Returns: True if request is a subscription, false if it is an atomic operation (like `query` or `mutation`)
+    /// - Returns: True if request is a subscription, false if it is an atomic operation (like
+    /// `query` or `mutation`)
     public func isSubscription() throws -> Bool {
         let documentAST = try GraphQL.parse(
             instrumentation: NoOpInstrumentation,

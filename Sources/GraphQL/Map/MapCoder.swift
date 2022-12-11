@@ -3,7 +3,8 @@ import Foundation
 import OrderedCollections
 
 /// A marker protocol used to determine whether a value is a `String`-keyed `OrderedDictionary`
-/// containing `Encodable` values (in which case it should be exempt from key conversion strategies).
+/// containing `Encodable` values (in which case it should be exempt from key conversion
+/// strategies).
 ///
 private protocol _MapStringDictionaryEncodableMarker {}
 
@@ -11,7 +12,8 @@ extension OrderedDictionary: _MapStringDictionaryEncodableMarker where Key == St
 Value: Encodable {}
 
 /// A marker protocol used to determine whether a value is a `String`-keyed `OrderedDictionary`
-/// containing `Decodable` values (in which case it should be exempt from key conversion strategies).
+/// containing `Decodable` values (in which case it should be exempt from key conversion
+/// strategies).
 ///
 /// The marker protocol also provides access to the type of the `Decodable` values,
 /// which is needed for the implementation of the key conversion strategy exemption.
@@ -72,7 +74,8 @@ open class MapEncoder {
 
         /// Encode the `Date` as a custom value encoded by the given closure.
         ///
-        /// If the closure fails to encode a value into the given encoder, the encoder will encode an empty automatic container in its place.
+        /// If the closure fails to encode a value into the given encoder, the encoder will encode
+        /// an empty automatic container in its place.
         case custom((Date, Encoder) throws -> Void)
     }
 
@@ -86,11 +89,13 @@ open class MapEncoder {
 
         /// Encode the `Data` as a custom value encoded by the given closure.
         ///
-        /// If the closure fails to encode a value into the given encoder, the encoder will encode an empty automatic container in its place.
+        /// If the closure fails to encode a value into the given encoder, the encoder will encode
+        /// an empty automatic container in its place.
         case custom((Data, Encoder) throws -> Void)
     }
 
-    /// The strategy to use for non-Map-conforming floating-point values (IEEE 754 infinity and NaN).
+    /// The strategy to use for non-Map-conforming floating-point values (IEEE 754 infinity and
+    /// NaN).
     public enum NonConformingFloatEncodingStrategy {
         /// Throw upon encountering non-conforming values. This is the default strategy.
         case `throw`
@@ -106,8 +111,12 @@ open class MapEncoder {
 
         /// Convert from "camelCaseKeys" to "snake_case_keys" before writing a key to Map payload.
         ///
-        /// Capital characters are determined by testing membership in `CharacterSet.uppercaseLetters` and `CharacterSet.lowercaseLetters` (Unicode General Categories Lu and Lt).
-        /// The conversion to lower case uses `Locale.system`, also known as the ICU "root" locale. This means the result is consistent regardless of the current user's locale and language preferences.
+        /// Capital characters are determined by testing membership in
+        /// `CharacterSet.uppercaseLetters` and `CharacterSet.lowercaseLetters` (Unicode General
+        /// Categories Lu and Lt).
+        /// The conversion to lower case uses `Locale.system`, also known as the ICU "root" locale.
+        /// This means the result is consistent regardless of the current user's locale and language
+        /// preferences.
         ///
         /// Converting from camel case to snake case:
         /// 1. Splits words at the boundary of lower-case to upper-case
@@ -115,26 +124,34 @@ open class MapEncoder {
         /// 3. Lowercases the entire string
         /// 4. Preserves starting and ending `_`.
         ///
-        /// For example, `oneTwoThree` becomes `one_two_three`. `_oneTwoThree_` becomes `_one_two_three_`.
+        /// For example, `oneTwoThree` becomes `one_two_three`. `_oneTwoThree_` becomes
+        /// `_one_two_three_`.
         ///
-        /// - Note: Using a key encoding strategy has a nominal performance cost, as each string key has to be converted.
+        /// - Note: Using a key encoding strategy has a nominal performance cost, as each string key
+        /// has to be converted.
         case convertToSnakeCase
 
-        /// Provide a custom conversion to the key in the encoded Map from the keys specified by the encoded types.
-        /// The full path to the current encoding position is provided for context (in case you need to locate this key within the payload). The returned key is used in place of the last component in the coding path before encoding.
-        /// If the result of the conversion is a duplicate key, then only one value will be present in the result.
+        /// Provide a custom conversion to the key in the encoded Map from the keys specified by the
+        /// encoded types.
+        /// The full path to the current encoding position is provided for context (in case you need
+        /// to locate this key within the payload). The returned key is used in place of the last
+        /// component in the coding path before encoding.
+        /// If the result of the conversion is a duplicate key, then only one value will be present
+        /// in the result.
         case custom((_ codingPath: [CodingKey]) -> CodingKey)
 
         fileprivate static func _convertToSnakeCase(_ stringKey: String) -> String {
             guard !stringKey.isEmpty else { return stringKey }
 
             var words: [Range<String.Index>] = []
-            // The general idea of this algorithm is to split words on transition from lower to upper case, then on transition of >1 upper case characters to lowercase
+            // The general idea of this algorithm is to split words on transition from lower to
+            // upper case, then on transition of >1 upper case characters to lowercase
             //
             // myProperty -> my_property
             // myURLProperty -> my_url_property
             //
-            // We assume, per Swift naming conventions, that the first character of the key is lowercase.
+            // We assume, per Swift naming conventions, that the first character of the key is
+            // lowercase.
             var wordStart = stringKey.startIndex
             var searchRange = stringKey.index(after: wordStart) ..< stringKey.endIndex
 
@@ -163,14 +180,17 @@ open class MapEncoder {
                     break
                 }
 
-                // Is the next lowercase letter more than 1 after the uppercase? If so, we encountered a group of uppercase letters that we should treat as its own word
+                // Is the next lowercase letter more than 1 after the uppercase? If so, we
+                // encountered a group of uppercase letters that we should treat as its own word
                 let nextCharacterAfterCapital = stringKey.index(after: upperCaseRange.lowerBound)
                 if lowerCaseRange.lowerBound == nextCharacterAfterCapital {
-                    // The next character after capital is a lower case character and therefore not a word boundary.
+                    // The next character after capital is a lower case character and therefore not
+                    // a word boundary.
                     // Continue searching for the next upper case for the boundary.
                     wordStart = upperCaseRange.lowerBound
                 } else {
-                    // There was a range of >1 capital letters. Turn those into a word, stopping at the capital before the lower case character.
+                    // There was a range of >1 capital letters. Turn those into a word, stopping at
+                    // the capital before the lower case character.
                     let beforeLowerIndex = stringKey.index(before: lowerCaseRange.lowerBound)
                     words.append(upperCaseRange.lowerBound ..< beforeLowerIndex)
 
@@ -236,7 +256,8 @@ open class MapEncoder {
     ///
     /// - parameter value: The value to encode.
     /// - returns: A new `Data` value containing the encoded Map data.
-    /// - throws: `EncodingError.invalidValue` if a non-conforming floating-point value is encountered during encoding, and the encoding strategy is `.throw`.
+    /// - throws: `EncodingError.invalidValue` if a non-conforming floating-point value is
+    /// encountered during encoding, and the encoding strategy is `.throw`.
     /// - throws: An error if any value throws an error during encoding.
     open func encode<T: Encodable>(_ value: T) throws -> Map {
         let encoder = _MapEncoder(options: options)
@@ -288,12 +309,17 @@ private class _MapEncoder: Encoder {
     ///
     /// `true` if an element has not yet been encoded at this coding path; `false` otherwise.
     fileprivate var canEncodeNewValue: Bool {
-        // Every time a new value gets encoded, the key it's encoded for is pushed onto the coding path (even if it's a nil key from an unkeyed container).
-        // At the same time, every time a container is requested, a new value gets pushed onto the storage stack.
-        // If there are more values on the storage stack than on the coding path, it means the value is requesting more than one container, which violates the precondition.
+        // Every time a new value gets encoded, the key it's encoded for is pushed onto the coding
+        // path (even if it's a nil key from an unkeyed container).
+        // At the same time, every time a container is requested, a new value gets pushed onto the
+        // storage stack.
+        // If there are more values on the storage stack than on the coding path, it means the value
+        // is requesting more than one container, which violates the precondition.
         //
-        // This means that anytime something that can request a new container goes onto the stack, we MUST push a key onto the coding path.
-        // Things which will not request containers do not need to have the coding path extended for them (but it doesn't matter if it is, because they will not reach here).
+        // This means that anytime something that can request a new container goes onto the stack,
+        // we MUST push a key onto the coding path.
+        // Things which will not request containers do not need to have the coding path extended for
+        // them (but it doesn't matter if it is, because they will not reach here).
         return storage.count == codingPath.count
     }
 
@@ -357,7 +383,8 @@ private struct _MapEncodingStorage {
     // MARK: Properties
 
     /// The container stack.
-    /// Elements may be any one of the Map types (NSNull, NSNumber, NSString, NSArray, NSDictionary).
+    /// Elements may be any one of the Map types (NSNull, NSNumber, NSString, NSArray,
+    /// NSDictionary).
     fileprivate private(set) var containers: [NSObject] = []
 
     // MARK: - Initialization
@@ -770,7 +797,8 @@ extension _MapEncoder: SingleValueEncodingContainer {
 // MARK: - Concrete Value Representations
 
 private extension _MapEncoder {
-    /// Returns the given value boxed in a container appropriate for pushing onto the container stack.
+    /// Returns the given value boxed in a container appropriate for pushing onto the container
+    /// stack.
     func box(_ value: Bool) -> NSObject { return NSNumber(value: value) }
     func box(_ value: Int) -> NSObject { return NSNumber(value: value) }
     func box(_ value: Int8) -> NSObject { return NSNumber(value: value) }
@@ -836,7 +864,8 @@ private extension _MapEncoder {
         switch options.dateEncodingStrategy {
         case .deferredToDate:
             // Must be called with a surrounding with(pushedKey:) call.
-            // Dates encode as single-value objects; this can't both throw and push a container, so no need to catch the error.
+            // Dates encode as single-value objects; this can't both throw and push a container, so
+            // no need to catch the error.
             try date.encode(to: self)
             return storage.popContainer()
 
@@ -861,7 +890,8 @@ private extension _MapEncoder {
             do {
                 try closure(date, self)
             } catch {
-                // If the value pushed a container before throwing, pop it back off to restore state.
+                // If the value pushed a container before throwing, pop it back off to restore
+                // state.
                 if storage.count > depth {
                     _ = storage.popContainer()
                 }
@@ -886,8 +916,10 @@ private extension _MapEncoder {
             do {
                 try data.encode(to: self)
             } catch {
-                // If the value pushed a container before throwing, pop it back off to restore state.
-                // This shouldn't be possible for Data (which encodes as an array of bytes), but it can't hurt to catch a failure.
+                // If the value pushed a container before throwing, pop it back off to restore
+                // state.
+                // This shouldn't be possible for Data (which encodes as an array of bytes), but it
+                // can't hurt to catch a failure.
                 if storage.count > depth {
                     _ = storage.popContainer()
                 }
@@ -903,7 +935,8 @@ private extension _MapEncoder {
             do {
                 try closure(data, self)
             } catch {
-                // If the value pushed a container before throwing, pop it back off to restore state.
+                // If the value pushed a container before throwing, pop it back off to restore
+                // state.
                 if storage.count > depth {
                     _ = storage.popContainer()
                 }
@@ -949,7 +982,10 @@ private extension _MapEncoder {
         return try box_(value) ?? NSDictionary()
     }
 
-    // This method is called "box_" instead of "box" to disambiguate it from the overloads. Because the return type here is different from all of the "box" overloads (and is more general), any "box" calls in here would call back into "box" recursively instead of calling the appropriate overload, which is not what we want.
+    // This method is called "box_" instead of "box" to disambiguate it from the overloads. Because
+    // the return type here is different from all of the "box" overloads (and is more general), any
+    // "box" calls in here would call back into "box" recursively instead of calling the appropriate
+    // overload, which is not what we want.
     func box_(_ value: Encodable) throws -> NSObject? {
         let type = Swift.type(of: value)
         #if DEPLOYMENT_RUNTIME_SWIFT
@@ -1010,8 +1046,11 @@ private extension _MapEncoder {
 
 // MARK: - _MapReferencingEncoder
 
-/// _MapReferencingEncoder is a special subclass of _MapEncoder which has its own storage, but references the contents of a different encoder.
-/// It's used in superEncoder(), which returns a new encoder for encoding a superclass -- the lifetime of the encoder should not escape the scope it's created in, but it doesn't necessarily know when it's done being used (to write to the original container).
+/// _MapReferencingEncoder is a special subclass of _MapEncoder which has its own storage, but
+/// references the contents of a different encoder.
+/// It's used in superEncoder(), which returns a new encoder for encoding a superclass -- the
+/// lifetime of the encoder should not escape the scope it's created in, but it doesn't necessarily
+/// know when it's done being used (to write to the original container).
 private class _MapReferencingEncoder: _MapEncoder {
     // MARK: Reference types.
 
@@ -1064,7 +1103,8 @@ private class _MapReferencingEncoder: _MapEncoder {
 
     override fileprivate var canEncodeNewValue: Bool {
         // With a regular encoder, the storage and coding path grow together.
-        // A referencing encoder, however, inherits its parents coding path, as well as the key it was created for.
+        // A referencing encoder, however, inherits its parents coding path, as well as the key it
+        // was created for.
         // We have to take this into account.
         return storage.count == codingPath.count - encoder.codingPath.count - 1
     }
@@ -1132,7 +1172,8 @@ open class MapDecoder {
         case custom((_ decoder: Decoder) throws -> Data)
     }
 
-    /// The strategy to use for non-Map-conforming floating-point values (IEEE 754 infinity and NaN).
+    /// The strategy to use for non-Map-conforming floating-point values (IEEE 754 infinity and
+    /// NaN).
     public enum NonConformingFloatDecodingStrategy {
         /// Throw upon encountering non-conforming values. This is the default strategy.
         case `throw`
@@ -1146,22 +1187,32 @@ open class MapDecoder {
         /// Use the keys specified by each type. This is the default strategy.
         case useDefaultKeys
 
-        /// Convert from "snake_case_keys" to "camelCaseKeys" before attempting to match a key with the one specified by each type.
+        /// Convert from "snake_case_keys" to "camelCaseKeys" before attempting to match a key with
+        /// the one specified by each type.
         ///
-        /// The conversion to upper case uses `Locale.system`, also known as the ICU "root" locale. This means the result is consistent regardless of the current user's locale and language preferences.
+        /// The conversion to upper case uses `Locale.system`, also known as the ICU "root" locale.
+        /// This means the result is consistent regardless of the current user's locale and language
+        /// preferences.
         ///
         /// Converting from snake case to camel case:
         /// 1. Capitalizes the word starting after each `_`
         /// 2. Removes all `_`
-        /// 3. Preserves starting and ending `_` (as these are often used to indicate private variables or other metadata).
-        /// For example, `one_two_three` becomes `oneTwoThree`. `_one_two_three_` becomes `_oneTwoThree_`.
+        /// 3. Preserves starting and ending `_` (as these are often used to indicate private
+        /// variables or other metadata).
+        /// For example, `one_two_three` becomes `oneTwoThree`. `_one_two_three_` becomes
+        /// `_oneTwoThree_`.
         ///
-        /// - Note: Using a key decoding strategy has a nominal performance cost, as each string key has to be inspected for the `_` character.
+        /// - Note: Using a key decoding strategy has a nominal performance cost, as each string key
+        /// has to be inspected for the `_` character.
         case convertFromSnakeCase
 
-        /// Provide a custom conversion from the key in the encoded Map to the keys specified by the decoded types.
-        /// The full path to the current decoding position is provided for context (in case you need to locate this key within the payload). The returned key is used in place of the last component in the coding path before decoding.
-        /// If the result of the conversion is a duplicate key, then only one value will be present in the container for the type to decode from.
+        /// Provide a custom conversion from the key in the encoded Map to the keys specified by the
+        /// decoded types.
+        /// The full path to the current decoding position is provided for context (in case you need
+        /// to locate this key within the payload). The returned key is used in place of the last
+        /// component in the coding path before decoding.
+        /// If the result of the conversion is a duplicate key, then only one value will be present
+        /// in the container for the type to decode from.
         case custom((_ codingPath: [CodingKey]) -> CodingKey)
 
         fileprivate static func _convertFromSnakeCase(_ stringKey: String) -> String {
@@ -1262,7 +1313,8 @@ open class MapDecoder {
     /// - parameter type: The type of the value to decode.
     /// - parameter map: The map to decode from.
     /// - returns: A value of the requested type.
-    /// - throws: `DecodingError.dataCorrupted` if values requested from the payload are corrupted, or if the given data is not valid Map.
+    /// - throws: `DecodingError.dataCorrupted` if values requested from the payload are corrupted,
+    /// or if the given data is not valid Map.
     /// - throws: An error if any value throws an error during decoding.
     open func decode<T: Decodable>(_ type: T.Type, from map: Map) throws -> T {
         let topLevel = try MapSerialization.object(with: map)
@@ -1428,7 +1480,8 @@ private struct _MapKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
             self.container = container
         case .convertFromSnakeCase:
             // Convert the snake case keys in the container to camel case.
-            // If we hit a duplicate key after conversion, then we'll use the first one we saw. Effectively an undefined behavior with Map dictionaries.
+            // If we hit a duplicate key after conversion, then we'll use the first one we saw.
+            // Effectively an undefined behavior with Map dictionaries.
             self.container = Dictionary(container.map {
                 key, value in (MapDecoder.KeyDecodingStrategy._convertFromSnakeCase(key), value)
             }, uniquingKeysWith: { first, _ in first })
@@ -2957,9 +3010,11 @@ private extension _MapDecoder {
             // We are willing to return a Float by losing precision:
             // * If the original value was integral,
             //   * and the integral value was > Float.greatestFiniteMagnitude, we will fail
-            //   * and the integral value was <= Float.greatestFiniteMagnitude, we are willing to lose precision past 2^24
+            //   * and the integral value was <= Float.greatestFiniteMagnitude, we are willing to
+            //   lose precision past 2^24
             // * If it was a Float, you will get back the precise value
-            // * If it was a Double or Decimal, you will get back the nearest approximation if it will fit
+            // * If it was a Double or Decimal, you will get back the nearest approximation if it
+            // will fit
             let double = number.doubleValue
             guard abs(double) <= Double(Float.greatestFiniteMagnitude) else {
                 throw DecodingError.dataCorrupted(DecodingError.Context(
@@ -3009,7 +3064,8 @@ private extension _MapDecoder {
             number !== kCFBooleanFalse
         {
             // We are always willing to return the number as a Double:
-            // * If the original value was integral, it is guaranteed to fit in a Double; we are willing to lose precision past 2^53 if you encoded a UInt64 but requested a Double
+            // * If the original value was integral, it is guaranteed to fit in a Double; we are
+            // willing to lose precision past 2^53 if you encoded a UInt64 but requested a Double
             // * If it was a Float or Double, you will get back the precise value
             // * If it was Decimal, you will get back the nearest approximation
             return number.doubleValue

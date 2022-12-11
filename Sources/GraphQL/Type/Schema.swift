@@ -376,7 +376,8 @@ func replaceTypeReferences(typeMap: TypeMap) throws {
         }
     }
 
-    // Check that no type names map to TypeReferences. That is, they have all been resolved to actual types.
+    // Check that no type names map to TypeReferences. That is, they have all been resolved to
+    // actual types.
     for (typeName, graphQLNamedType) in typeMap {
         if graphQLNamedType is GraphQLTypeReference {
             throw GraphQLError(

@@ -251,7 +251,8 @@ class ParserTests: XCTestCase {
 
     func testKitchenSink() throws {
 //        let path = "/Users/paulofaria/Development/Zewo/GraphQL/Tests/GraphQLTests/LanguageTests/kitchen-sink.graphql"
-//        let kitchenSink = try NSString(contentsOfFile: path, encoding: String.Encoding.utf8.rawValue)
+//        let kitchenSink = try NSString(contentsOfFile: path, encoding:
+//        String.Encoding.utf8.rawValue)
 //        _ = try parse(source: kitchenSink as String)
     }
 

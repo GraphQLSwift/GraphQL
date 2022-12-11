@@ -1,7 +1,8 @@
 /// Abstract event stream class - Should be overridden for actual implementations
 open class EventStream<Element> {
     public init() {}
-    /// Template method for mapping an event stream to a new generic type - MUST be overridden by implementing types.
+    /// Template method for mapping an event stream to a new generic type - MUST be overridden by
+    /// implementing types.
     open func map<To>(_: @escaping (Element) throws -> To) -> EventStream<To> {
         fatalError("This function should be overridden by implementing classes")
     }
@@ -18,7 +19,8 @@ open class EventStream<Element> {
             self.stream = stream
         }
 
-        /// Performs the closure on each event in the current stream and returns a stream of the results.
+        /// Performs the closure on each event in the current stream and returns a stream of the
+        /// results.
         /// - Parameter closure: The closure to apply to each event in the stream
         /// - Returns: A stream of the results
         override open func map<To>(_ closure: @escaping (Element) throws -> To)

@@ -276,8 +276,10 @@ func executeSubscription(
     }
 }
 
-// Subscription resolvers MUST return observables that are declared as 'Any' due to Swift not having covariant generic support for type
-// checking. Normal resolvers for subscription fields should handle type casting, same as resolvers for query fields.
+// Subscription resolvers MUST return observables that are declared as 'Any' due to Swift not having
+// covariant generic support for type
+// checking. Normal resolvers for subscription fields should handle type casting, same as resolvers
+// for query fields.
 struct SourceEventStreamResult {
     public let stream: EventStream<Any>?
     public let errors: [GraphQLError]

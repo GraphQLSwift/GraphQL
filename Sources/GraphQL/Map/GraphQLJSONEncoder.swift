@@ -6,7 +6,8 @@ import OrderedCollections
 // https://github.com/apple/swift-corelibs-foundation/blob/eec4b26deee34edb7664ddd9c1222492a399d122/Sources/Foundation/JSONEncoder.swift
 
 /// A marker protocol used to determine whether a value is a `String`-keyed `Dictionary`
-/// containing `Encodable` values (in which case it should be exempt from key conversion strategies).
+/// containing `Encodable` values (in which case it should be exempt from key conversion
+/// strategies).
 ///
 private protocol _JSONStringDictionaryEncodableMarker {}
 
@@ -16,11 +17,13 @@ extension Dictionary: _JSONStringDictionaryEncodableMarker where Key == String, 
 // GraphQL JSON Encoder
 //===----------------------------------------------------------------------===//
 
-/// `GraphQLJSONEncoder` facilitates the encoding of `Encodable` values into JSON. It is exactly the same as `JSONEncoder`
+/// `GraphQLJSONEncoder` facilitates the encoding of `Encodable` values into JSON. It is exactly the
+/// same as `JSONEncoder`
 /// except it ensures that JSON output preserves the Map dictionary order.
 ///
 /// This is exactly the same as this `JSONEncoder`
-/// except with all Dictionary objects replaced with OrderedDictionary, and the name changed from JSONEncoder to GraphQLJSONEncoder
+/// except with all Dictionary objects replaced with OrderedDictionary, and the name changed from
+/// JSONEncoder to GraphQLJSONEncoder
 open class GraphQLJSONEncoder {
     // MARK: Options
 
@@ -41,7 +44,8 @@ open class GraphQLJSONEncoder {
         @available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *)
         public static let sortedKeys = OutputFormatting(rawValue: 1 << 1)
 
-        /// By default slashes get escaped ("/" → "\/", "http://apple.com/" → "http:\/\/apple.com\/")
+        /// By default slashes get escaped ("/" → "\/", "http://apple.com/" →
+        /// "http:\/\/apple.com\/")
         /// for security reasons, allowing outputted JSON to be safely embedded within HTML/XML.
         /// In contexts where this escaping is unnecessary, the JSON is known to not be embedded,
         /// or is intended only for display, this option avoids this escaping.
@@ -68,7 +72,8 @@ open class GraphQLJSONEncoder {
 
         /// Encode the `Date` as a custom value encoded by the given closure.
         ///
-        /// If the closure fails to encode a value into the given encoder, the encoder will encode an empty automatic container in its place.
+        /// If the closure fails to encode a value into the given encoder, the encoder will encode
+        /// an empty automatic container in its place.
         case custom((Date, Encoder) throws -> Void)
     }
 
@@ -82,11 +87,13 @@ open class GraphQLJSONEncoder {
 
         /// Encode the `Data` as a custom value encoded by the given closure.
         ///
-        /// If the closure fails to encode a value into the given encoder, the encoder will encode an empty automatic container in its place.
+        /// If the closure fails to encode a value into the given encoder, the encoder will encode
+        /// an empty automatic container in its place.
         case custom((Data, Encoder) throws -> Void)
     }
 
-    /// The strategy to use for non-JSON-conforming floating-point values (IEEE 754 infinity and NaN).
+    /// The strategy to use for non-JSON-conforming floating-point values (IEEE 754 infinity and
+    /// NaN).
     public enum NonConformingFloatEncodingStrategy {
         /// Throw upon encountering non-conforming values. This is the default strategy.
         case `throw`
@@ -102,8 +109,12 @@ open class GraphQLJSONEncoder {
 
         /// Convert from "camelCaseKeys" to "snake_case_keys" before writing a key to JSON payload.
         ///
-        /// Capital characters are determined by testing membership in `CharacterSet.uppercaseLetters` and `CharacterSet.lowercaseLetters` (Unicode General Categories Lu and Lt).
-        /// The conversion to lower case uses `Locale.system`, also known as the ICU "root" locale. This means the result is consistent regardless of the current user's locale and language preferences.
+        /// Capital characters are determined by testing membership in
+        /// `CharacterSet.uppercaseLetters` and `CharacterSet.lowercaseLetters` (Unicode General
+        /// Categories Lu and Lt).
+        /// The conversion to lower case uses `Locale.system`, also known as the ICU "root" locale.
+        /// This means the result is consistent regardless of the current user's locale and language
+        /// preferences.
         ///
         /// Converting from camel case to snake case:
         /// 1. Splits words at the boundary of lower-case to upper-case
@@ -111,26 +122,34 @@ open class GraphQLJSONEncoder {
         /// 3. Lowercases the entire string
         /// 4. Preserves starting and ending `_`.
         ///
-        /// For example, `oneTwoThree` becomes `one_two_three`. `_oneTwoThree_` becomes `_one_two_three_`.
+        /// For example, `oneTwoThree` becomes `one_two_three`. `_oneTwoThree_` becomes
+        /// `_one_two_three_`.
         ///
-        /// - Note: Using a key encoding strategy has a nominal performance cost, as each string key has to be converted.
+        /// - Note: Using a key encoding strategy has a nominal performance cost, as each string key
+        /// has to be converted.
         case convertToSnakeCase
 
-        /// Provide a custom conversion to the key in the encoded JSON from the keys specified by the encoded types.
-        /// The full path to the current encoding position is provided for context (in case you need to locate this key within the payload). The returned key is used in place of the last component in the coding path before encoding.
-        /// If the result of the conversion is a duplicate key, then only one value will be present in the result.
+        /// Provide a custom conversion to the key in the encoded JSON from the keys specified by
+        /// the encoded types.
+        /// The full path to the current encoding position is provided for context (in case you need
+        /// to locate this key within the payload). The returned key is used in place of the last
+        /// component in the coding path before encoding.
+        /// If the result of the conversion is a duplicate key, then only one value will be present
+        /// in the result.
         case custom((_ codingPath: [CodingKey]) -> CodingKey)
 
         fileprivate static func _convertToSnakeCase(_ stringKey: String) -> String {
             guard !stringKey.isEmpty else { return stringKey }
 
             var words: [Range<String.Index>] = []
-            // The general idea of this algorithm is to split words on transition from lower to upper case, then on transition of >1 upper case characters to lowercase
+            // The general idea of this algorithm is to split words on transition from lower to
+            // upper case, then on transition of >1 upper case characters to lowercase
             //
             // myProperty -> my_property
             // myURLProperty -> my_url_property
             //
-            // We assume, per Swift naming conventions, that the first character of the key is lowercase.
+            // We assume, per Swift naming conventions, that the first character of the key is
+            // lowercase.
             var wordStart = stringKey.startIndex
             var searchRange = stringKey.index(after: wordStart) ..< stringKey.endIndex
 
@@ -159,14 +178,17 @@ open class GraphQLJSONEncoder {
                     break
                 }
 
-                // Is the next lowercase letter more than 1 after the uppercase? If so, we encountered a group of uppercase letters that we should treat as its own word
+                // Is the next lowercase letter more than 1 after the uppercase? If so, we
+                // encountered a group of uppercase letters that we should treat as its own word
                 let nextCharacterAfterCapital = stringKey.index(after: upperCaseRange.lowerBound)
                 if lowerCaseRange.lowerBound == nextCharacterAfterCapital {
-                    // The next character after capital is a lower case character and therefore not a word boundary.
+                    // The next character after capital is a lower case character and therefore not
+                    // a word boundary.
                     // Continue searching for the next upper case for the boundary.
                     wordStart = upperCaseRange.lowerBound
                 } else {
-                    // There was a range of >1 capital letters. Turn those into a word, stopping at the capital before the lower case character.
+                    // There was a range of >1 capital letters. Turn those into a word, stopping at
+                    // the capital before the lower case character.
                     let beforeLowerIndex = stringKey.index(before: lowerCaseRange.lowerBound)
                     words.append(upperCaseRange.lowerBound ..< beforeLowerIndex)
 
@@ -232,7 +254,8 @@ open class GraphQLJSONEncoder {
     ///
     /// - parameter value: The value to encode.
     /// - returns: A new `Data` value containing the encoded JSON data.
-    /// - throws: `EncodingError.invalidValue` if a non-conforming floating-point value is encountered during encoding, and the encoding strategy is `.throw`.
+    /// - throws: `EncodingError.invalidValue` if a non-conforming floating-point value is
+    /// encountered during encoding, and the encoding strategy is `.throw`.
     /// - throws: An error if any value throws an error during encoding.
     open func encode<T: Encodable>(_ value: T) throws -> Data {
         let value: JSONValue = try encodeAsJSONValue(value)

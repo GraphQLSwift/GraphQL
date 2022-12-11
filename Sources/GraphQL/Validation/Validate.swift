@@ -4,7 +4,8 @@
 /// an empty array if no errors were encountered and the document is valid.
 ///
 /// - Parameters:
-///   - instrumentation: The instrumentation implementation to call during the parsing, validating, execution, and field resolution stages.
+///   - instrumentation: The instrumentation implementation to call during the parsing, validating,
+/// execution, and field resolution stages.
 ///   - schema:          The GraphQL type system to use when validating and executing a query.
 ///   - ast:             A GraphQL document representing the requested operation.
 /// - Returns: zero or more errors

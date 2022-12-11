@@ -337,7 +337,8 @@ public enum VisitResult {
 /// A visitor is provided to visit, it contains the collection of
 /// relevant functions to be called during the visitor's traversal.
 public struct Visitor {
-    /// A visitor is comprised of visit functions, which are called on each node during the visitor's traversal.
+    /// A visitor is comprised of visit functions, which are called on each node during the
+    /// visitor's traversal.
     public typealias Visit = (
         Node,
         IndexPathElement?,

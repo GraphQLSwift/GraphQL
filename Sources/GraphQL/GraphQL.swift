@@ -54,7 +54,8 @@ public struct SubscriptionResult {
     }
 }
 
-/// SubscriptionObservable represents an event stream of fully resolved GraphQL subscription results. Subscribers can be added to this stream.
+/// SubscriptionObservable represents an event stream of fully resolved GraphQL subscription
+/// results. Subscribers can be added to this stream.
 public typealias SubscriptionEventStream = EventStream<Future<GraphQLResult>>
 
 /// This is the primary entry point function for fulfilling GraphQL operations
@@ -68,17 +69,28 @@ public typealias SubscriptionEventStream = EventStream<Future<GraphQLResult>>
 /// - parameter queryStrategy:        The field execution strategy to use for query requests
 /// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
 /// - parameter subscriptionStrategy: The field execution strategy to use for subscription requests
-/// - parameter instrumentation:      The instrumentation implementation to call during the parsing, validating, execution, and field resolution stages.
-/// - parameter schema:               The GraphQL type system to use when validating and executing a query.
-/// - parameter request:              A GraphQL language formatted string representing the requested operation.
-/// - parameter rootValue:            The value provided as the first argument to resolver functions on the top level type (e.g. the query object type).
+/// - parameter instrumentation:      The instrumentation implementation to call during the parsing,
+/// validating, execution, and field resolution stages.
+/// - parameter schema:               The GraphQL type system to use when validating and executing a
+/// query.
+/// - parameter request:              A GraphQL language formatted string representing the requested
+/// operation.
+/// - parameter rootValue:            The value provided as the first argument to resolver functions
+/// on the top level type (e.g. the query object type).
 /// - parameter contextValue:         A context value provided to all resolver functions functions
-/// - parameter variableValues:       A mapping of variable name to runtime value to use for all variables defined in the `request`.
-/// - parameter operationName:        The name of the operation to use if `request` contains multiple possible operations. Can be omitted if `request` contains only one operation.
+/// - parameter variableValues:       A mapping of variable name to runtime value to use for all
+/// variables defined in the `request`.
+/// - parameter operationName:        The name of the operation to use if `request` contains
+/// multiple possible operations. Can be omitted if `request` contains only one operation.
 ///
 /// - throws: throws GraphQLError if an error occurs while parsing the `request`.
 ///
-/// - returns: returns a `Map` dictionary containing the result of the query inside the key `data` and any validation or execution errors inside the key `errors`. The value of `data` might be `null` if, for example, the query is invalid. It's possible to have both `data` and `errors` if an error occurs only in a specific field. If that happens the value of that field will be `null` and there will be an error inside `errors` specifying the reason for the failure and the path of the failed field.
+/// - returns: returns a `Map` dictionary containing the result of the query inside the key `data`
+/// and any validation or execution errors inside the key `errors`. The value of `data` might be
+/// `null` if, for example, the query is invalid. It's possible to have both `data` and `errors` if
+/// an error occurs only in a specific field. If that happens the value of that field will be `null`
+/// and there will be an error inside `errors` specifying the reason for the failure and the path of
+/// the failed field.
 public func graphql(
     queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
@@ -127,17 +139,27 @@ public func graphql(
 /// - parameter queryStrategy:        The field execution strategy to use for query requests
 /// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
 /// - parameter subscriptionStrategy: The field execution strategy to use for subscription requests
-/// - parameter instrumentation:      The instrumentation implementation to call during the parsing, validating, execution, and field resolution stages.
-/// - parameter queryRetrieval:       The PersistedQueryRetrieval instance to use for looking up queries
+/// - parameter instrumentation:      The instrumentation implementation to call during the parsing,
+/// validating, execution, and field resolution stages.
+/// - parameter queryRetrieval:       The PersistedQueryRetrieval instance to use for looking up
+/// queries
 /// - parameter queryId:              The id of the query to execute
-/// - parameter rootValue:            The value provided as the first argument to resolver functions on the top level type (e.g. the query object type).
+/// - parameter rootValue:            The value provided as the first argument to resolver functions
+/// on the top level type (e.g. the query object type).
 /// - parameter contextValue:         A context value provided to all resolver functions functions
-/// - parameter variableValues:       A mapping of variable name to runtime value to use for all variables defined in the `request`.
-/// - parameter operationName:        The name of the operation to use if `request` contains multiple possible operations. Can be omitted if `request` contains only one operation.
+/// - parameter variableValues:       A mapping of variable name to runtime value to use for all
+/// variables defined in the `request`.
+/// - parameter operationName:        The name of the operation to use if `request` contains
+/// multiple possible operations. Can be omitted if `request` contains only one operation.
 ///
 /// - throws: throws GraphQLError if an error occurs while parsing the `request`.
 ///
-/// - returns: returns a `Map` dictionary containing the result of the query inside the key `data` and any validation or execution errors inside the key `errors`. The value of `data` might be `null` if, for example, the query is invalid. It's possible to have both `data` and `errors` if an error occurs only in a specific field. If that happens the value of that field will be `null` and there will be an error inside `errors` specifying the reason for the failure and the path of the failed field.
+/// - returns: returns a `Map` dictionary containing the result of the query inside the key `data`
+/// and any validation or execution errors inside the key `errors`. The value of `data` might be
+/// `null` if, for example, the query is invalid. It's possible to have both `data` and `errors` if
+/// an error occurs only in a specific field. If that happens the value of that field will be `null`
+/// and there will be an error inside `errors` specifying the reason for the failure and the path of
+/// the failed field.
 public func graphql<Retrieval: PersistedQueryRetrieval>(
     queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
@@ -186,21 +208,32 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
 /// - parameter queryStrategy:        The field execution strategy to use for query requests
 /// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
 /// - parameter subscriptionStrategy: The field execution strategy to use for subscription requests
-/// - parameter instrumentation:      The instrumentation implementation to call during the parsing, validating, execution, and field resolution stages.
-/// - parameter schema:               The GraphQL type system to use when validating and executing a query.
-/// - parameter request:              A GraphQL language formatted string representing the requested operation.
-/// - parameter rootValue:            The value provided as the first argument to resolver functions on the top level type (e.g. the query object type).
+/// - parameter instrumentation:      The instrumentation implementation to call during the parsing,
+/// validating, execution, and field resolution stages.
+/// - parameter schema:               The GraphQL type system to use when validating and executing a
+/// query.
+/// - parameter request:              A GraphQL language formatted string representing the requested
+/// operation.
+/// - parameter rootValue:            The value provided as the first argument to resolver functions
+/// on the top level type (e.g. the query object type).
 /// - parameter contextValue:         A context value provided to all resolver functions
-/// - parameter variableValues:       A mapping of variable name to runtime value to use for all variables defined in the `request`.
-/// - parameter operationName:        The name of the operation to use if `request` contains multiple possible operations. Can be omitted if `request` contains only one operation.
+/// - parameter variableValues:       A mapping of variable name to runtime value to use for all
+/// variables defined in the `request`.
+/// - parameter operationName:        The name of the operation to use if `request` contains
+/// multiple possible operations. Can be omitted if `request` contains only one operation.
 ///
 /// - throws: throws GraphQLError if an error occurs while parsing the `request`.
 ///
-/// - returns: returns a SubscriptionResult containing the subscription observable inside the key `observable` and any validation or execution errors inside the key `errors`. The
-/// value of `observable` might be `null` if, for example, the query is invalid. It's not possible to have both `observable` and `errors`. The observable payloads are
-/// GraphQLResults which contain the result of the query inside the key `data` and any validation or execution errors inside the key `errors`. The value of `data` might be `null`.
-/// It's possible to have both `data` and `errors` if an error occurs only in a specific field. If that happens the value of that field will be `null` and there
-/// will be an error inside `errors` specifying the reason for the failure and the path of the failed field.
+/// - returns: returns a SubscriptionResult containing the subscription observable inside the key
+/// `observable` and any validation or execution errors inside the key `errors`. The
+/// value of `observable` might be `null` if, for example, the query is invalid. It's not possible
+/// to have both `observable` and `errors`. The observable payloads are
+/// GraphQLResults which contain the result of the query inside the key `data` and any validation or
+/// execution errors inside the key `errors`. The value of `data` might be `null`.
+/// It's possible to have both `data` and `errors` if an error occurs only in a specific field. If
+/// that happens the value of that field will be `null` and there
+/// will be an error inside `errors` specifying the reason for the failure and the path of the
+/// failed field.
 public func graphqlSubscribe(
     queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
@@ -259,18 +292,31 @@ public func graphqlSubscribe(
     ///
     /// - parameter queryStrategy:        The field execution strategy to use for query requests
     /// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
-    /// - parameter subscriptionStrategy: The field execution strategy to use for subscription requests
-    /// - parameter instrumentation:      The instrumentation implementation to call during the parsing, validating, execution, and field resolution stages.
-    /// - parameter schema:               The GraphQL type system to use when validating and executing a query.
-    /// - parameter request:              A GraphQL language formatted string representing the requested operation.
-    /// - parameter rootValue:            The value provided as the first argument to resolver functions on the top level type (e.g. the query object type).
-    /// - parameter contextValue:         A context value provided to all resolver functions functions
-    /// - parameter variableValues:       A mapping of variable name to runtime value to use for all variables defined in the `request`.
-    /// - parameter operationName:        The name of the operation to use if `request` contains multiple possible operations. Can be omitted if `request` contains only one operation.
+    /// - parameter subscriptionStrategy: The field execution strategy to use for subscription
+    /// requests
+    /// - parameter instrumentation:      The instrumentation implementation to call during the
+    /// parsing, validating, execution, and field resolution stages.
+    /// - parameter schema:               The GraphQL type system to use when validating and
+    /// executing a query.
+    /// - parameter request:              A GraphQL language formatted string representing the
+    /// requested operation.
+    /// - parameter rootValue:            The value provided as the first argument to resolver
+    /// functions on the top level type (e.g. the query object type).
+    /// - parameter contextValue:         A context value provided to all resolver functions
+    /// functions
+    /// - parameter variableValues:       A mapping of variable name to runtime value to use for all
+    /// variables defined in the `request`.
+    /// - parameter operationName:        The name of the operation to use if `request` contains
+    /// multiple possible operations. Can be omitted if `request` contains only one operation.
     ///
     /// - throws: throws GraphQLError if an error occurs while parsing the `request`.
     ///
-    /// - returns: returns a `Map` dictionary containing the result of the query inside the key `data` and any validation or execution errors inside the key `errors`. The value of `data` might be `null` if, for example, the query is invalid. It's possible to have both `data` and `errors` if an error occurs only in a specific field. If that happens the value of that field will be `null` and there will be an error inside `errors` specifying the reason for the failure and the path of the failed field.
+    /// - returns: returns a `Map` dictionary containing the result of the query inside the key
+    /// `data` and any validation or execution errors inside the key `errors`. The value of `data`
+    /// might be `null` if, for example, the query is invalid. It's possible to have both `data` and
+    /// `errors` if an error occurs only in a specific field. If that happens the value of that
+    /// field will be `null` and there will be an error inside `errors` specifying the reason for
+    /// the failure and the path of the failed field.
     public func graphql(
         queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
         mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
@@ -310,22 +356,34 @@ public func graphqlSubscribe(
     ///
     /// - parameter queryStrategy:        The field execution strategy to use for query requests
     /// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
-    /// - parameter subscriptionStrategy: The field execution strategy to use for subscription requests
-    /// - parameter instrumentation:      The instrumentation implementation to call during the parsing, validating, execution, and field resolution stages.
-    /// - parameter schema:               The GraphQL type system to use when validating and executing a query.
-    /// - parameter request:              A GraphQL language formatted string representing the requested operation.
-    /// - parameter rootValue:            The value provided as the first argument to resolver functions on the top level type (e.g. the query object type).
+    /// - parameter subscriptionStrategy: The field execution strategy to use for subscription
+    /// requests
+    /// - parameter instrumentation:      The instrumentation implementation to call during the
+    /// parsing, validating, execution, and field resolution stages.
+    /// - parameter schema:               The GraphQL type system to use when validating and
+    /// executing a query.
+    /// - parameter request:              A GraphQL language formatted string representing the
+    /// requested operation.
+    /// - parameter rootValue:            The value provided as the first argument to resolver
+    /// functions on the top level type (e.g. the query object type).
     /// - parameter contextValue:         A context value provided to all resolver functions
-    /// - parameter variableValues:       A mapping of variable name to runtime value to use for all variables defined in the `request`.
-    /// - parameter operationName:        The name of the operation to use if `request` contains multiple possible operations. Can be omitted if `request` contains only one operation.
+    /// - parameter variableValues:       A mapping of variable name to runtime value to use for all
+    /// variables defined in the `request`.
+    /// - parameter operationName:        The name of the operation to use if `request` contains
+    /// multiple possible operations. Can be omitted if `request` contains only one operation.
     ///
     /// - throws: throws GraphQLError if an error occurs while parsing the `request`.
     ///
-    /// - returns: returns a SubscriptionResult containing the subscription observable inside the key `observable` and any validation or execution errors inside the key `errors`. The
-    /// value of `observable` might be `null` if, for example, the query is invalid. It's not possible to have both `observable` and `errors`. The observable payloads are
-    /// GraphQLResults which contain the result of the query inside the key `data` and any validation or execution errors inside the key `errors`. The value of `data` might be `null`.
-    /// It's possible to have both `data` and `errors` if an error occurs only in a specific field. If that happens the value of that field will be `null` and there
-    /// will be an error inside `errors` specifying the reason for the failure and the path of the failed field.
+    /// - returns: returns a SubscriptionResult containing the subscription observable inside the
+    /// key `observable` and any validation or execution errors inside the key `errors`. The
+    /// value of `observable` might be `null` if, for example, the query is invalid. It's not
+    /// possible to have both `observable` and `errors`. The observable payloads are
+    /// GraphQLResults which contain the result of the query inside the key `data` and any
+    /// validation or execution errors inside the key `errors`. The value of `data` might be `null`.
+    /// It's possible to have both `data` and `errors` if an error occurs only in a specific field.
+    /// If that happens the value of that field will be `null` and there
+    /// will be an error inside `errors` specifying the reason for the failure and the path of the
+    /// failed field.
     public func graphqlSubscribe(
         queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
         mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
