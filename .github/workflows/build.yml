@@ -21,7 +21,7 @@ jobs:
       - name: GitHub Action for SwiftFormat
         uses: CassiusPacheco/action-swiftformat@v0.1.0
         with:
-          swiftformat-version: '0.49.11'
+          swiftformat-version: '0.50.6'
 
   macos:
     name: Build and test on macos-latest
