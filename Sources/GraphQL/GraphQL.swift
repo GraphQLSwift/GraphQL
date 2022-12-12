@@ -281,7 +281,7 @@ public func graphqlSubscribe(
 
 #if compiler(>=5.5) && canImport(_Concurrency)
 
-    @available(macOS 12, iOS 15, watchOS 8, tvOS 15, *)
+    @available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
     /// This is the primary entry point function for fulfilling GraphQL operations
     /// by parsing, validating, and executing a GraphQL document along side a
     /// GraphQL schema.
@@ -345,7 +345,7 @@ public func graphqlSubscribe(
         ).get()
     }
 
-    @available(macOS 12, iOS 15, watchOS 8, tvOS 15, *)
+    @available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
     /// This is the primary entry point function for fulfilling GraphQL subscription
     /// operations by parsing, validating, and executing a GraphQL subscription
     /// document along side a GraphQL schema.
