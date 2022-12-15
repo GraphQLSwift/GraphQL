@@ -93,7 +93,7 @@ import NIO
 
     let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
-    @available(macOS 12, iOS 15, watchOS 8, tvOS 15, *)
+    @available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
     class EmailDb {
         var emails: [Email]
         let publisher: SimplePubSub<Any>

@@ -4,7 +4,7 @@ import XCTest
 
 #if compiler(>=5.5) && canImport(_Concurrency)
 
-    @available(macOS 12, iOS 15, watchOS 8, tvOS 15, *)
+    @available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
     /// This follows the graphql-js testing, with deviations where noted.
     class SubscriptionTests: XCTestCase {
         let timeoutDuration = 0.5 // in seconds
