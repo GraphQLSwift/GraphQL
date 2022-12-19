@@ -15,9 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: sinoru/actions-setup-swift@v2
+      - uses: swift-actions/setup-swift@v1
         with:
-          swift-version: '5.7.1'
+          swift-version: "5.7.1"
       - name: GitHub Action for SwiftFormat
         uses: CassiusPacheco/action-swiftformat@v0.1.0
         with:
@@ -38,18 +38,33 @@ jobs:
         downloadUrl: https://github.com/paulofaria/test-reporter/releases/download/0.9.0/test-reporter-0.9.0-darwin-amd64
         coverageCommand: swift test --enable-test-discovery --enable-code-coverage
         coverageLocations: ${{ env.codecov_path }}:lcov-json
-
-  linux:
+  # ubuntu-latest is ubuntu-22.04 currently. Swift versions older than 5.7 don't have builds for 22.04. https://www.swift.org/download/ 
+  ubuntu-old:
     name: Build ${{ matrix.swift }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-20.04] 
         swift: ["5.4", "5.5", "5.6"]
     steps:
     - uses: swift-actions/setup-swift@v1
       with:
         swift-version: ${{ matrix.swift }}
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+    - name: Test
+      run: swift test
+
+  ubuntu-latest:
+    name: Build ${{ matrix.swift }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest] 
+        swift: ["5.7"]
+    steps:
+    - uses: swift-actions/setup-swift@v1
+      with:
+        swift-version: ${{ matrix.swift }}
+    - uses: actions/checkout@v3
     - name: Test
       run: swift test
