@@ -168,6 +168,7 @@ extension GraphQLNonNull: GraphQLWrapperType {}
 public final class GraphQLScalarType {
     public let name: String
     public let description: String?
+    public let specifiedByURL: String?
     public let kind: TypeKind = .scalar
 
     let serialize: (Any) throws -> Map
@@ -177,11 +178,13 @@ public final class GraphQLScalarType {
     public init(
         name: String,
         description: String? = nil,
+        specifiedByURL: String? = nil,
         serialize: @escaping (Any) throws -> Map
     ) throws {
         try assertValid(name: name)
         self.name = name
         self.description = description
+        self.specifiedByURL = specifiedByURL
         self.serialize = serialize
         parseValue = nil
         parseLiteral = nil
@@ -190,6 +193,7 @@ public final class GraphQLScalarType {
     public init(
         name: String,
         description: String? = nil,
+        specifiedByURL: String? = nil,
         serialize: @escaping (Any) throws -> Map,
         parseValue: @escaping (Map) throws -> Map,
         parseLiteral: @escaping (Value) throws -> Map
@@ -197,6 +201,7 @@ public final class GraphQLScalarType {
         try assertValid(name: name)
         self.name = name
         self.description = description
+        self.specifiedByURL = specifiedByURL
         self.serialize = serialize
         self.parseValue = parseValue
         self.parseLiteral = parseLiteral
@@ -1595,4 +1600,14 @@ extension GraphQLTypeReference: CustomDebugStringConvertible {
     public var debugDescription: String {
         return name
     }
+}
+
+protocol GraphQLInputField {
+    var name: String { get }
+    var description: String? { get }
+    var type: GraphQLInputType { get }
+    var defaultValue: Map? { get }
+//    var deprecationReason: String? { get }
+//    var extensions: GraphQLInputFieldExtensions { get }
+//    var astNode: InputValueDefinitionNode? { get }
 }

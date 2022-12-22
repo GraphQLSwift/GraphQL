@@ -35,7 +35,7 @@ func getVariableValues(
  * Prepares an object map of argument values given a list of argument
  * definitions and list of argument AST nodes.
  */
-func getArgumentValues(
+public func getArgumentValues(
     argDefs: [GraphQLArgumentDefinition],
     argASTs: [Argument]?,
     variables: [String: Map] = [:]

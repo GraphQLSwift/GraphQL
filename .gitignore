@@ -3,3 +3,7 @@
 ### SwiftPM ###
 .build/
 .swiftpm/
+
+### Jetbrains ###
+.idea/
+
