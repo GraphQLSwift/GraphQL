@@ -846,7 +846,10 @@ class SchemaParserTests: XCTestCase {
 
     func testKitchenSink() throws {
         guard
-            let url = Bundle.module.url(forResource: "schema-kitchen-sink", withExtension: "graphql"),
+            let url = Bundle.module.url(
+                forResource: "schema-kitchen-sink",
+                withExtension: "graphql"
+            ),
             let kitchenSink = try? String(contentsOf: url)
         else {
             XCTFail("Could not load kitchen sink")
