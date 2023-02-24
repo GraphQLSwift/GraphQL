@@ -1,4 +1,4 @@
-// swift-tools-version:5.2
+// swift-tools-version:5.4
 import PackageDescription
 
 let package = Package(
@@ -18,6 +18,13 @@ let package = Package(
                 .product(name: "OrderedCollections", package: "swift-collections"),
             ]
         ),
-        .testTarget(name: "GraphQLTests", dependencies: ["GraphQL"]),
+        .testTarget(
+            name: "GraphQLTests",
+            dependencies: ["GraphQL"],
+            resources: [
+                .copy("LanguageTests/kitchen-sink.graphql"),
+                .copy("LanguageTests/schema-kitchen-sink.graphql"),
+            ]
+        ),
     ]
 )

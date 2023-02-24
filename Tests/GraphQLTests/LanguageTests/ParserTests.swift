@@ -249,11 +249,20 @@ class ParserTests: XCTestCase {
 //    });
     //  });
 
+    enum ParserTestsError: Error {
+        case couldNotFindKitchenSink
+    }
+
     func testKitchenSink() throws {
-//        let path = "/Users/paulofaria/Development/Zewo/GraphQL/Tests/GraphQLTests/LanguageTests/kitchen-sink.graphql"
-//        let kitchenSink = try NSString(contentsOfFile: path, encoding:
-//        String.Encoding.utf8.rawValue)
-//        _ = try parse(source: kitchenSink as String)
+        guard
+            let url = Bundle.module.url(forResource: "kitchen-sink", withExtension: "graphql"),
+            let kitchenSink = try? String(contentsOf: url)
+        else {
+            XCTFail("Could not load kitchen sink")
+            return
+        }
+
+        _ = try parse(source: kitchenSink)
     }
 
     func testNonKeywordAsName() throws {
