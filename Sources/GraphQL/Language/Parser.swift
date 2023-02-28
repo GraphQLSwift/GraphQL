@@ -968,10 +968,12 @@ func parseUnionTypeDefinition(lexer: Lexer) throws -> UnionTypeDefinition {
  * UnionMembers :
  *   - NamedType
  *   - UnionMembers | NamedType
+ *   - | UnionMembers | NamedType
  */
 func parseUnionMembers(lexer: Lexer) throws -> [NamedType] {
     var members: [NamedType] = []
 
+    try expectOptional(lexer: lexer, kind: .pipe)
     repeat {
         members.append(try parseNamedType(lexer: lexer))
     } while try skip(lexer: lexer, kind: .pipe)
@@ -1203,6 +1205,7 @@ func parseDirectiveDefinition(lexer: Lexer) throws -> DirectiveDefinition {
     do {
         try expectKeyword(lexer: lexer, value: "repeatable")
         try expectKeyword(lexer: lexer, value: "on")
+        try expectOptional(lexer: lexer, kind: .pipe)
         let locations = try parseDirectiveLocations(lexer: lexer)
         return DirectiveDefinition(
             loc: loc(lexer: lexer, startToken: start),
@@ -1214,6 +1217,7 @@ func parseDirectiveDefinition(lexer: Lexer) throws -> DirectiveDefinition {
         )
     } catch {
         try expectKeyword(lexer: lexer, value: "on")
+        try expectOptional(lexer: lexer, kind: .pipe)
         let locations = try parseDirectiveLocations(lexer: lexer)
         return DirectiveDefinition(
             loc: loc(lexer: lexer, startToken: start),
