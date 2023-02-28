@@ -1684,19 +1684,22 @@ public final class DirectiveDefinition {
     public let name: Name
     public let arguments: [InputValueDefinition]
     public let locations: [Name]
+    public let repeatable: Bool
 
     init(
         loc: Location? = nil,
         description: StringValue? = nil,
         name: Name,
         arguments: [InputValueDefinition] = [],
-        locations: [Name]
+        locations: [Name],
+        repeatable: Bool = false
     ) {
         self.loc = loc
         self.name = name
         self.description = description
         self.arguments = arguments
         self.locations = locations
+        self.repeatable = repeatable
     }
 }
 

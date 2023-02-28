@@ -1190,7 +1190,7 @@ func parseInputObjectExtensionDefinition(lexer: Lexer) throws -> InputObjectExte
 
 /**
  * DirectiveDefinition :
- *   - directive @ Name ArgumentsDefinition? on DirectiveLocations
+ *   - directive @ Name ArgumentsDefinition? repeatable? on DirectiveLocations
  */
 func parseDirectiveDefinition(lexer: Lexer) throws -> DirectiveDefinition {
     let start = lexer.token
@@ -1199,15 +1199,30 @@ func parseDirectiveDefinition(lexer: Lexer) throws -> DirectiveDefinition {
     try expect(lexer: lexer, kind: .at)
     let name = try parseName(lexer: lexer)
     let args = try parseArgumentDefs(lexer: lexer)
-    try expectKeyword(lexer: lexer, value: "on")
-    let locations = try parseDirectiveLocations(lexer: lexer)
-    return DirectiveDefinition(
-        loc: loc(lexer: lexer, startToken: start),
-        description: description,
-        name: name,
-        arguments: args,
-        locations: locations
-    )
+
+    do {
+        try expectKeyword(lexer: lexer, value: "repeatable")
+        try expectKeyword(lexer: lexer, value: "on")
+        let locations = try parseDirectiveLocations(lexer: lexer)
+        return DirectiveDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            description: description,
+            name: name,
+            arguments: args,
+            locations: locations,
+            repeatable: true
+        )
+    } catch {
+        try expectKeyword(lexer: lexer, value: "on")
+        let locations = try parseDirectiveLocations(lexer: lexer)
+        return DirectiveDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            description: description,
+            name: name,
+            arguments: args,
+            locations: locations
+        )
+    }
 }
 
 /**
