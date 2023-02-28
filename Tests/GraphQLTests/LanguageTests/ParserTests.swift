@@ -110,6 +110,26 @@ class ParserTests: XCTestCase {
                 "Syntax Error GraphQL (1:9) Expected Name, found }"
             ))
         }
+
+        XCTAssertThrowsError(try parse(source: "type WithImplementsButNoTypes implements {}")) { error in
+            guard let error = error as? GraphQLError else {
+                return XCTFail()
+            }
+
+            XCTAssert(error.message.contains(
+                "Syntax Error GraphQL (1:42) Expected Name, found {"
+            ))
+        }
+
+        XCTAssertThrowsError(try parse(source: "type WithImplementsWithTrailingAmp implements AInterface & {}")) { error in
+            guard let error = error as? GraphQLError else {
+                return XCTFail()
+            }
+
+            XCTAssert(error.message.contains(
+                "Syntax Error GraphQL (1:60) Expected Name, found {"
+            ))
+        }
     }
 
     func testVariableInlineValues() throws {

@@ -796,7 +796,9 @@ func parseObjectTypeDefinition(lexer: Lexer) throws -> ObjectTypeDefinition {
 }
 
 /**
- * ImplementsInterfaces : implements NamedType+
+ * ImplementsInterfaces :
+ *  - implements &? NamedType
+ *  - ImplementsInterfaces & NamedType
  */
 func parseImplementsInterfaces(lexer: Lexer) throws -> [NamedType] {
     var types: [NamedType] = []
@@ -804,9 +806,10 @@ func parseImplementsInterfaces(lexer: Lexer) throws -> [NamedType] {
     if lexer.token.value == "implements" {
         try lexer.advance()
 
+        try expectOptional(lexer: lexer, kind: .amp)
         repeat {
             types.append(try parseNamedType(lexer: lexer))
-        } while peek(lexer: lexer, kind: .name)
+        } while try expectOptional(lexer: lexer, kind: .amp) != nil || peek(lexer: lexer, kind: .name)
     }
 
     return types
@@ -1146,6 +1149,20 @@ func expect(lexer: Lexer, kind: Token.Kind) throws -> Token {
 
     try lexer.advance()
     return token
+}
+
+/**
+ * If the next token is of the given kind, return that token after advancing
+ * the lexer. Otherwise, do not change the parser state and return nil.
+ */
+@discardableResult
+func expectOptional(lexer: Lexer, kind: Token.Kind) throws -> Token? {
+    let token = lexer.token
+    if token.kind == kind {
+        try lexer.advance()
+        return token
+    }
+    return nil
 }
 
 /**

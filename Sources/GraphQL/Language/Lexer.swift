@@ -244,6 +244,16 @@ func readToken(lexer: Lexer, prev: Token) throws -> Token {
             column: col,
             prev: prev
         )
+    // &
+    case 38:
+        return Token(
+            kind: .amp,
+            start: position,
+            end: position + 1,
+            line: line,
+            column: col,
+            prev: prev
+        )
     // (
     case 40:
         return Token(
