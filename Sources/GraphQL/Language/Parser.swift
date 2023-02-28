@@ -1010,11 +1010,16 @@ func parseExtensionDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
     switch token.value {
     case "type": return try parseTypeExtensionDefinition(lexer: lexer)
     case "schema": return try parseSchemaExtensionDefinition(lexer: lexer)
+    case "interface": return try parseInterfaceExtensionDefinition(lexer: lexer)
+    case "scalar": return try parseScalarExtensionDefinition(lexer: lexer)
+    case "union": return try parseUnionExtensionDefinition(lexer: lexer)
+    case "enum": return try parseEnumExtensionDefinition(lexer: lexer)
+    case "input": return try parseInputObjectExtensionDefinition(lexer: lexer)
     default:
         throw syntaxError(
             source: lexer.source,
             position: token.start,
-            description: "expected schema or type after extend"
+            description: "expected schema or type or interface or scalar or union or enum or input after extend"
         )
     }
 }
@@ -1049,6 +1054,71 @@ func parseSchemaExtensionDefinition(lexer: Lexer) throws -> SchemaExtensionDefin
             directives: directives,
             operationTypes: []
         )
+    )
+}
+
+/**
+ * InterfaceExtensionDefinition: extend InterfaceTypeDefinition
+ */
+func parseInterfaceExtensionDefinition(lexer: Lexer) throws -> InterfaceExtensionDefinition {
+    let start = lexer.token
+    try expectKeyword(lexer: lexer, value: "extend")
+    let interfaceDefinition = try parseInterfaceTypeDefinition(lexer: lexer)
+    return InterfaceExtensionDefinition(
+        loc: loc(lexer: lexer, startToken: start),
+        definition: interfaceDefinition
+    )
+}
+
+/**
+ * ScalarExtensionDefinition: extend InterfaceTypeDefinition
+ */
+func parseScalarExtensionDefinition(lexer: Lexer) throws -> ScalarExtensionDefinition {
+    let start = lexer.token
+    try expectKeyword(lexer: lexer, value: "extend")
+    let scalarDefinition = try parseScalarTypeDefinition(lexer: lexer)
+    return ScalarExtensionDefinition(
+        loc: loc(lexer: lexer, startToken: start),
+        definition: scalarDefinition
+    )
+}
+
+/**
+ * UnionExtensionDefinition: extend UnionTypeDefinition
+ */
+func parseUnionExtensionDefinition(lexer: Lexer) throws -> UnionExtensionDefinition {
+    let start = lexer.token
+    try expectKeyword(lexer: lexer, value: "extend")
+    let definition = try parseUnionTypeDefinition(lexer: lexer)
+    return UnionExtensionDefinition(
+        loc: loc(lexer: lexer, startToken: start),
+        definition: definition
+    )
+}
+
+/**
+ * EnumExtensionDefinition: extend EnumTypeDefinition
+ */
+func parseEnumExtensionDefinition(lexer: Lexer) throws -> EnumExtensionDefinition {
+    let start = lexer.token
+    try expectKeyword(lexer: lexer, value: "extend")
+    let definition = try parseEnumTypeDefinition(lexer: lexer)
+    return EnumExtensionDefinition(
+        loc: loc(lexer: lexer, startToken: start),
+        definition: definition
+    )
+}
+
+/**
+ * InputObjectExtensionDefinition: extend InputObjectTypeDefinition
+ */
+func parseInputObjectExtensionDefinition(lexer: Lexer) throws -> InputObjectExtensionDefinition {
+    let start = lexer.token
+    try expectKeyword(lexer: lexer, value: "extend")
+    let definition = try parseInputObjectTypeDefinition(lexer: lexer)
+    return InputObjectExtensionDefinition(
+        loc: loc(lexer: lexer, startToken: start),
+        definition: definition
     )
 }
 
