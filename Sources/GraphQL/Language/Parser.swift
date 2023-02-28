@@ -771,6 +771,7 @@ func parseScalarTypeDefinition(lexer: Lexer) throws -> ScalarTypeDefinition {
 /**
  * ObjectTypeDefinition :
  *   - type Name ImplementsInterfaces? Directives? { FieldDefinition+ }
+ *   - type Name ImplementsInterfaces? Directives?
  */
 func parseObjectTypeDefinition(lexer: Lexer) throws -> ObjectTypeDefinition {
     let start = lexer.token
@@ -779,20 +780,32 @@ func parseObjectTypeDefinition(lexer: Lexer) throws -> ObjectTypeDefinition {
     let name = try parseName(lexer: lexer)
     let interfaces = try parseImplementsInterfaces(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-    let fields = try any(
-        lexer: lexer,
-        openKind: .openingBrace,
-        closeKind: .closingBrace,
-        parse: parseFieldDefinition
-    )
-    return ObjectTypeDefinition(
-        loc: loc(lexer: lexer, startToken: start),
-        description: description,
-        name: name,
-        interfaces: interfaces,
-        directives: directives,
-        fields: fields
-    )
+
+    do {
+        let fields = try any(
+            lexer: lexer,
+            openKind: .openingBrace,
+            closeKind: .closingBrace,
+            parse: parseFieldDefinition
+        )
+        return ObjectTypeDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            description: description,
+            name: name,
+            interfaces: interfaces,
+            directives: directives,
+            fields: fields
+        )
+    } catch {
+        return ObjectTypeDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            description: description,
+            name: name,
+            interfaces: interfaces,
+            directives: directives,
+            fields: []
+        )
+    }
 }
 
 /**
@@ -879,7 +892,9 @@ func parseInputValueDef(lexer: Lexer) throws -> InputValueDefinition {
 }
 
 /**
- * InterfaceTypeDefinition : interface Name Directives? { FieldDefinition+ }
+ * InterfaceTypeDefinition :
+ * - interface Name Directives? { FieldDefinition+ }
+ * - interface Name Directives?
  */
 func parseInterfaceTypeDefinition(lexer: Lexer) throws -> InterfaceTypeDefinition {
     let start = lexer.token
@@ -888,24 +903,38 @@ func parseInterfaceTypeDefinition(lexer: Lexer) throws -> InterfaceTypeDefinitio
     let name = try parseName(lexer: lexer)
     let interfaces = try parseImplementsInterfaces(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-    let fields = try any(
-        lexer: lexer,
-        openKind: .openingBrace,
-        closeKind: .closingBrace,
-        parse: parseFieldDefinition
-    )
-    return InterfaceTypeDefinition(
-        loc: loc(lexer: lexer, startToken: start),
-        description: description,
-        name: name,
-        interfaces: interfaces,
-        directives: directives,
-        fields: fields
-    )
+
+    do {
+        let fields = try any(
+            lexer: lexer,
+            openKind: .openingBrace,
+            closeKind: .closingBrace,
+            parse: parseFieldDefinition
+        )
+        return InterfaceTypeDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            description: description,
+            name: name,
+            interfaces: interfaces,
+            directives: directives,
+            fields: fields
+        )
+    } catch {
+        return InterfaceTypeDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            description: description,
+            name: name,
+            interfaces: interfaces,
+            directives: directives,
+            fields: []
+        )
+    }
 }
 
 /**
- * UnionTypeDefinition : union Name Directives? = UnionMembers
+ * UnionTypeDefinition :
+ * - union Name Directives? = UnionMembers
+ * - union Name Directives?
  */
 func parseUnionTypeDefinition(lexer: Lexer) throws -> UnionTypeDefinition {
     let start = lexer.token
@@ -913,15 +942,26 @@ func parseUnionTypeDefinition(lexer: Lexer) throws -> UnionTypeDefinition {
     try expectKeyword(lexer: lexer, value: "union")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-    try expect(lexer: lexer, kind: .equals)
-    let types = try parseUnionMembers(lexer: lexer)
-    return UnionTypeDefinition(
-        loc: loc(lexer: lexer, startToken: start),
-        description: description,
-        name: name,
-        directives: directives,
-        types: types
-    )
+    
+    do {
+        try expect(lexer: lexer, kind: .equals)
+        let types = try parseUnionMembers(lexer: lexer)
+        return UnionTypeDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            description: description,
+            name: name,
+            directives: directives,
+            types: types
+        )
+    } catch {
+        return UnionTypeDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            description: description,
+            name: name,
+            directives: directives,
+            types: []
+        )
+    }
 }
 
 /**
@@ -940,7 +980,9 @@ func parseUnionMembers(lexer: Lexer) throws -> [NamedType] {
 }
 
 /**
- * EnumTypeDefinition : enum Name Directives? { EnumValueDefinition+ }
+ * EnumTypeDefinition :
+ * - enum Name Directives? { EnumValueDefinition+ }
+ * - enum Name Directives?
  */
 func parseEnumTypeDefinition(lexer: Lexer) throws -> EnumTypeDefinition {
     let start = lexer.token
@@ -948,19 +990,30 @@ func parseEnumTypeDefinition(lexer: Lexer) throws -> EnumTypeDefinition {
     try expectKeyword(lexer: lexer, value: "enum")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-    let values = try many(
-        lexer: lexer,
-        openKind: .openingBrace,
-        closeKind: .closingBrace,
-        parse: parseEnumValueDefinition
-    )
-    return EnumTypeDefinition(
-        loc: loc(lexer: lexer, startToken: start),
-        description: description,
-        name: name,
-        directives: directives,
-        values: values
-    )
+
+    do {
+        let values = try many(
+            lexer: lexer,
+            openKind: .openingBrace,
+            closeKind: .closingBrace,
+            parse: parseEnumValueDefinition
+        )
+        return EnumTypeDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            description: description,
+            name: name,
+            directives: directives,
+            values: values
+        )
+    } catch {
+        return EnumTypeDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            description: description,
+            name: name,
+            directives: directives,
+            values: []
+        )
+    }
 }
 
 /**
@@ -982,7 +1035,9 @@ func parseEnumValueDefinition(lexer: Lexer) throws -> EnumValueDefinition {
 }
 
 /**
- * InputObjectTypeDefinition : input Name Directives? { InputValueDefinition+ }
+ * InputObjectTypeDefinition :
+ * - input Name Directives? { InputValueDefinition+ }
+ * - input Name Directives?
  */
 func parseInputObjectTypeDefinition(lexer: Lexer) throws -> InputObjectTypeDefinition {
     let start = lexer.token
@@ -990,19 +1045,30 @@ func parseInputObjectTypeDefinition(lexer: Lexer) throws -> InputObjectTypeDefin
     try expectKeyword(lexer: lexer, value: "input")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-    let fields = try any(
-        lexer: lexer,
-        openKind: .openingBrace,
-        closeKind: .closingBrace,
-        parse: parseInputValueDef
-    )
-    return InputObjectTypeDefinition(
-        loc: loc(lexer: lexer, startToken: start),
-        description: description,
-        name: name,
-        directives: directives,
-        fields: fields
-    )
+
+    do {
+        let fields = try any(
+            lexer: lexer,
+            openKind: .openingBrace,
+            closeKind: .closingBrace,
+            parse: parseInputValueDef
+        )
+        return InputObjectTypeDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            description: description,
+            name: name,
+            directives: directives,
+            fields: fields
+        )
+    } catch {
+        return InputObjectTypeDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            description: description,
+            name: name,
+            directives: directives,
+            fields: []
+        )
+    }
 }
 
 func parseExtensionDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
