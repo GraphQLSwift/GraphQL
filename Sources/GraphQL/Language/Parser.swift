@@ -822,7 +822,8 @@ func parseImplementsInterfaces(lexer: Lexer) throws -> [NamedType] {
         try expectOptional(lexer: lexer, kind: .amp)
         repeat {
             types.append(try parseNamedType(lexer: lexer))
-        } while try expectOptional(lexer: lexer, kind: .amp) != nil || peek(lexer: lexer, kind: .name)
+        } while try expectOptional(lexer: lexer, kind: .amp) != nil ||
+            peek(lexer: lexer, kind: .name)
     }
 
     return types
@@ -942,7 +943,7 @@ func parseUnionTypeDefinition(lexer: Lexer) throws -> UnionTypeDefinition {
     try expectKeyword(lexer: lexer, value: "union")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-    
+
     do {
         try expect(lexer: lexer, kind: .equals)
         let types = try parseUnionMembers(lexer: lexer)

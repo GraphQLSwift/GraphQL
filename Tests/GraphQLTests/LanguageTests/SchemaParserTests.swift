@@ -849,7 +849,7 @@ class SchemaParserTests: XCTestCase {
 
         let expected = Document(
             definitions: [
-                ObjectTypeDefinition(name: nameNode("UndefinedType"))
+                ObjectTypeDefinition(name: nameNode("UndefinedType")),
             ]
         )
 
@@ -864,7 +864,8 @@ class SchemaParserTests: XCTestCase {
             definitions: [
                 InterfaceTypeDefinition(
                     name: nameNode("UndefinedInterface"),
-                    fields: [])
+                    fields: []
+                ),
             ]
         )
 
@@ -881,9 +882,11 @@ class SchemaParserTests: XCTestCase {
                     definition: InterfaceTypeDefinition(
                         name: nameNode("Bar"),
                         directives: [
-                            Directive(name: nameNode("onInterface"))
+                            Directive(name: nameNode("onInterface")),
                         ],
-                        fields: []))
+                        fields: []
+                    )
+                ),
             ]
         )
 
@@ -899,12 +902,13 @@ class SchemaParserTests: XCTestCase {
                 UnionTypeDefinition(
                     name: nameNode("AnnotatedUnionTwo"),
                     directives: [
-                        Directive(name: nameNode("onUnion"))
+                        Directive(name: nameNode("onUnion")),
                     ],
                     types: [
                         NamedType(name: nameNode("A")),
                         NamedType(name: nameNode("B")),
-                    ])
+                    ]
+                ),
             ]
         )
 
@@ -921,10 +925,10 @@ class SchemaParserTests: XCTestCase {
                     definition: ScalarTypeDefinition(
                         name: nameNode("CustomScalar"),
                         directives: [
-                            Directive(name: nameNode("onScalar"))
+                            Directive(name: nameNode("onScalar")),
                         ]
                     )
-                )
+                ),
             ]
         )
 
@@ -940,7 +944,7 @@ class SchemaParserTests: XCTestCase {
                 UnionTypeDefinition(
                     name: nameNode("UndefinedUnion"),
                     types: []
-                )
+                ),
             ]
         )
 
@@ -961,7 +965,7 @@ class SchemaParserTests: XCTestCase {
                             namedTypeNode("Video"),
                         ]
                     )
-                )
+                ),
             ]
         )
 
@@ -977,7 +981,7 @@ class SchemaParserTests: XCTestCase {
                 EnumTypeDefinition(
                     name: nameNode("UndefinedEnum"),
                     values: []
-                )
+                ),
             ]
         )
 
@@ -994,11 +998,11 @@ class SchemaParserTests: XCTestCase {
                     definition: EnumTypeDefinition(
                         name: nameNode("Site"),
                         directives: [
-                            Directive(name: nameNode("onEnum"))
+                            Directive(name: nameNode("onEnum")),
                         ],
                         values: []
                     )
-                )
+                ),
             ]
         )
 
@@ -1014,7 +1018,7 @@ class SchemaParserTests: XCTestCase {
                 InputObjectTypeDefinition(
                     name: nameNode("UndefinedInput"),
                     fields: []
-                )
+                ),
             ]
         )
 
@@ -1032,7 +1036,7 @@ class SchemaParserTests: XCTestCase {
                         name: nameNode("InputType"),
                         fields: []
                     )
-                )
+                ),
             ]
         )
 
@@ -1055,8 +1059,9 @@ class SchemaParserTests: XCTestCase {
                     locations: [
                         nameNode("FIELD"),
                         nameNode("FRAGMENT_SPREAD"),
-                        nameNode("INLINE_FRAGMENT")
-                    ])
+                        nameNode("INLINE_FRAGMENT"),
+                    ]
+                ),
             ]
         )
 
@@ -1080,7 +1085,7 @@ class SchemaParserTests: XCTestCase {
                         nameNode("INTERFACE"),
                     ],
                     repeatable: true
-                )
+                ),
             ]
         )
 

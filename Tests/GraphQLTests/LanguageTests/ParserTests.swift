@@ -121,7 +121,9 @@ class ParserTests: XCTestCase {
             ))
         }
 
-        XCTAssertThrowsError(try parse(source: "type WithImplementsWithTrailingAmp implements AInterface & {}")) { error in
+        XCTAssertThrowsError(
+            try parse(source: "type WithImplementsWithTrailingAmp implements AInterface & {}")
+        ) { error in
             guard let error = error as? GraphQLError else {
                 return XCTFail()
             }

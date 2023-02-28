@@ -1604,7 +1604,10 @@ public final class InterfaceExtensionDefinition {
 }
 
 extension InterfaceExtensionDefinition: Equatable {
-    public static func == (lhs: InterfaceExtensionDefinition, rhs: InterfaceExtensionDefinition) -> Bool {
+    public static func == (
+        lhs: InterfaceExtensionDefinition,
+        rhs: InterfaceExtensionDefinition
+    ) -> Bool {
         return lhs.definition == rhs.definition
     }
 }
@@ -1672,7 +1675,10 @@ public final class InputObjectExtensionDefinition {
 }
 
 extension InputObjectExtensionDefinition: Equatable {
-    public static func == (lhs: InputObjectExtensionDefinition, rhs: InputObjectExtensionDefinition) -> Bool {
+    public static func == (
+        lhs: InputObjectExtensionDefinition,
+        rhs: InputObjectExtensionDefinition
+    ) -> Bool {
         return lhs.definition == rhs.definition
     }
 }
