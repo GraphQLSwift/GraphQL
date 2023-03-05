@@ -214,7 +214,7 @@ class SchemaParserTests: XCTestCase {
     }
 
     func testSimpleTypeInheritingMultipleInterfaces() throws {
-        let source = "type Hello implements Wo, rld { }"
+        let source = "type Hello implements Wo & rld { }"
 
         let expected = Document(
             definitions: [
@@ -836,6 +836,255 @@ class SchemaParserTests: XCTestCase {
                             typeNode("String")
                         ),
                     ]
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testUndefinedType() throws {
+        let source = #"type UndefinedType"#
+
+        let expected = Document(
+            definitions: [
+                ObjectTypeDefinition(name: nameNode("UndefinedType")),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testUndefinedInterfaceType() throws {
+        let source = #"interface UndefinedInterface"#
+
+        let expected = Document(
+            definitions: [
+                InterfaceTypeDefinition(
+                    name: nameNode("UndefinedInterface"),
+                    fields: []
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testInterfaceExtensionType() throws {
+        let source = #"extend interface Bar @onInterface"#
+
+        let expected = Document(
+            definitions: [
+                InterfaceExtensionDefinition(
+                    definition: InterfaceTypeDefinition(
+                        name: nameNode("Bar"),
+                        directives: [
+                            Directive(name: nameNode("onInterface")),
+                        ],
+                        fields: []
+                    )
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testUnionPipe() throws {
+        let source = #"union AnnotatedUnionTwo @onUnion = | A | B"#
+
+        let expected = Document(
+            definitions: [
+                UnionTypeDefinition(
+                    name: nameNode("AnnotatedUnionTwo"),
+                    directives: [
+                        Directive(name: nameNode("onUnion")),
+                    ],
+                    types: [
+                        NamedType(name: nameNode("A")),
+                        NamedType(name: nameNode("B")),
+                    ]
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testExtendScalar() throws {
+        let source = #"extend scalar CustomScalar @onScalar"#
+
+        let expected = Document(
+            definitions: [
+                ScalarExtensionDefinition(
+                    definition: ScalarTypeDefinition(
+                        name: nameNode("CustomScalar"),
+                        directives: [
+                            Directive(name: nameNode("onScalar")),
+                        ]
+                    )
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testUndefinedUnion() throws {
+        let source = #"union UndefinedUnion"#
+
+        let expected = Document(
+            definitions: [
+                UnionTypeDefinition(
+                    name: nameNode("UndefinedUnion"),
+                    types: []
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testExtendUnion() throws {
+        let source = #"extend union Feed = Photo | Video"#
+
+        let expected = Document(
+            definitions: [
+                UnionExtensionDefinition(
+                    definition: UnionTypeDefinition(
+                        name: nameNode("Feed"),
+                        types: [
+                            namedTypeNode("Photo"),
+                            namedTypeNode("Video"),
+                        ]
+                    )
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testUndefinedEnum() throws {
+        let source = #"enum UndefinedEnum"#
+
+        let expected = Document(
+            definitions: [
+                EnumTypeDefinition(
+                    name: nameNode("UndefinedEnum"),
+                    values: []
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testEnumExtension() throws {
+        let source = #"extend enum Site @onEnum"#
+
+        let expected = Document(
+            definitions: [
+                EnumExtensionDefinition(
+                    definition: EnumTypeDefinition(
+                        name: nameNode("Site"),
+                        directives: [
+                            Directive(name: nameNode("onEnum")),
+                        ],
+                        values: []
+                    )
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testUndefinedInput() throws {
+        let source = #"input UndefinedInput"#
+
+        let expected = Document(
+            definitions: [
+                InputObjectTypeDefinition(
+                    name: nameNode("UndefinedInput"),
+                    fields: []
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testInputExtension() throws {
+        let source = #"extend input InputType"#
+
+        let expected = Document(
+            definitions: [
+                InputObjectExtensionDefinition(
+                    definition: InputObjectTypeDefinition(
+                        name: nameNode("InputType"),
+                        fields: []
+                    )
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testDirectivePipe() throws {
+        let source = """
+        directive @include2 on
+            | FIELD
+            | FRAGMENT_SPREAD
+            | INLINE_FRAGMENT
+        """
+
+        let expected = Document(
+            definitions: [
+                DirectiveDefinition(
+                    name: nameNode("include2"),
+                    locations: [
+                        nameNode("FIELD"),
+                        nameNode("FRAGMENT_SPREAD"),
+                        nameNode("INLINE_FRAGMENT"),
+                    ]
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testDirectiveRepeatable() throws {
+        let source = """
+        directive @myRepeatableDir repeatable on
+          | OBJECT
+          | INTERFACE
+        """
+
+        let expected = Document(
+            definitions: [
+                DirectiveDefinition(
+                    name: nameNode("myRepeatableDir"),
+                    locations: [
+                        nameNode("OBJECT"),
+                        nameNode("INTERFACE"),
+                    ],
+                    repeatable: true
                 ),
             ]
         )

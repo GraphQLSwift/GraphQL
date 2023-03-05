@@ -37,4 +37,9 @@ public enum Kind {
     case typeExtensionDefinition
     case directiveDefinition
     case schemaExtensionDefinition
+    case interfaceExtensionDefinition
+    case scalarExtensionDefinition
+    case unionExtensionDefinition
+    case enumExtensionDefinition
+    case inputObjectExtensionDefinition
 }

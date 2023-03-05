@@ -39,6 +39,7 @@ public final class Token {
         case eof = "<EOF>"
         case bang = "!"
         case dollar = "$"
+        case amp = "&"
         case openingParenthesis = "("
         case closingParenthesis = ")"
         case spread = "..."
@@ -1102,6 +1103,11 @@ extension SchemaDefinition: TypeSystemDefinition {}
 extension TypeExtensionDefinition: TypeSystemDefinition {}
 extension SchemaExtensionDefinition: TypeSystemDefinition {}
 extension DirectiveDefinition: TypeSystemDefinition {}
+extension InterfaceExtensionDefinition: TypeSystemDefinition {}
+extension ScalarExtensionDefinition: TypeSystemDefinition {}
+extension UnionExtensionDefinition: TypeSystemDefinition {}
+extension EnumExtensionDefinition: TypeSystemDefinition {}
+extension InputObjectExtensionDefinition: TypeSystemDefinition {}
 
 public func == (lhs: TypeSystemDefinition, rhs: TypeSystemDefinition) -> Bool {
     switch lhs {
@@ -1123,6 +1129,26 @@ public func == (lhs: TypeSystemDefinition, rhs: TypeSystemDefinition) -> Bool {
         }
     case let l as SchemaExtensionDefinition:
         if let r = rhs as? SchemaExtensionDefinition {
+            return l == r
+        }
+    case let l as InterfaceExtensionDefinition:
+        if let r = rhs as? InterfaceExtensionDefinition {
+            return l == r
+        }
+    case let l as ScalarExtensionDefinition:
+        if let r = rhs as? ScalarExtensionDefinition {
+            return l == r
+        }
+    case let l as UnionExtensionDefinition:
+        if let r = rhs as? UnionExtensionDefinition {
+            return l == r
+        }
+    case let l as EnumExtensionDefinition:
+        if let r = rhs as? EnumExtensionDefinition {
+            return l == r
+        }
+    case let l as InputObjectExtensionDefinition:
+        if let r = rhs as? InputObjectExtensionDefinition {
             return l == r
         }
     default:
@@ -1566,6 +1592,97 @@ extension SchemaExtensionDefinition: Equatable {
     }
 }
 
+public final class InterfaceExtensionDefinition {
+    public let kind: Kind = .interfaceExtensionDefinition
+    public let loc: Location?
+    public let definition: InterfaceTypeDefinition
+
+    init(loc: Location? = nil, definition: InterfaceTypeDefinition) {
+        self.loc = loc
+        self.definition = definition
+    }
+}
+
+extension InterfaceExtensionDefinition: Equatable {
+    public static func == (
+        lhs: InterfaceExtensionDefinition,
+        rhs: InterfaceExtensionDefinition
+    ) -> Bool {
+        return lhs.definition == rhs.definition
+    }
+}
+
+public final class ScalarExtensionDefinition {
+    public let kind: Kind = .scalarExtensionDefinition
+    public let loc: Location?
+    public let definition: ScalarTypeDefinition
+
+    init(loc: Location? = nil, definition: ScalarTypeDefinition) {
+        self.loc = loc
+        self.definition = definition
+    }
+}
+
+extension ScalarExtensionDefinition: Equatable {
+    public static func == (lhs: ScalarExtensionDefinition, rhs: ScalarExtensionDefinition) -> Bool {
+        return lhs.definition == rhs.definition
+    }
+}
+
+public final class UnionExtensionDefinition {
+    public let kind: Kind = .unionExtensionDefinition
+    public let loc: Location?
+    public let definition: UnionTypeDefinition
+
+    init(loc: Location? = nil, definition: UnionTypeDefinition) {
+        self.loc = loc
+        self.definition = definition
+    }
+}
+
+extension UnionExtensionDefinition: Equatable {
+    public static func == (lhs: UnionExtensionDefinition, rhs: UnionExtensionDefinition) -> Bool {
+        return lhs.definition == rhs.definition
+    }
+}
+
+public final class EnumExtensionDefinition {
+    public let kind: Kind = .enumExtensionDefinition
+    public let loc: Location?
+    public let definition: EnumTypeDefinition
+
+    init(loc: Location? = nil, definition: EnumTypeDefinition) {
+        self.loc = loc
+        self.definition = definition
+    }
+}
+
+extension EnumExtensionDefinition: Equatable {
+    public static func == (lhs: EnumExtensionDefinition, rhs: EnumExtensionDefinition) -> Bool {
+        return lhs.definition == rhs.definition
+    }
+}
+
+public final class InputObjectExtensionDefinition {
+    public let kind: Kind = .inputObjectExtensionDefinition
+    public let loc: Location?
+    public let definition: InputObjectTypeDefinition
+
+    init(loc: Location? = nil, definition: InputObjectTypeDefinition) {
+        self.loc = loc
+        self.definition = definition
+    }
+}
+
+extension InputObjectExtensionDefinition: Equatable {
+    public static func == (
+        lhs: InputObjectExtensionDefinition,
+        rhs: InputObjectExtensionDefinition
+    ) -> Bool {
+        return lhs.definition == rhs.definition
+    }
+}
+
 public final class DirectiveDefinition {
     public let kind: Kind = .directiveDefinition
     public let loc: Location?
@@ -1573,19 +1690,22 @@ public final class DirectiveDefinition {
     public let name: Name
     public let arguments: [InputValueDefinition]
     public let locations: [Name]
+    public let repeatable: Bool
 
     init(
         loc: Location? = nil,
         description: StringValue? = nil,
         name: Name,
         arguments: [InputValueDefinition] = [],
-        locations: [Name]
+        locations: [Name],
+        repeatable: Bool = false
     ) {
         self.loc = loc
         self.name = name
         self.description = description
         self.arguments = arguments
         self.locations = locations
+        self.repeatable = repeatable
     }
 }
 
