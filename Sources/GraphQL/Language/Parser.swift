@@ -1343,6 +1343,20 @@ func expectKeyword(lexer: Lexer, value: String) throws -> Token {
 }
 
 /**
+* If the next token is a given keyword, return "true" after advancing the lexer.
+* Otherwise, do not change the parser state and return "false".
+*/
+@discardableResult
+func expectOptionalKeyword(lexer: Lexer, value: String) throws -> Bool {
+    let token = lexer.token
+    guard token.kind == .name && token.value == value else {
+        return false
+    }
+    try lexer.advance()
+    return true
+}
+
+/**
  * Helper func for creating an error when an unexpected lexed token
  * is encountered.
  */
@@ -1374,6 +1388,23 @@ func any<T>(
         nodes.append(try parse(lexer))
     }
 
+    return nodes
+}
+
+/**
+* Returns a list of parse nodes, determined by the parseFn.
+* It can be empty only if open token is missing otherwise it will always return non-empty list
+* that begins with a lex token of openKind and ends with a lex token of closeKind.
+* Advances the parser to the next lex token after the closing token.
+*/
+func optionalMany<T>(lexer: Lexer, openKind: Token.Kind, closeKind: Token.Kind, parse: (Lexer) throws -> T) throws -> [T] {
+    guard try expectOptional(lexer: lexer, kind: openKind) != nil else {
+        return []
+    }
+    var nodes: [T] = []
+    while try !skip(lexer: lexer, kind: closeKind) {
+        nodes.append(try parse(lexer))
+    }
     return nodes
 }
 
