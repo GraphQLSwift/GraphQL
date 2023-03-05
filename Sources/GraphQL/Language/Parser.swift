@@ -780,32 +780,15 @@ func parseObjectTypeDefinition(lexer: Lexer) throws -> ObjectTypeDefinition {
     let name = try parseName(lexer: lexer)
     let interfaces = try parseImplementsInterfaces(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-
-    do {
-        let fields = try any(
-            lexer: lexer,
-            openKind: .openingBrace,
-            closeKind: .closingBrace,
-            parse: parseFieldDefinition
-        )
-        return ObjectTypeDefinition(
-            loc: loc(lexer: lexer, startToken: start),
-            description: description,
-            name: name,
-            interfaces: interfaces,
-            directives: directives,
-            fields: fields
-        )
-    } catch {
-        return ObjectTypeDefinition(
-            loc: loc(lexer: lexer, startToken: start),
-            description: description,
-            name: name,
-            interfaces: interfaces,
-            directives: directives,
-            fields: []
-        )
-    }
+    let fields = try optionalMany(lexer: lexer, openKind: .openingBrace, closeKind: .closingBrace, parse: parseFieldDefinition)
+    return ObjectTypeDefinition(
+        loc: loc(lexer: lexer, startToken: start),
+        description: description,
+        name: name,
+        interfaces: interfaces,
+        directives: directives,
+        fields: fields
+    )
 }
 
 /**
@@ -814,19 +797,9 @@ func parseObjectTypeDefinition(lexer: Lexer) throws -> ObjectTypeDefinition {
  *  - ImplementsInterfaces & NamedType
  */
 func parseImplementsInterfaces(lexer: Lexer) throws -> [NamedType] {
-    var types: [NamedType] = []
-
-    if lexer.token.value == "implements" {
-        try lexer.advance()
-
-        try expectOptional(lexer: lexer, kind: .amp)
-        repeat {
-            types.append(try parseNamedType(lexer: lexer))
-        } while try expectOptional(lexer: lexer, kind: .amp) != nil ||
-            peek(lexer: lexer, kind: .name)
-    }
-
-    return types
+    try expectOptionalKeyword(lexer: lexer, value: "implements")
+    ? delimitedMany(lexer: lexer, kind: .amp, parseFn: parseNamedType)
+    : []
 }
 
 /**
@@ -904,32 +877,15 @@ func parseInterfaceTypeDefinition(lexer: Lexer) throws -> InterfaceTypeDefinitio
     let name = try parseName(lexer: lexer)
     let interfaces = try parseImplementsInterfaces(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-
-    do {
-        let fields = try any(
-            lexer: lexer,
-            openKind: .openingBrace,
-            closeKind: .closingBrace,
-            parse: parseFieldDefinition
-        )
-        return InterfaceTypeDefinition(
-            loc: loc(lexer: lexer, startToken: start),
-            description: description,
-            name: name,
-            interfaces: interfaces,
-            directives: directives,
-            fields: fields
-        )
-    } catch {
-        return InterfaceTypeDefinition(
-            loc: loc(lexer: lexer, startToken: start),
-            description: description,
-            name: name,
-            interfaces: interfaces,
-            directives: directives,
-            fields: []
-        )
-    }
+    let fields = try optionalMany(lexer: lexer, openKind: .openingBrace, closeKind: .closingBrace, parse: parseFieldDefinition)
+    return InterfaceTypeDefinition(
+        loc: loc(lexer: lexer, startToken: start),
+        description: description,
+        name: name,
+        interfaces: interfaces,
+        directives: directives,
+        fields: fields
+    )
 }
 
 /**
@@ -943,43 +899,24 @@ func parseUnionTypeDefinition(lexer: Lexer) throws -> UnionTypeDefinition {
     try expectKeyword(lexer: lexer, value: "union")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-
-    do {
-        try expect(lexer: lexer, kind: .equals)
-        let types = try parseUnionMembers(lexer: lexer)
-        return UnionTypeDefinition(
-            loc: loc(lexer: lexer, startToken: start),
-            description: description,
-            name: name,
-            directives: directives,
-            types: types
-        )
-    } catch {
-        return UnionTypeDefinition(
-            loc: loc(lexer: lexer, startToken: start),
-            description: description,
-            name: name,
-            directives: directives,
-            types: []
-        )
-    }
+    return UnionTypeDefinition(
+        loc: loc(lexer: lexer, startToken: start),
+        description: description,
+        name: name,
+        directives: directives,
+        types: try parseUnionMembers(lexer: lexer)
+    )
 }
 
 /**
  * UnionMembers :
- *   - NamedType
- *   - UnionMembers | NamedType
- *   - | UnionMembers | NamedType
+ *   - = |? NamedType
+ *   - UnionMemberTypes | NamedType
  */
 func parseUnionMembers(lexer: Lexer) throws -> [NamedType] {
-    var members: [NamedType] = []
-
-    try expectOptional(lexer: lexer, kind: .pipe)
-    repeat {
-        members.append(try parseNamedType(lexer: lexer))
-    } while try skip(lexer: lexer, kind: .pipe)
-
-    return members
+    try expectOptional(lexer: lexer, kind: .equals) != nil
+    ? delimitedMany(lexer: lexer, kind: .pipe, parseFn: parseNamedType)
+    : []
 }
 
 /**
@@ -993,30 +930,14 @@ func parseEnumTypeDefinition(lexer: Lexer) throws -> EnumTypeDefinition {
     try expectKeyword(lexer: lexer, value: "enum")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-
-    do {
-        let values = try many(
-            lexer: lexer,
-            openKind: .openingBrace,
-            closeKind: .closingBrace,
-            parse: parseEnumValueDefinition
-        )
-        return EnumTypeDefinition(
-            loc: loc(lexer: lexer, startToken: start),
-            description: description,
-            name: name,
-            directives: directives,
-            values: values
-        )
-    } catch {
-        return EnumTypeDefinition(
-            loc: loc(lexer: lexer, startToken: start),
-            description: description,
-            name: name,
-            directives: directives,
-            values: []
-        )
-    }
+    let values = try optionalMany(lexer: lexer, openKind: .openingBrace, closeKind: .closingBrace, parse: parseEnumValueDefinition)
+    return EnumTypeDefinition(
+        loc: loc(lexer: lexer, startToken: start),
+        description: description,
+        name: name,
+        directives: directives,
+        values: values
+    )
 }
 
 /**
@@ -1048,30 +969,14 @@ func parseInputObjectTypeDefinition(lexer: Lexer) throws -> InputObjectTypeDefin
     try expectKeyword(lexer: lexer, value: "input")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-
-    do {
-        let fields = try any(
-            lexer: lexer,
-            openKind: .openingBrace,
-            closeKind: .closingBrace,
-            parse: parseInputValueDef
-        )
-        return InputObjectTypeDefinition(
-            loc: loc(lexer: lexer, startToken: start),
-            description: description,
-            name: name,
-            directives: directives,
-            fields: fields
-        )
-    } catch {
-        return InputObjectTypeDefinition(
-            loc: loc(lexer: lexer, startToken: start),
-            description: description,
-            name: name,
-            directives: directives,
-            fields: []
-        )
-    }
+    let fields = try optionalMany(lexer: lexer, openKind: .openingBrace, closeKind: .closingBrace, parse: parseInputValueDef)
+    return InputObjectTypeDefinition(
+        loc: loc(lexer: lexer, startToken: start),
+        description: description,
+        name: name,
+        directives: directives,
+        fields: fields
+    )
 }
 
 func parseExtensionDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
@@ -1202,47 +1107,27 @@ func parseDirectiveDefinition(lexer: Lexer) throws -> DirectiveDefinition {
     try expect(lexer: lexer, kind: .at)
     let name = try parseName(lexer: lexer)
     let args = try parseArgumentDefs(lexer: lexer)
-
-    do {
-        try expectKeyword(lexer: lexer, value: "repeatable")
-        try expectKeyword(lexer: lexer, value: "on")
-        try expectOptional(lexer: lexer, kind: .pipe)
-        let locations = try parseDirectiveLocations(lexer: lexer)
-        return DirectiveDefinition(
-            loc: loc(lexer: lexer, startToken: start),
-            description: description,
-            name: name,
-            arguments: args,
-            locations: locations,
-            repeatable: true
-        )
-    } catch {
-        try expectKeyword(lexer: lexer, value: "on")
-        try expectOptional(lexer: lexer, kind: .pipe)
-        let locations = try parseDirectiveLocations(lexer: lexer)
-        return DirectiveDefinition(
-            loc: loc(lexer: lexer, startToken: start),
-            description: description,
-            name: name,
-            arguments: args,
-            locations: locations
-        )
-    }
+    let repeatable = try expectOptionalKeyword(lexer: lexer, value: "repeatable")
+    try expectKeyword(lexer: lexer, value: "on")
+    try expectOptional(lexer: lexer, kind: .pipe)
+    let locations = try parseDirectiveLocations(lexer: lexer)
+    return DirectiveDefinition(
+        loc: loc(lexer: lexer, startToken: start),
+        description: description,
+        name: name,
+        arguments: args,
+        locations: locations,
+        repeatable: repeatable
+    )
 }
 
 /**
  * DirectiveLocations :
- *   - Name
- *   - DirectiveLocations | Name
+ *   - |? DirectiveLocation
+ *   - DirectiveLocations | DirectiveLocation
  */
 func parseDirectiveLocations(lexer: Lexer) throws -> [Name] {
-    var locations: [Name] = []
-
-    repeat {
-        locations.append(try parseName(lexer: lexer))
-    } while try skip(lexer: lexer, kind: .pipe)
-
-    return locations
+    try delimitedMany(lexer: lexer, kind: .pipe, parseFn: parseName)
 }
 
 // Core parsing utility funcs
