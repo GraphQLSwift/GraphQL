@@ -47,17 +47,17 @@ func advanceLexer(lexer: Lexer) throws -> Token {
 }
 
 /**
-  * Returns a non-empty list of parse nodes, determined by the parseFn.
-  * This list may begin with a lex token of delimiterKind followed by items separated by lex tokens of tokenKind.
-  * Advances the parser to the next lex token after last item in the list.
-  */
+ * Returns a non-empty list of parse nodes, determined by the parseFn.
+ * This list may begin with a lex token of delimiterKind followed by items separated by lex tokens of tokenKind.
+ * Advances the parser to the next lex token after last item in the list.
+ */
 func delimitedMany<T>(lexer: Lexer, kind: Token.Kind, parseFn: (Lexer) throws -> T) throws -> [T] {
     _ = try expectOptional(lexer: lexer, kind: kind)
 
     var nodes: [T] = []
     repeat {
         try nodes.append(parseFn(lexer))
-    } while (try expectOptional(lexer: lexer, kind: kind) != nil)
+    } while try expectOptional(lexer: lexer, kind: kind) != nil
 
     return nodes
 }

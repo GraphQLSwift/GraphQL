@@ -780,7 +780,12 @@ func parseObjectTypeDefinition(lexer: Lexer) throws -> ObjectTypeDefinition {
     let name = try parseName(lexer: lexer)
     let interfaces = try parseImplementsInterfaces(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-    let fields = try optionalMany(lexer: lexer, openKind: .openingBrace, closeKind: .closingBrace, parse: parseFieldDefinition)
+    let fields = try optionalMany(
+        lexer: lexer,
+        openKind: .openingBrace,
+        closeKind: .closingBrace,
+        parse: parseFieldDefinition
+    )
     return ObjectTypeDefinition(
         loc: loc(lexer: lexer, startToken: start),
         description: description,
@@ -798,8 +803,8 @@ func parseObjectTypeDefinition(lexer: Lexer) throws -> ObjectTypeDefinition {
  */
 func parseImplementsInterfaces(lexer: Lexer) throws -> [NamedType] {
     try expectOptionalKeyword(lexer: lexer, value: "implements")
-    ? delimitedMany(lexer: lexer, kind: .amp, parseFn: parseNamedType)
-    : []
+        ? delimitedMany(lexer: lexer, kind: .amp, parseFn: parseNamedType)
+        : []
 }
 
 /**
@@ -877,7 +882,12 @@ func parseInterfaceTypeDefinition(lexer: Lexer) throws -> InterfaceTypeDefinitio
     let name = try parseName(lexer: lexer)
     let interfaces = try parseImplementsInterfaces(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-    let fields = try optionalMany(lexer: lexer, openKind: .openingBrace, closeKind: .closingBrace, parse: parseFieldDefinition)
+    let fields = try optionalMany(
+        lexer: lexer,
+        openKind: .openingBrace,
+        closeKind: .closingBrace,
+        parse: parseFieldDefinition
+    )
     return InterfaceTypeDefinition(
         loc: loc(lexer: lexer, startToken: start),
         description: description,
@@ -915,8 +925,8 @@ func parseUnionTypeDefinition(lexer: Lexer) throws -> UnionTypeDefinition {
  */
 func parseUnionMembers(lexer: Lexer) throws -> [NamedType] {
     try expectOptional(lexer: lexer, kind: .equals) != nil
-    ? delimitedMany(lexer: lexer, kind: .pipe, parseFn: parseNamedType)
-    : []
+        ? delimitedMany(lexer: lexer, kind: .pipe, parseFn: parseNamedType)
+        : []
 }
 
 /**
@@ -930,7 +940,12 @@ func parseEnumTypeDefinition(lexer: Lexer) throws -> EnumTypeDefinition {
     try expectKeyword(lexer: lexer, value: "enum")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-    let values = try optionalMany(lexer: lexer, openKind: .openingBrace, closeKind: .closingBrace, parse: parseEnumValueDefinition)
+    let values = try optionalMany(
+        lexer: lexer,
+        openKind: .openingBrace,
+        closeKind: .closingBrace,
+        parse: parseEnumValueDefinition
+    )
     return EnumTypeDefinition(
         loc: loc(lexer: lexer, startToken: start),
         description: description,
@@ -969,7 +984,12 @@ func parseInputObjectTypeDefinition(lexer: Lexer) throws -> InputObjectTypeDefin
     try expectKeyword(lexer: lexer, value: "input")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-    let fields = try optionalMany(lexer: lexer, openKind: .openingBrace, closeKind: .closingBrace, parse: parseInputValueDef)
+    let fields = try optionalMany(
+        lexer: lexer,
+        openKind: .openingBrace,
+        closeKind: .closingBrace,
+        parse: parseInputValueDef
+    )
     return InputObjectTypeDefinition(
         loc: loc(lexer: lexer, startToken: start),
         description: description,
@@ -1228,13 +1248,13 @@ func expectKeyword(lexer: Lexer, value: String) throws -> Token {
 }
 
 /**
-* If the next token is a given keyword, return "true" after advancing the lexer.
-* Otherwise, do not change the parser state and return "false".
-*/
+ * If the next token is a given keyword, return "true" after advancing the lexer.
+ * Otherwise, do not change the parser state and return "false".
+ */
 @discardableResult
 func expectOptionalKeyword(lexer: Lexer, value: String) throws -> Bool {
     let token = lexer.token
-    guard token.kind == .name && token.value == value else {
+    guard token.kind == .name, token.value == value else {
         return false
     }
     try lexer.advance()
@@ -1277,12 +1297,17 @@ func any<T>(
 }
 
 /**
-* Returns a list of parse nodes, determined by the parseFn.
-* It can be empty only if open token is missing otherwise it will always return non-empty list
-* that begins with a lex token of openKind and ends with a lex token of closeKind.
-* Advances the parser to the next lex token after the closing token.
-*/
-func optionalMany<T>(lexer: Lexer, openKind: Token.Kind, closeKind: Token.Kind, parse: (Lexer) throws -> T) throws -> [T] {
+ * Returns a list of parse nodes, determined by the parseFn.
+ * It can be empty only if open token is missing otherwise it will always return non-empty list
+ * that begins with a lex token of openKind and ends with a lex token of closeKind.
+ * Advances the parser to the next lex token after the closing token.
+ */
+func optionalMany<T>(
+    lexer: Lexer,
+    openKind: Token.Kind,
+    closeKind: Token.Kind,
+    parse: (Lexer) throws -> T
+) throws -> [T] {
     guard try expectOptional(lexer: lexer, kind: openKind) != nil else {
         return []
     }
