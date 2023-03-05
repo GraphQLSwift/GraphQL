@@ -214,7 +214,7 @@ class SchemaParserTests: XCTestCase {
     }
 
     func testSimpleTypeInheritingMultipleInterfaces() throws {
-        let source = "type Hello implements Wo, rld { }"
+        let source = "type Hello implements Wo & rld { }"
 
         let expected = Document(
             definitions: [
