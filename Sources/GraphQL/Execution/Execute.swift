@@ -118,24 +118,29 @@ public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy,
         path: IndexPath,
         fields: OrderedDictionary<String, [Field]>
     ) throws -> Future<OrderedDictionary<String, Any>> {
-        var results = OrderedDictionary<String, Future<Any>>()
+        var results = OrderedDictionary<String, Any>()
 
-        try fields.forEach { field in
-            let fieldASTs = field.value
-            let fieldPath = path.appending(field.key)
+        return fields
+            .reduce(exeContext.eventLoopGroup.next().makeSucceededVoidFuture()) { prev, field in
+                // We use ``flatSubmit`` here to avoid a stack overflow issue with EventLoopFutures.
+                // See: https://github.com/apple/swift-nio/issues/970
+                exeContext.eventLoopGroup.next().flatSubmit {
+                    prev.tryFlatMap {
+                        let fieldASTs = field.value
+                        let fieldPath = path.appending(field.key)
 
-            let result = try resolveField(
-                exeContext: exeContext,
-                parentType: parentType,
-                source: sourceValue,
-                fieldASTs: fieldASTs,
-                path: fieldPath
-            )
-
-            results[field.key] = result.map { $0 ?? Map.null }
-        }
-
-        return results.flatten(on: exeContext.eventLoopGroup)
+                        return try resolveField(
+                            exeContext: exeContext,
+                            parentType: parentType,
+                            source: sourceValue,
+                            fieldASTs: fieldASTs,
+                            path: fieldPath
+                        ).map { result in
+                            results[field.key] = result ?? Map.null
+                        }
+                    }
+                }
+            }.map { results }
     }
 }
 
