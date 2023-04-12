@@ -118,7 +118,8 @@ public extension EventLoopFuture {
         ///
         /// The key difference between this method and the regular `flatMap` is  error handling.
         ///
-        /// With `tryFlatMap`, the provided callback _may_ throw Errors, causing the returned `EventLoopFuture<Value>`
+        /// With `tryFlatMap`, the provided callback _may_ throw Errors, causing the returned
+        /// `EventLoopFuture<Value>`
         /// to report failure immediately after the completion of the original `EventLoopFuture`.
         flatMap { [eventLoop] value in
             do {

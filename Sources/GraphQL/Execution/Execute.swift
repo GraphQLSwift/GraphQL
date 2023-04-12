@@ -933,8 +933,8 @@ func completeValue(
             // If field type is a leaf type, Scalar or Enum, serialize to a valid value,
             // returning .null if serialization is not possible.
             if let returnType = returnType as? GraphQLLeafType {
-                return exeContext.eventLoopGroup.next()
-                    .makeSucceededFuture(try completeLeafValue(returnType: returnType, result: r))
+                return try exeContext.eventLoopGroup.next()
+                    .makeSucceededFuture(completeLeafValue(returnType: returnType, result: r))
             }
 
             // If field type is an abstract type, Interface or Union, determine the

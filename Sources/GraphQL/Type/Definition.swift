@@ -393,12 +393,12 @@ func defineFieldMap(name: String, fields: GraphQLFieldMap) throws -> GraphQLFiel
     for (name, config) in fields {
         try assertValid(name: name)
 
-        let field = GraphQLFieldDefinition(
+        let field = try GraphQLFieldDefinition(
             name: name,
             type: config.type,
             description: config.description,
             deprecationReason: config.deprecationReason,
-            args: try defineArgumentMap(args: config.args),
+            args: defineArgumentMap(args: config.args),
             resolve: config.resolve,
             subscribe: config.subscribe
         )

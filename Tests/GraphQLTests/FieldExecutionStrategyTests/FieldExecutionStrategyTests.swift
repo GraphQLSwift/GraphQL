@@ -206,7 +206,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testSerialFieldExecutionStrategyWithSingleField() throws {
-        let result = try timing(try graphql(
+        let result = try timing(graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
             schema: schema,
             request: singleQuery,
@@ -217,7 +217,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testSerialFieldExecutionStrategyWithSingleFieldError() throws {
-        let result = try timing(try graphql(
+        let result = try timing(graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
             schema: schema,
             request: singleThrowsQuery,
@@ -228,7 +228,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testSerialFieldExecutionStrategyWithSingleFieldFailedFuture() throws {
-        let result = try timing(try graphql(
+        let result = try timing(graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
             schema: schema,
             request: singleFailedFutureQuery,
@@ -239,7 +239,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testSerialFieldExecutionStrategyWithMultipleFields() throws {
-        let result = try timing(try graphql(
+        let result = try timing(graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
             schema: schema,
             request: multiQuery,
@@ -250,7 +250,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testSerialFieldExecutionStrategyWithMultipleFieldErrors() throws {
-        let result = try timing(try graphql(
+        let result = try timing(graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
             schema: schema,
             request: multiThrowsQuery,
@@ -266,7 +266,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithSingleField() throws {
-        let result = try timing(try graphql(
+        let result = try timing(graphql(
             queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
             schema: schema,
             request: singleQuery,
@@ -277,7 +277,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithSingleFieldError() throws {
-        let result = try timing(try graphql(
+        let result = try timing(graphql(
             queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
             schema: schema,
             request: singleThrowsQuery,
@@ -288,7 +288,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithMultipleFields() throws {
-        let result = try timing(try graphql(
+        let result = try timing(graphql(
             queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
             schema: schema,
             request: multiQuery,
@@ -299,7 +299,7 @@ class FieldExecutionStrategyTests: XCTestCase {
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithMultipleFieldErrors() throws {
-        let result = try timing(try graphql(
+        let result = try timing(graphql(
             queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
             schema: schema,
             request: multiThrowsQuery,
