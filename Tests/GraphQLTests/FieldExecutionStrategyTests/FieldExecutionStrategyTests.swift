@@ -15,15 +15,10 @@ class FieldExecutionStrategyTests: XCTestCase {
                 "sleep": GraphQLField(
                     type: GraphQLString,
                     resolve: { _, _, _, eventLoopGroup, _ in
-                        let group = DispatchGroup()
-                        group.enter()
-
-                        DispatchQueue.global().asyncAfter(wallDeadline: .now() + 0.1) {
-                            group.leave()
+                        eventLoopGroup.next().makeSucceededVoidFuture().map {
+                            Thread.sleep(forTimeInterval: 0.1)
+                            return "z"
                         }
-
-                        group.wait()
-                        return eventLoopGroup.next().makeSucceededFuture("z")
                     }
                 ),
                 "bang": GraphQLField(
@@ -251,7 +246,7 @@ class FieldExecutionStrategyTests: XCTestCase {
             eventLoopGroup: eventLoopGroup
         ).wait())
         XCTAssertEqual(result.value, multiExpected)
-        // XCTAssertEqualWithAccuracy(1.0, result.seconds, accuracy: 0.5)
+//        XCTAssertEqualWithAccuracy(1.0, result.seconds, accuracy: 0.5)
     }
 
     func testSerialFieldExecutionStrategyWithMultipleFieldErrors() throws {
@@ -300,7 +295,7 @@ class FieldExecutionStrategyTests: XCTestCase {
             eventLoopGroup: eventLoopGroup
         ).wait())
         XCTAssertEqual(result.value, multiExpected)
-        // XCTAssertEqualWithAccuracy(0.1, result.seconds, accuracy: 0.25)
+//        XCTAssertEqualWithAccuracy(0.1, result.seconds, accuracy: 0.25)
     }
 
     func testConcurrentDispatchFieldExecutionStrategyWithMultipleFieldErrors() throws {
