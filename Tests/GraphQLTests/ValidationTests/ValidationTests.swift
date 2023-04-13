@@ -7,9 +7,9 @@ class ValidationTestCase: XCTestCase {
     var rule: Rule!
 
     private func validate(body request: String) throws -> [GraphQLError] {
-        return GraphQL.validate(
+        return try GraphQL.validate(
             schema: ValidationExampleSchema,
-            ast: try parse(source: Source(body: request, name: "GraphQL request")),
+            ast: parse(source: Source(body: request, name: "GraphQL request")),
             rules: [rule]
         )
     }

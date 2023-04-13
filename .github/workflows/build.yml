@@ -14,14 +14,14 @@ jobs:
     name: Lint for correct formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: swift-actions/setup-swift@v1
-        with:
-          swift-version: "5.7.1"
-      - name: GitHub Action for SwiftFormat
-        uses: CassiusPacheco/action-swiftformat@v0.1.0
-        with:
-          swiftformat-version: '0.50.6'
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Pull formatting docker image
+        run: docker pull ghcr.io/nicklockwood/swiftformat:latest
+      - name: Run format linting
+        run: docker run --rm -v ${{ github.workspace }}:/repo ghcr.io/nicklockwood/swiftformat:latest /repo --lint
 
   macos:
     name: Build and test on macos-latest

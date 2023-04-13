@@ -155,8 +155,8 @@ class MapTests: XCTestCase {
     func testMapEncodingOrderPreserved() throws {
         // Test top level
         XCTAssertEqual(
-            String(
-                data: try GraphQLJSONEncoder().encode(
+            try String(
+                data: GraphQLJSONEncoder().encode(
                     Map.dictionary([
                         "1": .number(1),
                         "2": .number(2),
@@ -177,8 +177,8 @@ class MapTests: XCTestCase {
 
         // Test embedded
         XCTAssertEqual(
-            String(
-                data: try GraphQLJSONEncoder().encode(
+            try String(
+                data: GraphQLJSONEncoder().encode(
                     Map.array([
                         Map.dictionary([
                             "1": .number(1),
