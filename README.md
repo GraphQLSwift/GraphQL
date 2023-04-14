@@ -42,11 +42,11 @@ when creating your GraphQL schema use [Graphiti](https://github.com/GraphQLSwift
 Once a schema has been defined queries may be executed against it using the global `graphql` function:
 
 ```swift
-let result = try graphql(
+let result = try await graphql(
     schema: schema,
     request: "{ hello }",
     eventLoopGroup: eventLoopGroup
-).wait()
+)
 ```
 
 The result of this query is a `GraphQLResult` that encodes to the following JSON:
@@ -94,9 +94,9 @@ let schema = try GraphQLSchema(
 To execute a subscription use the `graphqlSubscribe` function:
 
 ```swift
-let subscriptionResult = try graphqlSubscribe(
+let subscriptionResult = try await graphqlSubscribe(
     schema: schema,
-).wait()
+)
 // Must downcast from EventStream to concrete type to use in 'for await' loop below
 let concurrentStream = subscriptionResult.stream! as! ConcurrentEventStream
 for try await result in concurrentStream.stream {
