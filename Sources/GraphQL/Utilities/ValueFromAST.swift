@@ -65,8 +65,8 @@ func valueFromAST(
         }
 
         // Convert solitary value into single-value array
-        return .array([
-            try valueFromAST(
+        return try .array([
+            valueFromAST(
                 valueAST: valueAST,
                 type: itemType,
                 variables: variables

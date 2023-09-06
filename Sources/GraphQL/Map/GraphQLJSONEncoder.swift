@@ -473,11 +473,6 @@ extension JSONEncoderImpl: _SpecialTreatmentEncoder {
             return .string(url.absoluteString)
         case let decimal as Decimal:
             return .number(decimal.description)
-        case let object as OrderedDictionary<
-            String,
-            Encodable
-        >: // this emits a warning, but it works perfectly
-            return try wrapObject(object, for: nil)
         case let date as Date:
             return try wrapDate(date, for: nil)
         default:
@@ -545,8 +540,6 @@ extension _SpecialTreatmentEncoder {
             return .string(url.absoluteString)
         case let decimal as Decimal:
             return .number(decimal.description)
-        case let object as OrderedDictionary<String, Encodable>:
-            return try wrapObject(object, for: additionalKey)
         default:
             let encoder = getEncoder(for: additionalKey)
             try encodable.encode(to: encoder)

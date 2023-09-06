@@ -9,6 +9,7 @@ public struct GraphQLError: Error, Codable {
         case message
         case locations
         case path
+        case extensions
     }
 
     /**
@@ -38,6 +39,12 @@ public struct GraphQLError: Error, Codable {
      */
     public let path: IndexPath
 
+    /// Reserved for implementors to add additional information to errors
+    /// however they see fit, and there are no restrictions on its contents.
+    ///
+    /// See: https://spec.graphql.org/October2021/#sel-HAPHRPZCBiCBzG67F
+    public let extensions: [String: Map]
+
     /**
      * An array of GraphQL AST Nodes corresponding to this error.
      */
@@ -65,7 +72,8 @@ public struct GraphQLError: Error, Codable {
         source: Source? = nil,
         positions: [Int] = [],
         path: IndexPath = [],
-        originalError: Error? = nil
+        originalError: Error? = nil,
+        extensions: [String: Map] = [:]
     ) {
         self.message = message
         self.nodes = nodes
@@ -92,16 +100,19 @@ public struct GraphQLError: Error, Codable {
 
         self.path = path
         self.originalError = originalError
+        self.extensions = extensions
     }
 
     public init(
         message: String,
         locations: [SourceLocation],
-        path: IndexPath = []
+        path: IndexPath = [],
+        extensions: [String: Map] = [:]
     ) {
         self.message = message
         self.locations = locations
         self.path = path
+        self.extensions = extensions
         nodes = []
         source = nil
         positions = []
@@ -120,6 +131,7 @@ public struct GraphQLError: Error, Codable {
         message = try container.decode(String.self, forKey: .message)
         locations = (try? container.decode([SourceLocation]?.self, forKey: .locations)) ?? []
         path = try container.decode(IndexPath.self, forKey: .path)
+        extensions = try container.decodeIfPresent([String: Map].self, forKey: .extensions) ?? [:]
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -132,6 +144,10 @@ public struct GraphQLError: Error, Codable {
         }
 
         try container.encode(path, forKey: .path)
+
+        if !extensions.isEmpty {
+            try container.encode(extensions, forKey: .extensions)
+        }
     }
 }
 

@@ -1331,7 +1331,7 @@ func many<T>(
     parse: (Lexer) throws -> T
 ) throws -> [T] {
     try expect(lexer: lexer, kind: openKind)
-    var nodes = [try parse(lexer)]
+    var nodes = try [parse(lexer)]
     while try !skip(lexer: lexer, kind: closeKind) {
         try nodes.append(parse(lexer))
     }

@@ -701,16 +701,16 @@ extension Map: Codable {
 
     /// A wrapper for dictionary keys which are Strings or Ints.
     /// This is copied from Swift core: https://github.com/apple/swift/blob/256a9c5ad96378daa03fa2d5197b4201bf16db27/stdlib/public/core/Codable.swift#L5508
-    internal struct _DictionaryCodingKey: CodingKey {
-        internal let stringValue: String
-        internal let intValue: Int?
+    struct _DictionaryCodingKey: CodingKey {
+        let stringValue: String
+        let intValue: Int?
 
-        internal init?(stringValue: String) {
+        init?(stringValue: String) {
             self.stringValue = stringValue
             intValue = Int(stringValue)
         }
 
-        internal init?(intValue: Int) {
+        init?(intValue: Int) {
             stringValue = "\(intValue)"
             self.intValue = intValue
         }
