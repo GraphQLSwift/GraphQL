@@ -149,7 +149,7 @@ func coerceValue(value: Map, type: GraphQLInputType) throws -> Map {
         }
 
         // Convert solitary value into single-value array
-        return .array([try coerceValue(value: value, type: itemType)])
+        return try .array([coerceValue(value: value, type: itemType)])
     }
 
     if let objectType = type as? GraphQLInputObjectType {

@@ -1,5 +1,5 @@
 //
-//  DictionaryFuture.swift
+//  NIO+Extensions.swift
 //  GraphQL
 //
 //  Created by Jeff Seibert on 3/9/18.

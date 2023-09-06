@@ -26,7 +26,9 @@ class ParserTests: XCTestCase {
             XCTAssertEqual(error.locations[0].column, 2)
         }
 
-        XCTAssertThrowsError(try parse(source: "{ ...MissingOn }\nfragment MissingOn Type\n")) { error in
+        XCTAssertThrowsError(try parse(
+            source: "{ ...MissingOn }\nfragment MissingOn Type\n"
+        )) { error in
             guard let error = error as? GraphQLError else {
                 return XCTFail()
             }
@@ -111,7 +113,9 @@ class ParserTests: XCTestCase {
             ))
         }
 
-        XCTAssertThrowsError(try parse(source: "type WithImplementsButNoTypes implements {}")) { error in
+        XCTAssertThrowsError(try parse(
+            source: "type WithImplementsButNoTypes implements {}"
+        )) { error in
             guard let error = error as? GraphQLError else {
                 return XCTFail()
             }

@@ -87,7 +87,9 @@ import XCTest
                                     type: GraphQLInt
                                 ),
                             ],
-                            resolve: { emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
+                            resolve: { emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<
+                                Any?
+                            > in
                                 guard let email = emailAny as? Email else {
                                     throw GraphQLError(
                                         message: "Source is not Email type: \(type(of: emailAny))"
@@ -98,7 +100,9 @@ import XCTest
                                     inbox: Inbox(emails: db.emails)
                                 ))
                             },
-                            subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
+                            subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<
+                                Any?
+                            > in
                                 eventLoopGroup.next().makeSucceededFuture(db.publisher.subscribe())
                             }
                         ),
@@ -109,7 +113,9 @@ import XCTest
                                     type: GraphQLInt
                                 ),
                             ],
-                            resolve: { emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
+                            resolve: { emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<
+                                Any?
+                            > in
                                 guard let email = emailAny as? Email else {
                                     throw GraphQLError(
                                         message: "Source is not Email type: \(type(of: emailAny))"
@@ -120,7 +126,9 @@ import XCTest
                                     inbox: Inbox(emails: db.emails)
                                 ))
                             },
-                            subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
+                            subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<
+                                Any?
+                            > in
                                 eventLoopGroup.next().makeSucceededFuture(db.publisher.subscribe())
                             }
                         ),
@@ -192,7 +200,9 @@ import XCTest
                             resolve: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                                 eventLoopGroup.next().makeSucceededFuture(nil)
                             },
-                            subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
+                            subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<
+                                Any?
+                            > in
                                 didResolveImportantEmail = true
                                 return eventLoopGroup.next()
                                     .makeSucceededFuture(db.publisher.subscribe())
@@ -203,7 +213,9 @@ import XCTest
                             resolve: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
                                 eventLoopGroup.next().makeSucceededFuture(nil)
                             },
-                            subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
+                            subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<
+                                Any?
+                            > in
                                 didResolveNonImportantEmail = true
                                 return eventLoopGroup.next()
                                     .makeSucceededFuture(db.publisher.subscribe())

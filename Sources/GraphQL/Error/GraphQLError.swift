@@ -38,7 +38,7 @@ public struct GraphQLError: Error, Codable {
      * Appears in the result of `description`.
      */
     public let path: IndexPath
-    
+
     /// Reserved for implementors to add additional information to errors
     /// however they see fit, and there are no restrictions on its contents.
     ///
@@ -144,7 +144,7 @@ public struct GraphQLError: Error, Codable {
         }
 
         try container.encode(path, forKey: .path)
-        
+
         if !extensions.isEmpty {
             try container.encode(extensions, forKey: .extensions)
         }
