@@ -1,5 +1,3 @@
-import Foundation
-
 /**
  * Produces a GraphQL Value AST given a Map value.
  *
@@ -21,9 +19,12 @@ func astFromValue(
     type: GraphQLInputType
 ) throws -> Value? {
     if let type = type as? GraphQLNonNull {
-        // Note: we're not checking that the result is non-null.
-        // This function is not responsible for validating the input value.
-        return try astFromValue(value: value, type: type.ofType as! GraphQLInputType)
+        guard let nonNullType = type.ofType as? GraphQLInputType else {
+            throw GraphQLError(
+                message: "Expected GraphQLNonNull to contain an input type \(type)"
+            )
+        }
+        return try astFromValue(value: value, type: nonNullType)
     }
 
     guard value != .null else {
@@ -33,9 +34,13 @@ func astFromValue(
     // Convert array to GraphQL list. If the GraphQLType is a list, but
     // the value is not an array, convert the value using the list's item type.
     if let type = type as? GraphQLList {
-        let itemType = type.ofType as! GraphQLInputType
+        guard let itemType = type.ofType as? GraphQLInputType else {
+            throw GraphQLError(
+                message: "Expected GraphQLList to contain an input type \(type)"
+            )
+        }
 
-        if case .array(let value) = value {
+        if case let .array(value) = value {
             var valuesASTs: [Value] = []
 
             for item in value {
@@ -53,7 +58,7 @@ func astFromValue(
     // Populate the fields of the input object by creating ASTs from each value
     // in the JavaScript object according to the fields in the input type.
     if let type = type as? GraphQLInputObjectType {
-        guard case .dictionary(let value) = value else {
+        guard case let .dictionary(value) = value else {
             return nil
         }
 
@@ -63,7 +68,12 @@ func astFromValue(
         for (fieldName, field) in fields {
             let fieldType = field.type
 
-            if let fieldValue = try astFromValue(value: value[fieldName] ?? .null, type: fieldType) {
+            if
+                let fieldValue = try astFromValue(
+                    value: value[fieldName] ?? .null,
+                    type: fieldType
+                )
+            {
                 let field = ObjectField(name: Name(value: fieldName), value: fieldValue)
                 fieldASTs.append(field)
             }
@@ -74,7 +84,7 @@ func astFromValue(
 
     guard let leafType = type as? GraphQLLeafType else {
         throw GraphQLError(
-            message: "Must provide Input Type, cannot use: \(type)"
+            message: "Expected scalar non-object type to be a leaf type: \(type)"
         )
     }
 
@@ -107,20 +117,24 @@ func astFromValue(
         }
 
         // ID types can use Int literals.
-        if type == GraphQLID && Int(string) != nil {
+        if type == GraphQLID, Int(string) != nil {
             return IntValue(value: string)
         }
-        
+
         // Use JSON stringify, which uses the same string encoding as GraphQL,
         // then remove the quotes.
-        struct Wrapper : Encodable {
+        struct Wrapper: Encodable {
             let map: Map
         }
-        
-        let data = try JSONEncoder().encode(Wrapper(map: serialized))
-        let string = String(data: data, encoding: .utf8)!
+
+        let data = try GraphQLJSONEncoder().encode(Wrapper(map: serialized))
+        guard let string = String(data: data, encoding: .utf8) else {
+            throw GraphQLError(
+                message: "Unable to convert data to utf8 string: \(data)"
+            )
+        }
         return StringValue(value: String(string.dropFirst(8).dropLast(2)))
     }
-    
+
     throw GraphQLError(message: "Cannot convert value to AST: \(serialized)")
 }

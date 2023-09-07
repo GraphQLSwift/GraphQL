@@ -4,9 +4,11 @@ func typeFromAST(schema: GraphQLSchema, inputTypeAST: Type) -> GraphQLType? {
             return GraphQLList(innerType)
         }
     }
-    
+
     if let nonNullType = inputTypeAST as? NonNullType {
         if let innerType = typeFromAST(schema: schema, inputTypeAST: nonNullType.type) {
+            // Non-null types by definition must contain nullable types (since all types are
+            // nullable by default)
             return GraphQLNonNull(innerType as! GraphQLNullableType)
         }
     }

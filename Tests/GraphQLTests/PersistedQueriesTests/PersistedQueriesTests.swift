@@ -2,7 +2,6 @@ import GraphQL
 import XCTest
 
 class PersistedQueriesTests: XCTestCase {
-
 //    let schema = try! GraphQLSchema(
 //        query: GraphQLObjectType(
 //            name: "RootQueryType",
@@ -30,7 +29,8 @@ class PersistedQueriesTests: XCTestCase {
 //        let result = try lookup("parse_error")
 //        switch result {
 //        case .parseError(let error):
-//            XCTAssertEqual(String(error.message.prefix(57)), "Syntax Error parse_error (1:4) Expected Name, found <EOF>")
+//            XCTAssertEqual(String(error.message.prefix(57)), "Syntax Error parse_error (1:4)
+//            Expected Name, found <EOF>")
 //            XCTAssertEqual(error.locations.first?.line, 1)
 //            XCTAssertEqual(error.locations.first?.column, 4)
 //            return
@@ -45,7 +45,8 @@ class PersistedQueriesTests: XCTestCase {
 //        case .validateErrors(let schema, let errors):
 //            XCTAssertTrue(schema === self.schema)
 //            XCTAssertEqual(errors.count, 1)
-//            XCTAssertEqual(errors.first?.message, "Cannot query field \"boyhowdy\" on type \"RootQueryType\".")
+//            XCTAssertEqual(errors.first?.message, "Cannot query field \"boyhowdy\" on type
+//            \"RootQueryType\".")
 //            XCTAssertEqual(errors.first?.locations.first?.line, 1)
 //            XCTAssertEqual(errors.first?.locations.first?.column, 3)
 //            return
@@ -77,7 +78,8 @@ class PersistedQueriesTests: XCTestCase {
 //        do {
 //            _ = try graphql(queryRetrieval: self, queryId: "parse_error")
 //        } catch let error as GraphQLError {
-//            XCTAssertEqual(String(error.message.prefix(57)), "Syntax Error parse_error (1:4) Expected Name, found <EOF>")
+//            XCTAssertEqual(String(error.message.prefix(57)), "Syntax Error parse_error (1:4)
+//            Expected Name, found <EOF>")
 //            XCTAssertEqual(error.locations.first?.line, 1)
 //            XCTAssertEqual(error.locations.first?.column, 4)
 //        }
@@ -106,9 +108,9 @@ class PersistedQueriesTests: XCTestCase {
 //        XCTAssertEqual(result, expected)
 //    }
 //
-//}
+    // }
 //
-//extension PersistedQueriesTests: PersistedQueryRetrieval {
+    // extension PersistedQueriesTests: PersistedQueryRetrieval {
 //    typealias Id = String
 //
 //    func lookup(_ id: Id) throws -> PersistedQueryRetrievalResult<Id> {
@@ -136,5 +138,4 @@ class PersistedQueriesTests: XCTestCase {
 //            throw error
 //        }
 //    }
-
 }

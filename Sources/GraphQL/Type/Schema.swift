@@ -41,9 +41,9 @@ public final class GraphQLSchema {
         types: [GraphQLNamedType] = [],
         directives: [GraphQLDirective] = []
     ) throws {
-        self.queryType = query
-        self.mutationType = mutation
-        self.subscriptionType = subscription
+        queryType = query
+        mutationType = mutation
+        subscriptionType = subscription
 
         // Provide specified directives (e.g. @include and @skip) by default.
         self.directives = directives.isEmpty ? specifiedDirectives : directives
@@ -77,7 +77,7 @@ public final class GraphQLSchema {
         try replaceTypeReferences(typeMap: typeMap)
 
         // Keep track of all implementations by interface name.
-        self.implementations = collectImplementations(types: Array(typeMap.values))
+        implementations = collectImplementations(types: Array(typeMap.values))
 
         // Enforce correct interface implementations.
         for (_, type) in typeMap {
@@ -97,18 +97,24 @@ public final class GraphQLSchema {
         if let unionType = abstractType as? GraphQLUnionType {
             return unionType.types
         }
-        
+
         if let interfaceType = abstractType as? GraphQLInterfaceType {
             return getImplementations(interfaceType: interfaceType).objects
         }
-        
-        fatalError("Should be impossible. Only UnionType and InterfaceType should conform to AbstractType")
+
+        fatalError(
+            "Should be impossible. Only UnionType and InterfaceType should conform to AbstractType"
+        )
     }
-    
+
     public func getImplementations(
         interfaceType: GraphQLInterfaceType
     ) -> InterfaceImplementations {
-        implementations[interfaceType.name]!
+        guard let matchingImplementations = implementations[interfaceType.name] else {
+            // If we ask for an interface that hasn't been defined, just return no types.
+            return InterfaceImplementations()
+        }
+        return matchingImplementations
     }
 
     // @deprecated: use isSubType instead - will be removed in the future.
@@ -118,10 +124,10 @@ public final class GraphQLSchema {
     ) throws -> Bool {
         isSubType(abstractType: abstractType, maybeSubType: possibleType)
     }
-    
+
     public func isSubType(
-      abstractType: GraphQLAbstractType,
-      maybeSubType: GraphQLNamedType
+        abstractType: GraphQLAbstractType,
+        maybeSubType: GraphQLNamedType
     ) -> Bool {
         var map = subTypeMap[abstractType.name]
 
@@ -133,19 +139,19 @@ public final class GraphQLSchema {
                     map?[type.name] = true
                 }
             }
-            
+
             if let interfaceType = abstractType as? GraphQLInterfaceType {
                 let implementations = getImplementations(interfaceType: interfaceType)
-                
+
                 for type in implementations.objects {
                     map?[type.name] = true
                 }
-                
+
                 for type in implementations.interfaces {
                     map?[type.name] = true
                 }
             }
-            
+
             subTypeMap[abstractType.name] = map
         }
 
@@ -157,13 +163,13 @@ public final class GraphQLSchema {
         for directive in directives where directive.name == name {
             return directive
         }
-        
+
         return nil
     }
 }
 
-extension GraphQLSchema : Encodable {
-    private enum CodingKeys : String, CodingKey {
+extension GraphQLSchema: Encodable {
+    private enum CodingKeys: String, CodingKey {
         case queryType
         case mutationType
         case subscriptionType
@@ -176,7 +182,7 @@ public typealias TypeMap = [String: GraphQLNamedType]
 public struct InterfaceImplementations {
     public let objects: [GraphQLObjectType]
     public let interfaces: [GraphQLInterfaceType]
-    
+
     public init(
         objects: [GraphQLObjectType] = [],
         interfaces: [GraphQLInterfaceType] = []
@@ -187,8 +193,8 @@ public struct InterfaceImplementations {
 }
 
 func collectImplementations(
-  types: [GraphQLNamedType]
-) -> [String : InterfaceImplementations] {
+    types: [GraphQLNamedType]
+) -> [String: InterfaceImplementations] {
     var implementations: [String: InterfaceImplementations] = [:]
 
     for type in types {
@@ -204,7 +210,7 @@ func collectImplementations(
                 )
             }
         }
-        
+
         if let type = type as? GraphQLObjectType {
             // Store implementations by objects.
             for iface in type.interfaces {
@@ -229,16 +235,28 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
         return typeMap // Should never happen
     }
 
-    guard typeMap[type.name] == nil || typeMap[type.name] is GraphQLTypeReference else {
-        guard typeMap[type.name]! == type || type is GraphQLTypeReference else {
-            throw GraphQLError(
-                message:
-                "Schema must contain unique named types but contains multiple " +
-                "types named \"\(type.name)\"."
-            )
+    if let existingType = typeMap[type.name] {
+        if existingType is GraphQLTypeReference {
+            if type is GraphQLTypeReference {
+                // Just short circuit because they're both type references
+                return typeMap
+            }
+            // Otherwise, fall through and override the type reference
+        } else {
+            if type is GraphQLTypeReference {
+                // Just ignore the reference and keep the concrete one
+                return typeMap
+            } else if !(existingType == type) {
+                throw GraphQLError(
+                    message:
+                    "Schema must contain unique named types but contains multiple " +
+                        "types named \"\(type.name)\"."
+                )
+            } else {
+                // Otherwise, it's already been defined so short circuit
+                return typeMap
+            }
         }
-
-        return typeMap
     }
 
     typeMap[type.name] = type
@@ -251,9 +269,8 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
         typeMap = try type.interfaces.reduce(typeMap, typeMapReducer)
 
         for (_, field) in type.fields {
-
             if !field.args.isEmpty {
-                let fieldArgTypes = field.args.map({ $0.type })
+                let fieldArgTypes = field.args.map { $0.type }
                 typeMap = try fieldArgTypes.reduce(typeMap, typeMapReducer)
             }
 
@@ -263,11 +280,10 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
 
     if let type = type as? GraphQLInterfaceType {
         typeMap = try type.interfaces.reduce(typeMap, typeMapReducer)
-        
-        for (_, field) in type.fields {
 
+        for (_, field) in type.fields {
             if !field.args.isEmpty {
-                let fieldArgTypes = field.args.map({ $0.type })
+                let fieldArgTypes = field.args.map { $0.type }
                 typeMap = try fieldArgTypes.reduce(typeMap, typeMapReducer)
             }
 
@@ -280,7 +296,7 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
             typeMap = try typeMapReducer(typeMap: typeMap, type: field.type)
         }
     }
-    
+
     return typeMap
 }
 
@@ -297,7 +313,7 @@ func assert(
             throw GraphQLError(
                 message:
                 "\(interface.name) expects field \(fieldName) " +
-                "but \(object.name) does not provide it."
+                    "but \(object.name) does not provide it."
             )
         }
 
@@ -307,8 +323,8 @@ func assert(
             throw GraphQLError(
                 message:
                 "\(interface.name).\(fieldName) expects type \"\(interfaceField.type)\" " +
-                "but " +
-                "\(object.name).\(fieldName) provides type \"\(objectField.type)\"."
+                    "but " +
+                    "\(object.name).\(fieldName) provides type \"\(objectField.type)\"."
             )
         }
 
@@ -319,7 +335,7 @@ func assert(
                 throw GraphQLError(
                     message:
                     "\(interface.name).\(fieldName) expects argument \"\(argName)\" but " +
-                    "\(object.name).\(fieldName) does not provide it."
+                        "\(object.name).\(fieldName) does not provide it."
                 )
             }
 
@@ -329,9 +345,9 @@ func assert(
                 throw GraphQLError(
                     message:
                     "\(interface.name).\(fieldName)(\(argName):) expects type " +
-                    "\"\(interfaceArg.type)\" but " +
-                    "\(object.name).\(fieldName)(\(argName):) provides type " +
-                    "\"\(objectArg.type)\"."
+                        "\"\(interfaceArg.type)\" but " +
+                        "\(object.name).\(fieldName)(\(argName):) provides type " +
+                        "\"\(objectArg.type)\"."
                 )
             }
         }
@@ -339,11 +355,14 @@ func assert(
         // Assert additional arguments must not be required.
         for objectArg in objectField.args {
             let argName = objectArg.name
-            if interfaceField.args.find({ $0.name == argName }) == nil && isRequiredArgument(objectArg) {
+            if
+                interfaceField.args.find({ $0.name == argName }) == nil,
+                isRequiredArgument(objectArg)
+            {
                 throw GraphQLError(
                     message:
                     "\(object.name).\(fieldName) includes required argument (\(argName):) that is missing " +
-                    "from the Interface field \(interface.name).\(fieldName)."
+                        "from the Interface field \(interface.name).\(fieldName)."
                 )
             }
         }
@@ -354,6 +373,16 @@ func replaceTypeReferences(typeMap: TypeMap) throws {
     for type in typeMap {
         if let typeReferenceContainer = type.value as? GraphQLTypeReferenceContainer {
             try typeReferenceContainer.replaceTypeReferences(typeMap: typeMap)
+        }
+    }
+
+    // Check that no type names map to TypeReferences. That is, they have all been resolved to
+    // actual types.
+    for (typeName, graphQLNamedType) in typeMap {
+        if graphQLNamedType is GraphQLTypeReference {
+            throw GraphQLError(
+                message: "Type \"\(typeName)\" was referenced but not defined."
+            )
         }
     }
 }

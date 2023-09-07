@@ -8,7 +8,7 @@ import GraphQL
  * values in a more complex demo.
  */
 
-enum Episode : String, Encodable {
+enum Episode: String, Encodable {
     case newHope = "NEWHOPE"
     case empire = "EMPIRE"
     case jedi = "JEDI"
@@ -22,14 +22,14 @@ enum Episode : String, Encodable {
     }
 }
 
-protocol Character : Encodable {
+protocol Character: Encodable {
     var id: String { get }
     var name: String { get }
     var friends: [String] { get }
     var appearsIn: [Episode] { get }
 }
 
-struct Human : Character {
+struct Human: Character {
     let id: String
     let name: String
     let friends: [String]
@@ -51,7 +51,7 @@ struct Human : Character {
     }
 }
 
-struct Droid : Character {
+struct Droid: Character {
     let id: String
     let name: String
     let friends: [String]
@@ -70,7 +70,7 @@ let luke = Human(
 let vader = Human(
     id: "1001",
     name: "Darth Vader",
-    friends: [ "1004" ],
+    friends: ["1004"],
     appearsIn: [.newHope, .empire, .jedi],
     homePlanet: "Tatooine"
 )
@@ -116,7 +116,7 @@ let c3po = Droid(
 let r2d2 = Droid(
     id: "2001",
     name: "R2-D2",
-    friends: [ "1000", "1002", "1003" ],
+    friends: ["1000", "1002", "1003"],
     appearsIn: [.newHope, .empire, .jedi],
     primaryFunction: "Astromech"
 )

@@ -7,25 +7,25 @@
  */
 func PossibleFragmentSpreadsRule(context: ValidationContext) -> Visitor {
     return Visitor(
-        enter: { node, key, parent, path, ancestors in
+        enter: { node, _, _, _, _ in
             if let node = node as? InlineFragment {
                 guard
                     let fragType = context.type as? GraphQLCompositeType,
                     let parentType = context.parentType
-                    else {
-                        return .continue
+                else {
+                    return .continue
                 }
-                
+
                 let isThereOverlap = doTypesOverlap(
                     schema: context.schema,
                     typeA: fragType,
                     typeB: parentType
                 )
-                
+
                 guard !isThereOverlap else {
                     return .continue
                 }
-                
+
                 context.report(
                     error: GraphQLError(
                         message: "Fragment cannot be spread here as objects of type \"\(parentType)\" can never be of type \"\(fragType)\".",
@@ -33,10 +33,10 @@ func PossibleFragmentSpreadsRule(context: ValidationContext) -> Visitor {
                     )
                 )
             }
-            
+
             if let node = node as? FragmentSpread {
                 let fragName = node.name.value
-                
+
                 guard
                     let fragType = getFragmentType(context: context, name: fragName),
                     let parentType = context.parentType
@@ -49,11 +49,11 @@ func PossibleFragmentSpreadsRule(context: ValidationContext) -> Visitor {
                     typeA: fragType,
                     typeB: parentType
                 )
-                
+
                 guard !isThereOverlap else {
                     return .continue
                 }
-                
+
                 context.report(
                     error: GraphQLError(
                         message: "Fragment \"\(fragName)\" cannot be spread here as objects of type \"\(parentType)\" can never be of type \"\(fragType)\".",
@@ -61,7 +61,7 @@ func PossibleFragmentSpreadsRule(context: ValidationContext) -> Visitor {
                     )
                 )
             }
-            
+
             return .continue
         }
     )
@@ -76,11 +76,11 @@ func getFragmentType(
             schema: context.schema,
             inputTypeAST: fragment.typeCondition
         )
-        
+
         if let type = type as? GraphQLCompositeType {
             return type
         }
     }
-    
+
     return nil
 }

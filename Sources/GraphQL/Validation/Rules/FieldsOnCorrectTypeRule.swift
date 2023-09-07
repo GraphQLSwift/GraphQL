@@ -7,11 +7,9 @@ func undefinedFieldMessage(
     var message = "Cannot query field \"\(fieldName)\" on type \"\(type)\"."
 
     if !suggestedTypeNames.isEmpty {
-        let suggestions = quotedOrList(items: suggestedTypeNames)
-        message += " Did you mean to use an inline fragment on \(suggestions)?"
+        message += didYouMean("to use an inline fragment on", suggestions: suggestedTypeNames)
     } else if !suggestedFieldNames.isEmpty {
-        let suggestions = quotedOrList(items: suggestedFieldNames)
-        message += " Did you mean \(suggestions)?"
+        message += didYouMean(suggestions: suggestedFieldNames)
     }
 
     return message
@@ -25,7 +23,7 @@ func undefinedFieldMessage(
  */
 func FieldsOnCorrectTypeRule(context: ValidationContext) -> Visitor {
     return Visitor(
-        enter: { node, key, parent, path, ancestors in
+        enter: { node, _, _, _, _ in
             if let node = node as? Field {
                 if let type = context.parentType {
                     let fieldDef = context.fieldDef
@@ -42,11 +40,12 @@ func FieldsOnCorrectTypeRule(context: ValidationContext) -> Visitor {
                         )
 
                         // If there are no suggested types, then perhaps this was a typo?
-                        let suggestedFieldNames = !suggestedTypeNames.isEmpty ? [] : getSuggestedFieldNames(
-                            schema: schema,
-                            type: type,
-                            fieldName: fieldName
-                        )
+                        let suggestedFieldNames = !suggestedTypeNames
+                            .isEmpty ? [] : getSuggestedFieldNames(
+                                schema: schema,
+                                type: type,
+                                fieldName: fieldName
+                            )
 
                         // Report an error, including helpful suggestions.
                         context.report(error: GraphQLError(
@@ -83,7 +82,6 @@ func getSuggestedTypeNames(
         var interfaceUsageCount: [String: Int] = [:]
 
         for possibleType in schema.getPossibleTypes(abstractType: type) {
-
             if possibleType.fields[fieldName] == nil {
                 return []
             }
@@ -96,19 +94,21 @@ func getSuggestedTypeNames(
                     return []
                 }
                 // This interface type defines this field.
-                interfaceUsageCount[possibleInterface.name] = (interfaceUsageCount[possibleInterface.name] ?? 0) + 1
+                interfaceUsageCount[possibleInterface.name] =
+                    (interfaceUsageCount[possibleInterface.name] ?? 0) + 1
             }
         }
 
         // Suggest interface types based on how common they are.
         let suggestedInterfaceTypes = interfaceUsageCount.keys.sorted {
+            // Unwraps are safe because keys are from object being sorted.
             interfaceUsageCount[$1]! - interfaceUsageCount[$0]! >= 0
         }
 
         // Suggest both interface and object types.
         return suggestedInterfaceTypes + suggestedObjectTypes
     }
-    
+
     // Otherwise, must be an Object type, which does not have possible fields.
     return []
 }
@@ -118,7 +118,7 @@ func getSuggestedTypeNames(
  * that may be the result of a typo.
  */
 func getSuggestedFieldNames(
-    schema: GraphQLSchema,
+    schema _: GraphQLSchema,
     type: GraphQLOutputType,
     fieldName: String
 ) -> [String] {

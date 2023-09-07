@@ -34,7 +34,6 @@ func subscribe(
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) -> EventLoopFuture<SubscriptionResult> {
-    
     let sourceFuture = createSourceEventStream(
         queryStrategy: queryStrategy,
         mutationStrategy: mutationStrategy,
@@ -48,18 +47,18 @@ func subscribe(
         variableValues: variableValues,
         operationName: operationName
     )
-    
-    return sourceFuture.map{ sourceResult -> SubscriptionResult in
+
+    return sourceFuture.map { sourceResult -> SubscriptionResult in
         if let sourceStream = sourceResult.stream {
             let subscriptionStream = sourceStream.map { eventPayload -> Future<GraphQLResult> in
-                
+
                 // For each payload yielded from a subscription, map it over the normal
                 // GraphQL `execute` function, with `payload` as the rootValue.
                 // This implements the "MapSourceToResponseEvent" algorithm described in
                 // the GraphQL specification. The `execute` function provides the
                 // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
                 // "ExecuteQuery" algorithm, for which `execute` is also used.
-                return execute(
+                execute(
                     queryStrategy: queryStrategy,
                     mutationStrategy: mutationStrategy,
                     subscriptionStrategy: subscriptionStrategy,
@@ -120,9 +119,8 @@ func createSourceEventStream(
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) -> EventLoopFuture<SourceEventStreamResult> {
-
     let executeStarted = instrumentation.now
-    
+
     do {
         // If a valid context cannot be created due to incorrect arguments,
         // this will throw an error.
@@ -158,7 +156,8 @@ func createSourceEventStream(
 
         return eventLoopGroup.next().makeSucceededFuture(SourceEventStreamResult(errors: [error]))
     } catch {
-        return eventLoopGroup.next().makeSucceededFuture(SourceEventStreamResult(errors: [GraphQLError(error)]))
+        return eventLoopGroup.next()
+            .makeSucceededFuture(SourceEventStreamResult(errors: [GraphQLError(error)]))
     }
 }
 
@@ -166,11 +165,10 @@ func executeSubscription(
     context: ExecutionContext,
     eventLoopGroup: EventLoopGroup
 ) throws -> EventLoopFuture<SourceEventStreamResult> {
-    
     // Get the first node
     let type = try getOperationRootType(schema: context.schema, operation: context.operation)
     var inputFields: OrderedDictionary<String, [Field]> = [:]
-    var visitedFragmentNames: [String:Bool] = [:]
+    var visitedFragmentNames: [String: Bool] = [:]
     let fields = try collectFields(
         exeContext: context,
         runtimeType: type,
@@ -178,34 +176,46 @@ func executeSubscription(
         fields: &inputFields,
         visitedFragmentNames: &visitedFragmentNames
     )
-    // If query is valid, fields is guaranteed to have at least 1 member
-    let responseName = fields.keys.first!
-    let fieldNodes = fields[responseName]!
-    let fieldNode = fieldNodes.first!
-    
-    guard let fieldDef = getFieldDef(schema: context.schema, parentType: type, fieldAST: fieldNode) else {
+
+    // If query is valid, fields should have at least 1 member
+    guard
+        let responseName = fields.keys.first,
+        let fieldNodes = fields[responseName],
+        let fieldNode = fieldNodes.first
+    else {
+        throw GraphQLError(
+            message: "Subscription field resolution resulted in no field nodes."
+        )
+    }
+
+    guard let fieldDef = getFieldDef(schema: context.schema, parentType: type, fieldAST: fieldNode)
+    else {
         throw GraphQLError(
             message: "The subscription field '\(fieldNode.name.value)' is not defined.",
             nodes: fieldNodes
         )
     }
-    
+
     // Implements the "ResolveFieldEventStream" algorithm from GraphQL specification.
     // It differs from "ResolveFieldValue" due to providing a different `resolveFn`.
 
     // Build a map of arguments from the field.arguments AST, using the
     // variables scope to fulfill any variable references.
-    let args = try getArgumentValues(argDefs: fieldDef.args, argASTs: fieldNode.arguments, variables: context.variableValues)
+    let args = try getArgumentValues(
+        argDefs: fieldDef.args,
+        argASTs: fieldNode.arguments,
+        variables: context.variableValues
+    )
 
     // The resolve function's optional third argument is a context value that
     // is provided to every resolve function within an execution. It is commonly
     // used to represent an authenticated user, or request-specific caches.
     let contextValue = context.context
-    
+
     // The resolve function's optional fourth argument is a collection of
     // information about the current execution state.
-    let path = IndexPath.init().appending(fieldNode.name.value)
-    let info = GraphQLResolveInfo.init(
+    let path = IndexPath().appending(fieldNode.name.value)
+    let info = GraphQLResolveInfo(
         fieldName: fieldDef.name,
         fieldASTs: fieldNodes,
         returnType: fieldDef.type,
@@ -221,7 +231,7 @@ func executeSubscription(
     // Call the `subscribe()` resolver or the default resolver to produce an
     // Observable yielding raw payloads.
     let resolve = fieldDef.subscribe ?? defaultResolve
-    
+
     // Get the resolve func, regardless of if its result is normal
     // or abrupt (error).
     let resolvedFutureOrError = resolveOrError(
@@ -232,8 +242,8 @@ func executeSubscription(
         eventLoopGroup: eventLoopGroup,
         info: info
     )
-    
-    let resolvedFuture:Future<Any?>
+
+    let resolvedFuture: Future<Any?>
     switch resolvedFutureOrError {
     case let .failure(error):
         if let graphQLError = error as? GraphQLError {
@@ -253,25 +263,27 @@ func executeSubscription(
             return SourceEventStreamResult(stream: stream)
         } else if resolved == nil {
             return SourceEventStreamResult(errors: [
-                GraphQLError(message: "Resolved subscription was nil")
+                GraphQLError(message: "Resolved subscription was nil"),
             ])
         } else {
             let resolvedObj = resolved as AnyObject
             return SourceEventStreamResult(errors: [
                 GraphQLError(
                     message: "Subscription field resolver must return EventStream<Any>. Received: '\(resolvedObj)'"
-                )
+                ),
             ])
         }
     }
 }
 
-// Subscription resolvers MUST return observables that are declared as 'Any' due to Swift not having covariant generic support for type
-// checking. Normal resolvers for subscription fields should handle type casting, same as resolvers for query fields.
+// Subscription resolvers MUST return observables that are declared as 'Any' due to Swift not having
+// covariant generic support for type
+// checking. Normal resolvers for subscription fields should handle type casting, same as resolvers
+// for query fields.
 struct SourceEventStreamResult {
     public let stream: EventStream<Any>?
     public let errors: [GraphQLError]
-    
+
     public init(stream: EventStream<Any>? = nil, errors: [GraphQLError] = []) {
         self.stream = stream
         self.errors = errors

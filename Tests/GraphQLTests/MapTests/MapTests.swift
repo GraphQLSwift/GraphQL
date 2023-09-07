@@ -37,7 +37,7 @@ class MapTests: XCTestCase {
                 "second": .number(4),
                 "third": .number(9),
                 "fourth": .null,
-                "fifth": .undefined
+                "fifth": .undefined,
             ]
         )
         XCTAssertEqual(map.dictionary?.count, 5)
@@ -51,42 +51,44 @@ class MapTests: XCTestCase {
         XCTAssertEqual(dictionary["fourth"]?.isNull, true)
         XCTAssertEqual(dictionary["fifth"]?.isUndefined, true)
     }
-    
+
     // Ensure that default decoding preserves undefined becoming nil
     func testNilAndUndefinedDecodeToNilByDefault() throws {
-        struct DecodableTest : Codable {
+        struct DecodableTest: Codable {
             let first: Int?
             let second: Int?
             let third: Int?
             let fourth: Int?
         }
-        
+
         let map = Map.dictionary(
             [
                 "first": .number(1),
                 "second": .null,
-                "third": .undefined
+                "third": .undefined,
                 // fourth not included
             ]
         )
-        
+
         let decodable = try MapDecoder().decode(DecodableTest.self, from: map)
         XCTAssertEqual(decodable.first, 1)
         XCTAssertEqual(decodable.second, nil)
         XCTAssertEqual(decodable.third, nil)
         XCTAssertEqual(decodable.fourth, nil)
     }
-    
-    // Ensure that, if custom decoding is defined, provided nulls and unset values can be differentiated.
-    // This should match JSON in that values set to `null` should be 'contained' by the container, but
+
+    // Ensure that, if custom decoding is defined, provided nulls and unset values can be
+    // differentiated.
+    // This should match JSON in that values set to `null` should be 'contained' by the container,
+    // but
     // values expected by the result that are undefined or not present should not be.
     func testNilAndUndefinedDecoding() throws {
-        struct DecodableTest : Codable {
+        struct DecodableTest: Codable {
             let first: Int?
             let second: Int?
             let third: Int?
             let fourth: Int?
-            
+
             init(
                 first: Int?,
                 second: Int?,
@@ -98,10 +100,10 @@ class MapTests: XCTestCase {
                 self.third = third
                 self.fourth = fourth
             }
-            
+
             init(from decoder: Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
-                
+
                 XCTAssertTrue(container.contains(.first))
                 // Null value should be contained, but decode to nil
                 XCTAssertTrue(container.contains(.second))
@@ -109,42 +111,91 @@ class MapTests: XCTestCase {
                 XCTAssertFalse(container.contains(.third))
                 // Missing value should operate the same as undefined
                 XCTAssertFalse(container.contains(.fourth))
-                
+
                 first = try container.decodeIfPresent(Int.self, forKey: .first)
                 second = try container.decodeIfPresent(Int.self, forKey: .second)
                 third = try container.decodeIfPresent(Int.self, forKey: .third)
                 fourth = try container.decodeIfPresent(Int.self, forKey: .fourth)
             }
         }
-        
+
         let map = Map.dictionary(
             [
                 "first": .number(1),
                 "second": .null,
-                "third": .undefined
+                "third": .undefined,
                 // fourth not included
             ]
         )
-        
+
         _ = try MapDecoder().decode(DecodableTest.self, from: map)
     }
-    
+
     // Ensure that map encoding includes defined nulls, but skips undefined values
-    func testMapEncoding() throws {
+    func testMapEncodingNilAndUndefined() throws {
         let map = Map.dictionary(
             [
                 "first": .number(1),
                 "second": .null,
-                "third": .undefined
+                "third": .undefined,
             ]
         )
-        
-        let data = try JSONEncoder().encode(map)
+
+        let data = try GraphQLJSONEncoder().encode(map)
         let json = String(data: data, encoding: .utf8)
         XCTAssertEqual(
             json,
             """
             {"first":1,"second":null}
+            """
+        )
+    }
+
+    // Ensure that GraphQLJSONEncoder preserves map dictionary order in output
+    func testMapEncodingOrderPreserved() throws {
+        // Test top level
+        XCTAssertEqual(
+            try String(
+                data: GraphQLJSONEncoder().encode(
+                    Map.dictionary([
+                        "1": .number(1),
+                        "2": .number(2),
+                        "3": .number(3),
+                        "4": .number(4),
+                        "5": .number(5),
+                        "6": .number(6),
+                        "7": .number(7),
+                        "8": .number(8),
+                    ])
+                ),
+                encoding: .utf8
+            ),
+            """
+            {"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8}
+            """
+        )
+
+        // Test embedded
+        XCTAssertEqual(
+            try String(
+                data: GraphQLJSONEncoder().encode(
+                    Map.array([
+                        Map.dictionary([
+                            "1": .number(1),
+                            "2": .number(2),
+                            "3": .number(3),
+                            "4": .number(4),
+                            "5": .number(5),
+                            "6": .number(6),
+                            "7": .number(7),
+                            "8": .number(8),
+                        ]),
+                    ])
+                ),
+                encoding: .utf8
+            ),
+            """
+            [{"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8}]
             """
         )
     }

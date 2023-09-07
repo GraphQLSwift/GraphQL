@@ -1,7 +1,7 @@
-import XCTest
 @testable import GraphQL
+import XCTest
 
-class ParserTests : XCTestCase {
+class ParserTests: XCTestCase {
     func testErrorMessages() throws {
         var source: String
 
@@ -10,10 +10,15 @@ class ParserTests : XCTestCase {
                 return XCTFail()
             }
 
-            XCTAssertEqual(error.message,
-                "Syntax Error GraphQL (1:2) Expected Name, found <EOF>\n\n" +
-                " 1: {\n" +
-                "     ^\n"
+            XCTAssertEqual(
+                error.message,
+                """
+                Syntax Error GraphQL (1:2) Expected Name, found <EOF>
+
+                 1: {
+                     ^
+
+                """
             )
 
             XCTAssertEqual(error.positions, [1])
@@ -21,7 +26,9 @@ class ParserTests : XCTestCase {
             XCTAssertEqual(error.locations[0].column, 2)
         }
 
-        XCTAssertThrowsError(try parse(source: "{ ...MissingOn }\nfragment MissingOn Type\n")) { error in
+        XCTAssertThrowsError(try parse(
+            source: "{ ...MissingOn }\nfragment MissingOn Type\n"
+        )) { error in
             guard let error = error as? GraphQLError else {
                 return XCTFail()
             }
@@ -61,7 +68,10 @@ class ParserTests : XCTestCase {
             ))
         }
 
-        XCTAssertThrowsError(try parse(source: Source(body: "query", name: "MyQuery.graphql"))) { error in
+        XCTAssertThrowsError(try parse(source: Source(
+            body: "query",
+            name: "MyQuery.graphql"
+        ))) { error in
             guard let error = error as? GraphQLError else {
                 return XCTFail()
             }
@@ -103,6 +113,29 @@ class ParserTests : XCTestCase {
             ))
         }
 
+        XCTAssertThrowsError(try parse(
+            source: "type WithImplementsButNoTypes implements {}"
+        )) { error in
+            guard let error = error as? GraphQLError else {
+                return XCTFail()
+            }
+
+            XCTAssert(error.message.contains(
+                "Syntax Error GraphQL (1:42) Expected Name, found {"
+            ))
+        }
+
+        XCTAssertThrowsError(
+            try parse(source: "type WithImplementsWithTrailingAmp implements AInterface & {}")
+        ) { error in
+            guard let error = error as? GraphQLError else {
+                return XCTFail()
+            }
+
+            XCTAssert(error.message.contains(
+                "Syntax Error GraphQL (1:60) Expected Name, found {"
+            ))
+        }
     }
 
     func testVariableInlineValues() throws {
@@ -135,7 +168,7 @@ class ParserTests : XCTestCase {
                                     Argument(
                                         name: Name(value: "stringArg"),
                                         value: StringValue(value: "Hello World", block: false)
-                                    )
+                                    ),
                                 ]
                             ),
                             Field(
@@ -144,7 +177,7 @@ class ParserTests : XCTestCase {
                                     Argument(
                                         name: Name(value: "intArg"),
                                         value: IntValue(value: "1")
-                                    )
+                                    ),
                                 ]
                             ),
                             Field(
@@ -153,7 +186,7 @@ class ParserTests : XCTestCase {
                                     Argument(
                                         name: Name(value: "floatArg"),
                                         value: FloatValue(value: "3.14")
-                                    )
+                                    ),
                                 ]
                             ),
                             Field(
@@ -162,7 +195,7 @@ class ParserTests : XCTestCase {
                                     Argument(
                                         name: Name(value: "boolArg"),
                                         value: BooleanValue(value: false)
-                                    )
+                                    ),
                                 ]
                             ),
                             Field(
@@ -171,7 +204,7 @@ class ParserTests : XCTestCase {
                                     Argument(
                                         name: Name(value: "boolArg"),
                                         value: BooleanValue(value: true)
-                                    )
+                                    ),
                                 ]
                             ),
                             Field(
@@ -180,7 +213,7 @@ class ParserTests : XCTestCase {
                                     Argument(
                                         name: Name(value: "value"),
                                         value: NullValue()
-                                    )
+                                    ),
                                 ]
                             ),
                             Field(
@@ -189,7 +222,7 @@ class ParserTests : XCTestCase {
                                     Argument(
                                         name: Name(value: "enumArg"),
                                         value: EnumValue(value: "VALUE")
-                                    )
+                                    ),
                                 ]
                             ),
                             Field(
@@ -211,7 +244,7 @@ class ParserTests : XCTestCase {
                             ),
                         ]
                     )
-                )
+                ),
             ]
         )
 
@@ -240,12 +273,22 @@ class ParserTests : XCTestCase {
 //        }
 //      } ]
 //    });
-//  });
+    //  });
+
+    enum ParserTestsError: Error {
+        case couldNotFindKitchenSink
+    }
 
     func testKitchenSink() throws {
-//        let path = "/Users/paulofaria/Development/Zewo/GraphQL/Tests/GraphQLTests/LanguageTests/kitchen-sink.graphql"
-//        let kitchenSink = try NSString(contentsOfFile: path, encoding: String.Encoding.utf8.rawValue)
-//        _ = try parse(source: kitchenSink as String)
+        guard
+            let url = Bundle.module.url(forResource: "kitchen-sink", withExtension: "graphql"),
+            let kitchenSink = try? String(contentsOf: url)
+        else {
+            XCTFail("Could not load kitchen sink")
+            return
+        }
+
+        _ = try parse(source: kitchenSink)
     }
 
     func testNonKeywordAsName() throws {
@@ -256,7 +299,7 @@ class ParserTests : XCTestCase {
             "mutation",
             "subscription",
             "true",
-            "false"
+            "false",
         ]
 
         for nonKeyword in nonKeywords {
@@ -266,52 +309,57 @@ class ParserTests : XCTestCase {
                 fragmentName = "a"
             }
 
-            _ = try parse(source: "query \(nonKeyword) {" +
-                                  "... \(fragmentName)" +
-                                  "... on \(nonKeyword) { field }" +
-                                  "}" +
-                                  "fragment \(fragmentName) on Type {" +
-                                  "\(nonKeyword)(\(nonKeyword): $\(nonKeyword)) @\(nonKeyword)(\(nonKeyword): \(nonKeyword))" +
-                                  "}"
+            _ = try parse(
+                source: "query \(nonKeyword) {" +
+                    "... \(fragmentName)" +
+                    "... on \(nonKeyword) { field }" +
+                    "}" +
+                    "fragment \(fragmentName) on Type {" +
+                    "\(nonKeyword)(\(nonKeyword): $\(nonKeyword)) @\(nonKeyword)(\(nonKeyword): \(nonKeyword))" +
+                    "}"
             )
         }
     }
 
     func testAnonymousMutationOperation() throws {
-        _ = try parse(source: "mutation {" +
-                              "  mutationField" +
-                              "}"
+        _ = try parse(
+            source: "mutation {" +
+                "  mutationField" +
+                "}"
         )
     }
 
     func testAnonymousSubscriptionOperation() throws {
-        _ = try parse(source: "subscription {" +
-                              "  subscriptionField" +
-                              "}"
+        _ = try parse(
+            source: "subscription {" +
+                "  subscriptionField" +
+                "}"
         )
     }
 
     func testNamedMutationOperation() throws {
-        _ = try parse(source: "mutation Foo {" +
-                              "  mutationField" +
-                              "}"
+        _ = try parse(
+            source: "mutation Foo {" +
+                "  mutationField" +
+                "}"
         )
     }
 
     func testNamedSubscriptionOperation() throws {
-        _ = try parse(source: "subscription Foo {" +
-                              "  subscriptionField" +
-                              "}"
+        _ = try parse(
+            source: "subscription Foo {" +
+                "  subscriptionField" +
+                "}"
         )
     }
 
     func testCreateAST() throws {
         let query = "{" +
-                    "  node(id: 4) {" +
-                    "    id," +
-                    "    name" +
-                    "  }" +
-                    "}"
+            "  node(id: 4) {" +
+            "    id," +
+            "    name" +
+            "  }" +
+            "}"
 
         let expected = Document(
             definitions: [
@@ -325,18 +373,18 @@ class ParserTests : XCTestCase {
                                     Argument(
                                         name: Name(value: "id"),
                                         value: IntValue(value: "4")
-                                    )
+                                    ),
                                 ],
                                 selectionSet: SelectionSet(
                                     selections: [
                                         Field(name: Name(value: "id")),
-                                        Field(name: Name(value: "name"))
+                                        Field(name: Name(value: "name")),
                                     ]
                                 )
-                            )
+                            ),
                         ]
                     )
-                )
+                ),
             ]
         )
 
@@ -367,7 +415,7 @@ class ParserTests : XCTestCase {
         let expected: Value = ListValue(
             values: [
                 IntValue(value: "123"),
-                StringValue(value: "abc", block: false)
+                StringValue(value: "abc", block: false),
             ]
         )
 
@@ -441,16 +489,19 @@ class ParserTests : XCTestCase {
                 name: Name(value: "restricted"),
                 arguments: [
                     InputValueDefinition(
-                        description: StringValue(value: "The reason for this restriction", block: true),
+                        description: StringValue(
+                            value: "The reason for this restriction",
+                            block: true
+                        ),
                         name: Name(value: "reason"),
                         type: NamedType(name: Name(value: "String")),
                         defaultValue: NullValue()
-                    )
+                    ),
                 ],
                 locations: [
-                    Name(value: "FIELD_DEFINITION")
+                    Name(value: "FIELD_DEFINITION"),
                 ]
-            )
+            ),
         ])
 
         let document = try parse(source: source)

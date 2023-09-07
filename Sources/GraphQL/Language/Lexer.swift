@@ -16,7 +16,7 @@ func createLexer(source: Source, noLocation: Bool = false) -> Lexer {
         value: nil
     )
 
-    let lexer: Lexer = Lexer(
+    let lexer = Lexer(
         source: source,
         noLocation: noLocation,
         lastToken: startOfFileToken,
@@ -35,14 +35,31 @@ func advanceLexer(lexer: Lexer) throws -> Token {
 
     if token.kind != .eof {
         repeat {
-            token.next = try readToken(lexer: lexer, prev: token)
-            token = token.next!
+            let nextToken = try readToken(lexer: lexer, prev: token)
+            token.next = nextToken
+            token = nextToken
         } while token.kind == .comment
 
         lexer.token = token
     }
 
     return token
+}
+
+/**
+ * Returns a non-empty list of parse nodes, determined by the parseFn.
+ * This list may begin with a lex token of delimiterKind followed by items separated by lex tokens of tokenKind.
+ * Advances the parser to the next lex token after last item in the list.
+ */
+func delimitedMany<T>(lexer: Lexer, kind: Token.Kind, parseFn: (Lexer) throws -> T) throws -> [T] {
+    _ = try expectOptional(lexer: lexer, kind: kind)
+
+    var nodes: [T] = []
+    repeat {
+        try nodes.append(parseFn(lexer))
+    } while try expectOptional(lexer: lexer, kind: kind) != nil
+
+    return nodes
 }
 
 /**
@@ -77,45 +94,52 @@ final class Lexer {
      */
     let advanceFunction: (Lexer) throws -> Token
 
-    init(source: Source, noLocation: Bool, lastToken: Token, token: Token, line: Int, lineStart: Int, advance: @escaping (Lexer) throws -> Token) {
+    init(
+        source: Source,
+        noLocation: Bool,
+        lastToken: Token,
+        token: Token,
+        line: Int,
+        lineStart: Int,
+        advance: @escaping (Lexer) throws -> Token
+    ) {
         self.source = source
         self.noLocation = noLocation
         self.lastToken = lastToken
         self.token = token
         self.line = line
         self.lineStart = lineStart
-        self.advanceFunction = advance
+        advanceFunction = advance
     }
 
     @discardableResult
     func advance() throws -> Token {
         return try advanceFunction(self)
     }
-    
+
     /**
      * Looks ahead and returns the next non-ignored token, but does not change
      * the state of Lexer.
      */
     func lookahead() throws -> Token {
         var startToken = token
-        let savedLine = self.line
-        let savedLineStart = self.lineStart
-        
+        let savedLine = line
+        let savedLineStart = lineStart
+
         guard startToken.kind != .eof else { return startToken }
         repeat {
-            startToken = try startToken.next ??
-                {
-                    startToken.next = try readToken(lexer: self, prev: startToken)
-                    return startToken.next!
-                }()
+            startToken = try startToken.next ?? {
+                startToken.next = try readToken(lexer: self, prev: startToken)
+                return startToken.next!
+            }()
         } while startToken.kind == .comment
-        
+
         // restore these since both `positionAfterWhitespace` & `readBlockString`
         // can potentially modify them and commment for `lookahead` says no lexer modification.
         // (the latter is true in the canonical js lexer also and is likely a bug)
-        self.line = savedLine
-        self.lineStart = savedLineStart
-        
+        line = savedLine
+        lineStart = savedLineStart
+
         return startToken
     }
 }
@@ -153,7 +177,7 @@ extension String {
     func slice(start: Int, end: Int) -> String {
         let startIndex = utf8.index(utf8.startIndex, offsetBy: start)
         let endIndex = utf8.index(utf8.startIndex, offsetBy: end)
-        var slice: [UInt8] = utf8[startIndex..<endIndex] + [0]
+        var slice: [UInt8] = utf8[startIndex ..< endIndex] + [0]
         return String(cString: &slice)
     }
 }
@@ -198,7 +222,7 @@ func readToken(lexer: Lexer, prev: Token) throws -> Token {
     }
 
     // SourceCharacter
-    if code < 0x0020 && code != 0x0009 && code != 0x000A && code != 0x000D {
+    if code < 0x0020, code != 0x0009, code != 0x000A, code != 0x000D {
         throw syntaxError(
             source: source,
             position: position,
@@ -236,6 +260,16 @@ func readToken(lexer: Lexer, prev: Token) throws -> Token {
             column: col,
             prev: prev
         )
+    // &
+    case 38:
+        return Token(
+            kind: .amp,
+            start: position,
+            end: position + 1,
+            line: line,
+            column: col,
+            prev: prev
+        )
     // (
     case 40:
         return Token(
@@ -258,7 +292,7 @@ func readToken(lexer: Lexer, prev: Token) throws -> Token {
         )
     // .
     case 46:
-        if body.charCode(at: position + 1) == 46 && body.charCode(at: position + 2) == 46 {
+        if body.charCode(at: position + 1) == 46, body.charCode(at: position + 2) == 46 {
             return Token(
                 kind: .spread,
                 start: position,
@@ -349,13 +383,17 @@ func readToken(lexer: Lexer, prev: Token) throws -> Token {
             prev: prev
         )
     // A-Z _ a-z
-    case 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 95, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122:
+    case 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87,
+         88, 89, 90, 95, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+         112,
+         113, 114, 115, 116, 117, 118, 119, 120, 121, 122:
         return readName(
             source: source,
             position: position,
             line: line,
             col: col,
-            prev: prev)
+            prev: prev
+        )
     // - 0-9
     case 45, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57:
         return try readNumber(
@@ -368,14 +406,18 @@ func readToken(lexer: Lexer, prev: Token) throws -> Token {
         )
     // "
     case 34:
-        if body.charCode(at: position + 1) == 34 &&
-            body.charCode(at: position + 2) == 34 {
-            return try readBlockString(lexer: lexer,
-                                       source: source,
-                                       start: position,
-                                       line: line,
-                                       col: col,
-                                       prev: prev)
+        if
+            body.charCode(at: position + 1) == 34,
+            body.charCode(at: position + 2) == 34
+        {
+            return try readBlockString(
+                lexer: lexer,
+                source: source,
+                start: position,
+                line: line,
+                col: col,
+                prev: prev
+            )
         }
         return try readString(
             source: source,
@@ -387,7 +429,7 @@ func readToken(lexer: Lexer, prev: Token) throws -> Token {
     default:
         break
     }
-    
+
     throw syntaxError(
         source: source,
         position: position,
@@ -408,7 +450,10 @@ func positionAfterWhitespace(body: String, startPosition: Int, lexer: Lexer) -> 
         let code = body.charCode(at: position)
 
         // BOM
-        if code == 239 && body.charCode(at: position + 1) == 187 && body.charCode(at: position + 2) == 191 {
+        if
+            code == 239 && body.charCode(at: position + 1) == 187 && body
+                .charCode(at: position + 2) == 191
+        {
             position += 3
         } else if code == 9 || code == 32 || code == 44 { // tab | space | comma
             position += 1
@@ -447,7 +492,7 @@ func readComment(source: Source, start: Int, line: Int, col: Int, prev: Token) -
         code = body.charCode(at: position)
 
         // SourceCharacter but not LineTerminator
-        if let code = code, (code > 0x001F || code == 0x0009) {
+        if let code = code, code > 0x001F || code == 0x0009 {
             continue
         } else {
             break
@@ -472,7 +517,14 @@ func readComment(source: Source, start: Int, line: Int, col: Int, prev: Token) -
  * Int:   -?(0|[1-9][0-9]*)
  * Float: -?(0|[1-9][0-9]*)(\.[0-9]+)?((E|e)(+|-)?[0-9]+)?
  */
-func readNumber(source: Source, start: Int, firstCode: UInt8, line: Int, col: Int, prev: Token) throws -> Token {
+func readNumber(
+    source: Source,
+    start: Int,
+    firstCode: UInt8,
+    line: Int,
+    col: Int,
+    prev: Token
+) throws -> Token {
     let body = source.body
     var code: UInt8? = firstCode
     var position = start
@@ -487,7 +539,7 @@ func readNumber(source: Source, start: Int, firstCode: UInt8, line: Int, col: In
         position += 1
         code = body.charCode(at: position)
 
-        if let c = code, c >= 48 && c <= 57 {
+        if let c = code, c >= 48, c <= 57 {
             throw syntaxError(
                 source: source,
                 position: position,
@@ -555,10 +607,10 @@ func readDigits(source: Source, start: Int, firstCode: UInt8) throws -> Int {
     let body = source.body
     var position = start
 
-    if firstCode >= 48 && firstCode <= 57 { // 0 - 9
+    if firstCode >= 48, firstCode <= 57 { // 0 - 9
         while true {
             position += 1
-            if let code = body.charCode(at: position), code >= 48 && code <= 57 { // 0 - 9
+            if let code = body.charCode(at: position), code >= 48, code <= 57 { // 0 - 9
                 continue
             } else {
                 break
@@ -591,12 +643,12 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
         currentCode = body.charCode(at: positionIndex)
 
         //                     not LineTerminator                  not Quote (")
-        guard let code = currentCode, code != 0x000A && code != 0x000D && code != 34 else {
+        guard let code = currentCode, code != 0x000A, code != 0x000D, code != 34 else {
             break
         }
 
         // SourceCharacter
-        if code < 0x0020 && code != 0x0009 {
+        if code < 0x0020, code != 0x0009 {
             throw syntaxError(
                 source: source,
                 position: body.offset(of: positionIndex),
@@ -608,7 +660,14 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
         positionIndex = body.utf8.index(after: positionIndex)
 
         if code == 92 { // \
-            value += String(body.utf8[chunkStartIndex..<startIterationIndex])!
+            guard let chunk = String(body.utf8[chunkStartIndex ..< startIterationIndex]) else {
+                throw syntaxError(
+                    source: source,
+                    position: body.offset(of: positionIndex),
+                    description: "Unable to initialize String from chunk: \(body.utf8[chunkStartIndex ..< startIterationIndex])."
+                )
+            }
+            value += chunk
             currentCode = body.charCode(at: positionIndex)
 
             if let code = currentCode {
@@ -640,11 +699,19 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
                             position: body.offset(of: positionIndex),
                             description:
                             "Invalid character escape sequence: " +
-                            "\\u\(body.utf8[aIndex...dIndex])."
+                                "\\u\(body.utf8[aIndex ... dIndex])."
                         )
                     }
 
-                    value += String(Character(UnicodeScalar(UInt32(charCode))!))
+                    guard let unicodeScalar = UnicodeScalar(UInt32(charCode)) else {
+                        throw syntaxError(
+                            source: source,
+                            position: body.offset(of: positionIndex),
+                            description:
+                            "Invalid unicode character code: \\u\(charCode)."
+                        )
+                    }
+                    value += String(Character(unicodeScalar))
 
                     positionIndex = dIndex
                 default:
@@ -669,7 +736,14 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
         )
     }
 
-    value += String(body.utf8[chunkStartIndex..<positionIndex])!
+    guard let chunk = String(body.utf8[chunkStartIndex ..< positionIndex]) else {
+        throw syntaxError(
+            source: source,
+            position: body.offset(of: positionIndex),
+            description: "Unable to initialize String from chunk: \(body.utf8[chunkStartIndex ..< positionIndex])."
+        )
+    }
+    value += chunk
 
     return Token(
         kind: .string,
@@ -687,22 +761,38 @@ func readString(source: Source, start: Int, line: Int, col: Int, prev: Token) th
  *
  * """("?"?(\\"""|\\(?!=""")|[^"\\]))*"""
  */
-func readBlockString(lexer: Lexer, source: Source, start: Int, line: Int, col: Int, prev: Token) throws -> Token {
+func readBlockString(
+    lexer: Lexer,
+    source: Source,
+    start: Int,
+    line: Int,
+    col: Int,
+    prev: Token
+) throws -> Token {
     let body = source.body
     var positionIndex = body.utf8.index(body.utf8.startIndex, offsetBy: start + 3)
     var chunkStartIndex = positionIndex
     var code: UInt8 = 0
     var rawValue = ""
-    
+
     while positionIndex < body.utf8.endIndex {
         code = body.utf8[positionIndex]
-        
-        if code == 34,
-           body.utf8.distance(from: positionIndex, to: body.utf8.endIndex) > 2,
-           body.utf8[body.utf8.index(positionIndex, offsetBy: 1)] == 34,
-           body.utf8[body.utf8.index(positionIndex, offsetBy: 2)] == 34 {
-            
-            rawValue += String(body.utf8[chunkStartIndex..<positionIndex])!
+
+        if
+            code == 34,
+            body.utf8.distance(from: positionIndex, to: body.utf8.endIndex) > 2,
+            body.utf8[body.utf8.index(positionIndex, offsetBy: 1)] == 34,
+            body.utf8[body.utf8.index(positionIndex, offsetBy: 2)] == 34
+        {
+            guard let chunk = String(body.utf8[chunkStartIndex ..< positionIndex]) else {
+                throw syntaxError(
+                    source: source,
+                    position: body.offset(of: positionIndex),
+                    description: "Unable to initialize String from chunk: \(body.utf8[chunkStartIndex ..< positionIndex])."
+                )
+            }
+            rawValue += chunk
+
             return Token(
                 kind: .blockstring,
                 start: start,
@@ -713,18 +803,20 @@ func readBlockString(lexer: Lexer, source: Source, start: Int, line: Int, col: I
                 prev: prev
             )
         }
-        
-        if code < 0x0020 &&
-            code != 0x0009 &&
-            code != 0x000A &&
-            code != 0x000D {
+
+        if
+            code < 0x0020,
+            code != 0x0009,
+            code != 0x000A,
+            code != 0x000D
+        {
             throw syntaxError(
                 source: source,
                 position: body.offset(of: positionIndex),
                 description: "Invalid character within BlockString: \(character(code))."
             )
         }
-        
+
         if code == 0x000A {
             // new line
             positionIndex = body.utf8.index(after: positionIndex)
@@ -733,29 +825,45 @@ func readBlockString(lexer: Lexer, source: Source, start: Int, line: Int, col: I
         } else if code == 0x000D {
             // carriage return
             let nextIdx = body.utf8.index(after: positionIndex)
-            if nextIdx < body.utf8.endIndex,
-               body.utf8[nextIdx] == 0x000A {
+            if
+                nextIdx < body.utf8.endIndex,
+                body.utf8[nextIdx] == 0x000A
+            {
                 positionIndex = body.utf8.index(after: nextIdx)
             } else {
                 positionIndex = nextIdx
             }
             lexer.line += 1
             lexer.lineStart = body.offset(of: positionIndex)
-        } else if code == 92,
-                  body.utf8.distance(from: positionIndex, to: body.utf8.endIndex) > 4,
-                  body.utf8[body.utf8.index(positionIndex, offsetBy: 1)] == 34,
-                  body.utf8[body.utf8.index(positionIndex, offsetBy: 2)] == 34,
-                  body.utf8[body.utf8.index(positionIndex, offsetBy: 3)] == 34 {
+        } else if
+            code == 92,
+            body.utf8.distance(from: positionIndex, to: body.utf8.endIndex) > 4,
+            body.utf8[body.utf8.index(positionIndex, offsetBy: 1)] == 34,
+            body.utf8[body.utf8.index(positionIndex, offsetBy: 2)] == 34,
+            body.utf8[body.utf8.index(positionIndex, offsetBy: 3)] == 34
+        {
             // escaped triple quote (\""")
-            rawValue += String(body.utf8[chunkStartIndex..<positionIndex])! + "\"\"\""
+
+            guard let chunk = String(body.utf8[chunkStartIndex ..< positionIndex]) else {
+                throw syntaxError(
+                    source: source,
+                    position: body.offset(of: positionIndex),
+                    description: "Unable to initialize String from chunk: \(body.utf8[chunkStartIndex ..< positionIndex])."
+                )
+            }
+            rawValue += chunk + "\"\"\""
             positionIndex = body.utf8.index(positionIndex, offsetBy: 4)
             chunkStartIndex = positionIndex
         } else {
             positionIndex = body.utf8.index(after: positionIndex)
         }
     }
-    
-    throw syntaxError(source: source, position: body.offset(of: positionIndex), description: "Unterminated blockstring")
+
+    throw syntaxError(
+        source: source,
+        position: body.offset(of: positionIndex),
+        description: "Unterminated blockstring"
+    )
 }
 
 /**
@@ -791,11 +899,11 @@ func readBlockString(lexer: Lexer, source: Source, start: Int, line: Int, col: I
  */
 
 func blockStringValue(rawValue: String) -> String {
-    var lines = rawValue.utf8.split(omittingEmptySubsequences: false) { (code) -> Bool in
-        return code == 0x000A || code == 0x000D
+    var lines = rawValue.utf8.split(omittingEmptySubsequences: false) { code -> Bool in
+        code == 0x000A || code == 0x000D
     }
 
-    var commonIndent: Int = 0
+    var commonIndent = 0
 
     for idx in lines.indices {
         let line = lines[idx]
@@ -807,7 +915,7 @@ func blockStringValue(rawValue: String) -> String {
             }
         }
     }
-    
+
     var newLines: [String.UTF8View.SubSequence] = []
     if commonIndent != 0 {
         for idx in lines.indices {
@@ -821,11 +929,13 @@ func blockStringValue(rawValue: String) -> String {
         lines = newLines
         newLines.removeAll()
     }
-    
+
     for idx in lines.indices {
         let line = lines[idx]
-        if newLines.count == 0,
-           line.firstIndex(where: { $0 != 0x0009 && $0 != 0x0020 }) == nil {
+        if
+            newLines.count == 0,
+            line.firstIndex(where: { $0 != 0x0009 && $0 != 0x0020 }) == nil
+        {
             continue
         }
         newLines.append(line)
@@ -835,15 +945,17 @@ func blockStringValue(rawValue: String) -> String {
     newLines.removeAll()
     for idx in lines.indices.reversed() {
         let line = lines[idx]
-        if newLines.count == 0,
-           line.firstIndex(where: { $0 != 0x0009 && $0 != 0x0020 }) == nil {
+        if
+            newLines.count == 0,
+            line.firstIndex(where: { $0 != 0x0009 && $0 != 0x0020 }) == nil
+        {
             continue
         }
         newLines.insert(line, at: newLines.startIndex)
     }
     lines = newLines
 
-    var result: Substring = Substring()
+    var result = Substring()
     for idx in lines.indices {
         if idx == lines.startIndex {
             result.append(contentsOf: Substring(lines[idx]))
@@ -896,13 +1008,15 @@ func readName(source: Source, position: Int, line: Int, col: Int, prev: Token) -
     let bodyLength = body.utf8.count
     var end = position + 1
 
-    while end != bodyLength,
+    while
+        end != bodyLength,
         let code = body.charCode(at: end),
-        (code == 95 || // _
-            code >= 48 && code <= 57 || // 0-9
-            code >= 65 && code <= 90 || // A-Z
-            code >= 97 && code <= 122) { // a-z
-                end += 1
+        code == 95 || // _
+        code >= 48 && code <= 57 || // 0-9
+        code >= 65 && code <= 90 || // A-Z
+        code >= 97 && code <= 122
+    { // a-z
+        end += 1
     }
 
     return Token(

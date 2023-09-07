@@ -1,19 +1,18 @@
-import Foundation
 import Dispatch
+import Foundation
 import GraphQL
-import XCTest
 import NIO
+import XCTest
 
-class InstrumentationTests : XCTestCase, Instrumentation {
-
+class InstrumentationTests: XCTestCase, Instrumentation {
     class MyRoot {}
     class MyCtx {}
 
     var query = "query sayHello($name: String) { hello(name: $name) }"
     var expectedResult: Map = [
         "data": [
-            "hello": "bob"
-        ]
+            "hello": "bob",
+        ],
     ]
     var expectedThreadId = 0
     var expectedProcessId = 0
@@ -33,14 +32,14 @@ class InstrumentationTests : XCTestCase, Instrumentation {
                 "hello": GraphQLField(
                     type: GraphQLString,
                     args: [
-                        "name": GraphQLArgument(type: GraphQLNonNull(GraphQLString))
+                        "name": GraphQLArgument(type: GraphQLNonNull(GraphQLString)),
                     ],
                     resolve: { inputValue, _, _, _ in
                         print(type(of: inputValue))
                         return nil
                     }
 //                    resolve: { _, args, _, _ in return try! args["name"].asString() }
-                )
+                ),
             ]
         )
     )
@@ -54,7 +53,14 @@ class InstrumentationTests : XCTestCase, Instrumentation {
         fieldResolutionCalled = 0
     }
 
-    func queryParsing(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Source, result: Result<Document, GraphQLError>) {
+    func queryParsing(
+        processId _: Int,
+        threadId _: Int,
+        started _: DispatchTime,
+        finished _: DispatchTime,
+        source _: Source,
+        result _: Result<Document, GraphQLError>
+    ) {
 //        queryParsingCalled += 1
 //        XCTAssertEqual(processId, expectedProcessId, "unexpected process id")
 //        XCTAssertEqual(threadId, expectedThreadId, "unexpected thread id")
@@ -69,7 +75,15 @@ class InstrumentationTests : XCTestCase, Instrumentation {
 //        XCTAssertEqual(source.name, "GraphQL request")
     }
 
-    func queryValidation(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, schema: GraphQLSchema, document: Document, errors: [GraphQLError]) {
+    func queryValidation(
+        processId _: Int,
+        threadId _: Int,
+        started _: DispatchTime,
+        finished _: DispatchTime,
+        schema _: GraphQLSchema,
+        document _: Document,
+        errors _: [GraphQLError]
+    ) {
         queryValidationCalled += 1
 //        XCTAssertEqual(processId, expectedProcessId, "unexpected process id")
 //        XCTAssertEqual(threadId, expectedThreadId, "unexpected thread id")
@@ -79,7 +93,20 @@ class InstrumentationTests : XCTestCase, Instrumentation {
 //        XCTAssertEqual(errors, [])
     }
 
-    func operationExecution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, schema: GraphQLSchema, document: Document, rootValue: Any, eventLoopGroup: EventLoopGroup, variableValues: [String : Map], operation: OperationDefinition?, errors: [GraphQLError], result: Map) {
+    func operationExecution(
+        processId _: Int,
+        threadId _: Int,
+        started _: DispatchTime,
+        finished _: DispatchTime,
+        schema _: GraphQLSchema,
+        document _: Document,
+        rootValue _: Any,
+        eventLoopGroup _: EventLoopGroup,
+        variableValues _: [String: Map],
+        operation _: OperationDefinition?,
+        errors _: [GraphQLError],
+        result _: Map
+    ) {
 //        operationExecutionCalled += 1
 //        XCTAssertEqual(processId, expectedProcessId, "unexpected process id")
 //        XCTAssertEqual(threadId, expectedThreadId, "unexpected thread id")
@@ -94,7 +121,17 @@ class InstrumentationTests : XCTestCase, Instrumentation {
 //        XCTAssertEqual(result, expectedResult)
     }
 
-    func fieldResolution(processId: Int, threadId: Int, started: DispatchTime, finished: DispatchTime, source: Any, args: Map, eventLoopGroup: EventLoopGroup, info: GraphQLResolveInfo, result: Result<Future<Any?>, Error>) {
+    func fieldResolution(
+        processId _: Int,
+        threadId _: Int,
+        started _: DispatchTime,
+        finished _: DispatchTime,
+        source _: Any,
+        args _: Map,
+        eventLoopGroup _: EventLoopGroup,
+        info _: GraphQLResolveInfo,
+        result _: Result<Future<Any?>, Error>
+    ) {
         fieldResolutionCalled += 1
 //        XCTAssertEqual(processId, expectedProcessId, "unexpected process id")
 //        XCTAssertEqual(threadId, expectedThreadId, "unexpected thread id")
@@ -157,5 +194,4 @@ class InstrumentationTests : XCTestCase, Instrumentation {
 //        XCTAssertEqual(operationExecutionCalled, 1)
 //        XCTAssertEqual(fieldResolutionCalled, 1)
     }
-
 }

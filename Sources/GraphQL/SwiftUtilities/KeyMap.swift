@@ -20,7 +20,7 @@
  */
 extension Array {
     func keyMap(_ keyFunction: (Element) -> String) -> [String: Element] {
-        return self.reduce([:]) { map, item in
+        return reduce([:]) { map, item in
             var mapCopy = map
             mapCopy[keyFunction(item)] = item
             return mapCopy

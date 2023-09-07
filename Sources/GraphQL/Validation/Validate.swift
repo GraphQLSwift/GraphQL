@@ -4,7 +4,8 @@
 /// an empty array if no errors were encountered and the document is valid.
 ///
 /// - Parameters:
-///   - instrumentation: The instrumentation implementation to call during the parsing, validating, execution, and field resolution stages.
+///   - instrumentation: The instrumentation implementation to call during the parsing, validating,
+/// execution, and field resolution stages.
 ///   - schema:          The GraphQL type system to use when validating and executing a query.
 ///   - ast:             A GraphQL document representing the requested operation.
 /// - Returns: zero or more errors
@@ -29,7 +30,7 @@ public func validate(
  * (see the language/visitor API). Visitor methods are expected to return
  * GraphQLErrors, or Arrays of GraphQLErrors when invalid.
  */
-func validate(
+public func validate(
     instrumentation: Instrumentation = NoOpInstrumentation,
     schema: GraphQLSchema,
     ast: Document,
@@ -39,7 +40,15 @@ func validate(
     let typeInfo = TypeInfo(schema: schema)
     let rules = rules.isEmpty ? specifiedRules : rules
     let errors = visit(usingRules: rules, schema: schema, typeInfo: typeInfo, documentAST: ast)
-    instrumentation.queryValidation(processId: processId(), threadId: threadId(), started: started, finished: instrumentation.now, schema: schema, document: ast, errors: errors)
+    instrumentation.queryValidation(
+        processId: processId(),
+        threadId: threadId(),
+        started: started,
+        finished: instrumentation.now,
+        schema: schema,
+        document: ast,
+        errors: errors
+    )
     return errors
 }
 
@@ -56,41 +65,44 @@ func visit(
     documentAST: Document
 ) -> [GraphQLError] {
     let context = ValidationContext(schema: schema, ast: documentAST, typeInfo: typeInfo)
-    let visitors = rules.map({ rule in rule(context) })
+    let visitors = rules.map { rule in rule(context) }
     // Visit the whole document with each instance of all provided rules.
-    visit(root: documentAST, visitor: visitWithTypeInfo(typeInfo: typeInfo, visitor: visitInParallel(visitors: visitors)))
+    visit(
+        root: documentAST,
+        visitor: visitWithTypeInfo(typeInfo: typeInfo, visitor: visitInParallel(visitors: visitors))
+    )
     return context.errors
 }
 
-enum HasSelectionSet {
+public enum HasSelectionSet {
     case operation(OperationDefinition)
     case fragment(FragmentDefinition)
 
-    var node: Node {
+    public var node: Node {
         switch self {
-        case .operation(let operation):
+        case let .operation(operation):
             return operation
-        case .fragment(let fragment):
+        case let .fragment(fragment):
             return fragment
         }
     }
 }
 
-extension HasSelectionSet : Hashable {
-    func hash(into hasher: inout Hasher) {
+extension HasSelectionSet: Hashable {
+    public func hash(into hasher: inout Hasher) {
         switch self {
-        case .operation(let operation):
+        case let .operation(operation):
             return hasher.combine(operation.hashValue)
-        case .fragment(let fragment):
+        case let .fragment(fragment):
             return hasher.combine(fragment.hashValue)
         }
     }
 
-    static func == (lhs: HasSelectionSet, rhs: HasSelectionSet) -> Bool {
+    public static func == (lhs: HasSelectionSet, rhs: HasSelectionSet) -> Bool {
         switch (lhs, rhs) {
-        case (.operation(let l), .operation(let r)):
+        case let (.operation(l), .operation(r)):
             return l == r
-        case (.fragment(let l), .fragment(let r)):
+        case let (.fragment(l), .fragment(r)):
             return l == r
         default:
             return false
@@ -98,15 +110,15 @@ extension HasSelectionSet : Hashable {
     }
 }
 
-typealias VariableUsage = (node: Variable, type: GraphQLInputType?)
+public typealias VariableUsage = (node: Variable, type: GraphQLInputType?)
 
 /**
  * An instance of this class is passed as the "this" context to all validators,
  * allowing access to commonly useful contextual information from within a
  * validation rule.
  */
-final class ValidationContext {
-    let schema: GraphQLSchema
+public final class ValidationContext {
+    public let schema: GraphQLSchema
     let ast: Document
     let typeInfo: TypeInfo
     var errors: [GraphQLError]
@@ -120,19 +132,19 @@ final class ValidationContext {
         self.schema = schema
         self.ast = ast
         self.typeInfo = typeInfo
-        self.errors = []
-        self.fragments = [:]
-        self.fragmentSpreads = [:]
-        self.recursivelyReferencedFragments = [:]
-        self.variableUsages = [:]
-        self.recursiveVariableUsages = [:]
+        errors = []
+        fragments = [:]
+        fragmentSpreads = [:]
+        recursivelyReferencedFragments = [:]
+        variableUsages = [:]
+        recursiveVariableUsages = [:]
     }
 
-    func report(error: GraphQLError) {
+    public func report(error: GraphQLError) {
         errors.append(error)
     }
 
-    func getFragment(name: String) -> FragmentDefinition? {
+    public func getFragment(name: String) -> FragmentDefinition? {
         var fragments = self.fragments
 
         if fragments.isEmpty {
@@ -152,129 +164,136 @@ final class ValidationContext {
         return fragments[name]
     }
 
-    func getFragmentSpreads(node: SelectionSet) -> [FragmentSpread] {
-        var spreads = fragmentSpreads[node]
+    public func getFragmentSpreads(node: SelectionSet) -> [FragmentSpread] {
+        if let spreads = fragmentSpreads[node] {
+            return spreads
+        }
 
-        if spreads == nil {
-            spreads = []
-            var setsToVisit: [SelectionSet] = [node]
+        var spreads = [FragmentSpread]()
+        var setsToVisit: [SelectionSet] = [node]
 
-            while let set = setsToVisit.popLast() {
-                for selection in set.selections {
-                    if let selection = selection as? FragmentSpread {
-                        spreads!.append(selection)
-                    }
+        while let set = setsToVisit.popLast() {
+            for selection in set.selections {
+                if let selection = selection as? FragmentSpread {
+                    spreads.append(selection)
+                }
 
-                    if let selection = selection as? InlineFragment {
-                        setsToVisit.append(selection.selectionSet)
-                    }
+                if let selection = selection as? InlineFragment {
+                    setsToVisit.append(selection.selectionSet)
+                }
 
-                    if let selection = selection as? Field, let selectionSet = selection.selectionSet {
-                        setsToVisit.append(selectionSet)
+                if let selection = selection as? Field, let selectionSet = selection.selectionSet {
+                    setsToVisit.append(selectionSet)
+                }
+            }
+        }
+
+        fragmentSpreads[node] = spreads
+        return spreads
+    }
+
+    public func getRecursivelyReferencedFragments(operation: OperationDefinition)
+        -> [FragmentDefinition]
+    {
+        if let fragments = recursivelyReferencedFragments[operation] {
+            return fragments
+        }
+
+        var fragments = [FragmentDefinition]()
+        var collectedNames: [String: Bool] = [:]
+        var nodesToVisit: [SelectionSet] = [operation.selectionSet]
+
+        while let node = nodesToVisit.popLast() {
+            let spreads = getFragmentSpreads(node: node)
+
+            for spread in spreads {
+                let fragName = spread.name.value
+                if collectedNames[fragName] != true {
+                    collectedNames[fragName] = true
+                    if let fragment = getFragment(name: fragName) {
+                        fragments.append(fragment)
+                        nodesToVisit.append(fragment.selectionSet)
                     }
                 }
             }
-
-            fragmentSpreads[node] = spreads
         }
 
-        return spreads!
+        recursivelyReferencedFragments[operation] = fragments
+        return fragments
     }
 
-    func getRecursivelyReferencedFragments(operation: OperationDefinition) -> [FragmentDefinition] {
-        var fragments = recursivelyReferencedFragments[operation]
+    public func getVariableUsages(node: HasSelectionSet) -> [VariableUsage] {
+        if let usages = variableUsages[node] {
+            return usages
+        }
 
-        if fragments == nil {
-            fragments = []
-            var collectedNames: [String: Bool] = [:]
-            var nodesToVisit: [SelectionSet] = [operation.selectionSet]
+        var usages = [VariableUsage]()
+        let typeInfo = TypeInfo(schema: schema)
 
-            while let node = nodesToVisit.popLast() {
-                let spreads = getFragmentSpreads(node: node)
-
-                for spread in spreads {
-                    let fragName = spread.name.value
-                    if collectedNames[fragName] != true {
-                        collectedNames[fragName] = true
-                        if let fragment = getFragment(name: fragName) {
-                            fragments!.append(fragment)
-                            nodesToVisit.append(fragment.selectionSet)
-                        }
+        visit(
+            root: node.node,
+            visitor: visitWithTypeInfo(
+                typeInfo: typeInfo,
+                visitor: Visitor(enter: { node, _, _, _, _ in
+                    if node is VariableDefinition {
+                        return .skip
                     }
-                }
-            }
-            
-            recursivelyReferencedFragments[operation] = fragments
-        }
-        
-        return fragments!
+
+                    if let variable = node as? Variable {
+                        usages
+                            .append(VariableUsage(
+                                node: variable,
+                                type: typeInfo.inputType
+                            ))
+                    }
+
+                    return .continue
+                })
+            )
+        )
+
+        variableUsages[node] = usages
+        return usages
     }
 
-    func getVariableUsages(node: HasSelectionSet) -> [VariableUsage] {
-        var usages = variableUsages[node]
-
-        if usages == nil {
-            var newUsages: [VariableUsage] = []
-            let typeInfo = TypeInfo(schema: schema)
-
-            visit(root: node.node, visitor: visitWithTypeInfo(typeInfo: typeInfo, visitor: Visitor(enter: { node, _, _, _, _ in
-                if node is VariableDefinition {
-                    return .skip
-                }
-
-                if let variable = node as? Variable {
-                    newUsages.append(VariableUsage(node: variable, type: typeInfo.inputType))
-                }
-
-                return .continue
-            })))
-
-            usages = newUsages
-            variableUsages[node] = usages
+    public func getRecursiveVariableUsages(operation: OperationDefinition) -> [VariableUsage] {
+        if let usages = recursiveVariableUsages[operation] {
+            return usages
         }
 
-        return usages!
-    }
+        var usages = getVariableUsages(node: .operation(operation))
+        let fragments = getRecursivelyReferencedFragments(operation: operation)
 
-    func getRecursiveVariableUsages(operation: OperationDefinition) -> [VariableUsage] {
-        var usages = recursiveVariableUsages[operation]
-
-        if usages == nil {
-            usages = getVariableUsages(node: .operation(operation))
-            let fragments = getRecursivelyReferencedFragments(operation: operation)
-
-            for fragment in fragments {
-                let newUsages = getVariableUsages(node: .fragment(fragment))
-                usages!.append(contentsOf: newUsages)
-            }
-
-            recursiveVariableUsages[operation] = usages
+        for fragment in fragments {
+            let newUsages = getVariableUsages(node: .fragment(fragment))
+            usages.append(contentsOf: newUsages)
         }
-        
-        return usages!
+
+        recursiveVariableUsages[operation] = usages
+        return usages
     }
 
-    var type: GraphQLOutputType? {
+    public var type: GraphQLOutputType? {
         return typeInfo.type
     }
 
-    var parentType: GraphQLCompositeType? {
+    public var parentType: GraphQLCompositeType? {
         return typeInfo.parentType
     }
 
-    var inputType: GraphQLInputType? {
+    public var inputType: GraphQLInputType? {
         return typeInfo.inputType
     }
 
-    var fieldDef: GraphQLFieldDefinition? {
+    public var fieldDef: GraphQLFieldDefinition? {
         return typeInfo.fieldDef
     }
 
-    var directive: GraphQLDirective? {
+    public var directive: GraphQLDirective? {
         return typeInfo.directive
     }
 
-    var argument: GraphQLArgumentDefinition? {
+    public var argument: GraphQLArgumentDefinition? {
         return typeInfo.argument
     }
 }

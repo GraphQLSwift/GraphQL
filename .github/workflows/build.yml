@@ -2,28 +2,63 @@ name: Tests
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     paths-ignore: [ README.md ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
     paths-ignore: [ README.md ]
+  workflow_dispatch:
+
 jobs:
-  build:
-    name: Build and test on ${{ matrix.os }}
+  formatlint:
+    name: Lint for correct formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Pull formatting docker image
+        run: docker pull ghcr.io/nicklockwood/swiftformat:latest
+      - name: Run format linting
+        run: docker run --rm -v ${{ github.workspace }}:/repo ghcr.io/nicklockwood/swiftformat:latest /repo --lint
+
+  macos:
+    name: Build and test on macos-latest
+    runs-on: macos-latest
+    steps:
+    - uses: swift-actions/setup-swift@v1
+    - uses: actions/checkout@v3
+    - name: Test
+      run: swift test
+
+  # ubuntu-latest is ubuntu-22.04 currently. Swift versions older than 5.7 don't have builds for 22.04. https://www.swift.org/download/ 
+  ubuntu-old:
+    name: Build ${{ matrix.swift }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-10.15, macos-latest, ubuntu-18.04, ubuntu-20.04]
+        os: [ubuntu-20.04] 
+        swift: ["5.5", "5.6"]
     steps:
-    - uses: actions/checkout@v2
-    - name: Set code coverage path 
-      run: echo "codecov_path=$(swift test --show-codecov-path)" >> $GITHUB_ENV
-    - name: Test and publish code coverage to Code Climate
-      uses: paulofaria/codeclimate-action@master
-      if: matrix.os == 'macos-10.15'
-      env:
-        CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
+    - uses: swift-actions/setup-swift@v1
       with:
-        downloadUrl: https://github.com/paulofaria/test-reporter/releases/download/0.9.0/test-reporter-0.9.0-darwin-amd64
-        coverageCommand: swift test --enable-test-discovery --enable-code-coverage
-        coverageLocations: ${{ env.codecov_path }}:lcov-json
+        swift-version: ${{ matrix.swift }}
+    - uses: actions/checkout@v3
+    - name: Test
+      run: swift test
+
+  ubuntu-latest:
+    name: Build ${{ matrix.swift }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest] 
+        swift: ["5.7", "5.8"]
+    steps:
+    - uses: swift-actions/setup-swift@v1
+      with:
+        swift-version: ${{ matrix.swift }}
+    - uses: actions/checkout@v3
+    - name: Test
+      run: swift test

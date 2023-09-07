@@ -1,20 +1,18 @@
-import XCTest
-import NIO
 @testable import GraphQL
+import NIO
+import XCTest
 
-
-class InputTests : XCTestCase {
-    
+class InputTests: XCTestCase {
     func testArgsNonNullNoDefault() throws {
-        struct Echo : Codable {
+        struct Echo: Codable {
             let field1: String
         }
-        
-        struct EchoArgs : Codable {
+
+        struct EchoArgs: Codable {
             let field1: String
         }
-        
-        let EchoOutputType = try! GraphQLObjectType(
+
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -26,9 +24,9 @@ class InputTests : XCTestCase {
                 source is Echo
             }
         )
-        
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+
+        let schema = try GraphQLSchema(
+            query: GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -36,7 +34,7 @@ class InputTests : XCTestCase {
                         args: [
                             "field1": GraphQLArgument(
                                 type: GraphQLNonNull(GraphQLString)
-                            )
+                            ),
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -49,12 +47,12 @@ class InputTests : XCTestCase {
             ),
             types: [EchoOutputType]
         )
-        
+
         let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         defer {
             XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
-        
+
         // Test basic functionality
         XCTAssertEqual(
             try graphql(
@@ -72,8 +70,8 @@ class InputTests : XCTestCase {
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": "value1"
-                ]
+                    "field1": "value1",
+                ],
             ])
         )
         XCTAssertEqual(
@@ -90,16 +88,16 @@ class InputTests : XCTestCase {
                 """,
                 eventLoopGroup: group,
                 variableValues: [
-                    "field1": "value1"
+                    "field1": "value1",
                 ]
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": "value1"
-                ]
+                    "field1": "value1",
+                ],
             ])
         )
-        
+
         // Test providing null results in an error
         XCTAssertTrue(
             try graphql(
@@ -115,7 +113,7 @@ class InputTests : XCTestCase {
                 """,
                 eventLoopGroup: group
             ).wait()
-            .errors.count > 0
+                .errors.count > 0
         )
         XCTAssertTrue(
             try graphql(
@@ -131,12 +129,12 @@ class InputTests : XCTestCase {
                 """,
                 eventLoopGroup: group,
                 variableValues: [
-                    "field1": .null
+                    "field1": .null,
                 ]
             ).wait()
-            .errors.count > 0
+                .errors.count > 0
         )
-        
+
         // Test not providing parameter results in an error
         XCTAssertTrue(
             try graphql(
@@ -150,7 +148,7 @@ class InputTests : XCTestCase {
                 """,
                 eventLoopGroup: group
             ).wait()
-            .errors.count > 0
+                .errors.count > 0
         )
         XCTAssertTrue(
             try graphql(
@@ -167,20 +165,20 @@ class InputTests : XCTestCase {
                 eventLoopGroup: group,
                 variableValues: [:]
             ).wait()
-            .errors.count > 0
+                .errors.count > 0
         )
     }
-    
+
     func testArgsNullNoDefault() throws {
-        struct Echo : Codable {
+        struct Echo: Codable {
             let field1: String?
         }
-        
-        struct EchoArgs : Codable {
+
+        struct EchoArgs: Codable {
             let field1: String?
         }
-        
-        let EchoOutputType = try! GraphQLObjectType(
+
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -192,9 +190,9 @@ class InputTests : XCTestCase {
                 source is Echo
             }
         )
-        
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+
+        let schema = try GraphQLSchema(
+            query: GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -202,7 +200,7 @@ class InputTests : XCTestCase {
                         args: [
                             "field1": GraphQLArgument(
                                 type: GraphQLString
-                            )
+                            ),
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -215,12 +213,12 @@ class InputTests : XCTestCase {
             ),
             types: [EchoOutputType]
         )
-        
+
         let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         defer {
             XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
-        
+
         // Test basic functionality
         XCTAssertEqual(
             try graphql(
@@ -238,8 +236,8 @@ class InputTests : XCTestCase {
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": "value1"
-                ]
+                    "field1": "value1",
+                ],
             ])
         )
         XCTAssertEqual(
@@ -256,16 +254,16 @@ class InputTests : XCTestCase {
                 """,
                 eventLoopGroup: group,
                 variableValues: [
-                    "field1": "value1"
+                    "field1": "value1",
                 ]
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": "value1"
-                ]
+                    "field1": "value1",
+                ],
             ])
         )
-        
+
         // Test providing null is accepted
         XCTAssertEqual(
             try graphql(
@@ -283,8 +281,8 @@ class InputTests : XCTestCase {
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": .null
-                ]
+                    "field1": .null,
+                ],
             ])
         )
         XCTAssertEqual(
@@ -301,16 +299,16 @@ class InputTests : XCTestCase {
                 """,
                 eventLoopGroup: group,
                 variableValues: [
-                    "field1": .null
+                    "field1": .null,
                 ]
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": .null
-                ]
+                    "field1": .null,
+                ],
             ])
         )
-        
+
         // Test not providing parameter is accepted
         XCTAssertEqual(
             try graphql(
@@ -326,8 +324,8 @@ class InputTests : XCTestCase {
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": .null
-                ]
+                    "field1": .null,
+                ],
             ])
         )
         XCTAssertEqual(
@@ -347,22 +345,22 @@ class InputTests : XCTestCase {
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": .null
-                ]
+                    "field1": .null,
+                ],
             ])
         )
     }
-    
+
     func testArgsNonNullDefault() throws {
-        struct Echo : Codable {
+        struct Echo: Codable {
             let field1: String
         }
-        
-        struct EchoArgs : Codable {
+
+        struct EchoArgs: Codable {
             let field1: String
         }
-        
-        let EchoOutputType = try! GraphQLObjectType(
+
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -374,9 +372,9 @@ class InputTests : XCTestCase {
                 source is Echo
             }
         )
-        
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+
+        let schema = try GraphQLSchema(
+            query: GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -385,7 +383,7 @@ class InputTests : XCTestCase {
                             "field1": GraphQLArgument(
                                 type: GraphQLNonNull(GraphQLString),
                                 defaultValue: .string("defaultValue1")
-                            )
+                            ),
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -398,12 +396,12 @@ class InputTests : XCTestCase {
             ),
             types: [EchoOutputType]
         )
-        
+
         let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         defer {
             XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
-        
+
         // Test basic functionality
         XCTAssertEqual(
             try graphql(
@@ -421,8 +419,8 @@ class InputTests : XCTestCase {
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": "value1"
-                ]
+                    "field1": "value1",
+                ],
             ])
         )
         XCTAssertEqual(
@@ -439,16 +437,16 @@ class InputTests : XCTestCase {
                 """,
                 eventLoopGroup: group,
                 variableValues: [
-                    "field1": "value1"
+                    "field1": "value1",
                 ]
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": "value1"
-                ]
+                    "field1": "value1",
+                ],
             ])
         )
-        
+
         // Test providing null results in an error
         XCTAssertTrue(
             try graphql(
@@ -464,7 +462,7 @@ class InputTests : XCTestCase {
                 """,
                 eventLoopGroup: group
             ).wait()
-            .errors.count > 0
+                .errors.count > 0
         )
         XCTAssertTrue(
             try graphql(
@@ -480,12 +478,12 @@ class InputTests : XCTestCase {
                 """,
                 eventLoopGroup: group,
                 variableValues: [
-                    "field1": .null
+                    "field1": .null,
                 ]
             ).wait()
-            .errors.count > 0
+                .errors.count > 0
         )
-        
+
         // Test not providing parameter results in default
         XCTAssertEqual(
             try graphql(
@@ -501,8 +499,8 @@ class InputTests : XCTestCase {
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": "defaultValue1"
-                ]
+                    "field1": "defaultValue1",
+                ],
             ])
         )
         XCTAssertEqual(
@@ -522,11 +520,11 @@ class InputTests : XCTestCase {
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": "defaultValue1"
-                ]
+                    "field1": "defaultValue1",
+                ],
             ])
         )
-        
+
         // Test variable doesn't get argument default
         XCTAssertTrue(
             try graphql(
@@ -543,20 +541,20 @@ class InputTests : XCTestCase {
                 eventLoopGroup: group,
                 variableValues: [:]
             ).wait()
-            .errors.count > 0
+                .errors.count > 0
         )
     }
-    
+
     func testArgsNullDefault() throws {
-        struct Echo : Codable {
+        struct Echo: Codable {
             let field1: String?
         }
-        
-        struct EchoArgs : Codable {
+
+        struct EchoArgs: Codable {
             let field1: String?
         }
-        
-        let EchoOutputType = try! GraphQLObjectType(
+
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -568,9 +566,9 @@ class InputTests : XCTestCase {
                 source is Echo
             }
         )
-        
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+
+        let schema = try GraphQLSchema(
+            query: GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -579,7 +577,7 @@ class InputTests : XCTestCase {
                             "field1": GraphQLArgument(
                                 type: GraphQLString,
                                 defaultValue: .string("defaultValue1")
-                            )
+                            ),
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -592,12 +590,12 @@ class InputTests : XCTestCase {
             ),
             types: [EchoOutputType]
         )
-        
+
         let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         defer {
             XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
-        
+
         // Test basic functionality
         XCTAssertEqual(
             try graphql(
@@ -615,8 +613,8 @@ class InputTests : XCTestCase {
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": "value1"
-                ]
+                    "field1": "value1",
+                ],
             ])
         )
         XCTAssertEqual(
@@ -633,16 +631,16 @@ class InputTests : XCTestCase {
                 """,
                 eventLoopGroup: group,
                 variableValues: [
-                    "field1": "value1"
+                    "field1": "value1",
                 ]
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": "value1"
-                ]
+                    "field1": "value1",
+                ],
             ])
         )
-        
+
         // Test providing null results in a null output
         XCTAssertEqual(
             try graphql(
@@ -660,8 +658,8 @@ class InputTests : XCTestCase {
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": .null
-                ]
+                    "field1": .null,
+                ],
             ])
         )
         XCTAssertEqual(
@@ -678,16 +676,16 @@ class InputTests : XCTestCase {
                 """,
                 eventLoopGroup: group,
                 variableValues: [
-                    "field1": .null
+                    "field1": .null,
                 ]
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": .null
-                ]
+                    "field1": .null,
+                ],
             ])
         )
-        
+
         // Test not providing parameter results in default
         XCTAssertEqual(
             try graphql(
@@ -703,8 +701,8 @@ class InputTests : XCTestCase {
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": "defaultValue1"
-                ]
+                    "field1": "defaultValue1",
+                ],
             ])
         )
         XCTAssertEqual(
@@ -724,11 +722,11 @@ class InputTests : XCTestCase {
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": "defaultValue1"
-                ]
+                    "field1": "defaultValue1",
+                ],
             ])
         )
-        
+
         // Test that nullable unprovided variables are coerced to null
         XCTAssertEqual(
             try graphql(
@@ -747,23 +745,23 @@ class InputTests : XCTestCase {
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
-                    "field1": .null
-                ]
+                    "field1": .null,
+                ],
             ])
         )
     }
-    
+
     // Test that input objects parse as expected from non-null literals
     func testInputNoNull() throws {
-        struct Echo : Codable {
+        struct Echo: Codable {
             let field1: String?
             let field2: String?
-            
+
             init(field1: String?, field2: String?) {
                 self.field1 = field1
                 self.field2 = field2
             }
-            
+
             init(from decoder: Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 XCTAssertTrue(container.contains(.field1))
@@ -773,11 +771,11 @@ class InputTests : XCTestCase {
             }
         }
 
-        struct EchoArgs : Codable {
+        struct EchoArgs: Codable {
             let input: Echo
         }
 
-        let EchoInputType = try! GraphQLInputObjectType(
+        let EchoInputType = try GraphQLInputObjectType(
             name: "EchoInput",
             fields: [
                 "field1": InputObjectField(
@@ -789,7 +787,7 @@ class InputTests : XCTestCase {
             ]
         )
 
-        let EchoOutputType = try! GraphQLObjectType(
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -804,9 +802,9 @@ class InputTests : XCTestCase {
                 source is Echo
             }
         )
-        
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+
+        let schema = try GraphQLSchema(
+            query: GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -814,7 +812,7 @@ class InputTests : XCTestCase {
                         args: [
                             "input": GraphQLArgument(
                                 type: EchoInputType
-                            )
+                            ),
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -828,12 +826,12 @@ class InputTests : XCTestCase {
             ),
             types: [EchoInputType, EchoOutputType]
         )
-        
+
         let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         defer {
             XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
-        
+
         // Test in arguments
         XCTAssertEqual(
             try graphql(
@@ -855,10 +853,10 @@ class InputTests : XCTestCase {
                 "echo": [
                     "field1": "value1",
                     "field2": "value2",
-                ]
+                ],
             ])
         )
-        
+
         // Test in variables
         XCTAssertEqual(
             try graphql(
@@ -875,30 +873,30 @@ class InputTests : XCTestCase {
                 variableValues: [
                     "input": [
                         "field1": "value1",
-                        "field2": "value2"
-                    ]
+                        "field2": "value2",
+                    ],
                 ]
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": "value2",
-                ]
+                ],
             ])
         )
     }
-    
+
     // Test that inputs parse as expected when null literals are present
     func testInputParsingDefinedNull() throws {
-        struct Echo : Codable {
+        struct Echo: Codable {
             let field1: String?
             let field2: String?
-            
+
             init(field1: String?, field2: String?) {
                 self.field1 = field1
                 self.field2 = field2
             }
-            
+
             init(from decoder: Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 XCTAssertTrue(container.contains(.field1))
@@ -908,11 +906,11 @@ class InputTests : XCTestCase {
             }
         }
 
-        struct EchoArgs : Codable {
+        struct EchoArgs: Codable {
             let input: Echo
         }
 
-        let EchoInputType = try! GraphQLInputObjectType(
+        let EchoInputType = try GraphQLInputObjectType(
             name: "EchoInput",
             fields: [
                 "field1": InputObjectField(
@@ -924,7 +922,7 @@ class InputTests : XCTestCase {
             ]
         )
 
-        let EchoOutputType = try! GraphQLObjectType(
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -939,9 +937,9 @@ class InputTests : XCTestCase {
                 source is Echo
             }
         )
-        
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+
+        let schema = try GraphQLSchema(
+            query: GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -949,7 +947,7 @@ class InputTests : XCTestCase {
                         args: [
                             "input": GraphQLArgument(
                                 type: EchoInputType
-                            )
+                            ),
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -963,12 +961,12 @@ class InputTests : XCTestCase {
             ),
             types: [EchoInputType, EchoOutputType]
         )
-        
+
         let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         defer {
             XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
-        
+
         // Test in arguments
         XCTAssertEqual(
             try graphql(
@@ -990,10 +988,10 @@ class InputTests : XCTestCase {
                 "echo": [
                     "field1": "value1",
                     "field2": nil,
-                ]
+                ],
             ])
         )
-        
+
         // Test in variables
         XCTAssertEqual(
             try graphql(
@@ -1010,44 +1008,49 @@ class InputTests : XCTestCase {
                 variableValues: [
                     "input": [
                         "field1": "value1",
-                        "field2": .null
-                    ]
+                        "field2": .null,
+                    ],
                 ]
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": nil,
-                ]
+                ],
             ])
         )
     }
-    
+
     // Test that input objects parse as expected when there are missing fields with no default
     func testInputParsingUndefined() throws {
-        struct Echo : Codable {
+        struct Echo: Codable {
             let field1: String?
             let field2: String?
-            
+
             init(field1: String?, field2: String?) {
                 self.field1 = field1
                 self.field2 = field2
             }
-            
+
             init(from decoder: Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 XCTAssertTrue(container.contains(.field1))
                 field1 = try container.decodeIfPresent(String.self, forKey: .field1)
-                XCTAssertFalse(container.contains(.field2)) // Container should not include field2, since it is undefined
+                XCTAssertFalse(
+                    container
+                        .contains(
+                            .field2
+                        )
+                ) // Container should not include field2, since it is undefined
                 field2 = try container.decodeIfPresent(String.self, forKey: .field2)
             }
         }
 
-        struct EchoArgs : Codable {
+        struct EchoArgs: Codable {
             let input: Echo
         }
 
-        let EchoInputType = try! GraphQLInputObjectType(
+        let EchoInputType = try GraphQLInputObjectType(
             name: "EchoInput",
             fields: [
                 "field1": InputObjectField(
@@ -1059,7 +1062,7 @@ class InputTests : XCTestCase {
             ]
         )
 
-        let EchoOutputType = try! GraphQLObjectType(
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -1074,9 +1077,9 @@ class InputTests : XCTestCase {
                 source is Echo
             }
         )
-        
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+
+        let schema = try GraphQLSchema(
+            query: GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -1084,7 +1087,7 @@ class InputTests : XCTestCase {
                         args: [
                             "input": GraphQLArgument(
                                 type: EchoInputType
-                            )
+                            ),
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -1098,12 +1101,12 @@ class InputTests : XCTestCase {
             ),
             types: [EchoInputType, EchoOutputType]
         )
-        
+
         let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         defer {
             XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
-        
+
         // Test in arguments
         XCTAssertEqual(
             try graphql(
@@ -1124,10 +1127,10 @@ class InputTests : XCTestCase {
                 "echo": [
                     "field1": "value1",
                     "field2": nil,
-                ]
+                ],
             ])
         )
-        
+
         // Test in variables
         XCTAssertEqual(
             try graphql(
@@ -1143,30 +1146,30 @@ class InputTests : XCTestCase {
                 eventLoopGroup: group,
                 variableValues: [
                     "input": [
-                        "field1": "value1"
-                    ]
+                        "field1": "value1",
+                    ],
                 ]
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": nil,
-                ]
+                ],
             ])
         )
     }
-    
+
     // Test that input objects parse as expected when there are missing fields with defaults
     func testInputParsingUndefinedWithDefault() throws {
-        struct Echo : Codable {
+        struct Echo: Codable {
             let field1: String?
             let field2: String?
-            
+
             init(field1: String?, field2: String?) {
                 self.field1 = field1
                 self.field2 = field2
             }
-            
+
             init(from decoder: Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 XCTAssertTrue(container.contains(.field1))
@@ -1176,11 +1179,11 @@ class InputTests : XCTestCase {
             }
         }
 
-        struct EchoArgs : Codable {
+        struct EchoArgs: Codable {
             let input: Echo
         }
 
-        let EchoInputType = try! GraphQLInputObjectType(
+        let EchoInputType = try GraphQLInputObjectType(
             name: "EchoInput",
             fields: [
                 "field1": InputObjectField(
@@ -1193,7 +1196,7 @@ class InputTests : XCTestCase {
             ]
         )
 
-        let EchoOutputType = try! GraphQLObjectType(
+        let EchoOutputType = try GraphQLObjectType(
             name: "Echo",
             description: "",
             fields: [
@@ -1208,9 +1211,9 @@ class InputTests : XCTestCase {
                 source is Echo
             }
         )
-        
-        let schema = try! GraphQLSchema(
-            query: try! GraphQLObjectType(
+
+        let schema = try GraphQLSchema(
+            query: GraphQLObjectType(
                 name: "Query",
                 fields: [
                     "echo": GraphQLField(
@@ -1218,7 +1221,7 @@ class InputTests : XCTestCase {
                         args: [
                             "input": GraphQLArgument(
                                 type: EchoInputType
-                            )
+                            ),
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -1232,12 +1235,12 @@ class InputTests : XCTestCase {
             ),
             types: [EchoInputType, EchoOutputType]
         )
-        
+
         let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         defer {
             XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
-        
+
         // Undefined with default gets default
         XCTAssertEqual(
             try graphql(
@@ -1258,7 +1261,7 @@ class InputTests : XCTestCase {
                 "echo": [
                     "field1": "value1",
                     "field2": "value2",
-                ]
+                ],
             ])
         )
         // Null literal with default gets null
@@ -1282,10 +1285,10 @@ class InputTests : XCTestCase {
                 "echo": [
                     "field1": "value1",
                     "field2": nil,
-                ]
+                ],
             ])
         )
-        
+
         // Test in variable
         // Undefined with default gets default
         XCTAssertEqual(
@@ -1302,15 +1305,15 @@ class InputTests : XCTestCase {
                 eventLoopGroup: group,
                 variableValues: [
                     "input": [
-                        "field1": "value1"
-                    ]
+                        "field1": "value1",
+                    ],
                 ]
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": "value2",
-                ]
+                ],
             ])
         )
         // Null literal with default gets null
@@ -1329,15 +1332,15 @@ class InputTests : XCTestCase {
                 variableValues: [
                     "input": [
                         "field1": "value1",
-                        "field2": .null
-                    ]
+                        "field2": .null,
+                    ],
                 ]
             ).wait(),
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": nil,
-                ]
+                ],
             ])
         )
     }
