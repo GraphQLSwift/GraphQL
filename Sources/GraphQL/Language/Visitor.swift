@@ -88,72 +88,44 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
     var keys: [IndexPathElement] = ["root"]
     var index: Int = -1
     var edits: [(key: IndexPathElement, node: Node)] = []
+    var node: NodeResult? = .node(root)
+    var key: IndexPathElement?
     var parent: NodeResult?
     var path: [IndexPathElement] = []
     var ancestors: [NodeResult] = []
-    var newRoot = root
 
     repeat {
         index += 1
         let isLeaving = index == keys.count
-        var key: IndexPathElement?
-        var node: NodeResult?
         let isEdited = isLeaving && !edits.isEmpty
 
-        if !isLeaving {
-            key = parent != nil ? inArray ? index : keys[index] : nil
-
-            if let parent = parent {
-                switch parent {
-                case let .node(parent):
-                    node = parent.get(key: key!.keyValue!)
-                case let .array(parent):
-                    node = .node(parent[key!.indexValue!])
-                }
-            } else {
-                node = .node(newRoot)
-            }
-
-            if node == nil {
-                continue
-            }
-
-            if parent != nil {
-                path.append(key!)
-            }
-        } else {
+        if isLeaving {
             key = ancestors.isEmpty ? nil : path.popLast()
             node = parent
             parent = ancestors.popLast()
 
             if isEdited {
-//                if inArray {
-//                    node = node.slice()
-//                } else {
-//                    let clone = node
-//                    node = clone
-//                }
-//
-//                var editOffset = 0
-//
-//                for ii in 0..<edits.count {
-//                    var editKey = edits[ii].key
-//                    let editValue = edits[ii].node
-//
-//                    if inArray {
-//                        editKey -= editOffset
-//                    }
-//
-//                    if inArray && editValue == nil {
-//                        node.splice(editKey, 1)
-//                        editOffset += 1
-//                    } else {
-//
-//                    if let node = node, case .node(let n) = node {
-//                        n.set(value: editValue, key: editKey.keyValue!)
-//                    }
-//                    }
-//                }
+                if inArray {
+                    var editOffset = 0
+                    for (editKey, editValue) in edits {
+                        let editKey = editKey.indexValue!
+                        let arrayKey = editKey - editOffset
+
+                        if case .array(var n) = node {
+                            n.remove(at: arrayKey)
+                            node = .array(n)
+                            editOffset += 1
+                        }
+                    }
+                } else {
+                    let clone = node
+                    node = clone
+                    for (editKey, editValue) in edits {
+                        if case .node(let node) = node {
+                            node.set(value: editValue, key: editKey.keyValue!)
+                        }
+                    }
+                }
             }
 
             index = stack!.index
@@ -161,11 +133,24 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
             edits = stack!.edits
             inArray = stack!.inArray
             stack = stack!.prev
+        } else if let parent = parent {
+            key = inArray ? index : keys[index]
+
+            switch parent {
+            case let .node(parent):
+                node = parent.get(key: key!.keyValue!)
+            case let .array(parent):
+                node = .node(parent[key!.indexValue!])
+            }
+
+            if node == nil {
+                continue
+            }
+            path.append(key!)
         }
 
-        var result: VisitResult
-
-        if case let .node(n) = node! {
+        var result: VisitResult = .break // placeholder
+        if case let .node(n) = node {
             if !isLeaving {
                 result = visitor.enter(
                     node: n,
@@ -188,15 +173,16 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
                 break
             }
 
-            if case .skip = result, !isLeaving {
-                _ = path.popLast()
-                continue
-            } else if case let .node(n) = result {
-                edits.append((key!, n!))
-
+            if case .skip = result {
                 if !isLeaving {
-                    if let n = n {
-                        node = .node(n)
+                    _ = path.popLast()
+                    continue
+                }
+            } else if case let .node(resultNode) = result {
+                edits.append((key!, resultNode!))
+                if !isLeaving {
+                    if let resultNode = resultNode {
+                        node = .node(resultNode)
                     } else {
                         _ = path.popLast()
                         continue
@@ -205,38 +191,36 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
             }
         }
 
-//        if case .continue = result, isEdited {
-//            edits.append((key!, node!))
-//        }
+        if case .continue = result, isEdited, case let .node(node) = node! {
+            edits.append((key!, node))
+        }
 
-        if !isLeaving {
+        if isLeaving {
+            _ = path.popLast()
+        } else {
             stack = Stack(index: index, keys: keys, edits: edits, inArray: inArray, prev: stack)
             inArray = node!.isArray
-
             switch node! {
             case let .node(node):
                 keys = visitorKeys[node.kind] ?? []
             case let .array(array):
                 keys = array.map { _ in "root" }
             }
-
             index = -1
             edits = []
-
             if let parent = parent {
                 ancestors.append(parent)
             }
-
             parent = node
         }
     } while
         stack != nil
 
     if !edits.isEmpty {
-        newRoot = edits[edits.count - 1].node
+        return edits[edits.count - 1].node
     }
 
-    return newRoot
+    return root
 }
 
 final class Stack {
