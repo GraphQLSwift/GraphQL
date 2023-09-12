@@ -256,4 +256,14 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
             message: #"Variable "$a" is never used in operation "Bar"."#
         )
     }
+
+    func testVariableUsedInsideObject() throws {
+        try assertValid(
+            """
+            query Foo($a: String) {
+              field(object: { a: $a })
+            }
+            """
+        )
+    }
 }

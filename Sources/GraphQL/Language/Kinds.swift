@@ -1,4 +1,4 @@
-public enum Kind {
+public enum Kind: CaseIterable {
     case name
     case document
     case operationDefinition

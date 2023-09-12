@@ -240,11 +240,10 @@ public final class ValidationContext {
                     }
 
                     if let variable = node as? Variable {
-                        usages
-                            .append(VariableUsage(
-                                node: variable,
-                                type: typeInfo.inputType
-                            ))
+                        usages.append(VariableUsage(
+                            node: variable,
+                            type: typeInfo.inputType
+                        ))
                     }
 
                     return .continue
