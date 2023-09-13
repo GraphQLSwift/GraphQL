@@ -87,7 +87,7 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
     var inArray = false
     var keys: [IndexPathElement] = ["root"]
     var index: Int = -1
-    var edits: [(key: IndexPathElement, node: Node)] = []
+    var edits: [(key: IndexPathElement, node: Node?)] = []
     var node: NodeResult? = .node(root)
     var key: IndexPathElement?
     var parent: NodeResult?
@@ -111,10 +111,15 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
                         let editKey = editKey.indexValue!
                         let arrayKey = editKey - editOffset
 
-                        if case .array(var n) = node {
-                            n.remove(at: arrayKey)
-                            node = .array(n)
-                            editOffset += 1
+                        if case var .array(n) = node {
+                            if let editValue = editValue {
+                                n[arrayKey] = editValue
+                                node = .array(n)
+                            } else {
+                                n.remove(at: arrayKey)
+                                node = .array(n)
+                                editOffset += 1
+                            }
                         }
                     }
                 } else {
@@ -179,7 +184,7 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
                     continue
                 }
             } else if case let .node(resultNode) = result {
-                edits.append((key!, resultNode!))
+                edits.append((key!, resultNode))
                 if !isLeaving {
                     if let resultNode = resultNode {
                         node = .node(resultNode)
@@ -216,8 +221,8 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
     } while
         stack != nil
 
-    if !edits.isEmpty {
-        return edits[edits.count - 1].node
+    if !edits.isEmpty, let nextEditNode = edits[edits.count - 1].node {
+        return nextEditNode
     }
 
     return root
@@ -226,14 +231,14 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
 final class Stack {
     let index: Int
     let keys: [IndexPathElement]
-    let edits: [(key: IndexPathElement, node: Node)]
+    let edits: [(key: IndexPathElement, node: Node?)]
     let inArray: Bool
     let prev: Stack?
 
     init(
         index: Int,
         keys: [IndexPathElement],
-        edits: [(key: IndexPathElement, node: Node)],
+        edits: [(key: IndexPathElement, node: Node?)],
         inArray: Bool,
         prev: Stack?
     ) {
