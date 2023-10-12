@@ -6,11 +6,11 @@ func print(ast: Node) -> String {
     ast.printed
 }
 
-fileprivate protocol Printable {
+private protocol Printable {
     var printed: String { get }
 }
 
-fileprivate let MAX_LINE_LENGTH = 80
+private let MAX_LINE_LENGTH = 80
 
 extension Name: Printable {
     var printed: String { value }
@@ -36,7 +36,7 @@ extension OperationDefinition: Printable {
         let prefix = join([
             operation.rawValue,
             join([name, varDefs]),
-            join(directives, " ")
+            join(directives, " "),
         ], " ")
 
         // Anonymous queries with no directives or variable definitions can use
@@ -73,7 +73,7 @@ extension Field: Printable {
             argsLine,
             wrap(" ", join(directives, " ")),
             wrap(" ", selectionSet),
-        ]);
+        ])
     }
 }
 
@@ -84,6 +84,7 @@ extension Argument: Printable {
 }
 
 // TODO: Add Nullability Modifiers
+
 // MARK: - Nullability Modifiers
 
 //
@@ -117,14 +118,15 @@ extension InlineFragment: Printable {
             "...",
             wrap("on ", typeCondition),
             join(directives, " "),
-            selectionSet
+            selectionSet,
         ], " ")
     }
 }
 
 extension FragmentDefinition: Printable {
     var printed: String {
-        "fragment " + name + " on " + typeCondition + " " + wrap("", join(directives, " "), " ") + selectionSet
+        "fragment " + name + " on " + typeCondition + " " + wrap("", join(directives, " "), " ") +
+            selectionSet
     }
 }
 
@@ -210,8 +212,8 @@ extension NonNullType: Printable {
 
 extension SchemaDefinition: Printable {
     var printed: String {
-        wrap("", description, "\n") + 
-        join(["schema", join(directives, " "), block(operationTypes)], " ")
+        wrap("", description, "\n") +
+            join(["schema", join(directives, " "), block(operationTypes)], " ")
     }
 }
 
@@ -221,15 +223,24 @@ extension OperationTypeDefinition: Printable {
 
 extension ScalarTypeDefinition: Printable {
     var printed: String {
-        wrap("", description, "\n") + 
-        join(["scalar", name.printed, join(directives, " ")], " ")
+        wrap("", description, "\n") +
+            join(["scalar", name.printed, join(directives, " ")], " ")
     }
 }
 
 extension ObjectTypeDefinition: Printable {
     var printed: String {
         wrap("", description, "\n") +
-        join(["type", name, wrap("implements ", join(interfaces, " & ")), join(directives, " "), block(fields)], " ")
+            join(
+                [
+                    "type",
+                    name,
+                    wrap("implements ", join(interfaces, " & ")),
+                    join(directives, " "),
+                    block(fields),
+                ],
+                " "
+            )
     }
 }
 
@@ -248,42 +259,58 @@ extension FieldDefinition: Printable {
 extension InputValueDefinition: Printable {
     var printed: String {
         wrap("", description, "\n") +
-        join([name + ": " + type.printed, wrap("= ", defaultValue?.printed), join(directives, " ")], " ")
+            join(
+                [
+                    name + ": " + type.printed,
+                    wrap("= ", defaultValue?.printed),
+                    join(directives, " "),
+                ],
+                " "
+            )
     }
 }
 
 extension InterfaceTypeDefinition: Printable {
     var printed: String {
         wrap("", description, "\n") +
-        join(["interface", name, wrap("implements ", join(interfaces, " & ")), join(directives, " "), block(fields)], " ")
+            join(
+                [
+                    "interface",
+                    name,
+                    wrap("implements ", join(interfaces, " & ")),
+                    join(directives, " "),
+                    block(fields),
+                ],
+                " "
+            )
     }
 }
 
 extension UnionTypeDefinition: Printable {
     var printed: String {
         wrap("", description, "\n") +
-        join(["union", name, join(directives, " "), wrap("= ", join(types, " | "))], " ")
+            join(["union", name, join(directives, " "), wrap("= ", join(types, " | "))], " ")
     }
 }
 
 extension EnumTypeDefinition: Printable {
     var printed: String {
         wrap("", description, "\n") +
-        join(["enum", name, join(directives, " "), block(values)], " ")
+            join(["enum", name, join(directives, " "), block(values)], " ")
     }
 }
 
 extension EnumValueDefinition: Printable {
     var printed: String {
-        wrap("", description, "\n") + 
-        join([name, join(directives, " ")], " ")
+        wrap("", description, "\n") +
+            join([name, join(directives, " ")], " ")
     }
 }
 
 extension InputObjectTypeDefinition: Printable {
     var printed: String {
         wrap("", description, "\n") +
-        join(["input", name, join(directives, " "), block(fields)], " ")
+            join(["input", name, join(directives, " "), block(fields)], " ")
     }
 }
 
@@ -292,8 +319,8 @@ extension DirectiveDefinition: Printable {
         let prefix = wrap("", description, "\n") + "directive @" + name
 
         let args = hasMultilineItems(arguments) ?
-        wrap("(\n", indent(join(arguments, "\n")), "\n)") :
-        wrap("(", join(arguments, ", "), ")")
+            wrap("(\n", indent(join(arguments, "\n")), "\n)") :
+            wrap("(", join(arguments, ", "), ")")
 
         return prefix + args + (repeatable ? " repeatable" : "") + " on " + join(locations, " | ")
     }
@@ -342,58 +369,58 @@ extension InputObjectExtensionDefinition: Printable {
 }
 
 /// If content is not null or empty, then wrap with start and end, otherwise print an empty string.
-fileprivate func wrap(_ start: String, _ content: String?, _ end: String = "") -> String {
+private func wrap(_ start: String, _ content: String?, _ end: String = "") -> String {
     guard let content = content, !content.isEmpty else {
         return ""
     }
     return start + content + end
 }
 
-fileprivate func wrap(_ start: String, _ content: Printable?, _ end: String = "") -> String {
+private func wrap(_ start: String, _ content: Printable?, _ end: String = "") -> String {
     wrap(start, content?.printed, end)
 }
 
-fileprivate func indent(_ string: String) -> String {
+private func indent(_ string: String) -> String {
     wrap("  ", string.replacingOccurrences(of: "\n", with: "\n  "))
 }
 
-fileprivate func indent(_ string: Printable) -> String {
+private func indent(_ string: Printable) -> String {
     indent(string.printed)
 }
 
 /// Given array, print an empty string if it is null or empty, otherwise
 /// print all items together separated by separator if provided
-fileprivate func join(_ array: [String?]?, _ seperator: String = "") -> String {
+private func join(_ array: [String?]?, _ seperator: String = "") -> String {
     array?.compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: seperator) ?? ""
 }
 
-fileprivate func join(_ array: [Printable?]?, _ seperator: String = "") -> String {
+private func join(_ array: [Printable?]?, _ seperator: String = "") -> String {
     join(array?.map { $0?.printed }, seperator)
 }
 
 /// Given array, print each item on its own line, wrapped in an indented `{ }` block.
-fileprivate func block(_ array: [String?]?) -> String {
+private func block(_ array: [String?]?) -> String {
     wrap("{\n", indent(join(array, "\n")), "\n}")
 }
 
-fileprivate func block(_ array: [Printable?]?) -> String {
+private func block(_ array: [Printable?]?) -> String {
     block(array?.map { $0?.printed })
 }
 
-fileprivate func hasMultilineItems(_ array: [String]?) -> Bool {
+private func hasMultilineItems(_ array: [String]?) -> Bool {
     // FIXME: https://github.com/graphql/graphql-js/issues/2203
     array?.contains { x in x.contains { $0.isNewline } } ?? false
 }
 
-fileprivate func hasMultilineItems(_ array: [Printable]?) -> Bool {
+private func hasMultilineItems(_ array: [Printable]?) -> Bool {
     hasMultilineItems(array?.map { $0.printed })
 }
 
-fileprivate func +(lhs: String, rhs: Printable) -> String {
+private func + (lhs: String, rhs: Printable) -> String {
     lhs + rhs.printed
 }
 
-fileprivate func +(lhs: Printable, rhs: String) -> String {
+private func + (lhs: Printable, rhs: String) -> String {
     lhs.printed + rhs
 }
 
@@ -401,26 +428,26 @@ extension String: Printable {
     fileprivate var printed: String { self }
 }
 
-extension Node {
-    fileprivate var printed: String {
+private extension Node {
+    var printed: String {
         (self as? Printable)?.printed ?? "UnknownNode"
     }
 }
 
-extension Value {
-    fileprivate var printed: String {
+private extension Value {
+    var printed: String {
         (self as? Printable)?.printed ?? "UnknownValue"
     }
 }
 
-extension Selection {
-    fileprivate var printed: String {
+private extension Selection {
+    var printed: String {
         (self as? Printable)?.printed ?? "UnknownSelection"
     }
 }
 
-extension `Type` {
-    fileprivate var printed: String {
+private extension Type {
+    var printed: String {
         (self as? Printable)?.printed ?? "UnknownType"
     }
 }
