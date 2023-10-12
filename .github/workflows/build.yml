@@ -54,7 +54,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest] 
-        swift: ["5.7", "5.8"]
+        swift: ["5.7", "5.8", "5.9"]
     steps:
     - uses: swift-actions/setup-swift@v1
       with:
