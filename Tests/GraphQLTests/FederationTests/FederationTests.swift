@@ -6,34 +6,27 @@ final class FederationTests: XCTestCase {
         // Confirm that the Apollo test schema can be parsed as expected https://github.com/apollographql/apollo-federation-subgraph-compatibility/blob/main/COMPATIBILITY.md
         let source =
             """
-            extend schema
-              @link(
-                url: "https://specs.apollo.dev/federation/v2.0",
-                import: [
-                  "@extends",
-                  "@external",
-                  "@key",
-                  "@inaccessible",
-                  "@override",
-                  "@provides",
-                  "@requires",
-                  "@shareable",
-                  "@tag"
-                ]
-              )
+            extend schema @link(url: "https://specs.apollo.dev/federation/v2.0", import: [
+              "@extends"
+              "@external"
+              "@key"
+              "@inaccessible"
+              "@override"
+              "@provides"
+              "@requires"
+              "@shareable"
+              "@tag"
+            ])
 
-            type Product
-              @key(fields: "id")
-              @key(fields: "sku package")
-              @key(fields: "sku variation { id }") {
-                id: ID!
-                sku: String
-                package: String
-                variation: ProductVariation
-                dimensions: ProductDimension
-                createdBy: User @provides(fields: "totalProductsCreated")
-                notes: String @tag(name: "internal")
-                research: [ProductResearch!]!
+            type Product @key(fields: "id") @key(fields: "sku package") @key(fields: "sku variation { id }") {
+              id: ID!
+              sku: String
+              package: String
+              variation: ProductVariation
+              dimensions: ProductDimension
+              createdBy: User @provides(fields: "totalProductsCreated")
+              notes: String @tag(name: "internal")
+              research: [ProductResearch!]!
             }
 
             type DeprecatedProduct @key(fields: "sku package") {
@@ -332,7 +325,10 @@ final class FederationTests: XCTestCase {
             userExtensionObjectTypeDefinition,
         ])
 
-        let result = try parse(source: source)
-        XCTAssert(result == expected)
+        let document = try parse(source: source)
+        let printed = print(ast: document)
+
+        XCTAssertEqual(document, expected)
+        XCTAssertEqual(source, printed)
     }
 }
