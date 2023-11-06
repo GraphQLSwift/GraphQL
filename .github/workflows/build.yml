@@ -35,7 +35,7 @@ jobs:
       run: swift test --parallel --enable-test-discovery
 
   # ubuntu-latest is ubuntu-22.04 currently. Swift versions older than 5.7 don't have builds for 22.04. https://www.swift.org/download/ 
-  ubuntu-old:
+  ubuntu-20_04:
     name: Build ${{ matrix.swift }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -50,7 +50,7 @@ jobs:
     - name: Test
       run: swift test --parallel
 
-  ubuntu-latest:
+  ubuntu-22_04:
     name: Build ${{ matrix.swift }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -64,3 +64,24 @@ jobs:
     - uses: actions/checkout@v3
     - name: Test
       run: swift test --parallel
+
+  ubuntu-latest:
+    name: Test Latest Swift on Latest Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+    - uses: swift-actions/setup-swift@v1
+    - uses: actions/checkout@v3
+    - name: Test
+      run: swift test --parallel --enable-code-coverage
+    - name: Get test coverage html
+      run: |
+        llvm-cov show \
+          $(swift build --show-bin-path)/GraphQLPackageTests.xctest \
+          --instr-profile $(swift build --show-bin-path)/codecov/default.profdata \
+          --format html \
+          --output-dir=.test-coverage
+    - name: Upload test coverage html
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-coverage-report
+        path: .test-coverage
