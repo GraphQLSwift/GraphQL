@@ -47,6 +47,7 @@ jobs:
         llvm-cov show \
           $(swift build --show-bin-path)/GraphQLPackageTests.xctest \
           --instr-profile $(swift build --show-bin-path)/codecov/default.profdata \
+          --ignore-filename-regex="\.build|Tests" \
           --format html \
           --output-dir=.test-coverage
     - name: Upload test coverage html
