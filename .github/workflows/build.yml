@@ -30,7 +30,7 @@ jobs:
     - uses: swift-actions/setup-swift@v1
     - uses: actions/checkout@v3
     - name: Test
-      run: swift test
+      run: swift test --parallel
 
   # ubuntu-latest is ubuntu-22.04 currently. Swift versions older than 5.7 don't have builds for 22.04. https://www.swift.org/download/ 
   ubuntu-old:
@@ -46,7 +46,7 @@ jobs:
         swift-version: ${{ matrix.swift }}
     - uses: actions/checkout@v3
     - name: Test
-      run: swift test
+      run: swift test --parallel
 
   ubuntu-latest:
     name: Build ${{ matrix.swift }} on ${{ matrix.os }}
@@ -61,4 +61,4 @@ jobs:
         swift-version: ${{ matrix.swift }}
     - uses: actions/checkout@v3
     - name: Test
-      run: swift test
+      run: swift test --parallel
