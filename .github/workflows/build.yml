@@ -34,39 +34,8 @@ jobs:
     - name: Build and test
       run: swift test --parallel --enable-test-discovery
 
-  # ubuntu-latest is ubuntu-22.04 currently. Swift versions older than 5.7 don't have builds for 22.04. https://www.swift.org/download/ 
-  ubuntu-20_04:
-    name: Test Swift ${{ matrix.swift }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-20.04] 
-        swift: ["5.5", "5.6"]
-    steps:
-    - uses: swift-actions/setup-swift@v1
-      with:
-        swift-version: ${{ matrix.swift }}
-    - uses: actions/checkout@v3
-    - name: Test
-      run: swift test --parallel
-
-  ubuntu-22_04:
-    name: Test Swift ${{ matrix.swift }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest] 
-        swift: ["5.7", "5.8", "5.9"]
-    steps:
-    - uses: swift-actions/setup-swift@v1
-      with:
-        swift-version: ${{ matrix.swift }}
-    - uses: actions/checkout@v3
-    - name: Test
-      run: swift test --parallel
-
-  ubuntu-latest:
-    name: Test Latest Swift on Latest Ubuntu
+  linux:
+    name: Test on Linux
     runs-on: ubuntu-latest
     steps:
     - uses: swift-actions/setup-swift@v1
@@ -85,3 +54,32 @@ jobs:
       with:
         name: test-coverage-report
         path: .test-coverage
+
+  backcompat-ubuntu-22_04:
+    name: Test Swift ${{ matrix.swift }} on Ubuntu 22.04
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        swift: ["5.7", "5.8"]
+    steps:
+    - uses: swift-actions/setup-swift@v1
+      with:
+        swift-version: ${{ matrix.swift }}
+    - uses: actions/checkout@v3
+    - name: Test
+      run: swift test --parallel
+
+  # Swift versions older than 5.7 don't have builds for 22.04. https://www.swift.org/download/ 
+  backcompat-ubuntu-20_04:
+    name: Test Swift ${{ matrix.swift }} on Ubuntu 20.04
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        swift: ["5.5", "5.6"]
+    steps:
+    - uses: swift-actions/setup-swift@v1
+      with:
+        swift-version: ${{ matrix.swift }}
+    - uses: actions/checkout@v3
+    - name: Test
+      run: swift test --parallel
