@@ -3,3 +3,6 @@
 ### SwiftPM ###
 .build/
 .swiftpm/
+
+### CI Artifacts ###
+/.test-coverage
