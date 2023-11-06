@@ -11,7 +11,7 @@ on:
 
 jobs:
   formatlint:
-    name: Lint for correct formatting
+    name: Format linting
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,7 +24,7 @@ jobs:
         run: docker run --rm -v ${{ github.workspace }}:/repo ghcr.io/nicklockwood/swiftformat:latest /repo --lint
 
   macos:
-    name: Build and test on macos-latest
+    name: Test on macOS
     runs-on: macos-latest
     steps:
     - uses: maxim-lobanov/setup-xcode@v1
@@ -36,7 +36,7 @@ jobs:
 
   # ubuntu-latest is ubuntu-22.04 currently. Swift versions older than 5.7 don't have builds for 22.04. https://www.swift.org/download/ 
   ubuntu-20_04:
-    name: Build ${{ matrix.swift }} on ${{ matrix.os }}
+    name: Test Swift ${{ matrix.swift }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -51,7 +51,7 @@ jobs:
       run: swift test --parallel
 
   ubuntu-22_04:
-    name: Build ${{ matrix.swift }} on ${{ matrix.os }}
+    name: Test Swift ${{ matrix.swift }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
