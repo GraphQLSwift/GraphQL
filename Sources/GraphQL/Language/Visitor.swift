@@ -268,7 +268,7 @@ final class Stack {
  * If a prior visitor edits a node, no following visitors will see that node.
  */
 func visitInParallel(visitors: [Visitor]) -> Visitor {
-    var skipping = [Node?](repeating: nil, count: visitors.count)
+    var skipping = [VisitResult?](repeating: nil, count: visitors.count)
 
     return Visitor(
         enter: { node, key, parent, path, ancestors in
@@ -283,9 +283,9 @@ func visitInParallel(visitors: [Visitor]) -> Visitor {
                     )
 
                     if case .skip = result {
-                        skipping[i] = node
+                        skipping[i] = .node(node)
                     } else if case .break = result {
-//                        skipping[i] = BREAK
+                        skipping[i] = .break
                     } else if case .node = result {
                         return result
                     }
@@ -306,11 +306,11 @@ func visitInParallel(visitors: [Visitor]) -> Visitor {
                     )
 
                     if case .break = result {
-//                        skipping[i] = BREAK
+                        skipping[i] = .break
                     } else if case .node = result {
                         return result
                     }
-                } // else if skipping[i] == node {
+                } // else if case let .node(skippedNode) = skipping[i], skippedNode == node {
 //                    skipping[i] = nil
 //                }
             }

@@ -5,38 +5,23 @@
  * are used, either directly or within a spread fragment.
  */
 func NoUnusedVariablesRule(context: ValidationContext) -> Visitor {
-    var variableDefs: [VariableDefinition] = []
-
     return Visitor(
-        enter: { node, _, _, _, _ in
-            if node is OperationDefinition {
-                variableDefs = []
-                return .continue
-            }
-
-            if let def = node as? VariableDefinition {
-                variableDefs.append(def)
-                return .continue
-            }
-
-            return .continue
+        enter: { _, _, _, _, _ in
+            .continue
         },
         leave: { node, _, _, _, _ -> VisitResult in
             guard let operation = node as? OperationDefinition else {
                 return .continue
             }
 
-            var variableNameUsed: [String: Bool] = [:]
             let usages = context.getRecursiveVariableUsages(operation: operation)
+            let variableNameUsed = Set(usages.map { usage in
+                usage.node.name.value
+            })
 
-            for usage in usages {
-                variableNameUsed[usage.node.name.value] = true
-            }
-
-            for variableDef in variableDefs {
+            for variableDef in operation.variableDefinitions {
                 let variableName = variableDef.variable.name.value
-
-                if variableNameUsed[variableName] != true {
+                if !variableNameUsed.contains(variableName) {
                     context.report(
                         error: GraphQLError(
                             message: operation.name.map {
@@ -47,7 +32,6 @@ func NoUnusedVariablesRule(context: ValidationContext) -> Visitor {
                     )
                 }
             }
-
             return .continue
         }
     )

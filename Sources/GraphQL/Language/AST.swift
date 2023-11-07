@@ -301,7 +301,6 @@ public func == (lhs: Definition, rhs: Definition) -> Bool {
 public enum OperationType: String {
     case query
     case mutation
-    // Note: subscription is an experimental non-spec addition.
     case subscription
 }
 
@@ -949,6 +948,15 @@ public final class ObjectValue {
         self.loc = loc
         self.fields = fields
     }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "fields":
+            return .array(fields)
+        default:
+            return nil
+        }
+    }
 }
 
 extension ObjectValue: Equatable {
@@ -967,6 +975,17 @@ public final class ObjectField {
         self.loc = loc
         self.name = name
         self.value = value
+    }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "name":
+            return .node(name)
+        case "value":
+            return .node(value)
+        default:
+            return nil
+        }
     }
 }
 
