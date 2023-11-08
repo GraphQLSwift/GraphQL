@@ -100,7 +100,7 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
         let isEdited = isLeaving && !edits.isEmpty
 
         if isLeaving {
-            key = ancestors.isEmpty ? nil : path.popLast()
+            key = ancestors.isEmpty ? nil : path.last
             node = parent
             parent = ancestors.popLast()
 
