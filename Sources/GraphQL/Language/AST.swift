@@ -2,7 +2,7 @@
  * Contains a range of UTF-8 character offsets and token references that
  * identify the region of the source from which the AST derived.
  */
-public struct Location {
+public struct Location: Equatable {
     /**
      * The character offset at which this Node begins.
      */
@@ -158,6 +158,21 @@ public enum NodeResult {
             return true
         }
         return false
+    }
+
+    func get(key: IndexPathElement) -> NodeResult? {
+        switch self {
+        case let .node(node):
+            guard let key = key.keyValue else {
+                return nil
+            }
+            return node.get(key: key)
+        case let .array(array):
+            guard let key = key.indexValue else {
+                return nil
+            }
+            return .node(array[key])
+        }
     }
 }
 
