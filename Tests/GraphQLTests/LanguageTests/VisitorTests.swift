@@ -90,7 +90,217 @@ class VisitorTests: XCTestCase {
             }
         ))
     }
-    
+
+    func testAllowsEditingANodeBothOnEnterAndOnLeave() throws {
+        let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
+
+        var selectionSet: SelectionSet? = nil
+
+        let editedASTNode = visit(root: ast, visitor: .init(
+            enter: { node, key, parent, path, ancestors in
+                if let node = node as? OperationDefinition {
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                    selectionSet = node.selectionSet
+                    let newName = node.name
+                        .map { Name(loc: $0.loc, value: $0.value + ".enter") } ??
+                        Name(value: "enter")
+                    node.set(value: .node(newName), key: "name")
+                    node.set(value: .node(SelectionSet(selections: [])), key: "selectionSet")
+                    return .node(node)
+                }
+                return .continue
+            },
+            leave: { node, key, parent, path, ancestors in
+                if let node = node as? OperationDefinition {
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors, isEdited: true)
+                    let newName = node.name
+                        .map { Name(loc: $0.loc, value: $0.value + ".leave") } ??
+                        Name(value: "leave")
+                    node.set(value: .node(newName), key: "name")
+                    node.set(value: .node(selectionSet!), key: "selectionSet")
+                    return .node(node)
+                }
+                return .continue
+            }
+        ))
+
+        let editedAST = try XCTUnwrap(editedASTNode as? Document)
+        let operations = try XCTUnwrap(editedAST.definitions as? [OperationDefinition])
+        XCTAssertEqual(operations.count, 1)
+        XCTAssertEqual(operations.first?.name?.value, "enter.leave")
+        let operationSelections = try XCTUnwrap(operations.first?.selectionSet.selections)
+        XCTAssertEqual(operationSelections.count, 3)
+    }
+
+    func testAllowsEditingTheRootNodeOnEnterAndOnLeave() throws {
+        let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
+
+        let editedASTNode = visit(root: ast, visitor: .init(
+            enter: { node, key, parent, path, ancestors in
+                if let node = node as? Document {
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                    var newDefinitions = node.definitions
+                    newDefinitions.append(
+                        DirectiveDefinition(
+                            name: .init(value: "enter"),
+                            locations: [.init(value: "root")]
+                        )
+                    )
+                    node.set(
+                        value: .array(newDefinitions),
+                        key: "definitions"
+                    )
+                    return .node(node)
+                }
+                return .continue
+            },
+            leave: { node, key, parent, path, ancestors in
+                if let node = node as? Document {
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors, isEdited: true)
+                    var newDefinitions = node.definitions
+                    newDefinitions.append(
+                        DirectiveDefinition(
+                            name: .init(value: "leave"),
+                            locations: [.init(value: "root")]
+                        )
+                    )
+                    node.set(
+                        value: .array(newDefinitions),
+                        key: "definitions"
+                    )
+                    return .node(node)
+                }
+                return .continue
+            }
+        ))
+
+        let editedAST = try XCTUnwrap(editedASTNode as? Document)
+        XCTAssertEqual(editedAST.definitions.count, 3)
+        try XCTAssertEqual(
+            XCTUnwrap(editedAST.definitions[1] as? DirectiveDefinition).name.value,
+            "enter"
+        )
+        try XCTAssertEqual(
+            XCTUnwrap(editedAST.definitions[2] as? DirectiveDefinition).name.value,
+            "leave"
+        )
+    }
+
+    func testAllowsForEditingOnEnter() throws {
+        let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
+
+        let editedASTNode = visit(root: ast, visitor: .init(
+            enter: { node, key, parent, path, ancestors in
+                if let node = node as? Field {
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                    if node.name.value == "b" {
+                        return .node(nil)
+                    }
+                }
+                return .continue
+            }
+        ))
+
+        let editedAST = try XCTUnwrap(editedASTNode as? Document)
+        let operation = try XCTUnwrap(editedAST.definitions[0] as? OperationDefinition)
+        XCTAssertEqual(
+            operation.selectionSet.selections.count,
+            2 // "b" is ignored
+        )
+
+        let cField = try XCTUnwrap(operation.selectionSet.selections[1] as? Field)
+        XCTAssertEqual(
+            cField.selectionSet?.selections.count,
+            2 // "b" is ignored
+        )
+    }
+
+    func testAllowsForEditingOnLeave() throws {
+        let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
+
+        let editedASTNode = visit(root: ast, visitor: .init(
+            leave: { node, key, parent, path, ancestors in
+                if let node = node as? Field {
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                    if node.name.value == "b" {
+                        return .node(nil)
+                    }
+                }
+                return .continue
+            }
+        ))
+
+        let editedAST = try XCTUnwrap(editedASTNode as? Document)
+        let operation = try XCTUnwrap(editedAST.definitions[0] as? OperationDefinition)
+        XCTAssertEqual(
+            operation.selectionSet.selections.count,
+            2 // "b" is removed
+        )
+
+        let cField = try XCTUnwrap(operation.selectionSet.selections[1] as? Field)
+        XCTAssertEqual(
+            cField.selectionSet?.selections.count,
+            2 // "b" is removed
+        )
+    }
+
+    func testIgnoresSkipReturnedOnLeave() throws {
+        let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
+
+        let editedASTNode = visit(root: ast, visitor: .init(
+            leave: { _, _, _, _, _ in
+                .skip // graphql-js 'false' is Swift '.skip'
+            }
+        ))
+
+        let editedAST = try XCTUnwrap(editedASTNode as? Document)
+        let operation = try XCTUnwrap(editedAST.definitions[0] as? OperationDefinition)
+        XCTAssertEqual(
+            operation.selectionSet.selections.count,
+            3 // "b" remains
+        )
+
+        let cField = try XCTUnwrap(operation.selectionSet.selections[2] as? Field)
+        XCTAssertEqual(
+            cField.selectionSet?.selections.count,
+            3 // "b" remains
+        )
+    }
+
+    func testVisitsEditedNode() throws {
+        let addedField = Field(
+            name: Name(value: "__typename")
+        )
+
+        var didVisitAddedField = false
+
+        let ast = try parse(source: "{ a { x } }", noLocation: true)
+        visit(root: ast, visitor: .init(
+            enter: { node, key, parent, path, ancestors in
+                checkVisitorFnArgs(ast, node, key, parent, path, ancestors, isEdited: true)
+                if let node = node as? Field, node.name.value == "a" {
+                    if let selectionSet = node.selectionSet {
+                        var newSelections = selectionSet.selections
+                        newSelections.append(addedField)
+
+                        let newSelectionSet = selectionSet
+                        newSelectionSet.set(value: .array(newSelections), key: "selections")
+
+                        let newNode = node
+                        newNode.set(value: .node(newSelectionSet), key: "selectionSet")
+                        return .node(newNode)
+                    }
+                }
+                if let node = node as? Field, node.name.value == "__typename" {
+                    didVisitAddedField = true
+                }
+                return .continue
+            }
+        ))
+
+        XCTAssert(didVisitAddedField)
+    }
+
     func testAllowsSkippingASubTree() throws {
         struct VisitedElement: Equatable {
             let direction: VisitDirection
