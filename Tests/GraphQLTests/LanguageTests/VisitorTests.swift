@@ -8,24 +8,7 @@ class VisitorTests: XCTestCase {
     }
 
     func testValidatesPathArgument() throws {
-        struct VisitedElement: Equatable {
-            let direction: VisitDirection
-            let path: [any IndexPathElement]
-
-            init(_ direction: VisitDirection, _ path: [any IndexPathElement]) {
-                self.direction = direction
-                self.path = path
-            }
-
-            static func == (lhs: VisitedElement, rhs: VisitedElement) -> Bool {
-                return lhs.direction == rhs.direction &&
-                    zip(lhs.path, rhs.path).allSatisfy { lhs, rhs in
-                        lhs.description == rhs.description
-                    }
-            }
-        }
-
-        var visited = [VisitedElement]()
+        var visited = [VisitedPath]()
         let ast = try parse(source: "{ a }", noLocation: true)
 
         visit(root: ast, visitor: .init(
@@ -513,36 +496,7 @@ class VisitorTests: XCTestCase {
     }
 
     func testProperlyVisitsTheKitchenSinkQuery() throws {
-        struct VisitedElement: Equatable, CustomDebugStringConvertible {
-            var debugDescription: String {
-                "(\(direction), \(kind), \(key.debugDescription), \(parentKind.debugDescription))"
-            }
-
-            let direction: VisitDirection
-            let kind: Kind
-            let key: (any IndexPathElement)?
-            let parentKind: Kind?
-
-            init(
-                _ direction: VisitDirection,
-                _ kind: Kind,
-                _ key: (any IndexPathElement)?,
-                _ parentKind: Kind?
-            ) {
-                self.direction = direction
-                self.kind = kind
-                self.key = key
-                self.parentKind = parentKind
-            }
-
-            static func == (lhs: VisitedElement, rhs: VisitedElement) -> Bool {
-                return lhs.direction == rhs.direction &&
-                    lhs.kind == rhs.kind &&
-                    lhs.key?.description == rhs.key?.description &&
-                    lhs.parentKind == rhs.parentKind
-            }
-        }
-        var visited = [VisitedElement]()
+        var visited = [VisitedKindAndParent]()
 
         guard
             let url = Bundle.module.url(forResource: "kitchen-sink", withExtension: "graphql"),
