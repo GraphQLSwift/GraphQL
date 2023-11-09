@@ -174,6 +174,28 @@ public enum NodeResult {
             return .node(array[key])
         }
     }
+
+    func set(value: NodeResult, key: IndexPathElement) -> Self? {
+        switch self {
+        case let .node(node):
+            guard let key = key.keyValue else {
+                return nil
+            }
+            node.set(value: value, key: key)
+            return .node(node)
+        case var .array(array):
+            switch value {
+            case let .node(value):
+                guard let key = key.indexValue else {
+                    return nil
+                }
+                array[key] = value
+                return .array(array)
+            case let .array(value):
+                return .array(value)
+            }
+        }
+    }
 }
 
 /**
@@ -183,7 +205,7 @@ public protocol Node {
     var kind: Kind { get }
     var loc: Location? { get }
     func get(key: String) -> NodeResult?
-    func set(value: Node?, key: String)
+    func set(value: NodeResult?, key: String)
 }
 
 public extension Node {
@@ -191,7 +213,9 @@ public extension Node {
         return nil
     }
 
-    func set(value _: Node?, key _: String) {}
+    func set(value: NodeResult?, key: String) {
+        print("TODO: Should be implemented on each type!")
+    }
 }
 
 extension Name: Node {}
@@ -252,7 +276,7 @@ extension Name: Equatable {
 public final class Document {
     public let kind: Kind = .document
     public let loc: Location?
-    public let definitions: [Definition]
+    public var definitions: [Definition]
 
     init(loc: Location? = nil, definitions: [Definition]) {
         self.loc = loc
@@ -268,6 +292,24 @@ public final class Document {
             return .array(definitions)
         default:
             return nil
+        }
+    }
+    
+    public func set(value: NodeResult?, key: String) {
+        guard let value = value else {
+            return
+        }
+        switch key {
+        case "definitions":
+            guard
+                case let .array(values) = value,
+                let definitions = values as? [Definition]
+            else {
+                return
+            }
+            self.definitions = definitions
+        default:
+            return
         }
     }
 }
@@ -323,10 +365,10 @@ public final class OperationDefinition {
     public let kind: Kind = .operationDefinition
     public let loc: Location?
     public let operation: OperationType
-    public let name: Name?
-    public let variableDefinitions: [VariableDefinition]
-    public let directives: [Directive]
-    public let selectionSet: SelectionSet
+    public var name: Name?
+    public var variableDefinitions: [VariableDefinition]
+    public var directives: [Directive]
+    public var selectionSet: SelectionSet
 
     init(
         loc: Location? = nil,
@@ -362,6 +404,48 @@ public final class OperationDefinition {
             return .node(selectionSet)
         default:
             return nil
+        }
+    }
+    
+    public func set(value: NodeResult?, key: String) {
+        guard let value = value else {
+            return
+        }
+        switch key {
+        case "name":
+            guard
+                case let .node(node) = value,
+                let name = node as? Name
+            else {
+                return
+            }
+            self.name = name
+        case "variableDefinitions":
+            guard
+                case let .array(values) = value,
+                let variableDefinitions = values as? [VariableDefinition]
+            else {
+                return
+            }
+            self.variableDefinitions = variableDefinitions
+        case "directives":
+            guard
+                case let .array(values) = value,
+                let directives = values as? [Directive]
+            else {
+                return
+            }
+            self.directives = directives
+        case "selectionSet":
+            guard
+                case let .node(value) = value,
+                let selectionSet = value as? SelectionSet
+            else {
+                return
+            }
+            self.selectionSet = selectionSet
+        default:
+            return
         }
     }
 }

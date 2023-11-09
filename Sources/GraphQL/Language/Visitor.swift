@@ -123,13 +123,21 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
                         }
                     }
                 } else {
-                    let clone = node
-                    node = clone
-                    for (editKey, editValue) in edits {
-                        if case .node(let node) = node {
-                            node.set(value: editValue, key: editKey.keyValue!)
+                    if case let .node(n) = node {
+                        for (editKey, editValue) in edits {
+                            if let editValue = editValue {
+                                if let key = editKey.keyValue {
+                                    n.set(value: .node(editValue), key: key)
+                                }
+                            }
                         }
+                        node = .node(n)
                     }
+                }
+
+                // Since Swift cannot mutate node in-place, we must pass the changes up to parent.
+                if let key = key, let node = node {
+                    parent = parent?.set(value: node, key: key)
                 }
             }
 
@@ -139,15 +147,8 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
             inArray = stack!.inArray
             stack = stack!.prev
         } else if let parent = parent {
-            key = inArray ? index : keys[index]
-
-            switch parent {
-            case let .node(parent):
-                node = parent.get(key: key!.keyValue!)
-            case let .array(parent):
-                node = .node(parent[key!.indexValue!])
-            }
-
+            key = keys[index]
+            node = parent.get(key: key!)
             if node == nil {
                 continue
             }
@@ -176,9 +177,7 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
 
             if case .break = result {
                 break
-            }
-
-            if case .skip = result {
+            } else if case .skip = result {
                 if !isLeaving {
                     _ = path.popLast()
                     continue
@@ -204,12 +203,13 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
             _ = path.popLast()
         } else {
             stack = Stack(index: index, keys: keys, edits: edits, inArray: inArray, prev: stack)
-            inArray = node!.isArray
             switch node! {
             case let .node(node):
+                inArray = false
                 keys = visitorKeys[node.kind] ?? []
             case let .array(array):
-                keys = array.map { _ in "root" }
+                inArray = true
+                keys = Array(array.indices) // array.map { _ in "root" }
             }
             index = -1
             edits = []
@@ -225,7 +225,12 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
         return nextEditNode
     }
 
-    return root
+    switch node! {
+    case let .node(root): // This should be equal to root, with any relevant edits
+        return root
+    case let .array(array): // This should never occur
+        return array[0]
+    }
 }
 
 final class Stack {
