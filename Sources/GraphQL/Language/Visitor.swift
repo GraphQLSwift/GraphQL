@@ -183,7 +183,7 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
                     continue
                 }
             } else if case let .node(resultNode) = result {
-                edits.append((key!, resultNode))
+                edits.append((key ?? "root", resultNode))
                 if !isLeaving {
                     if let resultNode = resultNode {
                         node = .node(resultNode)
