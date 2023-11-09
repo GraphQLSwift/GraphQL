@@ -921,6 +921,15 @@ public final class ListValue {
         self.loc = loc
         self.values = values
     }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "values":
+            return .array(values)
+        default:
+            return nil
+        }
+    }
 }
 
 extension ListValue: Equatable {
@@ -1007,6 +1016,17 @@ public final class Directive {
         self.name = name
         self.arguments = arguments
     }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "name":
+            return .node(name)
+        case "arguments":
+            return .array(arguments)
+        default:
+            return nil
+        }
+    }
 }
 
 extension Directive: Equatable {
@@ -1076,6 +1096,15 @@ public final class ListType {
     init(loc: Location? = nil, type: Type) {
         self.loc = loc
         self.type = type
+    }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "type":
+            return .node(type)
+        default:
+            return nil
+        }
     }
 }
 
