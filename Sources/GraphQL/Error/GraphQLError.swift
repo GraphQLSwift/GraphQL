@@ -197,7 +197,7 @@ extension IndexPath: ExpressibleByArrayLiteral {
     }
 }
 
-public enum IndexPathValue: Codable {
+public enum IndexPathValue: Codable, Equatable {
     case index(Int)
     case key(String)
 
@@ -242,7 +242,7 @@ extension IndexPathValue: CustomStringConvertible {
     }
 }
 
-public protocol IndexPathElement {
+public protocol IndexPathElement: CustomStringConvertible {
     var indexPathValue: IndexPathValue { get }
 }
 
