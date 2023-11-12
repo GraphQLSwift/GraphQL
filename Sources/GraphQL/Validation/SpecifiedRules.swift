@@ -3,7 +3,7 @@
  */
 public let specifiedRules: [(ValidationContext) -> Visitor] = [
 //   ExecutableDefinitionsRule,
-//    UniqueOperationNamesRule,
+    UniqueOperationNamesRule,
 //    LoneAnonymousOperationRule,
 //    SingleFieldSubscriptionsRule,
 //    KnownTypeNamesRule,
