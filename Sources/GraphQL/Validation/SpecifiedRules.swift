@@ -6,7 +6,7 @@ public let specifiedRules: [(ValidationContext) -> Visitor] = [
     UniqueOperationNamesRule,
     LoneAnonymousOperationRule,
 //    SingleFieldSubscriptionsRule,
-//    KnownTypeNamesRule,
+    KnownTypeNamesRule,
 //    FragmentsOnCompositeTypesRule,
 //    VariablesAreInputTypesRule,
     ScalarLeafsRule,
