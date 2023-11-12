@@ -4,7 +4,7 @@
 public let specifiedRules: [(ValidationContext) -> Visitor] = [
 //   ExecutableDefinitionsRule,
     UniqueOperationNamesRule,
-//    LoneAnonymousOperationRule,
+    LoneAnonymousOperationRule,
 //    SingleFieldSubscriptionsRule,
 //    KnownTypeNamesRule,
 //    FragmentsOnCompositeTypesRule,
