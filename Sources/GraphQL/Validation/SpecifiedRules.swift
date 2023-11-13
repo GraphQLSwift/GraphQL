@@ -15,7 +15,7 @@ public let specifiedRules: [(ValidationContext) -> Visitor] = [
     KnownFragmentNamesRule,
     NoUnusedFragmentsRule,
     PossibleFragmentSpreadsRule,
-//    NoFragmentCyclesRule,
+    NoFragmentCyclesRule,
 //    UniqueVariableNamesRule,
 //    NoUndefinedVariablesRule,
     NoUnusedVariablesRule,
