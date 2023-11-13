@@ -12,7 +12,7 @@ public let specifiedRules: [(ValidationContext) -> Visitor] = [
     ScalarLeafsRule,
     FieldsOnCorrectTypeRule,
     UniqueFragmentNamesRule,
-//    KnownFragmentNamesRule,
+    KnownFragmentNamesRule,
     NoUnusedFragmentsRule,
     PossibleFragmentSpreadsRule,
 //    NoFragmentCyclesRule,
