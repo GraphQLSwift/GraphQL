@@ -8,7 +8,7 @@ public let specifiedRules: [(ValidationContext) -> Visitor] = [
 //    SingleFieldSubscriptionsRule,
     KnownTypeNamesRule,
     FragmentsOnCompositeTypesRule,
-//    VariablesAreInputTypesRule,
+    VariablesAreInputTypesRule,
     ScalarLeafsRule,
     FieldsOnCorrectTypeRule,
 //    UniqueFragmentNamesRule,
