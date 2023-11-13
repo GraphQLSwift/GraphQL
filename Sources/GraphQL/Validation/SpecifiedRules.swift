@@ -11,7 +11,7 @@ public let specifiedRules: [(ValidationContext) -> Visitor] = [
     VariablesAreInputTypesRule,
     ScalarLeafsRule,
     FieldsOnCorrectTypeRule,
-//    UniqueFragmentNamesRule,
+    UniqueFragmentNamesRule,
 //    KnownFragmentNamesRule,
     NoUnusedFragmentsRule,
     PossibleFragmentSpreadsRule,
