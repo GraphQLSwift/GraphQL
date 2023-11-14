@@ -25,7 +25,7 @@ public let specifiedRules: [(ValidationContext) -> Visitor] = [
 //    DeferStreamDirectiveOnValidOperationsRule,
 //    DeferStreamDirectiveLabelRule,
     KnownArgumentNamesRule,
-//    UniqueArgumentNamesRule,
+    UniqueArgumentNamesRule,
 //    ArgumentsOfCorrectTypeRule,
 //    ValuesOfCorrectTypeRule,
 //    ProvidedRequiredArgumentsRule,
