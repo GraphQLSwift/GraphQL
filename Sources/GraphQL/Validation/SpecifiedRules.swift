@@ -33,5 +33,5 @@ public let specifiedRules: [(ValidationContext) -> Visitor] = [
 //    DefaultValuesOfCorrectTypeRule,
 //    VariablesInAllowedPositionRule,
 //    OverlappingFieldsCanBeMergedRule,
-//    UniqueInputFieldNamesRule,
+    UniqueInputFieldNamesRule,
 ]
