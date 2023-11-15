@@ -47,6 +47,13 @@ final class TypeInfo {
         return nil
     }
 
+    var parentInputType: GraphQLInputType? {
+        if inputTypeStack.count >= 2 {
+            return inputTypeStack[inputTypeStack.count - 2]
+        }
+        return nil
+    }
+
     var fieldDef: GraphQLFieldDefinition? {
         if !fieldDefStack.isEmpty {
             return fieldDefStack[fieldDefStack.count - 1]

@@ -1379,6 +1379,10 @@ extension InputObjectFieldDefinition: KeySubscriptable {
     }
 }
 
+public func isRequiredInputField(_ field: InputObjectFieldDefinition) -> Bool {
+    return field.type is GraphQLNonNull && field.defaultValue == nil
+}
+
 public typealias InputObjectFieldDefinitionMap = [String: InputObjectFieldDefinition]
 
 /**

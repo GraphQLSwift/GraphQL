@@ -285,6 +285,10 @@ public final class ValidationContext {
         return typeInfo.inputType
     }
 
+    public var parentInputType: GraphQLInputType? {
+        return typeInfo.parentInputType
+    }
+
     public var fieldDef: GraphQLFieldDefinition? {
         return typeInfo.fieldDef
     }
