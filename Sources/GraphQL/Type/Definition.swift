@@ -1018,7 +1018,7 @@ public final class GraphQLEnumType {
         let mapValue = try map(from: value)
         guard let enumValue = valueLookup[mapValue] else {
             throw GraphQLError(
-                message: "Enum '\(name)' cannot represent value '\(mapValue)'."
+                message: "Enum \"\(name)\" cannot represent value: \(mapValue)."
             )
         }
         return .string(enumValue.name)
@@ -1027,13 +1027,13 @@ public final class GraphQLEnumType {
     public func parseValue(value: Map) throws -> Map {
         guard let valueStr = value.string else {
             throw GraphQLError(
-                message: "Enum '\(name)' cannot represent non-string value '\(value)'." +
+                message: "Enum \"\(name)\" cannot represent non-string value: \(value)." +
                     didYouMeanEnumValue(unknownValueStr: value.description)
             )
         }
         guard let enumValue = nameLookup[valueStr] else {
             throw GraphQLError(
-                message: "Value '\(valueStr)' does not exist in '\(name)' enum." +
+                message: "Value \"\(valueStr)\" does not exist in \"\(name)\" enum." +
                     didYouMeanEnumValue(unknownValueStr: valueStr)
             )
         }
@@ -1043,14 +1043,14 @@ public final class GraphQLEnumType {
     public func parseLiteral(valueAST: Value) throws -> Map {
         guard let enumNode = valueAST as? EnumValue else {
             throw GraphQLError(
-                message: "Enum '\(name)' cannot represent non-enum value '\(valueAST)'." +
-                    didYouMeanEnumValue(unknownValueStr: "\(valueAST)"),
+                message: "Enum \"\(name)\" cannot represent non-enum value: \(print(ast: valueAST))." +
+                    didYouMeanEnumValue(unknownValueStr: print(ast: valueAST)),
                 nodes: [valueAST]
             )
         }
         guard let enumValue = nameLookup[enumNode.value] else {
             throw GraphQLError(
-                message: "Value '\(enumNode)' does not exist in '\(name)' enum." +
+                message: "Value \"\(enumNode.value)\" does not exist in \"\(name)\" enum." +
                     didYouMeanEnumValue(unknownValueStr: enumNode.value),
                 nodes: [valueAST]
             )
