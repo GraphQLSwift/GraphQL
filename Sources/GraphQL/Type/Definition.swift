@@ -171,35 +171,22 @@ public final class GraphQLScalarType {
     public let kind: TypeKind = .scalar
 
     let serialize: (Any) throws -> Map
-    let parseValue: ((Map) throws -> Map)?
-    let parseLiteral: ((Value) throws -> Map)?
-
-    public init(
-        name: String,
-        description: String? = nil,
-        serialize: @escaping (Any) throws -> Map
-    ) throws {
-        try assertValid(name: name)
-        self.name = name
-        self.description = description
-        self.serialize = serialize
-        parseValue = nil
-        parseLiteral = nil
-    }
+    let parseValue: (Map) throws -> Map
+    let parseLiteral: (Value) throws -> Map
 
     public init(
         name: String,
         description: String? = nil,
         serialize: @escaping (Any) throws -> Map,
-        parseValue: @escaping (Map) throws -> Map,
-        parseLiteral: @escaping (Value) throws -> Map
+        parseValue: ((Map) throws -> Map)? = nil,
+        parseLiteral: ((Value) throws -> Map)? = nil
     ) throws {
         try assertValid(name: name)
         self.name = name
         self.description = description
         self.serialize = serialize
-        self.parseValue = parseValue
-        self.parseLiteral = parseLiteral
+        self.parseValue = parseValue ?? defaultParseValue
+        self.parseLiteral = parseLiteral ?? defaultParseLiteral
     }
 
     // Serializes an internal value to include in a response.
@@ -209,13 +196,21 @@ public final class GraphQLScalarType {
 
     // Parses an externally provided value to use as an input.
     public func parseValue(value: Map) throws -> Map {
-        return try parseValue?(value) ?? Map.null
+        return try parseValue(value)
     }
 
     // Parses an externally provided literal value to use as an input.
     public func parseLiteral(valueAST: Value) throws -> Map {
-        return try parseLiteral?(valueAST) ?? Map.null
+        return try parseLiteral(valueAST)
     }
+}
+
+let defaultParseValue: ((Map) throws -> Map) = { value in
+    value
+}
+
+let defaultParseLiteral: ((Value) throws -> Map) = { value in
+    try valueFromASTUntyped(valueAST: value)
 }
 
 extension GraphQLScalarType: Encodable {
