@@ -186,7 +186,7 @@ class StarWarsQueryTests: XCTestCase {
 
         let query =
             """
-            query FetchHeroByEpisodeQuery($episode: String) {
+            query FetchHeroByEpisodeQuery($episode: Episode) {
                 hero(episode: $episode) {
                     name
                 }

@@ -29,7 +29,7 @@ public let specifiedRules: [(ValidationContext) -> Visitor] = [
     ValuesOfCorrectTypeRule,
 //    ProvidedRequiredArgumentsRule,
     ProvidedNonNullArgumentsRule,
-//    VariablesInAllowedPositionRule,
+    VariablesInAllowedPositionRule,
 //    OverlappingFieldsCanBeMergedRule,
     UniqueInputFieldNamesRule,
 ]
