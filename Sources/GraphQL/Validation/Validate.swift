@@ -110,7 +110,7 @@ extension HasSelectionSet: Hashable {
     }
 }
 
-public typealias VariableUsage = (node: Variable, type: GraphQLInputType?)
+public typealias VariableUsage = (node: Variable, type: GraphQLInputType?, defaultValue: Map?)
 
 /**
  * An instance of this class is passed as the "this" context to all validators,
@@ -242,7 +242,8 @@ public final class ValidationContext {
                     if let variable = node as? Variable {
                         usages.append(VariableUsage(
                             node: variable,
-                            type: typeInfo.inputType
+                            type: typeInfo.inputType,
+                            defaultValue: typeInfo.defaultValue
                         ))
                     }
 
