@@ -587,6 +587,11 @@ let ValidationExampleQueryRoot = try! GraphQLObjectType(
     ]
 )
 
+let ValidationFieldDirective = try! GraphQLDirective(
+    name: "onField",
+    locations: [.field]
+)
+
 let ValidationExampleSchema = try! GraphQLSchema(
     query: ValidationExampleQueryRoot,
     types: [
@@ -594,5 +599,12 @@ let ValidationExampleSchema = try! GraphQLSchema(
         ValidationExampleDog,
         ValidationExampleHuman,
         ValidationExampleAlien,
-    ]
+    ],
+    directives: {
+        var directives = specifiedDirectives
+        directives.append(contentsOf: [
+            ValidationFieldDirective,
+        ])
+        return directives
+    }()
 )
