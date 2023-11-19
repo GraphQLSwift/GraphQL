@@ -6,16 +6,24 @@ class ValidationTestCase: XCTestCase {
 
     var rule: Rule!
 
-    private func validate(body request: String) throws -> [GraphQLError] {
+    private func validate(
+        body request: String,
+        schema: GraphQLSchema = ValidationExampleSchema
+    ) throws -> [GraphQLError] {
         return try GraphQL.validate(
-            schema: ValidationExampleSchema,
+            schema: schema,
             ast: parse(source: Source(body: request, name: "GraphQL request")),
             rules: [rule]
         )
     }
 
-    func assertValid(_ query: String, file: StaticString = #file, line: UInt = #line) throws {
-        let errors = try validate(body: query)
+    func assertValid(
+        _ query: String,
+        schema: GraphQLSchema = ValidationExampleSchema,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) throws {
+        let errors = try validate(body: query, schema: schema)
         XCTAssertEqual(
             errors.count,
             0,
@@ -28,10 +36,11 @@ class ValidationTestCase: XCTestCase {
     @discardableResult func assertInvalid(
         errorCount: Int,
         query: String,
+        schema: GraphQLSchema = ValidationExampleSchema,
         file: StaticString = #file,
         line: UInt = #line
     ) throws -> [GraphQLError] {
-        let errors = try validate(body: query)
+        let errors = try validate(body: query, schema: schema)
         XCTAssertEqual(
             errors.count,
             errorCount,
