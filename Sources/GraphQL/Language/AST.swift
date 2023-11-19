@@ -1769,7 +1769,10 @@ extension OperationTypeDefinition: Equatable {
     }
 }
 
-public protocol TypeDefinition: TypeSystemDefinition {}
+public protocol TypeDefinition: TypeSystemDefinition {
+    var name: Name { get }
+}
+
 extension ScalarTypeDefinition: TypeDefinition {}
 extension ObjectTypeDefinition: TypeDefinition {}
 extension InterfaceTypeDefinition: TypeDefinition {}
