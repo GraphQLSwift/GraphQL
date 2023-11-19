@@ -19,7 +19,7 @@ public let specifiedRules: [(ValidationContext) -> Visitor] = [
     UniqueVariableNamesRule,
     NoUndefinedVariablesRule,
     NoUnusedVariablesRule,
-//    KnownDirectivesRule,
+    KnownDirectivesRule,
 //    UniqueDirectivesPerLocationRule,
 //    DeferStreamDirectiveOnRootFieldRule,
 //    DeferStreamDirectiveOnValidOperationsRule,
