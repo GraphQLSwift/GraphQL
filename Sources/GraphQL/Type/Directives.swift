@@ -7,6 +7,7 @@ public enum DirectiveLocation: String, Encodable {
     case fragmentDefinition = "FRAGMENT_DEFINITION"
     case fragmentSpread = "FRAGMENT_SPREAD"
     case inlineFragment = "INLINE_FRAGMENT"
+    case variableDefinition = "VARIABLE_DEFINITION"
     // Schema Definitions
     case schema = "SCHEMA"
     case scalar = "SCALAR"
@@ -33,7 +34,7 @@ public struct GraphQLDirective: Encodable {
 
     public init(
         name: String,
-        description: String,
+        description: String = "",
         locations: [DirectiveLocation],
         args: GraphQLArgumentConfigMap = [:]
     ) throws {

@@ -3,7 +3,7 @@ let QueryDocumentKeys: [Kind: [String]] = [
 
     .document: ["definitions"],
     .operationDefinition: ["name", "variableDefinitions", "directives", "selectionSet"],
-    .variableDefinition: ["variable", "type", "defaultValue"],
+    .variableDefinition: ["variable", "type", "defaultValue", "directives"],
     .variable: ["name"],
     .selectionSet: ["selections"],
     .field: ["alias", "name", "arguments", "directives", "selectionSet"],

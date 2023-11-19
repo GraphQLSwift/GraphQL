@@ -48,8 +48,7 @@ extension OperationDefinition: Printable {
 extension VariableDefinition: Printable {
     var printed: String {
         variable + ": " + type.printed + wrap(" = ", defaultValue?.printed)
-//        + wrap(" ", join(directives, " "))
-        // TODO: variable directives are currently not supported
+            + wrap(" ", join(directives, " "))
     }
 }
 
