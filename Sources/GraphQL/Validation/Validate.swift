@@ -165,9 +165,11 @@ public final class ValidationContext {
     }
 
     public func getFragmentSpreads(node: SelectionSet) -> [FragmentSpread] {
-        if let spreads = fragmentSpreads[node] {
-            return spreads
-        }
+        // Uncommenting this creates unpredictably wrong fragment path matching.
+        // Failures can be seen in NoFragmentCyclesRuleTests.testNoSpreadingItselfDeeplyTwoPaths
+//        if let spreads = fragmentSpreads[node] {
+//            return spreads
+//        }
 
         var spreads = [FragmentSpread]()
         var setsToVisit: [SelectionSet] = [node]
@@ -176,19 +178,18 @@ public final class ValidationContext {
             for selection in set.selections {
                 if let selection = selection as? FragmentSpread {
                     spreads.append(selection)
-                }
-
-                if let selection = selection as? InlineFragment {
+                } else if let selection = selection as? InlineFragment {
                     setsToVisit.append(selection.selectionSet)
-                }
-
-                if let selection = selection as? Field, let selectionSet = selection.selectionSet {
+                } else if
+                    let selection = selection as? Field,
+                    let selectionSet = selection.selectionSet
+                {
                     setsToVisit.append(selectionSet)
                 }
             }
         }
 
-        fragmentSpreads[node] = spreads
+//        fragmentSpreads[node] = spreads
         return spreads
     }
 
