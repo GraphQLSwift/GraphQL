@@ -304,9 +304,14 @@ func visitInParallel(visitors: [Visitor]) -> Visitor {
                     } else if case .node = result {
                         return result
                     }
-                } // else if case let .node(skippedNode) = skipping[i], skippedNode == node {
-//                    skipping[i] = nil
-//                }
+                } else if
+                    case let .node(skippedNodeValue) = skipping[i],
+                    let skippedNode = skippedNodeValue,
+                    skippedNode.kind == node.kind,
+                    skippedNode.loc == node.loc
+                {
+                    skipping[i] = nil
+                }
             }
 
             return .continue
