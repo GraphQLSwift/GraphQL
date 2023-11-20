@@ -1,5 +1,6 @@
 import Foundation
 import NIO
+import OrderedCollections
 
 /**
  * These are all of the possible kinds of types.
@@ -508,7 +509,7 @@ public struct GraphQLResolveInfo {
     public let variableValues: [String: Any]
 }
 
-public typealias GraphQLFieldMap = [String: GraphQLField]
+public typealias GraphQLFieldMap = OrderedDictionary<String, GraphQLField>
 
 public struct GraphQLField {
     public let type: GraphQLOutputType
@@ -568,7 +569,7 @@ public struct GraphQLField {
     }
 }
 
-public typealias GraphQLFieldDefinitionMap = [String: GraphQLFieldDefinition]
+public typealias GraphQLFieldDefinitionMap = OrderedDictionary<String, GraphQLFieldDefinition>
 
 public final class GraphQLFieldDefinition {
     public let name: String
@@ -654,7 +655,7 @@ extension GraphQLFieldDefinition: KeySubscriptable {
     }
 }
 
-public typealias GraphQLArgumentConfigMap = [String: GraphQLArgument]
+public typealias GraphQLArgumentConfigMap = OrderedDictionary<String, GraphQLArgument>
 
 public struct GraphQLArgument {
     public let type: GraphQLInputType
@@ -1131,7 +1132,7 @@ func defineEnumValues(
     return definitions
 }
 
-public typealias GraphQLEnumValueMap = [String: GraphQLEnumValue]
+public typealias GraphQLEnumValueMap = OrderedDictionary<String, GraphQLEnumValue>
 
 public struct GraphQLEnumValue {
     public let value: Map
@@ -1312,7 +1313,7 @@ public struct InputObjectField {
     }
 }
 
-public typealias InputObjectFieldMap = [String: InputObjectField]
+public typealias InputObjectFieldMap = OrderedDictionary<String, InputObjectField>
 
 public final class InputObjectFieldDefinition {
     public let name: String
@@ -1383,7 +1384,10 @@ public func isRequiredInputField(_ field: InputObjectFieldDefinition) -> Bool {
     return field.type is GraphQLNonNull && field.defaultValue == nil
 }
 
-public typealias InputObjectFieldDefinitionMap = [String: InputObjectFieldDefinition]
+public typealias InputObjectFieldDefinitionMap = OrderedDictionary<
+    String,
+    InputObjectFieldDefinition
+>
 
 /**
  * List Modifier
