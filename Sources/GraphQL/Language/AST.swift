@@ -401,7 +401,7 @@ public final class OperationDefinition {
             }
             return .array(variableDefinitions)
         case "directives":
-            guard !variableDefinitions.isEmpty else {
+            guard !directives.isEmpty else {
                 return nil
             }
             return .array(directives)
@@ -475,12 +475,20 @@ public final class VariableDefinition {
     public private(set) var variable: Variable
     public private(set) var type: Type
     public private(set) var defaultValue: Value?
+    public private(set) var directives: [Directive]
 
-    init(loc: Location? = nil, variable: Variable, type: Type, defaultValue: Value? = nil) {
+    init(
+        loc: Location? = nil,
+        variable: Variable,
+        type: Type,
+        defaultValue: Value? = nil,
+        directives: [Directive] = []
+    ) {
         self.loc = loc
         self.variable = variable
         self.type = type
         self.defaultValue = defaultValue
+        self.directives = directives
     }
 
     public func get(key: String) -> NodeResult? {
@@ -491,6 +499,11 @@ public final class VariableDefinition {
             return .node(type)
         case "defaultValue":
             return defaultValue.map { .node($0) }
+        case "directives":
+            guard !directives.isEmpty else {
+                return nil
+            }
+            return .array(directives)
         default:
             return nil
         }
@@ -525,6 +538,14 @@ public final class VariableDefinition {
                 return
             }
             self.defaultValue = defaultValue
+        case "directives":
+            guard
+                case let .array(values) = value,
+                let directives = values as? [Directive]
+            else {
+                return
+            }
+            self.directives = directives
         default:
             return
         }
@@ -1748,7 +1769,10 @@ extension OperationTypeDefinition: Equatable {
     }
 }
 
-public protocol TypeDefinition: TypeSystemDefinition {}
+public protocol TypeDefinition: TypeSystemDefinition {
+    var name: Name { get }
+}
+
 extension ScalarTypeDefinition: TypeDefinition {}
 extension ObjectTypeDefinition: TypeDefinition {}
 extension InterfaceTypeDefinition: TypeDefinition {}

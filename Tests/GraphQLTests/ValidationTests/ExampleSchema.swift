@@ -376,6 +376,198 @@ let ValidationExampleHumanOrAlien = try! GraphQLUnionType(
     types: [ValidationExampleHuman, ValidationExampleAlien]
 )
 
+// input ComplexInput {
+//   requiredField: Boolean!
+//   nonNullField: Boolean! = false
+//   intField: Int
+//   stringField: String
+//   booleanField: Boolean
+//   stringListField: [String]
+// }
+let ValidationExampleComplexInput = try! GraphQLInputObjectType(
+    name: "ComplexInput",
+    fields: [
+        "requiredField": InputObjectField(type: GraphQLNonNull(GraphQLBoolean)),
+        "nonNullField": InputObjectField(type: GraphQLNonNull(GraphQLBoolean), defaultValue: false),
+        "intField": InputObjectField(type: GraphQLInt),
+        "stringField": InputObjectField(type: GraphQLString),
+        "booleanField": InputObjectField(type: GraphQLBoolean),
+        "stringListField": InputObjectField(type: GraphQLList(GraphQLString)),
+    ]
+)
+
+// input OneOfInput @oneOf {
+//   stringField: String
+//   intField: Int
+// }
+let ValidationExampleOneOfInput = try! GraphQLInputObjectType(
+    name: "OneOfInput",
+    // TODO: Add @oneOf directive
+    fields: [
+        "stringField": InputObjectField(type: GraphQLBoolean),
+        "intField": InputObjectField(type: GraphQLInt),
+    ]
+)
+
+// type ComplicatedArgs {
+//   # TODO List
+//   # TODO Coercion
+//   # TODO NotNulls
+//   intArgField(intArg: Int): String
+//   nonNullIntArgField(nonNullIntArg: Int!): String
+//   stringArgField(stringArg: String): String
+//   booleanArgField(booleanArg: Boolean): String
+//   enumArgField(enumArg: FurColor): String
+//   floatArgField(floatArg: Float): String
+//   idArgField(idArg: ID): String
+//   stringListArgField(stringListArg: [String]): String
+//   stringListNonNullArgField(stringListNonNullArg: [String!]): String
+//   complexArgField(complexArg: ComplexInput): String
+//   oneOfArgField(oneOfArg: OneOfInput): String
+//   multipleReqs(req1: Int!, req2: Int!): String
+//   nonNullFieldWithDefault(arg: Int! = 0): String
+//   multipleOpts(opt1: Int = 0, opt2: Int = 0): String
+//   multipleOptAndReq(req1: Int!, req2: Int!, opt1: Int = 0, opt2: Int = 0): String
+// }
+let ValidationExampleComplicatedArgs = try! GraphQLObjectType(
+    name: "ComplicatedArgs",
+    fields: [
+        "intArgField": GraphQLField(
+            type: GraphQLString,
+            args: ["intArg": GraphQLArgument(type: GraphQLInt)],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+        "nonNullIntArgField": GraphQLField(
+            type: GraphQLString,
+            args: ["nonNullIntArg": GraphQLArgument(type: GraphQLNonNull(GraphQLInt))],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+        "stringArgField": GraphQLField(
+            type: GraphQLString,
+            args: ["stringArg": GraphQLArgument(type: GraphQLString)],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+        "booleanArgField": GraphQLField(
+            type: GraphQLString,
+            args: ["booleanArg": GraphQLArgument(type: GraphQLBoolean)],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+        "enumArgField": GraphQLField(
+            type: GraphQLString,
+            args: ["enumArg": GraphQLArgument(type: ValidationExampleFurColor)],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+        "floatArgField": GraphQLField(
+            type: GraphQLString,
+            args: ["floatArg": GraphQLArgument(type: GraphQLFloat)],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+        "idArgField": GraphQLField(
+            type: GraphQLString,
+            args: ["idArg": GraphQLArgument(type: GraphQLID)],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+        "stringListArgField": GraphQLField(
+            type: GraphQLString,
+            args: ["stringListArg": GraphQLArgument(type: GraphQLList(GraphQLString))],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+        "stringListNonNullArgField": GraphQLField(
+            type: GraphQLString,
+            args: [
+                "stringListNonNullArg": GraphQLArgument(type: GraphQLList(GraphQLNonNull(GraphQLString))),
+            ],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+        "complexArgField": GraphQLField(
+            type: GraphQLString,
+            args: ["complexArg": GraphQLArgument(type: ValidationExampleComplexInput)],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+        "oneOfArgField": GraphQLField(
+            type: GraphQLString,
+            args: ["oneOfArg": GraphQLArgument(type: ValidationExampleOneOfInput)],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+        "multipleReqs": GraphQLField(
+            type: GraphQLString,
+            args: [
+                "req1": GraphQLArgument(type: GraphQLNonNull(GraphQLInt)),
+                "req2": GraphQLArgument(type: GraphQLNonNull(GraphQLInt)),
+            ],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+        "nonNullFieldWithDefault": GraphQLField(
+            type: GraphQLString,
+            args: ["arg": GraphQLArgument(type: GraphQLNonNull(GraphQLInt), defaultValue: 0)],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+        "multipleOpts": GraphQLField(
+            type: GraphQLString,
+            args: [
+                "opt1": GraphQLArgument(type: GraphQLInt, defaultValue: 0),
+                "opt2": GraphQLArgument(type: GraphQLInt, defaultValue: 0),
+            ],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+        "multipleOptAndReq": GraphQLField(
+            type: GraphQLString,
+            args: [
+                "req1": GraphQLArgument(type: GraphQLNonNull(GraphQLInt)),
+                "req2": GraphQLArgument(type: GraphQLNonNull(GraphQLInt)),
+                "opt1": GraphQLArgument(type: GraphQLInt, defaultValue: 0),
+                "opt2": GraphQLArgument(type: GraphQLInt, defaultValue: 0),
+            ],
+            resolve: { inputValue, _, _, _ -> String? in
+                print(type(of: inputValue))
+                return nil
+            }
+        ),
+    ]
+)
+
 // type QueryRoot {
 //   dog: Dog
 // }
@@ -391,7 +583,13 @@ let ValidationExampleQueryRoot = try! GraphQLObjectType(
             return nil
         },
         "humanOrAlien": GraphQLField(type: ValidationExampleHumanOrAlien),
+        "complicatedArgs": GraphQLField(type: ValidationExampleComplicatedArgs),
     ]
+)
+
+let ValidationFieldDirective = try! GraphQLDirective(
+    name: "onField",
+    locations: [.field]
 )
 
 let ValidationExampleSchema = try! GraphQLSchema(
@@ -401,5 +599,12 @@ let ValidationExampleSchema = try! GraphQLSchema(
         ValidationExampleDog,
         ValidationExampleHuman,
         ValidationExampleAlien,
-    ]
+    ],
+    directives: {
+        var directives = specifiedDirectives
+        directives.append(contentsOf: [
+            ValidationFieldDirective,
+        ])
+        return directives
+    }()
 )

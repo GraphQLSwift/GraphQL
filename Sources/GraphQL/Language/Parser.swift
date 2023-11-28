@@ -276,7 +276,8 @@ func parseVariableDefinition(lexer: Lexer) throws -> VariableDefinition {
         variable: parseVariable(lexer: lexer),
         type: (expect(lexer: lexer, kind: .colon), parseTypeReference(lexer: lexer)).1,
         defaultValue: skip(lexer: lexer, kind: .equals) ?
-            parseValueLiteral(lexer: lexer, isConst: true) : nil
+            parseValueLiteral(lexer: lexer, isConst: true) : nil,
+        directives: parseDirectives(lexer: lexer)
     )
 }
 

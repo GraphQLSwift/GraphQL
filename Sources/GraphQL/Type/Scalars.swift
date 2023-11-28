@@ -10,7 +10,10 @@ public let GraphQLInt = try! GraphQLScalarType(
             return .int(int)
         }
 
-        return .null
+        throw GraphQLError(
+            message: "Int cannot represent non-integer value: \(print(ast: ast))",
+            nodes: [ast]
+        )
     }
 )
 
@@ -31,7 +34,10 @@ public let GraphQLFloat = try! GraphQLScalarType(
             return .double(double)
         }
 
-        return .null
+        throw GraphQLError(
+            message: "Float cannot represent non-numeric value: \(print(ast: ast))",
+            nodes: [ast]
+        )
     }
 )
 
@@ -48,7 +54,10 @@ public let GraphQLString = try! GraphQLScalarType(
             return .string(ast.value)
         }
 
-        return .null
+        throw GraphQLError(
+            message: "String cannot represent a non-string value: \(print(ast: ast))",
+            nodes: [ast]
+        )
     }
 )
 
@@ -62,7 +71,10 @@ public let GraphQLBoolean = try! GraphQLScalarType(
             return .bool(ast.value)
         }
 
-        return .null
+        throw GraphQLError(
+            message: "Boolean cannot represent a non-boolean value: \(print(ast: ast))",
+            nodes: [ast]
+        )
     }
 )
 
@@ -85,6 +97,9 @@ public let GraphQLID = try! GraphQLScalarType(
             return .string(ast.value)
         }
 
-        return .null
+        throw GraphQLError(
+            message: "ID cannot represent a non-string and non-integer value: \(print(ast: ast))",
+            nodes: [ast]
+        )
     }
 )

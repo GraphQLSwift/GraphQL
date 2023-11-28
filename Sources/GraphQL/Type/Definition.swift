@@ -1,5 +1,6 @@
 import Foundation
 import NIO
+import OrderedCollections
 
 /**
  * These are all of the possible kinds of types.
@@ -171,35 +172,22 @@ public final class GraphQLScalarType {
     public let kind: TypeKind = .scalar
 
     let serialize: (Any) throws -> Map
-    let parseValue: ((Map) throws -> Map)?
-    let parseLiteral: ((Value) throws -> Map)?
-
-    public init(
-        name: String,
-        description: String? = nil,
-        serialize: @escaping (Any) throws -> Map
-    ) throws {
-        try assertValid(name: name)
-        self.name = name
-        self.description = description
-        self.serialize = serialize
-        parseValue = nil
-        parseLiteral = nil
-    }
+    let parseValue: (Map) throws -> Map
+    let parseLiteral: (Value) throws -> Map
 
     public init(
         name: String,
         description: String? = nil,
         serialize: @escaping (Any) throws -> Map,
-        parseValue: @escaping (Map) throws -> Map,
-        parseLiteral: @escaping (Value) throws -> Map
+        parseValue: ((Map) throws -> Map)? = nil,
+        parseLiteral: ((Value) throws -> Map)? = nil
     ) throws {
         try assertValid(name: name)
         self.name = name
         self.description = description
         self.serialize = serialize
-        self.parseValue = parseValue
-        self.parseLiteral = parseLiteral
+        self.parseValue = parseValue ?? defaultParseValue
+        self.parseLiteral = parseLiteral ?? defaultParseLiteral
     }
 
     // Serializes an internal value to include in a response.
@@ -209,13 +197,21 @@ public final class GraphQLScalarType {
 
     // Parses an externally provided value to use as an input.
     public func parseValue(value: Map) throws -> Map {
-        return try parseValue?(value) ?? Map.null
+        return try parseValue(value)
     }
 
     // Parses an externally provided literal value to use as an input.
     public func parseLiteral(valueAST: Value) throws -> Map {
-        return try parseLiteral?(valueAST) ?? Map.null
+        return try parseLiteral(valueAST)
     }
+}
+
+let defaultParseValue: ((Map) throws -> Map) = { value in
+    value
+}
+
+let defaultParseLiteral: ((Value) throws -> Map) = { value in
+    try valueFromASTUntyped(valueAST: value)
 }
 
 extension GraphQLScalarType: Encodable {
@@ -513,7 +509,7 @@ public struct GraphQLResolveInfo {
     public let variableValues: [String: Any]
 }
 
-public typealias GraphQLFieldMap = [String: GraphQLField]
+public typealias GraphQLFieldMap = OrderedDictionary<String, GraphQLField>
 
 public struct GraphQLField {
     public let type: GraphQLOutputType
@@ -573,7 +569,7 @@ public struct GraphQLField {
     }
 }
 
-public typealias GraphQLFieldDefinitionMap = [String: GraphQLFieldDefinition]
+public typealias GraphQLFieldDefinitionMap = OrderedDictionary<String, GraphQLFieldDefinition>
 
 public final class GraphQLFieldDefinition {
     public let name: String
@@ -659,7 +655,7 @@ extension GraphQLFieldDefinition: KeySubscriptable {
     }
 }
 
-public typealias GraphQLArgumentConfigMap = [String: GraphQLArgument]
+public typealias GraphQLArgumentConfigMap = OrderedDictionary<String, GraphQLArgument>
 
 public struct GraphQLArgument {
     public let type: GraphQLInputType
@@ -1018,7 +1014,7 @@ public final class GraphQLEnumType {
         let mapValue = try map(from: value)
         guard let enumValue = valueLookup[mapValue] else {
             throw GraphQLError(
-                message: "Enum '\(name)' cannot represent value '\(mapValue)'."
+                message: "Enum \"\(name)\" cannot represent value: \(mapValue)."
             )
         }
         return .string(enumValue.name)
@@ -1027,13 +1023,13 @@ public final class GraphQLEnumType {
     public func parseValue(value: Map) throws -> Map {
         guard let valueStr = value.string else {
             throw GraphQLError(
-                message: "Enum '\(name)' cannot represent non-string value '\(value)'." +
+                message: "Enum \"\(name)\" cannot represent non-string value: \(value)." +
                     didYouMeanEnumValue(unknownValueStr: value.description)
             )
         }
         guard let enumValue = nameLookup[valueStr] else {
             throw GraphQLError(
-                message: "Value '\(valueStr)' does not exist in '\(name)' enum." +
+                message: "Value \"\(valueStr)\" does not exist in \"\(name)\" enum." +
                     didYouMeanEnumValue(unknownValueStr: valueStr)
             )
         }
@@ -1043,14 +1039,14 @@ public final class GraphQLEnumType {
     public func parseLiteral(valueAST: Value) throws -> Map {
         guard let enumNode = valueAST as? EnumValue else {
             throw GraphQLError(
-                message: "Enum '\(name)' cannot represent non-enum value '\(valueAST)'." +
-                    didYouMeanEnumValue(unknownValueStr: "\(valueAST)"),
+                message: "Enum \"\(name)\" cannot represent non-enum value: \(print(ast: valueAST))." +
+                    didYouMeanEnumValue(unknownValueStr: print(ast: valueAST)),
                 nodes: [valueAST]
             )
         }
         guard let enumValue = nameLookup[enumNode.value] else {
             throw GraphQLError(
-                message: "Value '\(enumNode)' does not exist in '\(name)' enum." +
+                message: "Value \"\(enumNode.value)\" does not exist in \"\(name)\" enum." +
                     didYouMeanEnumValue(unknownValueStr: enumNode.value),
                 nodes: [valueAST]
             )
@@ -1136,7 +1132,7 @@ func defineEnumValues(
     return definitions
 }
 
-public typealias GraphQLEnumValueMap = [String: GraphQLEnumValue]
+public typealias GraphQLEnumValueMap = OrderedDictionary<String, GraphQLEnumValue>
 
 public struct GraphQLEnumValue {
     public let value: Map
@@ -1317,7 +1313,7 @@ public struct InputObjectField {
     }
 }
 
-public typealias InputObjectFieldMap = [String: InputObjectField]
+public typealias InputObjectFieldMap = OrderedDictionary<String, InputObjectField>
 
 public final class InputObjectFieldDefinition {
     public let name: String
@@ -1384,7 +1380,14 @@ extension InputObjectFieldDefinition: KeySubscriptable {
     }
 }
 
-public typealias InputObjectFieldDefinitionMap = [String: InputObjectFieldDefinition]
+public func isRequiredInputField(_ field: InputObjectFieldDefinition) -> Bool {
+    return field.type is GraphQLNonNull && field.defaultValue == nil
+}
+
+public typealias InputObjectFieldDefinitionMap = OrderedDictionary<
+    String,
+    InputObjectFieldDefinition
+>
 
 /**
  * List Modifier

@@ -103,7 +103,11 @@ func valueFromAST(
     }
 
     if let leafType = type as? GraphQLLeafType {
-        return try leafType.parseLiteral(valueAST: valueAST)
+        do {
+            return try leafType.parseLiteral(valueAST: valueAST)
+        } catch {
+            return .null
+        }
     }
 
     throw GraphQLError(message: "Provided type is not an input type")

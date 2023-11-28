@@ -9,8 +9,10 @@ final class TypeInfo {
     var parentTypeStack: [GraphQLCompositeType?]
     var inputTypeStack: [GraphQLInputType?]
     var fieldDefStack: [GraphQLFieldDefinition?]
+    var defaultValueStack: [Map]
     var directive: GraphQLDirective?
     var argument: GraphQLArgumentDefinition?
+    var enumValue: GraphQLEnumValueDefinition?
 
     init(schema: GraphQLSchema) {
         self.schema = schema
@@ -18,8 +20,10 @@ final class TypeInfo {
         parentTypeStack = []
         inputTypeStack = []
         fieldDefStack = []
+        defaultValueStack = []
         directive = nil
         argument = nil
+        enumValue = nil
     }
 
     var type: GraphQLOutputType? {
@@ -43,9 +47,23 @@ final class TypeInfo {
         return nil
     }
 
+    var parentInputType: GraphQLInputType? {
+        if inputTypeStack.count >= 2 {
+            return inputTypeStack[inputTypeStack.count - 2]
+        }
+        return nil
+    }
+
     var fieldDef: GraphQLFieldDefinition? {
         if !fieldDefStack.isEmpty {
             return fieldDefStack[fieldDefStack.count - 1]
+        }
+        return nil
+    }
+
+    var defaultValue: Map? {
+        if !defaultValueStack.isEmpty {
+            return defaultValueStack[defaultValueStack.count - 1]
         }
         return nil
     }
@@ -64,13 +82,17 @@ final class TypeInfo {
 
         case let node as Field:
             var fieldDef: GraphQLFieldDefinition?
+            var fieldType: GraphQLType?
 
             if let parentType = parentType {
                 fieldDef = getFieldDef(schema: schema, parentType: parentType, fieldAST: node)
+                if let fieldDef = fieldDef {
+                    fieldType = fieldDef.type
+                }
             }
 
             fieldDefStack.append(fieldDef)
-            typeStack.append(fieldDef?.type)
+            typeStack.append(fieldType as? GraphQLOutputType)
 
         case let node as Directive:
             directive = schema.getDirective(name: node.name.value)
@@ -94,7 +116,7 @@ final class TypeInfo {
             if let typeConditionAST = node.typeCondition {
                 outputType = typeFromAST(schema: schema, inputTypeAST: typeConditionAST)
             } else {
-                outputType = type
+                outputType = getNamedType(type: type)
             }
             typeStack.append(outputType as? GraphQLOutputType)
 
@@ -107,33 +129,59 @@ final class TypeInfo {
             inputTypeStack.append(inputType as? GraphQLInputType)
 
         case let node as Argument:
-            var argType: GraphQLInputType?
+            var argDef: GraphQLArgumentDefinition?
 
             if let directive = directive {
-                if let argDef = directive.args.find({ $0.name == node.name.value }) {
-                    argType = argDef.type
-                    argument = argDef
+                if let argDefinition = directive.args.find({ $0.name == node.name.value }) {
+                    argDef = argDefinition
                 }
             } else if let fieldDef = fieldDef {
-                if let argDef = fieldDef.args.find({ $0.name == node.name.value }) {
-                    argType = argDef.type
-                    argument = argDef
+                if let argDefinition = fieldDef.args.find({ $0.name == node.name.value }) {
+                    argDef = argDefinition
                 }
             }
 
-            inputTypeStack.append(argType)
+            argument = argDef
+            defaultValueStack.append(argDef?.defaultValue ?? .undefined)
+            inputTypeStack.append(argDef?.type)
 
-        case is ListType: // could be ListValue
-            if let listType = getNullableType(type: inputType) as? GraphQLList {
-                inputTypeStack.append(listType.ofType as? GraphQLInputType)
+        case is ListType, is ListValue:
+            let listType = getNullableType(type: inputType)
+            let itemType: GraphQLType?
+
+            if let listType = listType as? GraphQLList {
+                itemType = listType.ofType
+            } else {
+                itemType = listType
+            }
+            defaultValueStack.append(.undefined)
+
+            if let itemType = itemType as? GraphQLInputType {
+                inputTypeStack.append(itemType)
+            } else {
+                inputTypeStack.append(nil)
             }
 
-            inputTypeStack.append(nil)
-
         case let node as ObjectField:
-            if let objectType = getNamedType(type: inputType) as? GraphQLInputObjectType {
-                let inputField = objectType.fields[node.name.value]
-                inputTypeStack.append(inputField?.type)
+            let objectType = getNamedType(type: inputType)
+            var inputFieldType: GraphQLInputType?
+            var inputField: InputObjectFieldDefinition?
+
+            if let objectType = objectType as? GraphQLInputObjectType {
+                inputField = objectType.fields[node.name.value]
+                if let inputField = inputField {
+                    inputFieldType = inputField.type
+                }
+            }
+
+            defaultValueStack.append(inputField?.defaultValue ?? .undefined)
+            inputTypeStack.append(inputFieldType)
+
+        case let node as EnumValue:
+            if let enumType = getNamedType(type: inputType) as? GraphQLEnumType {
+                enumValue = enumType.nameLookup[node.value]
+            } else {
+                enumValue = nil
             }
 
         default:
@@ -161,10 +209,15 @@ final class TypeInfo {
 
         case is Argument:
             argument = nil
+            _ = defaultValueStack.popLast()
             _ = inputTypeStack.popLast()
 
-        case is ListType /* could be listValue */, is ObjectField:
+        case is ListType, is ListValue, is ObjectField:
+            _ = defaultValueStack.popLast()
             _ = inputTypeStack.popLast()
+
+        case is EnumValue:
+            enumValue = nil
 
         default:
             break

@@ -20,7 +20,12 @@ func suggestionList(
     }
     return optionsByDistance.keys.sorted {
         // Values are guaranteed non-nil since the keys come from the object itself
-        optionsByDistance[$0]! - optionsByDistance[$1]! != 0
+        let distanceDiff = optionsByDistance[$0]! - optionsByDistance[$1]!
+        if distanceDiff != 0 {
+            return distanceDiff < 0
+        } else {
+            return $0.lexicographicallyPrecedes($1)
+        }
     }
 }
 

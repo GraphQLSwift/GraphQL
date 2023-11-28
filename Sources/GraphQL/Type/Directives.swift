@@ -7,6 +7,7 @@ public enum DirectiveLocation: String, Encodable {
     case fragmentDefinition = "FRAGMENT_DEFINITION"
     case fragmentSpread = "FRAGMENT_SPREAD"
     case inlineFragment = "INLINE_FRAGMENT"
+    case variableDefinition = "VARIABLE_DEFINITION"
     // Schema Definitions
     case schema = "SCHEMA"
     case scalar = "SCALAR"
@@ -30,18 +31,21 @@ public struct GraphQLDirective: Encodable {
     public let description: String
     public let locations: [DirectiveLocation]
     public let args: [GraphQLArgumentDefinition]
+    public let isRepeatable: Bool
 
     public init(
         name: String,
-        description: String,
+        description: String = "",
         locations: [DirectiveLocation],
-        args: GraphQLArgumentConfigMap = [:]
+        args: GraphQLArgumentConfigMap = [:],
+        isRepeatable: Bool = false
     ) throws {
         try assertValid(name: name)
         self.name = name
         self.description = description
         self.locations = locations
         self.args = try defineArgumentMap(args: args)
+        self.isRepeatable = isRepeatable
     }
 }
 
