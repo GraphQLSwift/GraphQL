@@ -414,7 +414,8 @@ func defineArgumentMap(args: GraphQLArgumentConfigMap) throws -> [GraphQLArgumen
             name: name,
             type: config.type,
             defaultValue: config.defaultValue,
-            description: config.description
+            description: config.description,
+            deprecationReason: config.deprecationReason
         )
         arguments.append(argument)
     }
@@ -661,15 +662,18 @@ public struct GraphQLArgument {
     public let type: GraphQLInputType
     public let description: String?
     public let defaultValue: Map?
+    public let deprecationReason: String?
 
     public init(
         type: GraphQLInputType,
         description: String? = nil,
-        defaultValue: Map? = nil
+        defaultValue: Map? = nil,
+        deprecationReason: String? = nil
     ) {
         self.type = type
         self.description = description
         self.defaultValue = defaultValue
+        self.deprecationReason = deprecationReason
     }
 }
 
@@ -678,17 +682,20 @@ public struct GraphQLArgumentDefinition {
     public let type: GraphQLInputType
     public let defaultValue: Map?
     public let description: String?
+    public let deprecationReason: String?
 
     init(
         name: String,
         type: GraphQLInputType,
         defaultValue: Map? = nil,
-        description: String? = nil
+        description: String? = nil,
+        deprecationReason: String? = nil
     ) {
         self.name = name
         self.type = type
         self.defaultValue = defaultValue
         self.description = description
+        self.deprecationReason = deprecationReason
     }
 }
 
@@ -702,6 +709,7 @@ extension GraphQLArgumentDefinition: Encodable {
         case description
         case type
         case defaultValue
+        case deprecationReason
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -710,6 +718,7 @@ extension GraphQLArgumentDefinition: Encodable {
         try container.encode(description, forKey: .description)
         try container.encode(AnyEncodable(type), forKey: .type)
         try container.encode(defaultValue, forKey: .defaultValue)
+        try container.encode(deprecationReason, forKey: .deprecationReason)
     }
 }
 
@@ -724,6 +733,8 @@ extension GraphQLArgumentDefinition: KeySubscriptable {
             return type
         case CodingKeys.defaultValue.rawValue:
             return defaultValue
+        case CodingKeys.deprecationReason.rawValue:
+            return deprecationReason
         default:
             return nil
         }
@@ -1292,7 +1303,8 @@ func defineInputObjectFieldMap(
             name: name,
             type: field.type,
             description: field.description,
-            defaultValue: field.defaultValue
+            defaultValue: field.defaultValue,
+            deprecationReason: field.deprecationReason
         )
 
         definitionMap[name] = definition
@@ -1305,11 +1317,18 @@ public struct InputObjectField {
     public let type: GraphQLInputType
     public let defaultValue: Map?
     public let description: String?
+    public let deprecationReason: String?
 
-    public init(type: GraphQLInputType, defaultValue: Map? = nil, description: String? = nil) {
+    public init(
+        type: GraphQLInputType,
+        defaultValue: Map? = nil,
+        description: String? = nil,
+        deprecationReason: String? = nil
+    ) {
         self.type = type
         self.defaultValue = defaultValue
         self.description = description
+        self.deprecationReason = deprecationReason
     }
 }
 
@@ -1320,17 +1339,20 @@ public final class InputObjectFieldDefinition {
     public internal(set) var type: GraphQLInputType
     public let description: String?
     public let defaultValue: Map?
+    public let deprecationReason: String?
 
     init(
         name: String,
         type: GraphQLInputType,
         description: String? = nil,
-        defaultValue: Map? = nil
+        defaultValue: Map? = nil,
+        deprecationReason: String? = nil
     ) {
         self.name = name
         self.type = type
         self.description = description
         self.defaultValue = defaultValue
+        self.deprecationReason = deprecationReason
     }
 
     func replaceTypeReferences(typeMap: TypeMap) throws {
@@ -1352,6 +1374,7 @@ extension InputObjectFieldDefinition: Encodable {
         case description
         case type
         case defaultValue
+        case deprecationReason
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -1360,6 +1383,7 @@ extension InputObjectFieldDefinition: Encodable {
         try container.encode(description, forKey: .description)
         try container.encode(AnyEncodable(type), forKey: .type)
         try container.encode(defaultValue, forKey: .defaultValue)
+        try container.encode(deprecationReason, forKey: .deprecationReason)
     }
 }
 
@@ -1374,6 +1398,8 @@ extension InputObjectFieldDefinition: KeySubscriptable {
             return type
         case CodingKeys.defaultValue.rawValue:
             return defaultValue
+        case CodingKeys.deprecationReason.rawValue:
+            return deprecationReason
         default:
             return nil
         }
