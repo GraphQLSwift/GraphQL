@@ -105,6 +105,8 @@ public let GraphQLDeprecatedDirective = try! GraphQLDirective(
     "Marks an element of a GraphQL schema as no longer supported.",
     locations: [
         .fieldDefinition,
+        .argumentDefinition,
+        .inputFieldDefinition,
         .enumValue,
     ],
     args: [
