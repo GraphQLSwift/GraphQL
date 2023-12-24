@@ -111,6 +111,63 @@ class SchemaParserTests: XCTestCase {
         XCTAssert(result == expected)
     }
 
+    func testParsesTypeWithDescriptionString() throws {
+        let doc = try parse(source: """
+        "Description"
+        type Hello {
+          world: String
+        }
+        """)
+
+        let type = try XCTUnwrap(doc.definitions[0] as? ObjectTypeDefinition)
+
+        XCTAssertEqual(
+            type.description?.value,
+            "Description"
+        )
+    }
+
+    func testParsesTypeWithDescriptionMultiLineString() throws {
+        let doc = try parse(source: #"""
+        """
+        Description
+        """
+        # Even with comments between them
+        type Hello {
+          world: String
+        }
+        """#)
+
+        let type = try XCTUnwrap(doc.definitions[0] as? ObjectTypeDefinition)
+
+        XCTAssertEqual(
+            type.description?.value,
+            "Description"
+        )
+    }
+
+    func testParsesSchemaWithDescriptionMultiLineString() throws {
+        let doc = try parse(source: """
+        "Description"
+        schema {
+          query: Foo
+        }
+        """)
+
+        let type = try XCTUnwrap(doc.definitions[0] as? SchemaDefinition)
+
+        XCTAssertEqual(
+            type.description?.value,
+            "Description"
+        )
+    }
+
+    func testDescriptionFollowedBySomethingOtherThanTypeSystemDefinitionThrows() throws {
+        XCTAssertThrowsError(
+            try parse(source: #""Description" 1"#)
+        )
+    }
+
     func testSchemeExtension() throws {
         // Based on Apollo Federation example schema: https://github.com/apollographql/apollo-federation-subgraph-compatibility/blob/main/COMPATIBILITY.md#products-schema-to-be-implemented-by-library-maintainers
         let source =
