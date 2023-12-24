@@ -141,8 +141,7 @@ extension FloatValue: Printable {
 
 extension StringValue: Printable {
     var printed: String {
-        block == true ? value : "\"\(value)\""
-        // TODO: isBlockString === true ? printBlockString(value) : printString(value),
+        block == true ? printBlockString(value) : printString(value)
     }
 }
 
