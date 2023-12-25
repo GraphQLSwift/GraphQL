@@ -1038,16 +1038,28 @@ func parseTypeExtensionDefinition(lexer: Lexer) throws -> TypeExtensionDefinitio
 func parseSchemaExtensionDefinition(lexer: Lexer) throws -> SchemaExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
-    let description = try parseDescription(lexer: lexer)
     try expectKeyword(lexer: lexer, value: "schema")
     let directives = try parseDirectives(lexer: lexer)
+    let operationTypes = try optionalMany(
+        lexer: lexer,
+        openKind: .openingBrace,
+        closeKind: .closingBrace,
+        parse: parseOperationTypeDefinition
+    )
+    if directives.isEmpty, operationTypes.isEmpty {
+        throw syntaxError(
+            source: lexer.source,
+            position: lexer.token.start,
+            description: "expected schema extend to have directive or operation"
+        )
+    }
     return SchemaExtensionDefinition(
         loc: loc(lexer: lexer, startToken: start),
         definition: SchemaDefinition(
             loc: loc(lexer: lexer, startToken: start),
-            description: description,
+            description: nil,
             directives: directives,
-            operationTypes: []
+            operationTypes: operationTypes
         )
     )
 }
