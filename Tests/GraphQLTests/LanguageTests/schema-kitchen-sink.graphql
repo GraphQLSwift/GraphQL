@@ -1,10 +1,4 @@
-# Copyright (c) 2015, Facebook, Inc.
-# All rights reserved.
-#
-# This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree. An additional grant
-# of patent rights can be found in the PATENTS file in the same directory.
-
+"""This is a description of the schema as a whole."""
 schema {
   query: QueryType
   mutation: MutationType
@@ -32,6 +26,7 @@ type Foo implements Bar & Baz & Two {
   five(argument: [String] = ["string", "string"]): String
   six(argument: InputType = {key: "value"}): Type
   seven(argument: Int = null): Type
+  eight(argument: OneOfInputType): Type
 }
 
 type AnnotatedObject @onObject(arg: "value") {
@@ -119,6 +114,11 @@ extend enum Site @onEnum
 input InputType {
   key: String!
   answer: Int = 42
+}
+
+input OneOfInputType @oneOf {
+  string: String
+  int: Int
 }
 
 input AnnotatedInput @onInputObject {
