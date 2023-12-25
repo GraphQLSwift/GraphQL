@@ -88,29 +88,6 @@ class SchemaParserTests: XCTestCase {
         XCTAssert(result == expected)
     }
 
-    func testSimpleExtension() throws {
-        let source = "extend type Hello { world: String }"
-
-        let expected = Document(
-            definitions: [
-                TypeExtensionDefinition(
-                    definition: ObjectTypeDefinition(
-                        name: nameNode("Hello"),
-                        fields: [
-                            fieldNode(
-                                nameNode("world"),
-                                typeNode("String")
-                            ),
-                        ]
-                    )
-                ),
-            ]
-        )
-
-        let result = try parse(source: source)
-        XCTAssert(result == expected)
-    }
-
     func testParsesTypeWithDescriptionString() throws {
         let doc = try parse(source: """
         "Description"
@@ -165,6 +142,172 @@ class SchemaParserTests: XCTestCase {
     func testDescriptionFollowedBySomethingOtherThanTypeSystemDefinitionThrows() throws {
         XCTAssertThrowsError(
             try parse(source: #""Description" 1"#)
+        )
+    }
+
+    func testSimpleExtension() throws {
+        let source = "extend type Hello { world: String }"
+
+        let expected = Document(
+            definitions: [
+                TypeExtensionDefinition(
+                    definition: ObjectTypeDefinition(
+                        name: nameNode("Hello"),
+                        fields: [
+                            fieldNode(
+                                nameNode("world"),
+                                typeNode("String")
+                            ),
+                        ]
+                    )
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testObjectExtensionWithoutFields() throws {
+        XCTAssertEqual(
+            try parse(source: "extend type Hello implements Greeting"),
+            Document(
+                definitions: [
+                    TypeExtensionDefinition(
+                        definition: ObjectTypeDefinition(
+                            name: nameNode("Hello"),
+                            interfaces: [typeNode("Greeting")],
+                            directives: [],
+                            fields: []
+                        )
+                    ),
+                ]
+            )
+        )
+    }
+
+    func testInterfaceExtensionWithoutFields() throws {
+        XCTAssertEqual(
+            try parse(source: "extend interface Hello implements Greeting"),
+            Document(
+                definitions: [
+                    InterfaceExtensionDefinition(
+                        definition: InterfaceTypeDefinition(
+                            name: nameNode("Hello"),
+                            interfaces: [typeNode("Greeting")],
+                            directives: [],
+                            fields: []
+                        )
+                    ),
+                ]
+            )
+        )
+    }
+
+    func testObjectExtensionWithoutFieldsFollowedByExtension() throws {
+        XCTAssertEqual(
+            try parse(source: """
+            extend type Hello implements Greeting
+
+            extend type Hello implements SecondGreeting
+            """),
+            Document(
+                definitions: [
+                    TypeExtensionDefinition(
+                        definition: ObjectTypeDefinition(
+                            name: nameNode("Hello"),
+                            interfaces: [typeNode("Greeting")],
+                            directives: [],
+                            fields: []
+                        )
+                    ),
+                    TypeExtensionDefinition(
+                        definition: ObjectTypeDefinition(
+                            name: nameNode("Hello"),
+                            interfaces: [typeNode("SecondGreeting")],
+                            directives: [],
+                            fields: []
+                        )
+                    ),
+                ]
+            )
+        )
+    }
+
+    func testExtensionWithoutAnythingThrows() throws {
+        try XCTAssertThrowsError(parse(source: "extend scalar Hello"))
+        try XCTAssertThrowsError(parse(source: "extend type Hello"))
+        try XCTAssertThrowsError(parse(source: "extend interface Hello"))
+        try XCTAssertThrowsError(parse(source: "extend union Hello"))
+        try XCTAssertThrowsError(parse(source: "extend enum Hello"))
+        try XCTAssertThrowsError(parse(source: "extend input Hello"))
+    }
+
+    func testInterfaceExtensionWithoutFieldsFollowedByExtension() throws {
+        XCTAssertEqual(
+            try parse(source: """
+            extend interface Hello implements Greeting
+
+            extend interface Hello implements SecondGreeting
+            """),
+            Document(
+                definitions: [
+                    InterfaceExtensionDefinition(
+                        definition: InterfaceTypeDefinition(
+                            name: nameNode("Hello"),
+                            interfaces: [typeNode("Greeting")],
+                            directives: [],
+                            fields: []
+                        )
+                    ),
+                    InterfaceExtensionDefinition(
+                        definition: InterfaceTypeDefinition(
+                            name: nameNode("Hello"),
+                            interfaces: [typeNode("SecondGreeting")],
+                            directives: [],
+                            fields: []
+                        )
+                    ),
+                ]
+            )
+        )
+    }
+
+    func testObjectExtensionDoNotIncludeDescriptions() throws {
+        XCTAssertThrowsError(
+            try parse(source: """
+            "Description"
+            extend type Hello {
+              world: String
+            }
+            """)
+        )
+
+        XCTAssertThrowsError(
+            try parse(source: """
+            extend "Description" type Hello {
+              world: String
+            }
+            """)
+        )
+    }
+
+    func testInterfaceExtensionDoNotIncludeDescriptions() throws {
+        XCTAssertThrowsError(
+            try parse(source: """
+            "Description"
+            extend interface Hello {
+              world: String
+            }
+            """)
+        )
+
+        XCTAssertThrowsError(
+            try parse(source: """
+            extend "Description" interface Hello {
+              world: String
+            }
+            """)
         )
     }
 
@@ -1084,13 +1227,16 @@ class SchemaParserTests: XCTestCase {
     }
 
     func testInputExtension() throws {
-        let source = #"extend input InputType"#
+        let source = #"extend input InputType @include"#
 
         let expected = Document(
             definitions: [
                 InputObjectExtensionDefinition(
                     definition: InputObjectTypeDefinition(
                         name: nameNode("InputType"),
+                        directives: [
+                            Directive(name: Name(value: "include")),
+                        ],
                         fields: []
                     )
                 ),
