@@ -311,67 +311,59 @@ class SchemaParserTests: XCTestCase {
         )
     }
 
-    func testSchemeExtension() throws {
-        // Based on Apollo Federation example schema: https://github.com/apollographql/apollo-federation-subgraph-compatibility/blob/main/COMPATIBILITY.md#products-schema-to-be-implemented-by-library-maintainers
-        let source =
-            """
-            extend schema
-              @link(
-                url: "https://specs.apollo.dev/federation/v2.0",
-                import: [
-                  "@extends",
-                  "@external",
-                  "@key",
-                  "@inaccessible",
-                  "@override",
-                  "@provides",
-                  "@requires",
-                  "@shareable",
-                  "@tag"
+    func testSchemaExtension() throws {
+        XCTAssertEqual(
+            try parse(source: """
+            extend schema {
+              mutation: Mutation
+            }
+            """),
+            Document(
+                definitions: [
+                    SchemaExtensionDefinition(
+                        definition: SchemaDefinition(
+                            directives: [],
+                            operationTypes: [
+                                OperationTypeDefinition(
+                                    operation: .mutation,
+                                    type: .init(name: .init(value: "Mutation"))
+                                ),
+                            ]
+                        )
+                    ),
                 ]
-              )
-            """
-
-        let expected = Document(
-            definitions: [
-                SchemaExtensionDefinition(
-                    definition: SchemaDefinition(
-                        directives: [
-                            Directive(
-                                name: nameNode("link"),
-                                arguments: [
-                                    Argument(
-                                        name: nameNode("url"),
-                                        value: StringValue(
-                                            value: "https://specs.apollo.dev/federation/v2.0",
-                                            block: false
-                                        )
-                                    ),
-                                    Argument(
-                                        name: nameNode("import"),
-                                        value: ListValue(values: [
-                                            StringValue(value: "@extends", block: false),
-                                            StringValue(value: "@external", block: false),
-                                            StringValue(value: "@key", block: false),
-                                            StringValue(value: "@inaccessible", block: false),
-                                            StringValue(value: "@override", block: false),
-                                            StringValue(value: "@provides", block: false),
-                                            StringValue(value: "@requires", block: false),
-                                            StringValue(value: "@shareable", block: false),
-                                            StringValue(value: "@tag", block: false),
-                                        ])
-                                    ),
-                                ]
-                            ),
-                        ],
-                        operationTypes: []
-                    )
-                ),
-            ]
+            )
         )
+    }
 
-        let result = try parse(source: source)
-        XCTAssert(result == expected)
+    func testSchemaExtensionWithOnlyDirectives() throws {
+        XCTAssertEqual(
+            try parse(source: "extend schema @directive"),
+            Document(
+                definitions: [
+                    SchemaExtensionDefinition(
+                        definition: SchemaDefinition(
+                            directives: [
+                                Directive(name: .init(value: "directive")),
+                            ],
+                            operationTypes: []
+                        )
+                    ),
+                ]
+            )
+        )
+    }
+
+    func testSchemaExtensionWithoutAnythingThrows() throws {
+        XCTAssertThrowsError(
+            try parse(source: "extend schema")
+        )
+    }
+
+    func testSchemaExtensionWithInvalidOperationTypeThrows() throws {
+        XCTAssertThrowsError(
+            try parse(source: "extend schema { unknown: SomeType }")
+        )
     }
 
     func testSimpleNonNullType() throws {
@@ -395,6 +387,26 @@ class SchemaParserTests: XCTestCase {
 
         let result = try parse(source: source)
         XCTAssert(result == expected)
+    }
+
+    func testSimpleInterfaceInheritingInterface() throws {
+        XCTAssertEqual(
+            try parse(source: "interface Hello implements World { field: String }"),
+            Document(
+                definitions: [
+                    InterfaceTypeDefinition(
+                        name: nameNode("Hello"),
+                        interfaces: [typeNode("World")],
+                        fields: [
+                            FieldDefinition(
+                                name: .init(value: "field"),
+                                type: NamedType(name: .init(value: "String"))
+                            ),
+                        ]
+                    ),
+                ]
+            )
+        )
     }
 
     func testSimpleTypeInheritingInterface() throws {
@@ -430,6 +442,71 @@ class SchemaParserTests: XCTestCase {
 
         let result = try parse(source: source)
         XCTAssert(result == expected)
+    }
+
+    func testSimpleInterfaceInheritingMultipleInterfaces() throws {
+        XCTAssertEqual(
+            try parse(source: "interface Hello implements Wo & rld { field: String }"),
+            Document(
+                definitions: [
+                    InterfaceTypeDefinition(
+                        name: nameNode("Hello"),
+                        interfaces: [
+                            typeNode("Wo"),
+                            typeNode("rld"),
+                        ],
+                        fields: [
+                            FieldDefinition(
+                                name: .init(value: "field"),
+                                type: NamedType(name: .init(value: "String"))
+                            ),
+                        ]
+                    ),
+                ]
+            )
+        )
+    }
+
+    func testSimpleTypeInheritingMultipleInterfacesWithLeadingAmbersand() throws {
+        let source = "type Hello implements & Wo & rld { }"
+
+        let expected = Document(
+            definitions: [
+                ObjectTypeDefinition(
+                    name: nameNode("Hello"),
+                    interfaces: [
+                        typeNode("Wo"),
+                        typeNode("rld"),
+                    ]
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
+    }
+
+    func testSimpleInterfaceInheritingMultipleInterfacesWithLeadingAmbersand() throws {
+        XCTAssertEqual(
+            try parse(source: "interface Hello implements & Wo & rld { field: String }"),
+            Document(
+                definitions: [
+                    InterfaceTypeDefinition(
+                        name: nameNode("Hello"),
+                        interfaces: [
+                            typeNode("Wo"),
+                            typeNode("rld"),
+                        ],
+                        fields: [
+                            FieldDefinition(
+                                name: .init(value: "field"),
+                                type: NamedType(name: .init(value: "String"))
+                            ),
+                        ]
+                    ),
+                ]
+            )
+        )
     }
 
     func testSingleValueEnum() throws {
@@ -1309,5 +1386,68 @@ class SchemaParserTests: XCTestCase {
         }
 
         _ = try parse(source: kitchenSink)
+    }
+
+    func testSchemeExtension() throws {
+        // Based on Apollo Federation example schema: https://github.com/apollographql/apollo-federation-subgraph-compatibility/blob/main/COMPATIBILITY.md#products-schema-to-be-implemented-by-library-maintainers
+        let source =
+            """
+            extend schema
+              @link(
+                url: "https://specs.apollo.dev/federation/v2.0",
+                import: [
+                  "@extends",
+                  "@external",
+                  "@key",
+                  "@inaccessible",
+                  "@override",
+                  "@provides",
+                  "@requires",
+                  "@shareable",
+                  "@tag"
+                ]
+              )
+            """
+
+        let expected = Document(
+            definitions: [
+                SchemaExtensionDefinition(
+                    definition: SchemaDefinition(
+                        directives: [
+                            Directive(
+                                name: nameNode("link"),
+                                arguments: [
+                                    Argument(
+                                        name: nameNode("url"),
+                                        value: StringValue(
+                                            value: "https://specs.apollo.dev/federation/v2.0",
+                                            block: false
+                                        )
+                                    ),
+                                    Argument(
+                                        name: nameNode("import"),
+                                        value: ListValue(values: [
+                                            StringValue(value: "@extends", block: false),
+                                            StringValue(value: "@external", block: false),
+                                            StringValue(value: "@key", block: false),
+                                            StringValue(value: "@inaccessible", block: false),
+                                            StringValue(value: "@override", block: false),
+                                            StringValue(value: "@provides", block: false),
+                                            StringValue(value: "@requires", block: false),
+                                            StringValue(value: "@shareable", block: false),
+                                            StringValue(value: "@tag", block: false),
+                                        ])
+                                    ),
+                                ]
+                            ),
+                        ],
+                        operationTypes: []
+                    )
+                ),
+            ]
+        )
+
+        let result = try parse(source: source)
+        XCTAssert(result == expected)
     }
 }
