@@ -173,24 +173,45 @@ func parseDefinition(lexer: Lexer) throws -> Definition {
         return try parseOperationDefinition(lexer: lexer)
     }
 
-    if peek(lexer: lexer, kind: .name) {
-        guard let value = lexer.token.value else {
+    // Many definitions begin with a description and require a lookahead.
+    let hasDescription = peekDescription(lexer: lexer)
+    let keywordToken = hasDescription
+        ? try lexer.lookahead()
+        : lexer.token
+
+    if keywordToken.kind == .name {
+        guard let value = keywordToken.value else {
             throw GraphQLError(message: "Expected name token to have value: \(lexer.token)")
         }
+
         switch value {
-        case "query", "mutation", "subscription":
-            return try parseOperationDefinition(lexer: lexer)
-        case "fragment":
-            return try parseFragmentDefinition(lexer: lexer)
-        // Note: the Type System IDL is an experimental non-spec addition.
-        case "schema", "scalar", "type", "interface", "union", "enum", "input", "extend",
-             "directive":
-            return try parseTypeSystemDefinition(lexer: lexer)
+        case "schema": return try parseSchemaDefinition(lexer: lexer)
+        case "scalar": return try parseScalarTypeDefinition(lexer: lexer)
+        case "type": return try parseObjectTypeDefinition(lexer: lexer)
+        case "interface": return try parseInterfaceTypeDefinition(lexer: lexer)
+        case "union": return try parseUnionTypeDefinition(lexer: lexer)
+        case "enum": return try parseEnumTypeDefinition(lexer: lexer)
+        case "input": return try parseInputObjectTypeDefinition(lexer: lexer)
+        case "directive": return try parseDirectiveDefinition(lexer: lexer)
         default:
-            break
+            if hasDescription {
+                throw syntaxError(
+                    source: lexer.source,
+                    position: lexer.token.start,
+                    description: "Unexpected description, descriptions are supported only on type definitions."
+                )
+            }
+            switch value {
+            case "query", "mutation", "subscription":
+                return try parseOperationDefinition(lexer: lexer)
+            case "fragment":
+                return try parseFragmentDefinition(lexer: lexer)
+            case "extend":
+                return try parseExtensionDefinition(lexer: lexer)
+            default:
+                break
+            }
         }
-    } else if peekDescription(lexer: lexer) {
-        return try parseTypeSystemDefinition(lexer: lexer)
     }
 
     throw unexpected(lexer: lexer)
@@ -676,47 +697,6 @@ func parseNamedType(lexer: Lexer) throws -> NamedType {
 // Implements the parsing rules in the Type Definition section.
 
 /**
- * TypeSystemDefinition :
- *   - SchemaDefinition
- *   - TypeDefinition
- *   - TypeExtensionDefinition
- *   - DirectiveDefinition
- *
- * TypeDefinition :
- *   - ScalarTypeDefinition
- *   - ObjectTypeDefinition
- *   - InterfaceTypeDefinition
- *   - UnionTypeDefinition
- *   - EnumTypeDefinition
- *   - InputObjectTypeDefinition
- */
-func parseTypeSystemDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
-    let keywordToken = peekDescription(lexer: lexer)
-        ? try lexer.lookahead()
-        : lexer.token
-
-    if keywordToken.kind == .name {
-        guard let value = keywordToken.value else {
-            throw GraphQLError(message: "Expected keyword token to have value: \(keywordToken)")
-        }
-        switch value {
-        case "schema": return try parseSchemaDefinition(lexer: lexer)
-        case "scalar": return try parseScalarTypeDefinition(lexer: lexer)
-        case "type": return try parseObjectTypeDefinition(lexer: lexer)
-        case "interface": return try parseInterfaceTypeDefinition(lexer: lexer)
-        case "union": return try parseUnionTypeDefinition(lexer: lexer)
-        case "enum": return try parseEnumTypeDefinition(lexer: lexer)
-        case "input": return try parseInputObjectTypeDefinition(lexer: lexer)
-        case "extend": return try parseExtensionDefinition(lexer: lexer)
-        case "directive": return try parseDirectiveDefinition(lexer: lexer)
-        default: break
-        }
-    }
-
-    throw unexpected(lexer: lexer, atToken: keywordToken)
-}
-
-/**
  * SchemaDefinition : schema Directives? { OperationTypeDefinition+ }
  *
  * OperationTypeDefinition : OperationType : NamedType
@@ -1124,8 +1104,8 @@ func parseScalarExtensionDefinition(lexer: Lexer) throws -> ScalarExtensionDefin
     try expectKeyword(lexer: lexer, value: "scalar")
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
-    if (directives.isEmpty) {
-      throw unexpected(lexer: lexer)
+    if directives.isEmpty {
+        throw unexpected(lexer: lexer)
     }
     return ScalarExtensionDefinition(
         loc: loc(lexer: lexer, startToken: start),
