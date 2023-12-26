@@ -2,7 +2,7 @@ import Foundation
 
 /// Converts an AST into a string, using one set of reasonable
 /// formatting rules.
-func print(ast: Node) -> String {
+public func print(ast: Node) -> String {
     ast.printed
 }
 
