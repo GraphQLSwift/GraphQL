@@ -173,24 +173,45 @@ func parseDefinition(lexer: Lexer) throws -> Definition {
         return try parseOperationDefinition(lexer: lexer)
     }
 
-    if peek(lexer: lexer, kind: .name) {
-        guard let value = lexer.token.value else {
+    // Many definitions begin with a description and require a lookahead.
+    let hasDescription = peekDescription(lexer: lexer)
+    let keywordToken = hasDescription
+        ? try lexer.lookahead()
+        : lexer.token
+
+    if keywordToken.kind == .name {
+        guard let value = keywordToken.value else {
             throw GraphQLError(message: "Expected name token to have value: \(lexer.token)")
         }
+
         switch value {
-        case "query", "mutation", "subscription":
-            return try parseOperationDefinition(lexer: lexer)
-        case "fragment":
-            return try parseFragmentDefinition(lexer: lexer)
-        // Note: the Type System IDL is an experimental non-spec addition.
-        case "schema", "scalar", "type", "interface", "union", "enum", "input", "extend",
-             "directive":
-            return try parseTypeSystemDefinition(lexer: lexer)
+        case "schema": return try parseSchemaDefinition(lexer: lexer)
+        case "scalar": return try parseScalarTypeDefinition(lexer: lexer)
+        case "type": return try parseObjectTypeDefinition(lexer: lexer)
+        case "interface": return try parseInterfaceTypeDefinition(lexer: lexer)
+        case "union": return try parseUnionTypeDefinition(lexer: lexer)
+        case "enum": return try parseEnumTypeDefinition(lexer: lexer)
+        case "input": return try parseInputObjectTypeDefinition(lexer: lexer)
+        case "directive": return try parseDirectiveDefinition(lexer: lexer)
         default:
-            break
+            if hasDescription {
+                throw syntaxError(
+                    source: lexer.source,
+                    position: lexer.token.start,
+                    description: "Unexpected description, descriptions are supported only on type definitions."
+                )
+            }
+            switch value {
+            case "query", "mutation", "subscription":
+                return try parseOperationDefinition(lexer: lexer)
+            case "fragment":
+                return try parseFragmentDefinition(lexer: lexer)
+            case "extend":
+                return try parseExtensionDefinition(lexer: lexer)
+            default:
+                break
+            }
         }
-    } else if peekDescription(lexer: lexer) {
-        return try parseTypeSystemDefinition(lexer: lexer)
     }
 
     throw unexpected(lexer: lexer)
@@ -676,47 +697,6 @@ func parseNamedType(lexer: Lexer) throws -> NamedType {
 // Implements the parsing rules in the Type Definition section.
 
 /**
- * TypeSystemDefinition :
- *   - SchemaDefinition
- *   - TypeDefinition
- *   - TypeExtensionDefinition
- *   - DirectiveDefinition
- *
- * TypeDefinition :
- *   - ScalarTypeDefinition
- *   - ObjectTypeDefinition
- *   - InterfaceTypeDefinition
- *   - UnionTypeDefinition
- *   - EnumTypeDefinition
- *   - InputObjectTypeDefinition
- */
-func parseTypeSystemDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
-    let keywordToken = peekDescription(lexer: lexer)
-        ? try lexer.lookahead()
-        : lexer.token
-
-    if keywordToken.kind == .name {
-        guard let value = keywordToken.value else {
-            throw GraphQLError(message: "Expected keyword token to have value: \(keywordToken)")
-        }
-        switch value {
-        case "schema": return try parseSchemaDefinition(lexer: lexer)
-        case "scalar": return try parseScalarTypeDefinition(lexer: lexer)
-        case "type": return try parseObjectTypeDefinition(lexer: lexer)
-        case "interface": return try parseInterfaceTypeDefinition(lexer: lexer)
-        case "union": return try parseUnionTypeDefinition(lexer: lexer)
-        case "enum": return try parseEnumTypeDefinition(lexer: lexer)
-        case "input": return try parseInputObjectTypeDefinition(lexer: lexer)
-        case "extend": return try parseExtensionDefinition(lexer: lexer)
-        case "directive": return try parseDirectiveDefinition(lexer: lexer)
-        default: break
-        }
-    }
-
-    throw unexpected(lexer: lexer, atToken: keywordToken)
-}
-
-/**
  * SchemaDefinition : schema Directives? { OperationTypeDefinition+ }
  *
  * OperationTypeDefinition : OperationType : NamedType
@@ -1025,10 +1005,31 @@ func parseExtensionDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
 func parseTypeExtensionDefinition(lexer: Lexer) throws -> TypeExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
-    let definition = try parseObjectTypeDefinition(lexer: lexer)
+    try expectKeyword(lexer: lexer, value: "type")
+    let name = try parseName(lexer: lexer)
+    let interfaces = try parseImplementsInterfaces(lexer: lexer)
+    let directives = try parseDirectives(lexer: lexer)
+    let fields = try optionalMany(
+        lexer: lexer,
+        openKind: .openingBrace,
+        closeKind: .closingBrace,
+        parse: parseFieldDefinition
+    )
+    if
+        interfaces.isEmpty,
+        directives.isEmpty,
+        fields.isEmpty
+    {
+        throw unexpected(lexer: lexer)
+    }
     return TypeExtensionDefinition(
         loc: loc(lexer: lexer, startToken: start),
-        definition: definition
+        definition: ObjectTypeDefinition(
+            name: name,
+            interfaces: interfaces,
+            directives: directives,
+            fields: fields
+        )
     )
 }
 
@@ -1038,16 +1039,24 @@ func parseTypeExtensionDefinition(lexer: Lexer) throws -> TypeExtensionDefinitio
 func parseSchemaExtensionDefinition(lexer: Lexer) throws -> SchemaExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
-    let description = try parseDescription(lexer: lexer)
     try expectKeyword(lexer: lexer, value: "schema")
     let directives = try parseDirectives(lexer: lexer)
+    let operationTypes = try optionalMany(
+        lexer: lexer,
+        openKind: .openingBrace,
+        closeKind: .closingBrace,
+        parse: parseOperationTypeDefinition
+    )
+    if directives.isEmpty, operationTypes.isEmpty {
+        throw unexpected(lexer: lexer)
+    }
     return SchemaExtensionDefinition(
         loc: loc(lexer: lexer, startToken: start),
         definition: SchemaDefinition(
             loc: loc(lexer: lexer, startToken: start),
-            description: description,
+            description: nil,
             directives: directives,
-            operationTypes: []
+            operationTypes: operationTypes
         )
     )
 }
@@ -1058,10 +1067,31 @@ func parseSchemaExtensionDefinition(lexer: Lexer) throws -> SchemaExtensionDefin
 func parseInterfaceExtensionDefinition(lexer: Lexer) throws -> InterfaceExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
-    let interfaceDefinition = try parseInterfaceTypeDefinition(lexer: lexer)
+    try expectKeyword(lexer: lexer, value: "interface")
+    let name = try parseName(lexer: lexer)
+    let interfaces = try parseImplementsInterfaces(lexer: lexer)
+    let directives = try parseDirectives(lexer: lexer)
+    let fields = try optionalMany(
+        lexer: lexer,
+        openKind: .openingBrace,
+        closeKind: .closingBrace,
+        parse: parseFieldDefinition
+    )
+    if
+        interfaces.isEmpty,
+        directives.isEmpty,
+        fields.isEmpty
+    {
+        throw unexpected(lexer: lexer)
+    }
     return InterfaceExtensionDefinition(
         loc: loc(lexer: lexer, startToken: start),
-        definition: interfaceDefinition
+        definition: InterfaceTypeDefinition(
+            name: name,
+            interfaces: interfaces,
+            directives: directives,
+            fields: fields
+        )
     )
 }
 
@@ -1071,10 +1101,18 @@ func parseInterfaceExtensionDefinition(lexer: Lexer) throws -> InterfaceExtensio
 func parseScalarExtensionDefinition(lexer: Lexer) throws -> ScalarExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
-    let scalarDefinition = try parseScalarTypeDefinition(lexer: lexer)
+    try expectKeyword(lexer: lexer, value: "scalar")
+    let name = try parseName(lexer: lexer)
+    let directives = try parseDirectives(lexer: lexer)
+    if directives.isEmpty {
+        throw unexpected(lexer: lexer)
+    }
     return ScalarExtensionDefinition(
         loc: loc(lexer: lexer, startToken: start),
-        definition: scalarDefinition
+        definition: ScalarTypeDefinition(
+            name: name,
+            directives: directives
+        )
     )
 }
 
@@ -1084,10 +1122,24 @@ func parseScalarExtensionDefinition(lexer: Lexer) throws -> ScalarExtensionDefin
 func parseUnionExtensionDefinition(lexer: Lexer) throws -> UnionExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
-    let definition = try parseUnionTypeDefinition(lexer: lexer)
+    try expectKeyword(lexer: lexer, value: "union")
+    let name = try parseName(lexer: lexer)
+    let directives = try parseDirectives(lexer: lexer)
+    let types = try parseUnionMembers(lexer: lexer)
+    if
+        directives.isEmpty,
+        types.isEmpty
+    {
+        throw unexpected(lexer: lexer)
+    }
     return UnionExtensionDefinition(
         loc: loc(lexer: lexer, startToken: start),
-        definition: definition
+        definition: UnionTypeDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            name: name,
+            directives: directives,
+            types: types
+        )
     )
 }
 
@@ -1097,10 +1149,29 @@ func parseUnionExtensionDefinition(lexer: Lexer) throws -> UnionExtensionDefinit
 func parseEnumExtensionDefinition(lexer: Lexer) throws -> EnumExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
-    let definition = try parseEnumTypeDefinition(lexer: lexer)
+    try expectKeyword(lexer: lexer, value: "enum")
+    let name = try parseName(lexer: lexer)
+    let directives = try parseDirectives(lexer: lexer)
+    let values = try optionalMany(
+        lexer: lexer,
+        openKind: .openingBrace,
+        closeKind: .closingBrace,
+        parse: parseEnumValueDefinition
+    )
+    if
+        directives.isEmpty,
+        values.isEmpty
+    {
+        throw unexpected(lexer: lexer)
+    }
     return EnumExtensionDefinition(
         loc: loc(lexer: lexer, startToken: start),
-        definition: definition
+        definition: EnumTypeDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            name: name,
+            directives: directives,
+            values: values
+        )
     )
 }
 
@@ -1110,10 +1181,29 @@ func parseEnumExtensionDefinition(lexer: Lexer) throws -> EnumExtensionDefinitio
 func parseInputObjectExtensionDefinition(lexer: Lexer) throws -> InputObjectExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
-    let definition = try parseInputObjectTypeDefinition(lexer: lexer)
+    try expectKeyword(lexer: lexer, value: "input")
+    let name = try parseName(lexer: lexer)
+    let directives = try parseDirectives(lexer: lexer)
+    let fields = try optionalMany(
+        lexer: lexer,
+        openKind: .openingBrace,
+        closeKind: .closingBrace,
+        parse: parseInputValueDef
+    )
+    if
+        directives.isEmpty,
+        fields.isEmpty
+    {
+        throw unexpected(lexer: lexer)
+    }
     return InputObjectExtensionDefinition(
         loc: loc(lexer: lexer, startToken: start),
-        definition: definition
+        definition: InputObjectTypeDefinition(
+            loc: loc(lexer: lexer, startToken: start),
+            name: name,
+            directives: directives,
+            fields: fields
+        )
     )
 }
 
