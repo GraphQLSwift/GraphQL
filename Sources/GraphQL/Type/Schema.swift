@@ -26,7 +26,7 @@
  *
  */
 public final class GraphQLSchema {
-    public let queryType: GraphQLObjectType
+    public let queryType: GraphQLObjectType?
     public let mutationType: GraphQLObjectType?
     public let subscriptionType: GraphQLObjectType?
     public let directives: [GraphQLDirective]
@@ -35,7 +35,7 @@ public final class GraphQLSchema {
     private var subTypeMap: [String: [String: Bool]] = [:]
 
     public init(
-        query: GraphQLObjectType,
+        query: GraphQLObjectType? = nil,
         mutation: GraphQLObjectType? = nil,
         subscription: GraphQLObjectType? = nil,
         types: [GraphQLNamedType] = [],
@@ -49,9 +49,11 @@ public final class GraphQLSchema {
         self.directives = directives.isEmpty ? specifiedDirectives : directives
 
         // Build type map now to detect any errors within this schema.
-        var initialTypes: [GraphQLNamedType] = [
-            queryType,
-        ]
+        var initialTypes: [GraphQLNamedType] = []
+        
+        if let query = queryType {
+            initialTypes.append(query)
+        }
 
         if let mutation = mutationType {
             initialTypes.append(mutation)

@@ -466,7 +466,14 @@ func getOperationRootType(
 ) throws -> GraphQLObjectType {
     switch operation.operation {
     case .query:
-        return schema.queryType
+        guard let queryType = schema.queryType else {
+            throw GraphQLError(
+                message: "Schema is not configured for queries",
+                nodes: [operation]
+            )
+        }
+
+        return queryType
     case .mutation:
         guard let mutationType = schema.mutationType else {
             throw GraphQLError(
@@ -1213,9 +1220,9 @@ func getFieldDef(
     parentType: GraphQLObjectType,
     fieldName: String
 ) throws -> GraphQLFieldDefinition {
-    if fieldName == SchemaMetaFieldDef.name, schema.queryType.name == parentType.name {
+    if fieldName == SchemaMetaFieldDef.name, schema.queryType?.name == parentType.name {
         return SchemaMetaFieldDef
-    } else if fieldName == TypeMetaFieldDef.name, schema.queryType.name == parentType.name {
+    } else if fieldName == TypeMetaFieldDef.name, schema.queryType?.name == parentType.name {
         return TypeMetaFieldDef
     } else if fieldName == TypeNameMetaFieldDef.name {
         return TypeNameMetaFieldDef

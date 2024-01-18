@@ -238,11 +238,11 @@ func getFieldDef(
     let name = fieldAST.name.value
 
     if let parentType = parentType as? GraphQLNamedType {
-        if name == SchemaMetaFieldDef.name, schema.queryType.name == parentType.name {
+        if name == SchemaMetaFieldDef.name, schema.queryType?.name == parentType.name {
             return SchemaMetaFieldDef
         }
 
-        if name == TypeMetaFieldDef.name, schema.queryType.name == parentType.name {
+        if name == TypeMetaFieldDef.name, schema.queryType?.name == parentType.name {
             return TypeMetaFieldDef
         }
     }
