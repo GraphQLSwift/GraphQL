@@ -1,3 +1,5 @@
+import OrderedCollections
+
 public enum DirectiveLocation: String, Encodable {
     // Operations
     case query = "QUERY"
