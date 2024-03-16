@@ -7,9 +7,9 @@
  *
  * See https://spec.graphql.org/draft/#sec-Fragment-Spread-Type-Existence
  */
-func KnownTypeNamesRule(context: ValidationContext) -> Visitor {
+func KnownTypeNamesRule(context: SDLorNormalValidationContext) -> Visitor {
     let definitions = context.ast.definitions
-    let existingTypesMap = context.schema.typeMap
+    let existingTypesMap = context.getSchema()?.typeMap ?? [:]
 
     var typeNames = Set<String>()
     for typeName in existingTypesMap.keys {
