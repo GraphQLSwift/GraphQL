@@ -96,3 +96,38 @@ func visit(
     )
     return context.errors
 }
+
+/**
+ * Utility function which asserts a SDL document is valid by throwing an error
+ * if it is invalid.
+ *
+ * @internal
+ */
+func assertValidSDL(documentAST: Document) throws {
+    let errors = validateSDL(documentAST: documentAST)
+    if !errors.isEmpty {
+        throw GraphQLError(
+            message: errors.map { $0.message }.joined(separator: "\n\n"),
+            locations: []
+        )
+    }
+}
+
+/**
+ * Utility function which asserts a SDL document is valid by throwing an error
+ * if it is invalid.
+ *
+ * @internal
+ */
+func assertValidSDLExtension(
+    documentAST: Document,
+    schema: GraphQLSchema
+) throws {
+    let errors = validateSDL(documentAST: documentAST, schemaToExtend: schema)
+    if !errors.isEmpty {
+        throw GraphQLError(
+            message: errors.map { $0.message }.joined(separator: "\n\n"),
+            locations: []
+        )
+    }
+}
