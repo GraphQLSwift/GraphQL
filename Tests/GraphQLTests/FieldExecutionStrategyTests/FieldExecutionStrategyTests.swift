@@ -259,7 +259,7 @@ class FieldExecutionStrategyTests: XCTestCase {
         XCTAssertEqual(result.value.data, multiThrowsExpectedData)
         let resultErrors = result.value.errors
         XCTAssertEqual(resultErrors.count, multiThrowsExpectedErrors.count)
-        multiThrowsExpectedErrors.forEach { m in
+        for m in multiThrowsExpectedErrors {
             XCTAssertTrue(resultErrors.contains(m), "Expecting result errors to contain \(m)")
         }
         // XCTAssertEqualWithAccuracy(1.0, result.seconds, accuracy: 0.5)
@@ -308,7 +308,7 @@ class FieldExecutionStrategyTests: XCTestCase {
         XCTAssertEqual(result.value.data, multiThrowsExpectedData)
         let resultErrors = result.value.errors
         XCTAssertEqual(resultErrors.count, multiThrowsExpectedErrors.count)
-        multiThrowsExpectedErrors.forEach { m in
+        for m in multiThrowsExpectedErrors {
             XCTAssertTrue(resultErrors.contains(m), "Expecting result errors to contain \(m)")
         }
         // XCTAssertEqualWithAccuracy(0.1, result.seconds, accuracy: 0.25)

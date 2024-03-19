@@ -187,7 +187,7 @@ public struct ConcurrentDispatchFieldExecutionStrategy: QueryFieldExecutionStrat
             .mapValues { _ -> Future<Any>? in nil }
         var err: Error?
 
-        fields.forEach { field in
+        for field in fields {
             let fieldASTs = field.value
             let fieldKey = field.key
             let fieldPath = path.appending(fieldKey)

@@ -52,8 +52,6 @@ public func NoDeprecatedCustomRule(context: ValidationContext) -> Visitor {
                 }
             }
             if let node = node as? ObjectField {
-                let inputObjectDef = context.parentInputType as? GraphQLInputObjectType
-
                 if
                     let inputObjectDef = context.parentInputType as? GraphQLInputObjectType,
                     let inputFieldDef = inputObjectDef.fields[node.name.value],
