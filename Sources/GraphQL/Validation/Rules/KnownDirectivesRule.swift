@@ -25,33 +25,32 @@ func KnownDirectivesRule(context: ValidationContext) -> Visitor {
 
     return Visitor(
         enter: { node, _, _, _, ancestors in
-            if let node = node as? Directive {
-                let name = node.name.value
-                let locations = locationsMap[name]
+            guard let node = node as? Directive else { return .continue }
 
-                guard let locations = locations else {
-                    context.report(
-                        error: GraphQLError(
-                            message: "Unknown directive \"@\(name)\".",
-                            nodes: [node]
-                        )
-                    )
-                    return .continue
-                }
+            let name = node.name.value
 
-                let candidateLocation = getDirectiveLocationForASTPath(ancestors)
-                if
-                    let candidateLocation = candidateLocation,
-                    !locations.contains(candidateLocation.rawValue)
-                {
-                    context.report(
-                        error: GraphQLError(
-                            message: "Directive \"@\(name)\" may not be used on \(candidateLocation.rawValue).",
-                            nodes: [node]
-                        )
+            guard let locations = locationsMap[name] else {
+                context.report(
+                    error: GraphQLError(
+                        message: "Unknown directive \"@\(name)\".",
+                        nodes: [node]
                     )
-                }
+                )
+                return .continue
             }
+
+            guard
+                let candidateLocation = getDirectiveLocationForASTPath(ancestors),
+                !locations.contains(candidateLocation.rawValue)
+            else { return .continue }
+
+            context.report(
+                error: GraphQLError(
+                    message: "Directive \"@\(name)\" may not be used on \(candidateLocation.rawValue).",
+                    nodes: [node]
+                )
+            )
+
             return .continue
         }
     )
