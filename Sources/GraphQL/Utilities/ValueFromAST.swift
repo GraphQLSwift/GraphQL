@@ -99,6 +99,18 @@ func valueFromAST(
                 }
             }
         }
+
+        if objectType.isOneOf {
+            let keys = object.filter { $1 != .undefined }.keys
+            if keys.count != 1 {
+                return .undefined // Invalid: not exactly one key, intentionally return no value.
+            }
+
+            if object[keys[0]] == .null {
+                return .undefined // Invalid: value not non-null, intentionally return no value.
+            }
+        }
+
         return .dictionary(object)
     }
 

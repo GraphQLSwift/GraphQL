@@ -169,6 +169,7 @@ extension GraphQLNonNull: GraphQLWrapperType {}
 public final class GraphQLScalarType {
     public let name: String
     public let description: String?
+    public let specifiedByURL: String?
     public let kind: TypeKind = .scalar
 
     let serialize: (Any) throws -> Map
@@ -178,6 +179,7 @@ public final class GraphQLScalarType {
     public init(
         name: String,
         description: String? = nil,
+        specifiedByURL: String? = nil,
         serialize: @escaping (Any) throws -> Map,
         parseValue: ((Map) throws -> Map)? = nil,
         parseLiteral: ((Value) throws -> Map)? = nil
@@ -185,6 +187,7 @@ public final class GraphQLScalarType {
         try assertValid(name: name)
         self.name = name
         self.description = description
+        self.specifiedByURL = specifiedByURL
         self.serialize = serialize
         self.parseValue = parseValue ?? defaultParseValue
         self.parseLiteral = parseLiteral ?? defaultParseLiteral
@@ -218,6 +221,7 @@ extension GraphQLScalarType: Encodable {
     private enum CodingKeys: String, CodingKey {
         case name
         case description
+        case specifiedByURL
         case kind
     }
 }
@@ -229,6 +233,8 @@ extension GraphQLScalarType: KeySubscriptable {
             return name
         case CodingKeys.description.rawValue:
             return description
+        case CodingKeys.specifiedByURL.rawValue:
+            return specifiedByURL
         case CodingKeys.kind.rawValue:
             return kind
         default:
@@ -1217,12 +1223,14 @@ public final class GraphQLInputObjectType {
     public let name: String
     public let description: String?
     public let fields: InputObjectFieldDefinitionMap
+    public let isOneOf: Bool
     public let kind: TypeKind = .inputObject
 
     public init(
         name: String,
         description: String? = nil,
-        fields: InputObjectFieldMap = [:]
+        fields: InputObjectFieldMap = [:],
+        isOneOf: Bool = false
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -1231,6 +1239,7 @@ public final class GraphQLInputObjectType {
             name: name,
             fields: fields
         )
+        self.isOneOf = isOneOf
     }
 
     func replaceTypeReferences(typeMap: TypeMap) throws {
@@ -1245,6 +1254,7 @@ extension GraphQLInputObjectType: Encodable {
         case name
         case description
         case fields
+        case isOneOf
         case kind
     }
 }
@@ -1258,6 +1268,8 @@ extension GraphQLInputObjectType: KeySubscriptable {
             return description
         case CodingKeys.fields.rawValue:
             return fields
+        case CodingKeys.isOneOf.rawValue:
+            return isOneOf
         case CodingKeys.kind.rawValue:
             return kind
         default:
