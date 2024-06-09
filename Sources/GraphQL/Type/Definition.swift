@@ -169,6 +169,7 @@ extension GraphQLNonNull: GraphQLWrapperType {}
 public final class GraphQLScalarType {
     public let name: String
     public let description: String?
+    public let specifiedByURL: String?
     public let kind: TypeKind = .scalar
 
     let serialize: (Any) throws -> Map
@@ -178,6 +179,7 @@ public final class GraphQLScalarType {
     public init(
         name: String,
         description: String? = nil,
+        specifiedByURL: String? = nil,
         serialize: @escaping (Any) throws -> Map,
         parseValue: ((Map) throws -> Map)? = nil,
         parseLiteral: ((Value) throws -> Map)? = nil
@@ -185,6 +187,7 @@ public final class GraphQLScalarType {
         try assertValid(name: name)
         self.name = name
         self.description = description
+        self.specifiedByURL = specifiedByURL
         self.serialize = serialize
         self.parseValue = parseValue ?? defaultParseValue
         self.parseLiteral = parseLiteral ?? defaultParseLiteral
@@ -218,6 +221,7 @@ extension GraphQLScalarType: Encodable {
     private enum CodingKeys: String, CodingKey {
         case name
         case description
+        case specifiedByURL
         case kind
     }
 }
@@ -229,6 +233,8 @@ extension GraphQLScalarType: KeySubscriptable {
             return name
         case CodingKeys.description.rawValue:
             return description
+        case CodingKeys.specifiedByURL.rawValue:
+            return specifiedByURL
         case CodingKeys.kind.rawValue:
             return kind
         default:

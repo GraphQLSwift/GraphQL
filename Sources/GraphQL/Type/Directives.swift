@@ -124,6 +124,21 @@ public let GraphQLDeprecatedDirective = try! GraphQLDirective(
 )
 
 /**
+ * Used to provide a URL for specifying the behavior of custom scalar definitions.
+ */
+public let GraphQLSpecifiedByDirective = try! GraphQLDirective(
+    name: "specifiedBy",
+    description: "Exposes a URL that specifies the behavior of this scalar.",
+    locations: [.scalar],
+    args: [
+        "url": GraphQLArgument(
+            type: GraphQLNonNull(GraphQLString),
+            description: "The URL that specifies the behavior of this scalar."
+        ),
+    ]
+)
+
+/**
  * Used to indicate an Input Object is a OneOf Input Object.
  */
 public let GraphQLOneOfDirective = try! GraphQLDirective(
@@ -140,5 +155,6 @@ let specifiedDirectives: [GraphQLDirective] = [
     GraphQLIncludeDirective,
     GraphQLSkipDirective,
     GraphQLDeprecatedDirective,
+    GraphQLSpecifiedByDirective,
     GraphQLOneOfDirective,
 ]

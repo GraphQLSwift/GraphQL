@@ -185,7 +185,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
         "many kinds of types in GraphQL as represented by the `__TypeKind` enum." +
         "\n\nDepending on the kind of a type, certain fields describe " +
         "information about that type. Scalar types provide no information " +
-        "beyond a name and description, while Enum types provide their values. " +
+        "beyond a name and description and optional `specifiedByURL`, while Enum types provide their values. " +
         "Object and Interface types provide the fields they describe. Abstract " +
         "types, Union and Interface, provide the Object types possible " +
         "at runtime. List and NonNull types compose other types.",
@@ -217,6 +217,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
         ),
         "name": GraphQLField(type: GraphQLString),
         "description": GraphQLField(type: GraphQLString),
+        "specifiedByURL": GraphQLField(type: GraphQLString),
         "fields": GraphQLField(
             type: GraphQLList(GraphQLNonNull(__Field)),
             args: [
