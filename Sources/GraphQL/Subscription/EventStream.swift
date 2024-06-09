@@ -27,7 +27,7 @@ open class EventStream<Element> {
             -> ConcurrentEventStream<To>
         {
             let newStream = stream.mapStream(closure)
-            return ConcurrentEventStream<To>.init(newStream)
+            return ConcurrentEventStream<To>(newStream)
         }
     }
 
