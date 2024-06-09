@@ -1024,17 +1024,29 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Valid oneOf Object Value
 
-//    func testExactlyOneField() throws {
-//        try assertValid(
-//            """
-//            {
-//              complicatedArgs {
-//                oneOfArgField(oneOfArg: { stringField: "abc" })
-//              }
-//            }
-//            """
-//        )
-//    }
+    func testExactlyOneField() throws {
+        try assertValid(
+            """
+            {
+              complicatedArgs {
+                oneOfArgField(oneOfArg: { stringField: "abc" })
+              }
+            }
+            """
+        )
+    }
+
+    func testExactlyOneNonNullableVariable() throws {
+        try assertValid(
+            """
+            query ($string: String!) {
+              complicatedArgs {
+                oneOfArgField(oneOfArg: { stringField: $string })
+              }
+            }
+            """
+        )
+    }
 
     // MARK: Invalid input object value
 
@@ -1240,7 +1252,87 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         XCTAssertEqual(errors, [])
     }
 
-    // MARK: Invalid oneOf input object value TODO
+    // MARK: Invalid oneOf input object value
+
+    func testInvalidFieldType() throws {
+        let errors = try assertInvalid(
+            errorCount: 1,
+            query:
+            """
+            {
+              complicatedArgs {
+                oneOfArgField(oneOfArg: { stringField: 2 })
+              }
+            }
+            """
+        )
+
+        try assertValidationError(
+            error: errors[0],
+            locations: [(line: 3, column: 44)],
+            message: #"String cannot represent a non-string value: 2"#
+        )
+    }
+
+    func testExactlyOneNullField() throws {
+        let errors = try assertInvalid(
+            errorCount: 1,
+            query:
+            """
+            {
+              complicatedArgs {
+                oneOfArgField(oneOfArg: { stringField: null })
+              }
+            }
+            """
+        )
+
+        try assertValidationError(
+            error: errors[0],
+            locations: [(line: 3, column: 29)],
+            message: #"Field "OneOfInput.stringField" must be non-null."#
+        )
+    }
+
+    func testExactlyOneNullableVariable() throws {
+        let errors = try assertInvalid(
+            errorCount: 1,
+            query:
+            """
+            query ($string: String) {
+              complicatedArgs {
+                oneOfArgField(oneOfArg: { stringField: $string })
+              }
+            }
+            """
+        )
+
+        try assertValidationError(
+            error: errors[0],
+            locations: [(line: 3, column: 29)],
+            message: #"Variable "string" must be non-nullable to be used for OneOf Input Object "OneOfInput"."#
+        )
+    }
+
+    func testMoreThanOneField() throws {
+        let errors = try assertInvalid(
+            errorCount: 1,
+            query:
+            """
+            {
+              complicatedArgs {
+                oneOfArgField(oneOfArg: { stringField: "abc", intField: 123 })
+              }
+            }
+            """
+        )
+
+        try assertValidationError(
+            error: errors[0],
+            locations: [(line: 3, column: 29)],
+            message: #"OneOf Input Object "OneOfInput" must specify exactly one key."#
+        )
+    }
 
     // MARK: Directive arguments
 

@@ -63,6 +63,22 @@ func validate(value: Map, forType type: GraphQLInputType) throws -> [String] {
             }
         }
 
+        // Ensure only one field in oneOf input is defined
+        if objectType.isOneOf {
+            let keys = dictionary.filter { $1 != .undefined }.keys
+            if keys.count != 1 {
+                errors.append(
+                    "Exactly one key must be specified for OneOf type \"\(objectType.name)\"."
+                )
+            }
+
+            let key = keys[0]
+            let value = dictionary[key]
+            if value == .null {
+                errors.append("Field \"\(key)\" must be non-null.")
+            }
+        }
+
         // Ensure every defined field is valid.
         for (fieldName, field) in fields {
             let newErrors = try validate(value: value[fieldName], forType: field.type).map {

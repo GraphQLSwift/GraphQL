@@ -310,6 +310,15 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
             }
         ),
         "ofType": GraphQLField(type: GraphQLTypeReference("__Type")),
+        "isOneOf": GraphQLField(
+            type: GraphQLBoolean,
+            resolve: { type, _, _, _ in
+                if let type = type as? GraphQLInputObjectType {
+                    return type.isOneOf
+                }
+                return false
+            }
+        ),
     ]
 )
 

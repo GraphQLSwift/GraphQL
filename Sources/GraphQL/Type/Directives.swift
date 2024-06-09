@@ -124,10 +124,21 @@ public let GraphQLDeprecatedDirective = try! GraphQLDirective(
 )
 
 /**
+ * Used to indicate an Input Object is a OneOf Input Object.
+ */
+public let GraphQLOneOfDirective = try! GraphQLDirective(
+    name: "oneOf",
+    description: "Indicates exactly one field must be supplied and this field must not be `null`.",
+    locations: [.inputObject],
+    args: [:]
+)
+
+/**
  * The full list of specified directives.
  */
 let specifiedDirectives: [GraphQLDirective] = [
     GraphQLIncludeDirective,
     GraphQLSkipDirective,
     GraphQLDeprecatedDirective,
+    GraphQLOneOfDirective,
 ]

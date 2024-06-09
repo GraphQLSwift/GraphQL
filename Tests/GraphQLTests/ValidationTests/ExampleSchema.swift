@@ -402,11 +402,11 @@ let ValidationExampleComplexInput = try! GraphQLInputObjectType(
 // }
 let ValidationExampleOneOfInput = try! GraphQLInputObjectType(
     name: "OneOfInput",
-    // TODO: Add @oneOf directive
     fields: [
-        "stringField": InputObjectField(type: GraphQLBoolean),
+        "stringField": InputObjectField(type: GraphQLString),
         "intField": InputObjectField(type: GraphQLInt),
-    ]
+    ],
+    isOneOf: true
 )
 
 // type ComplicatedArgs {

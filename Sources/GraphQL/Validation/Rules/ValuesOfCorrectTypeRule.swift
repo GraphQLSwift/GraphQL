@@ -37,8 +37,9 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                     return .break // Don't traverse further.
                 }
                 // Ensure every required field exists.
-                let fieldNodeMap = Dictionary(grouping: object.fields) { field in
-                    field.name.value
+                var fieldNodeMap = [String: ObjectField]()
+                for field in object.fields {
+                    fieldNodeMap[field.name.value] = field
                 }
                 for (fieldName, fieldDef) in type.fields {
                     if fieldNodeMap[fieldName] == nil, isRequiredInputField(fieldDef) {
@@ -52,7 +53,15 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                     }
                 }
 
-                // TODO: Add oneOf support
+                if type.isOneOf {
+                    validateOneOfInputObject(
+                        context: context,
+                        node: object,
+                        type: type,
+                        fieldNodeMap: fieldNodeMap,
+                        variableDefinitions: variableDefinitions
+                    )
+                }
                 return .continue
             }
             if let field = node as? ObjectField {
@@ -169,6 +178,58 @@ func isValidValueNode(_ context: ValidationContext, _ node: Value) {
                     nodes: [node]
                 )
             )
+        }
+    }
+}
+
+func validateOneOfInputObject(
+    context: ValidationContext,
+    node: ObjectValue,
+    type: GraphQLInputObjectType,
+    fieldNodeMap: [String: ObjectField],
+    variableDefinitions: [String: VariableDefinition]
+) {
+    let keys = Array(fieldNodeMap.keys)
+    let isNotExactlyOneField = keys.count != 1
+
+    if isNotExactlyOneField {
+        context.report(
+            error: GraphQLError(
+                message: "OneOf Input Object \"\(type.name)\" must specify exactly one key.",
+                nodes: [node]
+            )
+        )
+        return
+    }
+
+    let value = fieldNodeMap[keys[0]]?.value
+    let isNullLiteral = value == nil || value?.kind == .nullValue
+
+    if isNullLiteral {
+        context.report(
+            error: GraphQLError(
+                message: "Field \"\(type.name).\(keys[0])\" must be non-null.",
+                nodes: [node]
+            )
+        )
+        return
+    }
+
+    if let value = value, value.kind == .variable {
+        let variable = value as! Variable // Force unwrap is safe because of variable definition
+        let variableName = variable.name.value
+
+        if
+            let definition = variableDefinitions[variableName],
+            definition.type.kind != .nonNullType
+        {
+            context.report(
+                error: GraphQLError(
+                    message: "Variable \"\(variableName)\" must be non-nullable to be used for OneOf Input Object \"\(type.name)\".",
+                    nodes: [node]
+                )
+            )
+            return
         }
     }
 }

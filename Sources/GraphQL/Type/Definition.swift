@@ -1217,12 +1217,14 @@ public final class GraphQLInputObjectType {
     public let name: String
     public let description: String?
     public let fields: InputObjectFieldDefinitionMap
+    public let isOneOf: Bool
     public let kind: TypeKind = .inputObject
 
     public init(
         name: String,
         description: String? = nil,
-        fields: InputObjectFieldMap = [:]
+        fields: InputObjectFieldMap = [:],
+        isOneOf: Bool = false
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -1231,6 +1233,7 @@ public final class GraphQLInputObjectType {
             name: name,
             fields: fields
         )
+        self.isOneOf = isOneOf
     }
 
     func replaceTypeReferences(typeMap: TypeMap) throws {
@@ -1245,6 +1248,7 @@ extension GraphQLInputObjectType: Encodable {
         case name
         case description
         case fields
+        case isOneOf
         case kind
     }
 }
@@ -1258,6 +1262,8 @@ extension GraphQLInputObjectType: KeySubscriptable {
             return description
         case CodingKeys.fields.rawValue:
             return fields
+        case CodingKeys.isOneOf.rawValue:
+            return isOneOf
         case CodingKeys.kind.rawValue:
             return kind
         default:
