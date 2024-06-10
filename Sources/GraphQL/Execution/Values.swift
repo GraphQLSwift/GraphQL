@@ -184,3 +184,34 @@ func coerceValue(value: Map, type: GraphQLInputType) throws -> Map {
 
     throw GraphQLError(message: "Provided type is not an input type")
 }
+
+/**
+ * Prepares an object map of argument values given a directive definition
+ * and a AST node which may contain directives. Optionally also accepts a map
+ * of variable values.
+ *
+ * If the directive does not exist on the node, returns undefined.
+ *
+ * Note: The returned value is a plain Object with a prototype, since it is
+ * exposed to user code. Care should be taken to not pull values from the
+ * Object prototype.
+ */
+func getDirectiveValues(
+    directiveDef: GraphQLDirective,
+    directives: [Directive],
+    variableValues: [String: Map] = [:]
+) throws -> Map? {
+    let directiveNode = directives.find { directive in
+        directive.name.value == directiveDef.name
+    }
+
+    if let directiveNode = directiveNode {
+        return try getArgumentValues(
+            argDefs: directiveDef.args,
+            argASTs: directiveNode.arguments,
+            variables: variableValues
+        )
+    }
+
+    return nil
+}

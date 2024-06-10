@@ -170,6 +170,8 @@ public final class GraphQLScalarType {
     public let name: String
     public let description: String?
     public let specifiedByURL: String?
+    public let astNode: ScalarTypeDefinition?
+    public let extensionASTNodes: [ScalarExtensionDefinition]
     public let kind: TypeKind = .scalar
 
     let serialize: (Any) throws -> Map
@@ -180,14 +182,18 @@ public final class GraphQLScalarType {
         name: String,
         description: String? = nil,
         specifiedByURL: String? = nil,
-        serialize: @escaping (Any) throws -> Map,
+        serialize: @escaping (Any) throws -> Map = { try map(from: $0) },
         parseValue: ((Map) throws -> Map)? = nil,
-        parseLiteral: ((Value) throws -> Map)? = nil
+        parseLiteral: ((Value) throws -> Map)? = nil,
+        astNode: ScalarTypeDefinition? = nil,
+        extensionASTNodes: [ScalarExtensionDefinition] = []
     ) throws {
         try assertValid(name: name)
         self.name = name
         self.description = description
         self.specifiedByURL = specifiedByURL
+        self.astNode = astNode
+        self.extensionASTNodes = extensionASTNodes
         self.serialize = serialize
         self.parseValue = parseValue ?? defaultParseValue
         self.parseLiteral = parseLiteral ?? defaultParseLiteral
@@ -305,6 +311,8 @@ public final class GraphQLObjectType {
     public let fields: GraphQLFieldDefinitionMap
     public let interfaces: [GraphQLInterfaceType]
     public let isTypeOf: GraphQLIsTypeOf?
+    public let astNode: ObjectTypeDefinition?
+    public let extensionASTNodes: [TypeExtensionDefinition]
     public let kind: TypeKind = .object
 
     public init(
@@ -312,7 +320,9 @@ public final class GraphQLObjectType {
         description: String? = nil,
         fields: GraphQLFieldMap,
         interfaces: [GraphQLInterfaceType] = [],
-        isTypeOf: GraphQLIsTypeOf? = nil
+        isTypeOf: GraphQLIsTypeOf? = nil,
+        astNode: ObjectTypeDefinition? = nil,
+        extensionASTNodes: [TypeExtensionDefinition] = []
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -327,6 +337,8 @@ public final class GraphQLObjectType {
             interfaces: interfaces
         )
         self.isTypeOf = isTypeOf
+        self.astNode = astNode
+        self.extensionASTNodes = extensionASTNodes
     }
 
     func replaceTypeReferences(typeMap: TypeMap) throws {
@@ -402,7 +414,8 @@ func defineFieldMap(name: String, fields: GraphQLFieldMap) throws -> GraphQLFiel
             deprecationReason: config.deprecationReason,
             args: defineArgumentMap(args: config.args),
             resolve: config.resolve,
-            subscribe: config.subscribe
+            subscribe: config.subscribe,
+            astNode: config.astNode
         )
 
         fieldMap[name] = field
@@ -421,7 +434,8 @@ func defineArgumentMap(args: GraphQLArgumentConfigMap) throws -> [GraphQLArgumen
             type: config.type,
             defaultValue: config.defaultValue,
             description: config.description,
-            deprecationReason: config.deprecationReason
+            deprecationReason: config.deprecationReason,
+            astNode: config.astNode
         )
         arguments.append(argument)
     }
@@ -525,17 +539,20 @@ public struct GraphQLField {
     public let description: String?
     public let resolve: GraphQLFieldResolve?
     public let subscribe: GraphQLFieldResolve?
+    public let astNode: FieldDefinition?
 
     public init(
         type: GraphQLOutputType,
         description: String? = nil,
         deprecationReason: String? = nil,
-        args: GraphQLArgumentConfigMap = [:]
+        args: GraphQLArgumentConfigMap = [:],
+        astNode: FieldDefinition? = nil
     ) {
         self.type = type
         self.args = args
         self.deprecationReason = deprecationReason
         self.description = description
+        self.astNode = astNode
         resolve = nil
         subscribe = nil
     }
@@ -546,12 +563,14 @@ public struct GraphQLField {
         deprecationReason: String? = nil,
         args: GraphQLArgumentConfigMap = [:],
         resolve: GraphQLFieldResolve?,
-        subscribe: GraphQLFieldResolve? = nil
+        subscribe: GraphQLFieldResolve? = nil,
+        astNode: FieldDefinition? = nil
     ) {
         self.type = type
         self.args = args
         self.deprecationReason = deprecationReason
         self.description = description
+        self.astNode = astNode
         self.resolve = resolve
         self.subscribe = subscribe
     }
@@ -561,12 +580,14 @@ public struct GraphQLField {
         description: String? = nil,
         deprecationReason: String? = nil,
         args: GraphQLArgumentConfigMap = [:],
+        astNode: FieldDefinition? = nil,
         resolve: @escaping GraphQLFieldResolveInput
     ) {
         self.type = type
         self.args = args
         self.deprecationReason = deprecationReason
         self.description = description
+        self.astNode = astNode
 
         self.resolve = { source, args, context, eventLoopGroup, info in
             let result = try resolve(source, args, context, info)
@@ -587,6 +608,7 @@ public final class GraphQLFieldDefinition {
     public let subscribe: GraphQLFieldResolve?
     public let deprecationReason: String?
     public let isDeprecated: Bool
+    public let astNode: FieldDefinition?
 
     init(
         name: String,
@@ -595,7 +617,8 @@ public final class GraphQLFieldDefinition {
         deprecationReason: String? = nil,
         args: [GraphQLArgumentDefinition] = [],
         resolve: GraphQLFieldResolve?,
-        subscribe: GraphQLFieldResolve? = nil
+        subscribe: GraphQLFieldResolve? = nil,
+        astNode: FieldDefinition? = nil
     ) {
         self.name = name
         self.description = description
@@ -605,6 +628,7 @@ public final class GraphQLFieldDefinition {
         self.subscribe = subscribe
         self.deprecationReason = deprecationReason
         isDeprecated = deprecationReason != nil
+        self.astNode = astNode
     }
 
     func replaceTypeReferences(typeMap: TypeMap) throws {
@@ -617,6 +641,26 @@ public final class GraphQLFieldDefinition {
         }
 
         type = outputType
+    }
+
+    func toField() -> GraphQLField {
+        return .init(
+            type: type,
+            description: description,
+            deprecationReason: deprecationReason,
+            args: argConfigMap(),
+            resolve: resolve,
+            subscribe: subscribe,
+            astNode: astNode
+        )
+    }
+
+    func argConfigMap() -> GraphQLArgumentConfigMap {
+        var argConfigs: GraphQLArgumentConfigMap = [:]
+        for argDef in args {
+            argConfigs[argDef.name] = argDef.toArg()
+        }
+        return argConfigs
     }
 }
 
@@ -669,17 +713,20 @@ public struct GraphQLArgument {
     public let description: String?
     public let defaultValue: Map?
     public let deprecationReason: String?
+    public let astNode: InputValueDefinition?
 
     public init(
         type: GraphQLInputType,
         description: String? = nil,
         defaultValue: Map? = nil,
-        deprecationReason: String? = nil
+        deprecationReason: String? = nil,
+        astNode: InputValueDefinition? = nil
     ) {
         self.type = type
         self.description = description
         self.defaultValue = defaultValue
         self.deprecationReason = deprecationReason
+        self.astNode = astNode
     }
 }
 
@@ -689,19 +736,32 @@ public struct GraphQLArgumentDefinition {
     public let defaultValue: Map?
     public let description: String?
     public let deprecationReason: String?
+    public let astNode: InputValueDefinition?
 
     init(
         name: String,
         type: GraphQLInputType,
         defaultValue: Map? = nil,
         description: String? = nil,
-        deprecationReason: String? = nil
+        deprecationReason: String? = nil,
+        astNode: InputValueDefinition? = nil
     ) {
         self.name = name
         self.type = type
         self.defaultValue = defaultValue
         self.description = description
         self.deprecationReason = deprecationReason
+        self.astNode = astNode
+    }
+
+    func toArg() -> GraphQLArgument {
+        return .init(
+            type: type,
+            description: description,
+            defaultValue: defaultValue,
+            deprecationReason: deprecationReason,
+            astNode: astNode
+        )
     }
 }
 
@@ -771,6 +831,8 @@ public final class GraphQLInterfaceType {
     public let resolveType: GraphQLTypeResolve?
     public let fields: GraphQLFieldDefinitionMap
     public let interfaces: [GraphQLInterfaceType]
+    public let astNode: InterfaceTypeDefinition?
+    public let extensionASTNodes: [InterfaceExtensionDefinition]
     public let kind: TypeKind = .interface
 
     public init(
@@ -778,7 +840,9 @@ public final class GraphQLInterfaceType {
         description: String? = nil,
         interfaces: [GraphQLInterfaceType] = [],
         fields: GraphQLFieldMap,
-        resolveType: GraphQLTypeResolve? = nil
+        resolveType: GraphQLTypeResolve? = nil,
+        astNode: InterfaceTypeDefinition? = nil,
+        extensionASTNodes: [InterfaceExtensionDefinition] = []
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -791,6 +855,8 @@ public final class GraphQLInterfaceType {
 
         self.interfaces = interfaces
         self.resolveType = resolveType
+        self.astNode = astNode
+        self.extensionASTNodes = extensionASTNodes
     }
 
     func replaceTypeReferences(typeMap: TypeMap) throws {
@@ -842,6 +908,8 @@ extension GraphQLInterfaceType: Hashable {
     }
 }
 
+public typealias GraphQLUnionTypeExtensions = [String: String]?
+
 /**
  * Union Type Definition
  *
@@ -868,18 +936,24 @@ extension GraphQLInterfaceType: Hashable {
  *
  */
 public final class GraphQLUnionType {
+    public let kind: TypeKind = .union
     public let name: String
     public let description: String?
     public let resolveType: GraphQLTypeResolve?
     public let types: [GraphQLObjectType]
     public let possibleTypeNames: [String: Bool]
-    public let kind: TypeKind = .union
+    let extensions: [GraphQLUnionTypeExtensions]
+    let astNode: UnionTypeDefinition?
+    let extensionASTNodes: [UnionExtensionDefinition]
 
     public init(
         name: String,
         description: String? = nil,
         resolveType: GraphQLTypeResolve? = nil,
-        types: [GraphQLObjectType]
+        types: [GraphQLObjectType],
+        extensions: [GraphQLUnionTypeExtensions] = [],
+        astNode: UnionTypeDefinition? = nil,
+        extensionASTNodes: [UnionExtensionDefinition] = []
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -891,6 +965,10 @@ public final class GraphQLUnionType {
             hasResolve: resolveType != nil,
             types: types
         )
+
+        self.extensions = extensions
+        self.astNode = astNode
+        self.extensionASTNodes = extensionASTNodes
 
         possibleTypeNames = [:]
     }
@@ -993,6 +1071,8 @@ public final class GraphQLEnumType {
     public let name: String
     public let description: String?
     public let values: [GraphQLEnumValueDefinition]
+    public let astNode: EnumTypeDefinition?
+    public let extensionASTNodes: [EnumExtensionDefinition]
     public let valueLookup: [Map: GraphQLEnumValueDefinition]
     public let nameLookup: [String: GraphQLEnumValueDefinition]
     public let kind: TypeKind = .enum
@@ -1000,7 +1080,9 @@ public final class GraphQLEnumType {
     public init(
         name: String,
         description: String? = nil,
-        values: GraphQLEnumValueMap
+        values: GraphQLEnumValueMap,
+        astNode: EnumTypeDefinition? = nil,
+        extensionASTNodes: [EnumExtensionDefinition] = []
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -1009,6 +1091,8 @@ public final class GraphQLEnumType {
             name: name,
             valueMap: values
         )
+        self.astNode = astNode
+        self.extensionASTNodes = extensionASTNodes
 
         var valueLookup: [Map: GraphQLEnumValueDefinition] = [:]
 
@@ -1140,7 +1224,8 @@ func defineEnumValues(
             description: value.description,
             deprecationReason: value.deprecationReason,
             isDeprecated: value.deprecationReason != nil,
-            value: value.value
+            value: value.value,
+            astNode: value.astNode
         )
 
         definitions.append(definition)
@@ -1155,15 +1240,18 @@ public struct GraphQLEnumValue {
     public let value: Map
     public let description: String?
     public let deprecationReason: String?
+    public let astNode: EnumValueDefinition?
 
     public init(
         value: Map,
         description: String? = nil,
-        deprecationReason: String? = nil
+        deprecationReason: String? = nil,
+        astNode: EnumValueDefinition? = nil
     ) {
         self.value = value
         self.description = description
         self.deprecationReason = deprecationReason
+        self.astNode = astNode
     }
 }
 
@@ -1180,6 +1268,23 @@ public struct GraphQLEnumValueDefinition: Encodable {
     public let deprecationReason: String?
     public let isDeprecated: Bool
     public let value: Map
+    public let astNode: EnumValueDefinition?
+
+    public init(
+        name: String,
+        description: String?,
+        deprecationReason: String?,
+        isDeprecated: Bool,
+        value: Map,
+        astNode: EnumValueDefinition? = nil
+    ) {
+        self.name = name
+        self.description = description
+        self.deprecationReason = deprecationReason
+        self.isDeprecated = isDeprecated
+        self.value = value
+        self.astNode = astNode
+    }
 }
 
 extension GraphQLEnumValueDefinition: KeySubscriptable {
@@ -1223,6 +1328,8 @@ public final class GraphQLInputObjectType {
     public let name: String
     public let description: String?
     public let fields: InputObjectFieldDefinitionMap
+    public let astNode: InputObjectTypeDefinition?
+    public let extensionASTNodes: [InputObjectExtensionDefinition]
     public let isOneOf: Bool
     public let kind: TypeKind = .inputObject
 
@@ -1230,6 +1337,8 @@ public final class GraphQLInputObjectType {
         name: String,
         description: String? = nil,
         fields: InputObjectFieldMap = [:],
+        astNode: InputObjectTypeDefinition? = nil,
+        extensionASTNodes: [InputObjectExtensionDefinition] = [],
         isOneOf: Bool = false
     ) throws {
         try assertValid(name: name)
@@ -1239,6 +1348,8 @@ public final class GraphQLInputObjectType {
             name: name,
             fields: fields
         )
+        self.astNode = astNode
+        self.extensionASTNodes = extensionASTNodes
         self.isOneOf = isOneOf
     }
 
@@ -1246,6 +1357,10 @@ public final class GraphQLInputObjectType {
         for field in fields {
             try field.value.replaceTypeReferences(typeMap: typeMap)
         }
+    }
+
+    func getFields() -> InputObjectFieldDefinitionMap {
+        return fields
     }
 }
 
@@ -1316,7 +1431,8 @@ func defineInputObjectFieldMap(
             type: field.type,
             description: field.description,
             defaultValue: field.defaultValue,
-            deprecationReason: field.deprecationReason
+            deprecationReason: field.deprecationReason,
+            astNode: field.astNode
         )
 
         definitionMap[name] = definition
@@ -1330,17 +1446,20 @@ public struct InputObjectField {
     public let defaultValue: Map?
     public let description: String?
     public let deprecationReason: String?
+    public let astNode: InputValueDefinition?
 
     public init(
         type: GraphQLInputType,
         defaultValue: Map? = nil,
         description: String? = nil,
-        deprecationReason: String? = nil
+        deprecationReason: String? = nil,
+        astNode: InputValueDefinition? = nil
     ) {
         self.type = type
         self.defaultValue = defaultValue
         self.description = description
         self.deprecationReason = deprecationReason
+        self.astNode = astNode
     }
 }
 
@@ -1352,19 +1471,22 @@ public final class InputObjectFieldDefinition {
     public let description: String?
     public let defaultValue: Map?
     public let deprecationReason: String?
+    public let astNode: InputValueDefinition?
 
     init(
         name: String,
         type: GraphQLInputType,
         description: String? = nil,
         defaultValue: Map? = nil,
-        deprecationReason: String? = nil
+        deprecationReason: String? = nil,
+        astNode: InputValueDefinition? = nil
     ) {
         self.name = name
         self.type = type
         self.description = description
         self.defaultValue = defaultValue
         self.deprecationReason = deprecationReason
+        self.astNode = astNode
     }
 
     func replaceTypeReferences(typeMap: TypeMap) throws {
@@ -1532,6 +1654,13 @@ extension GraphQLList: Hashable {
 public final class GraphQLNonNull {
     public let ofType: GraphQLNullableType
     public let kind: TypeKind = .nonNull
+
+    public init(_ type: GraphQLType) throws {
+        guard let type = type as? GraphQLNullableType else {
+            throw GraphQLError(message: "type is already non null: \(type.debugDescription)")
+        }
+        ofType = type
+    }
 
     public init(_ type: GraphQLNullableType) {
         ofType = type

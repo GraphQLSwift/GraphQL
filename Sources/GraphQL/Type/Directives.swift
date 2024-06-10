@@ -34,13 +34,15 @@ public struct GraphQLDirective: Encodable {
     public let locations: [DirectiveLocation]
     public let args: [GraphQLArgumentDefinition]
     public let isRepeatable: Bool
+    public let astNode: DirectiveDefinition?
 
     public init(
         name: String,
         description: String = "",
         locations: [DirectiveLocation],
         args: GraphQLArgumentConfigMap = [:],
-        isRepeatable: Bool = false
+        isRepeatable: Bool = false,
+        astNode: DirectiveDefinition? = nil
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -48,6 +50,15 @@ public struct GraphQLDirective: Encodable {
         self.locations = locations
         self.args = try defineArgumentMap(args: args)
         self.isRepeatable = isRepeatable
+        self.astNode = astNode
+    }
+
+    func argConfigMap() -> GraphQLArgumentConfigMap {
+        var argConfigs: GraphQLArgumentConfigMap = [:]
+        for argDef in args {
+            argConfigs[argDef.name] = argDef.toArg()
+        }
+        return argConfigs
     }
 }
 
@@ -158,3 +169,9 @@ let specifiedDirectives: [GraphQLDirective] = [
     GraphQLSpecifiedByDirective,
     GraphQLOneOfDirective,
 ]
+
+func isSpecifiedDirective(_ directive: GraphQLDirective) -> Bool {
+    return specifiedDirectives.contains { specifiedDirective in
+        specifiedDirective.name == directive.name
+    }
+}

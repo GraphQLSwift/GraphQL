@@ -26,6 +26,14 @@
  *
  */
 public final class GraphQLSchema {
+    let description: String?
+    let extensions: [GraphQLSchemaExtensions]
+    let astNode: SchemaDefinition?
+    let extensionASTNodes: [SchemaExtensionDefinition]
+
+    // Used as a cache for validateSchema().
+    let validationErrors: [GraphQLError]?
+
     public let queryType: GraphQLObjectType?
     public let mutationType: GraphQLObjectType?
     public let subscriptionType: GraphQLObjectType?
@@ -35,12 +43,24 @@ public final class GraphQLSchema {
     private var subTypeMap: [String: [String: Bool]] = [:]
 
     public init(
+        description: String? = nil,
         query: GraphQLObjectType? = nil,
         mutation: GraphQLObjectType? = nil,
         subscription: GraphQLObjectType? = nil,
         types: [GraphQLNamedType] = [],
-        directives: [GraphQLDirective] = []
+        directives: [GraphQLDirective] = [],
+        extensions: [GraphQLSchemaExtensions] = [],
+        astNode: SchemaDefinition? = nil,
+        extensionASTNodes: [SchemaExtensionDefinition] = [],
+        assumeValid: Bool = false
     ) throws {
+        validationErrors = assumeValid ? [] : nil
+
+        self.description = description
+        self.extensions = extensions
+        self.astNode = astNode
+        self.extensionASTNodes = extensionASTNodes
+
         queryType = query
         mutationType = mutation
         subscriptionType = subscription
@@ -50,7 +70,7 @@ public final class GraphQLSchema {
 
         // Build type map now to detect any errors within this schema.
         var initialTypes: [GraphQLNamedType] = []
-        
+
         if let query = queryType {
             initialTypes.append(query)
         }
@@ -89,6 +109,21 @@ public final class GraphQLSchema {
                 }
             }
         }
+    }
+
+    convenience init(config: GraphQLSchemaNormalizedConfig) throws {
+        try self.init(
+            description: config.description,
+            query: config.query,
+            mutation: config.mutation,
+            subscription: config.subscription,
+            types: config.types,
+            directives: config.directives,
+            extensions: config.extensions,
+            astNode: config.astNode,
+            extensionASTNodes: config.extensionASTNodes,
+            assumeValid: config.assumeValid
+        )
     }
 
     public func getType(name: String) -> GraphQLNamedType? {
@@ -167,6 +202,21 @@ public final class GraphQLSchema {
         }
 
         return nil
+    }
+
+    func toConfig() -> GraphQLSchemaNormalizedConfig {
+        return GraphQLSchemaNormalizedConfig(
+            description: description,
+            query: queryType,
+            mutation: mutationType,
+            subscription: subscriptionType,
+            types: Array(typeMap.values),
+            directives: directives,
+            extensions: extensions,
+            astNode: astNode,
+            extensionASTNodes: extensionASTNodes,
+            assumeValid: validationErrors != nil
+        )
     }
 }
 
@@ -420,3 +470,51 @@ func resolveTypeReferences(types: [GraphQLType], typeMap: TypeMap) throws -> [Gr
 
     return resolvedTypes
 }
+
+class GraphQLSchemaNormalizedConfig {
+    var description: String?
+    var query: GraphQLObjectType?
+    var mutation: GraphQLObjectType?
+    var subscription: GraphQLObjectType?
+    var types: [GraphQLNamedType]
+    var directives: [GraphQLDirective]
+    var extensions: [GraphQLSchemaExtensions]
+    var astNode: SchemaDefinition?
+    var extensionASTNodes: [SchemaExtensionDefinition]
+    var assumeValid: Bool
+
+    init(
+        description: String? = nil,
+        query: GraphQLObjectType? = nil,
+        mutation: GraphQLObjectType? = nil,
+        subscription: GraphQLObjectType? = nil,
+        types: [GraphQLNamedType] = [],
+        directives: [GraphQLDirective] = [],
+        extensions: [GraphQLSchemaExtensions] = [],
+        astNode: SchemaDefinition? = nil,
+        extensionASTNodes: [SchemaExtensionDefinition] = [],
+        assumeValid: Bool = false
+    ) {
+        self.description = description
+        self.query = query
+        self.mutation = mutation
+        self.subscription = subscription
+        self.types = types
+        self.directives = directives
+        self.extensions = extensions
+        self.astNode = astNode
+        self.extensionASTNodes = extensionASTNodes
+        self.assumeValid = assumeValid
+    }
+}
+
+/**
+ * Custom extensions
+ *
+ * @remarks
+ * Use a unique identifier name for your extension, for example the name of
+ * your library or project. Do not use a shortened identifier as this increases
+ * the risk of conflicts. We recommend you add at most one extension field,
+ * an object which can contain all the values you need.
+ */
+public typealias GraphQLSchemaExtensions = [String: String]?

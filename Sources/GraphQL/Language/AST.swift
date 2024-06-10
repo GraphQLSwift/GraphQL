@@ -2182,10 +2182,12 @@ public final class ScalarExtensionDefinition {
     public let kind: Kind = .scalarExtensionDefinition
     public let loc: Location?
     public let definition: ScalarTypeDefinition
+    public let directives: [Directive]
 
-    init(loc: Location? = nil, definition: ScalarTypeDefinition) {
+    init(loc: Location? = nil, definition: ScalarTypeDefinition, directives: [Directive] = []) {
         self.loc = loc
         self.definition = definition
+        self.directives = directives
     }
 }
 
