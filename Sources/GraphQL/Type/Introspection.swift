@@ -496,17 +496,17 @@ let TypeNameMetaFieldDef = GraphQLFieldDefinition(
     }
 )
 
-let introspectionTypeNames = [
-    __Schema.name,
-    __Directive.name,
-    __DirectiveLocation.name,
-    __Type.name,
-    __Field.name,
-    __InputValue.name,
-    __EnumValue.name,
-    __TypeKind.name,
+let introspectionTypes: [GraphQLNamedType] = [
+    __Schema,
+    __Directive,
+    __DirectiveLocation,
+    __Type,
+    __Field,
+    __InputValue,
+    __EnumValue,
+    __TypeKind,
 ]
 
 func isIntrospectionType(type: GraphQLNamedType) -> Bool {
-    return introspectionTypeNames.contains(type.name)
+    return introspectionTypes.map { $0.name }.contains(type.name)
 }
