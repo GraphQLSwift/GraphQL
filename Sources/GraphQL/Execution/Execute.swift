@@ -1198,6 +1198,14 @@ func defaultResolve(
         let value = subscriptable[info.fieldName]
         return eventLoopGroup.next().makeSucceededFuture(value)
     }
+    if let subscriptable = source as? [String: Any] {
+        let value = subscriptable[info.fieldName]
+        return eventLoopGroup.next().makeSucceededFuture(value)
+    }
+    if let subscriptable = source as? OrderedDictionary<String, Any> {
+        let value = subscriptable[info.fieldName]
+        return eventLoopGroup.next().makeSucceededFuture(value)
+    }
 
     let mirror = Mirror(reflecting: source)
     guard let value = mirror.getValue(named: info.fieldName) else {
