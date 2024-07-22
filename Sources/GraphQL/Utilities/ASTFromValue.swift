@@ -96,6 +96,11 @@ func astFromValue(
         return nil
     }
 
+    // Others serialize based on their corresponding JavaScript scalar types.
+    if case let .bool(bool) = serialized {
+        return BooleanValue(value: bool)
+    }
+
     // Others serialize based on their corresponding scalar types.
     if case let .bool(bool) = serialized {
         return BooleanValue(value: bool)
