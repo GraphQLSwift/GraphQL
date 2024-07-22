@@ -1,3 +1,5 @@
+import OrderedCollections
+
 /**
  * Schema Definition
  *
@@ -229,7 +231,7 @@ extension GraphQLSchema: Encodable {
     }
 }
 
-public typealias TypeMap = [String: GraphQLNamedType]
+public typealias TypeMap = OrderedDictionary<String, GraphQLNamedType>
 
 public struct InterfaceImplementations {
     public let objects: [GraphQLObjectType]
