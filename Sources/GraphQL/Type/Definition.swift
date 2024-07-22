@@ -394,14 +394,6 @@ extension GraphQLObjectType: Hashable {
 }
 
 func defineFieldMap(name: String, fields: GraphQLFieldMap) throws -> GraphQLFieldDefinitionMap {
-    guard !fields.isEmpty else {
-        throw GraphQLError(
-            message:
-            "\(name) fields must be an object with field names as " +
-                "keys or a function which returns such an object."
-        )
-    }
-
     var fieldMap = GraphQLFieldDefinitionMap()
 
     for (name, config) in fields {
