@@ -178,18 +178,21 @@ let __DirectiveLocation = try! GraphQLEnumType(
     ]
 )
 
-let __Type: GraphQLObjectType = try! GraphQLObjectType(
-    name: "__Type",
-    description:
-    "The fundamental unit of any GraphQL Schema is the type. There are " +
-        "many kinds of types in GraphQL as represented by the `__TypeKind` enum." +
-        "\n\nDepending on the kind of a type, certain fields describe " +
-        "information about that type. Scalar types provide no information " +
-        "beyond a name and description and optional `specifiedByURL`, while Enum types provide their values. " +
-        "Object and Interface types provide the fields they describe. Abstract " +
-        "types, Union and Interface, provide the Object types possible " +
-        "at runtime. List and NonNull types compose other types.",
-    fields: [
+let __Type: GraphQLObjectType = {
+    let __Type = try! GraphQLObjectType(
+        name: "__Type",
+        description:
+        "The fundamental unit of any GraphQL Schema is the type. There are " +
+            "many kinds of types in GraphQL as represented by the `__TypeKind` enum." +
+            "\n\nDepending on the kind of a type, certain fields describe " +
+            "information about that type. Scalar types provide no information " +
+            "beyond a name and description and optional `specifiedByURL`, while Enum types provide their values. " +
+            "Object and Interface types provide the fields they describe. Abstract " +
+            "types, Union and Interface, provide the Object types possible " +
+            "at runtime. List and NonNull types compose other types.",
+        fields: [:]
+    )
+    __Type.fields = { [
         "kind": GraphQLField(
             type: GraphQLNonNull(__TypeKind),
             resolve: { type, _, _, _ -> TypeKind? in
@@ -228,7 +231,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
             ],
             resolve: { type, arguments, _, _ -> [GraphQLFieldDefinition]? in
                 if let type = type as? GraphQLObjectType {
-                    let fieldMap = type.fields
+                    let fieldMap = try type.getFields()
                     var fields = Array(fieldMap.values).sorted(by: { $0.name < $1.name })
 
                     if !(arguments["includeDeprecated"].bool ?? false) {
@@ -239,7 +242,7 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                 }
 
                 if let type = type as? GraphQLInterfaceType {
-                    let fieldMap = type.fields
+                    let fieldMap = try type.getFields()
                     var fields = Array(fieldMap.values).sorted(by: { $0.name < $1.name })
 
                     if !(arguments["includeDeprecated"].bool ?? false) {
@@ -253,21 +256,21 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
             }
         ),
         "interfaces": GraphQLField(
-            type: GraphQLList(GraphQLNonNull(GraphQLTypeReference("__Type"))),
+            type: GraphQLList(GraphQLNonNull(__Type)),
             resolve: { type, _, _, _ -> [GraphQLInterfaceType]? in
                 if let type = type as? GraphQLObjectType {
-                    return type.interfaces
+                    return try type.getInterfaces()
                 }
 
                 if let type = type as? GraphQLInterfaceType {
-                    return type.interfaces
+                    return try type.getInterfaces()
                 }
 
                 return nil
             }
         ),
         "possibleTypes": GraphQLField(
-            type: GraphQLList(GraphQLNonNull(GraphQLTypeReference("__Type"))),
+            type: GraphQLList(GraphQLNonNull(__Type)),
             resolve: { type, _, _, info -> [GraphQLObjectType]? in
                 guard let type = type as? GraphQLAbstractType else {
                     return nil
@@ -305,12 +308,12 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                     return nil
                 }
 
-                let fieldMap = type.fields
+                let fieldMap = try type.getFields()
                 let fields = Array(fieldMap.values).sorted(by: { $0.name < $1.name })
                 return fields
             }
         ),
-        "ofType": GraphQLField(type: GraphQLTypeReference("__Type")),
+        "ofType": GraphQLField(type: __Type),
         "isOneOf": GraphQLField(
             type: GraphQLBoolean,
             resolve: { type, _, _, _ in
@@ -320,8 +323,9 @@ let __Type: GraphQLObjectType = try! GraphQLObjectType(
                 return false
             }
         ),
-    ]
-)
+    ] }
+    return __Type
+}()
 
 let __Field = try! GraphQLObjectType(
     name: "__Field",
@@ -341,7 +345,7 @@ let __Field = try! GraphQLObjectType(
                 return field.args
             }
         ),
-        "type": GraphQLField(type: GraphQLNonNull(GraphQLTypeReference("__Type"))),
+        "type": GraphQLField(type: GraphQLNonNull(__Type)),
         "isDeprecated": GraphQLField(type: GraphQLNonNull(GraphQLBoolean)),
         "deprecationReason": GraphQLField(type: GraphQLString),
     ]
@@ -356,7 +360,7 @@ let __InputValue = try! GraphQLObjectType(
     fields: [
         "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
         "description": GraphQLField(type: GraphQLString),
-        "type": GraphQLField(type: GraphQLNonNull(GraphQLTypeReference("__Type"))),
+        "type": GraphQLField(type: GraphQLNonNull(__Type)),
         "defaultValue": GraphQLField(
             type: GraphQLString,
             description:

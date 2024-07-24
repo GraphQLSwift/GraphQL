@@ -157,7 +157,7 @@ func coerceValue(value: Map, type: GraphQLInputType) throws -> Map {
             throw GraphQLError(message: "Must be dictionary to extract to an input type")
         }
 
-        let fields = objectType.fields
+        let fields = try objectType.getFields()
 
         var object = OrderedDictionary<String, Map>()
         for (fieldName, field) in fields {

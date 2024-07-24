@@ -26,10 +26,12 @@ let ValidationExampleBeing = try! GraphQLInterfaceType(
 // }
 let ValidationExampleMammal = try! GraphQLInterfaceType(
     name: "Mammal",
-    fields: [
-        "mother": GraphQLField(type: GraphQLTypeReference("Mammal")),
-        "father": GraphQLField(type: GraphQLTypeReference("Mammal")),
-    ],
+    fields: {
+        [
+            "mother": GraphQLField(type: ValidationExampleMammal),
+            "father": GraphQLField(type: ValidationExampleMammal),
+        ]
+    },
     resolveType: { _, _, _ in
         "Unknown"
     }

@@ -5,7 +5,7 @@ import OrderedCollections
 /**
  * These are all of the possible kinds of types.
  */
-public protocol GraphQLType: CustomDebugStringConvertible, Encodable, KeySubscriptable {}
+public protocol GraphQLType: CustomDebugStringConvertible {}
 extension GraphQLScalarType: GraphQLType {}
 extension GraphQLObjectType: GraphQLType {}
 extension GraphQLInterfaceType: GraphQLType {}
@@ -223,32 +223,6 @@ let defaultParseLiteral: ((Value) throws -> Map) = { value in
     try valueFromASTUntyped(valueAST: value)
 }
 
-extension GraphQLScalarType: Encodable {
-    private enum CodingKeys: String, CodingKey {
-        case name
-        case description
-        case specifiedByURL
-        case kind
-    }
-}
-
-extension GraphQLScalarType: KeySubscriptable {
-    public subscript(key: String) -> Any? {
-        switch key {
-        case CodingKeys.name.rawValue:
-            return name
-        case CodingKeys.description.rawValue:
-            return description
-        case CodingKeys.specifiedByURL.rawValue:
-            return specifiedByURL
-        case CodingKeys.kind.rawValue:
-            return kind
-        default:
-            return nil
-        }
-    }
-}
-
 extension GraphQLScalarType: CustomDebugStringConvertible {
     public var debugDescription: String {
         return name
@@ -308,8 +282,8 @@ extension GraphQLScalarType: Hashable {
 public final class GraphQLObjectType {
     public let name: String
     public let description: String?
-    public let fields: GraphQLFieldDefinitionMap
-    public let interfaces: [GraphQLInterfaceType]
+    public var fields: () throws -> GraphQLFieldMap
+    public var interfaces: () throws -> [GraphQLInterfaceType]
     public let isTypeOf: GraphQLIsTypeOf?
     public let astNode: ObjectTypeDefinition?
     public let extensionASTNodes: [TypeExtensionDefinition]
@@ -318,7 +292,7 @@ public final class GraphQLObjectType {
     public init(
         name: String,
         description: String? = nil,
-        fields: GraphQLFieldMap,
+        fields: GraphQLFieldMap = [:],
         interfaces: [GraphQLInterfaceType] = [],
         isTypeOf: GraphQLIsTypeOf? = nil,
         astNode: ObjectTypeDefinition? = nil,
@@ -327,52 +301,49 @@ public final class GraphQLObjectType {
         try assertValid(name: name)
         self.name = name
         self.description = description
-        self.fields = try defineFieldMap(
-            name: name,
-            fields: fields
-        )
-        self.interfaces = try defineInterfaces(
-            name: name,
-            hasTypeOf: isTypeOf != nil,
-            interfaces: interfaces
-        )
+        self.fields = { fields }
+        self.interfaces = { interfaces }
         self.isTypeOf = isTypeOf
         self.astNode = astNode
         self.extensionASTNodes = extensionASTNodes
     }
 
+    public init(
+        name: String,
+        description: String? = nil,
+        fields: @escaping () throws -> GraphQLFieldMap,
+        interfaces: @escaping () throws -> [GraphQLInterfaceType] = { [] },
+        isTypeOf: GraphQLIsTypeOf? = nil,
+        astNode: ObjectTypeDefinition? = nil,
+        extensionASTNodes: [TypeExtensionDefinition] = []
+    ) throws {
+        try assertValid(name: name)
+        self.name = name
+        self.description = description
+        self.fields = fields
+        self.interfaces = interfaces
+        self.isTypeOf = isTypeOf
+        self.astNode = astNode
+        self.extensionASTNodes = extensionASTNodes
+    }
+
+    func getFields() throws -> GraphQLFieldDefinitionMap {
+        try defineFieldMap(
+            name: name,
+            fields: fields()
+        )
+    }
+
+    func getInterfaces() throws -> [GraphQLInterfaceType] {
+        return try interfaces()
+    }
+
     func replaceTypeReferences(typeMap: TypeMap) throws {
-        for field in fields {
+        for field in try getFields() {
             try field.value.replaceTypeReferences(typeMap: typeMap)
         }
-    }
-}
-
-extension GraphQLObjectType: Encodable {
-    private enum CodingKeys: String, CodingKey {
-        case name
-        case description
-        case fields
-        case interfaces
-        case kind
-    }
-}
-
-extension GraphQLObjectType: KeySubscriptable {
-    public subscript(key: String) -> Any? {
-        switch key {
-        case CodingKeys.name.rawValue:
-            return name
-        case CodingKeys.description.rawValue:
-            return description
-        case CodingKeys.fields.rawValue:
-            return fields
-        case CodingKeys.interfaces.rawValue:
-            return interfaces
-        case CodingKeys.kind.rawValue:
-            return kind.rawValue
-        default:
-            return nil
+        for interface in try getInterfaces() {
+            try interface.replaceTypeReferences(typeMap: typeMap)
         }
     }
 }
@@ -433,14 +404,6 @@ func defineArgumentMap(args: GraphQLArgumentConfigMap) throws -> [GraphQLArgumen
     }
 
     return arguments
-}
-
-func defineInterfaces(
-    name: String,
-    hasTypeOf: Bool,
-    interfaces: [GraphQLInterfaceType]
-) throws -> [GraphQLInterfaceType] {
-    return interfaces
 }
 
 public protocol TypeResolveResultRepresentable {
@@ -638,48 +601,6 @@ public final class GraphQLFieldDefinition {
     }
 }
 
-extension GraphQLFieldDefinition: Encodable {
-    private enum CodingKeys: String, CodingKey {
-        case name
-        case description
-        case type
-        case args
-        case deprecationReason
-        case isDeprecated
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(name, forKey: .name)
-        try container.encode(description, forKey: .description)
-        try container.encode(AnyEncodable(type), forKey: .type)
-        try container.encode(args, forKey: .args)
-        try container.encode(deprecationReason, forKey: .deprecationReason)
-        try container.encode(isDeprecated, forKey: .isDeprecated)
-    }
-}
-
-extension GraphQLFieldDefinition: KeySubscriptable {
-    public subscript(key: String) -> Any? {
-        switch key {
-        case CodingKeys.name.rawValue:
-            return name
-        case CodingKeys.description.rawValue:
-            return description
-        case CodingKeys.type.rawValue:
-            return type
-        case CodingKeys.args.rawValue:
-            return args
-        case CodingKeys.deprecationReason.rawValue:
-            return deprecationReason
-        case CodingKeys.isDeprecated.rawValue:
-            return isDeprecated
-        default:
-            return nil
-        }
-    }
-}
-
 public typealias GraphQLArgumentConfigMap = OrderedDictionary<String, GraphQLArgument>
 
 public struct GraphQLArgument {
@@ -743,44 +664,6 @@ public func isRequiredArgument(_ arg: GraphQLArgumentDefinition) -> Bool {
     return arg.type is GraphQLNonNull && arg.defaultValue == nil
 }
 
-extension GraphQLArgumentDefinition: Encodable {
-    private enum CodingKeys: String, CodingKey {
-        case name
-        case description
-        case type
-        case defaultValue
-        case deprecationReason
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(name, forKey: .name)
-        try container.encode(description, forKey: .description)
-        try container.encode(AnyEncodable(type), forKey: .type)
-        try container.encode(defaultValue, forKey: .defaultValue)
-        try container.encode(deprecationReason, forKey: .deprecationReason)
-    }
-}
-
-extension GraphQLArgumentDefinition: KeySubscriptable {
-    public subscript(key: String) -> Any? {
-        switch key {
-        case CodingKeys.name.rawValue:
-            return name
-        case CodingKeys.description.rawValue:
-            return description
-        case CodingKeys.type.rawValue:
-            return type
-        case CodingKeys.defaultValue.rawValue:
-            return defaultValue
-        case CodingKeys.deprecationReason.rawValue:
-            return deprecationReason
-        default:
-            return nil
-        }
-    }
-}
-
 /**
  * Interface Type Definition
  *
@@ -803,8 +686,8 @@ public final class GraphQLInterfaceType {
     public let name: String
     public let description: String?
     public let resolveType: GraphQLTypeResolve?
-    public let fields: GraphQLFieldDefinitionMap
-    public let interfaces: [GraphQLInterfaceType]
+    public var fields: () throws -> GraphQLFieldMap
+    public var interfaces: () throws -> [GraphQLInterfaceType]
     public let astNode: InterfaceTypeDefinition?
     public let extensionASTNodes: [InterfaceExtensionDefinition]
     public let kind: TypeKind = .interface
@@ -813,7 +696,7 @@ public final class GraphQLInterfaceType {
         name: String,
         description: String? = nil,
         interfaces: [GraphQLInterfaceType] = [],
-        fields: GraphQLFieldMap,
+        fields: GraphQLFieldMap = [:],
         resolveType: GraphQLTypeResolve? = nil,
         astNode: InterfaceTypeDefinition? = nil,
         extensionASTNodes: [InterfaceExtensionDefinition] = []
@@ -821,47 +704,46 @@ public final class GraphQLInterfaceType {
         try assertValid(name: name)
         self.name = name
         self.description = description
+        self.fields = { fields }
+        self.interfaces = { interfaces }
+        self.resolveType = resolveType
+        self.astNode = astNode
+        self.extensionASTNodes = extensionASTNodes
+    }
 
-        self.fields = try defineFieldMap(
-            name: name,
-            fields: fields
-        )
-
+    public init(
+        name: String,
+        description: String? = nil,
+        fields: @escaping () throws -> GraphQLFieldMap,
+        interfaces: @escaping () throws -> [GraphQLInterfaceType] = { [] },
+        resolveType: GraphQLTypeResolve? = nil,
+        astNode: InterfaceTypeDefinition? = nil,
+        extensionASTNodes: [InterfaceExtensionDefinition] = []
+    ) throws {
+        try assertValid(name: name)
+        self.name = name
+        self.description = description
+        self.fields = fields
         self.interfaces = interfaces
         self.resolveType = resolveType
         self.astNode = astNode
         self.extensionASTNodes = extensionASTNodes
     }
 
+    func getFields() throws -> GraphQLFieldDefinitionMap {
+        try defineFieldMap(
+            name: name,
+            fields: fields()
+        )
+    }
+
+    func getInterfaces() throws -> [GraphQLInterfaceType] {
+        return try interfaces()
+    }
+
     func replaceTypeReferences(typeMap: TypeMap) throws {
-        for field in fields {
+        for field in try getFields() {
             try field.value.replaceTypeReferences(typeMap: typeMap)
-        }
-    }
-}
-
-extension GraphQLInterfaceType: Encodable {
-    private enum CodingKeys: String, CodingKey {
-        case name
-        case description
-        case fields
-        case kind
-    }
-}
-
-extension GraphQLInterfaceType: KeySubscriptable {
-    public subscript(key: String) -> Any? {
-        switch key {
-        case CodingKeys.name.rawValue:
-            return name
-        case CodingKeys.description.rawValue:
-            return description
-        case CodingKeys.fields.rawValue:
-            return fields
-        case CodingKeys.kind.rawValue:
-            return kind
-        default:
-            return nil
         }
     }
 }
@@ -914,7 +796,7 @@ public final class GraphQLUnionType {
     public let name: String
     public let description: String?
     public let resolveType: GraphQLTypeResolve?
-    public let types: [GraphQLObjectType]
+    public let types: () throws -> [GraphQLObjectType]
     public let possibleTypeNames: [String: Bool]
     let extensions: [GraphQLUnionTypeExtensions]
     let astNode: UnionTypeDefinition?
@@ -934,11 +816,7 @@ public final class GraphQLUnionType {
         self.description = description
         self.resolveType = resolveType
 
-        self.types = try defineTypes(
-            name: name,
-            hasResolve: resolveType != nil,
-            types: types
-        )
+        self.types = { types }
 
         self.extensions = extensions
         self.astNode = astNode
@@ -946,31 +824,32 @@ public final class GraphQLUnionType {
 
         possibleTypeNames = [:]
     }
-}
 
-extension GraphQLUnionType: Encodable {
-    private enum CodingKeys: String, CodingKey {
-        case name
-        case description
-        case types
-        case kind
+    public init(
+        name: String,
+        description: String? = nil,
+        resolveType: GraphQLTypeResolve? = nil,
+        types: @escaping () throws -> [GraphQLObjectType],
+        extensions: [GraphQLUnionTypeExtensions] = [],
+        astNode: UnionTypeDefinition? = nil,
+        extensionASTNodes: [UnionExtensionDefinition] = []
+    ) throws {
+        try assertValid(name: name)
+        self.name = name
+        self.description = description
+        self.resolveType = resolveType
+
+        self.types = types
+
+        self.extensions = extensions
+        self.astNode = astNode
+        self.extensionASTNodes = extensionASTNodes
+
+        possibleTypeNames = [:]
     }
-}
 
-extension GraphQLUnionType: KeySubscriptable {
-    public subscript(key: String) -> Any? {
-        switch key {
-        case CodingKeys.name.rawValue:
-            return name
-        case CodingKeys.description.rawValue:
-            return description
-        case CodingKeys.types.rawValue:
-            return types
-        case CodingKeys.kind.rawValue:
-            return kind
-        default:
-            return nil
-        }
+    func getTypes() throws -> [GraphQLObjectType] {
+        try types()
     }
 }
 
@@ -988,36 +867,6 @@ extension GraphQLUnionType: Hashable {
     public static func == (lhs: GraphQLUnionType, rhs: GraphQLUnionType) -> Bool {
         return lhs.hashValue == rhs.hashValue
     }
-}
-
-func defineTypes(
-    name: String,
-    hasResolve: Bool,
-    types: [GraphQLObjectType]
-) throws -> [GraphQLObjectType] {
-    guard !types.isEmpty else {
-        throw GraphQLError(
-            message:
-            "Must provide Array of types or a function which returns " +
-                "such an array for Union \(name)."
-        )
-    }
-
-    if !hasResolve {
-        for type in types {
-            guard type.isTypeOf != nil else {
-                throw GraphQLError(
-                    message:
-                    "Union type \"\(name)\" does not provide a \"resolveType\" " +
-                        "function and possible type \"\(type.name)\" does not provide an " +
-                        "\"isTypeOf\" function. There is no way to resolve this possible type " +
-                        "during execution."
-                )
-            }
-        }
-    }
-
-    return types
 }
 
 /**
@@ -1136,32 +985,6 @@ public final class GraphQLEnumType {
     }
 }
 
-extension GraphQLEnumType: Encodable {
-    private enum CodingKeys: String, CodingKey {
-        case name
-        case description
-        case values
-        case kind
-    }
-}
-
-extension GraphQLEnumType: KeySubscriptable {
-    public subscript(key: String) -> Any? {
-        switch key {
-        case CodingKeys.name.rawValue:
-            return name
-        case CodingKeys.description.rawValue:
-            return description
-        case CodingKeys.values.rawValue:
-            return values
-        case CodingKeys.kind.rawValue:
-            return kind
-        default:
-            return nil
-        }
-    }
-}
-
 extension GraphQLEnumType: CustomDebugStringConvertible {
     public var debugDescription: String {
         return name
@@ -1223,14 +1046,7 @@ public struct GraphQLEnumValue {
     }
 }
 
-public struct GraphQLEnumValueDefinition: Encodable {
-    private enum CodingKeys: String, CodingKey {
-        case name
-        case description
-        case deprecationReason
-        case isDeprecated
-    }
-
+public struct GraphQLEnumValueDefinition {
     public let name: String
     public let description: String?
     public let deprecationReason: String?
@@ -1252,23 +1068,6 @@ public struct GraphQLEnumValueDefinition: Encodable {
         self.isDeprecated = isDeprecated
         self.value = value
         self.astNode = astNode
-    }
-}
-
-extension GraphQLEnumValueDefinition: KeySubscriptable {
-    public subscript(key: String) -> Any? {
-        switch key {
-        case CodingKeys.name.rawValue:
-            return name
-        case CodingKeys.description.rawValue:
-            return description
-        case CodingKeys.deprecationReason.rawValue:
-            return deprecationReason
-        case CodingKeys.isDeprecated.rawValue:
-            return isDeprecated
-        default:
-            return nil
-        }
     }
 }
 
@@ -1295,11 +1094,28 @@ extension GraphQLEnumValueDefinition: KeySubscriptable {
 public final class GraphQLInputObjectType {
     public let name: String
     public let description: String?
-    public let fields: InputObjectFieldDefinitionMap
+    public var fields: () throws -> InputObjectFieldMap
     public let astNode: InputObjectTypeDefinition?
     public let extensionASTNodes: [InputObjectExtensionDefinition]
     public let isOneOf: Bool
     public let kind: TypeKind = .inputObject
+
+    public init(
+        name: String,
+        description: String? = nil,
+        fields: @escaping () throws -> InputObjectFieldMap,
+        astNode: InputObjectTypeDefinition? = nil,
+        extensionASTNodes: [InputObjectExtensionDefinition] = [],
+        isOneOf: Bool = false
+    ) throws {
+        try assertValid(name: name)
+        self.name = name
+        self.description = description
+        self.fields = fields
+        self.astNode = astNode
+        self.extensionASTNodes = extensionASTNodes
+        self.isOneOf = isOneOf
+    }
 
     public init(
         name: String,
@@ -1312,51 +1128,24 @@ public final class GraphQLInputObjectType {
         try assertValid(name: name)
         self.name = name
         self.description = description
-        self.fields = try defineInputObjectFieldMap(
-            name: name,
-            fields: fields
-        )
+        self.fields = {
+            fields
+        }
         self.astNode = astNode
         self.extensionASTNodes = extensionASTNodes
         self.isOneOf = isOneOf
     }
 
+    func getFields() throws -> InputObjectFieldDefinitionMap {
+        try defineInputObjectFieldMap(
+            name: name,
+            fields: fields()
+        )
+    }
+
     func replaceTypeReferences(typeMap: TypeMap) throws {
-        for field in fields {
+        for field in try getFields() {
             try field.value.replaceTypeReferences(typeMap: typeMap)
-        }
-    }
-
-    func getFields() -> InputObjectFieldDefinitionMap {
-        return fields
-    }
-}
-
-extension GraphQLInputObjectType: Encodable {
-    private enum CodingKeys: String, CodingKey {
-        case name
-        case description
-        case fields
-        case isOneOf
-        case kind
-    }
-}
-
-extension GraphQLInputObjectType: KeySubscriptable {
-    public subscript(key: String) -> Any? {
-        switch key {
-        case CodingKeys.name.rawValue:
-            return name
-        case CodingKeys.description.rawValue:
-            return description
-        case CodingKeys.fields.rawValue:
-            return fields
-        case CodingKeys.isOneOf.rawValue:
-            return isOneOf
-        case CodingKeys.kind.rawValue:
-            return kind
-        default:
-            return nil
         }
     }
 }
@@ -1462,44 +1251,6 @@ public final class InputObjectFieldDefinition {
     }
 }
 
-extension InputObjectFieldDefinition: Encodable {
-    private enum CodingKeys: String, CodingKey {
-        case name
-        case description
-        case type
-        case defaultValue
-        case deprecationReason
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(name, forKey: .name)
-        try container.encode(description, forKey: .description)
-        try container.encode(AnyEncodable(type), forKey: .type)
-        try container.encode(defaultValue, forKey: .defaultValue)
-        try container.encode(deprecationReason, forKey: .deprecationReason)
-    }
-}
-
-extension InputObjectFieldDefinition: KeySubscriptable {
-    public subscript(key: String) -> Any? {
-        switch key {
-        case CodingKeys.name.rawValue:
-            return name
-        case CodingKeys.description.rawValue:
-            return description
-        case CodingKeys.type.rawValue:
-            return type
-        case CodingKeys.defaultValue.rawValue:
-            return defaultValue
-        case CodingKeys.deprecationReason.rawValue:
-            return deprecationReason
-        default:
-            return nil
-        }
-    }
-}
-
 public func isRequiredInputField(_ field: InputObjectFieldDefinition) -> Bool {
     return field.type is GraphQLNonNull && field.defaultValue == nil
 }
@@ -1546,32 +1297,6 @@ public final class GraphQLList {
     func replaceTypeReferences(typeMap: TypeMap) throws -> GraphQLList {
         let resolvedType = try resolveTypeReference(type: ofType, typeMap: typeMap)
         return GraphQLList(resolvedType)
-    }
-}
-
-extension GraphQLList: Encodable {
-    private enum CodingKeys: String, CodingKey {
-        case ofType
-        case kind
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(AnyEncodable(ofType), forKey: .ofType)
-        try container.encode(kind, forKey: .kind)
-    }
-}
-
-extension GraphQLList: KeySubscriptable {
-    public subscript(key: String) -> Any? {
-        switch key {
-        case CodingKeys.ofType.rawValue:
-            return ofType
-        case CodingKeys.kind.rawValue:
-            return kind
-        default:
-            return nil
-        }
     }
 }
 
@@ -1647,32 +1372,6 @@ public final class GraphQLNonNull {
     }
 }
 
-extension GraphQLNonNull: Encodable {
-    private enum CodingKeys: String, CodingKey {
-        case ofType
-        case kind
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(AnyEncodable(ofType), forKey: .ofType)
-        try container.encode(kind, forKey: .kind)
-    }
-}
-
-extension GraphQLNonNull: KeySubscriptable {
-    public subscript(key: String) -> Any? {
-        switch key {
-        case CodingKeys.ofType.rawValue:
-            return ofType
-        case CodingKeys.kind.rawValue:
-            return kind
-        default:
-            return nil
-        }
-    }
-}
-
 extension GraphQLNonNull: CustomDebugStringConvertible {
     public var debugDescription: String {
         return ofType.debugDescription + "!"
@@ -1701,23 +1400,6 @@ public final class GraphQLTypeReference: GraphQLType, GraphQLOutputType, GraphQL
 
     public init(_ name: String) {
         self.name = name
-    }
-}
-
-extension GraphQLTypeReference: Encodable {
-    private enum CodingKeys: String, CodingKey {
-        case name
-    }
-}
-
-extension GraphQLTypeReference: KeySubscriptable {
-    public subscript(_: String) -> Any? {
-        switch name {
-        case CodingKeys.name.rawValue:
-            return name
-        default:
-            return nil
-        }
     }
 }
 

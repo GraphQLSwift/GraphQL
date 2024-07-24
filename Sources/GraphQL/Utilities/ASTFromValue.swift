@@ -62,7 +62,7 @@ func astFromValue(
             return nil
         }
 
-        let fields = type.fields
+        let fields = try type.getFields()
         var fieldASTs: [ObjectField] = []
 
         for (fieldName, field) in fields {

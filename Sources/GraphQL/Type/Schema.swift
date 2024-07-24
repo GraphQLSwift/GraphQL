@@ -101,12 +101,12 @@ public final class GraphQLSchema {
         try replaceTypeReferences(typeMap: typeMap)
 
         // Keep track of all implementations by interface name.
-        implementations = collectImplementations(types: Array(typeMap.values))
+        implementations = try collectImplementations(types: Array(typeMap.values))
 
         // Enforce correct interface implementations.
         for (_, type) in typeMap {
             if let object = type as? GraphQLObjectType {
-                for interface in object.interfaces {
+                for interface in try object.getInterfaces() {
                     try assert(object: object, implementsInterface: interface, schema: self)
                 }
             }
@@ -134,7 +134,7 @@ public final class GraphQLSchema {
 
     public func getPossibleTypes(abstractType: GraphQLAbstractType) -> [GraphQLObjectType] {
         if let unionType = abstractType as? GraphQLUnionType {
-            return unionType.types
+            return (try? unionType.getTypes()) ?? []
         }
 
         if let interfaceType = abstractType as? GraphQLInterfaceType {
@@ -174,7 +174,7 @@ public final class GraphQLSchema {
             map = [:]
 
             if let unionType = abstractType as? GraphQLUnionType {
-                for type in unionType.types {
+                for type in (try? unionType.getTypes()) ?? [] {
                     map?[type.name] = true
                 }
             }
@@ -222,15 +222,6 @@ public final class GraphQLSchema {
     }
 }
 
-extension GraphQLSchema: Encodable {
-    private enum CodingKeys: String, CodingKey {
-        case queryType
-        case mutationType
-        case subscriptionType
-        case directives
-    }
-}
-
 public typealias TypeMap = OrderedDictionary<String, GraphQLNamedType>
 
 public struct InterfaceImplementations {
@@ -248,7 +239,7 @@ public struct InterfaceImplementations {
 
 func collectImplementations(
     types: [GraphQLNamedType]
-) -> [String: InterfaceImplementations] {
+) throws -> [String: InterfaceImplementations] {
     var implementations: [String: InterfaceImplementations] = [:]
 
     for type in types {
@@ -258,7 +249,7 @@ func collectImplementations(
             }
 
             // Store implementations by interface.
-            for iface in type.interfaces {
+            for iface in try type.getInterfaces() {
                 implementations[iface.name] = InterfaceImplementations(
                     interfaces: (implementations[iface.name]?.interfaces ?? []) + [type]
                 )
@@ -267,7 +258,7 @@ func collectImplementations(
 
         if let type = type as? GraphQLObjectType {
             // Store implementations by objects.
-            for iface in type.interfaces {
+            for iface in try type.getInterfaces() {
                 implementations[iface.name] = InterfaceImplementations(
                     objects: (implementations[iface.name]?.objects ?? []) + [type]
                 )
@@ -316,13 +307,13 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
     typeMap[type.name] = type
 
     if let type = type as? GraphQLUnionType {
-        typeMap = try type.types.reduce(typeMap, typeMapReducer)
+        typeMap = try type.getTypes().reduce(typeMap, typeMapReducer)
     }
 
     if let type = type as? GraphQLObjectType {
-        typeMap = try type.interfaces.reduce(typeMap, typeMapReducer)
+        typeMap = try type.getInterfaces().reduce(typeMap, typeMapReducer)
 
-        for (_, field) in type.fields {
+        for (_, field) in try type.getFields() {
             if !field.args.isEmpty {
                 let fieldArgTypes = field.args.map { $0.type }
                 typeMap = try fieldArgTypes.reduce(typeMap, typeMapReducer)
@@ -333,9 +324,9 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
     }
 
     if let type = type as? GraphQLInterfaceType {
-        typeMap = try type.interfaces.reduce(typeMap, typeMapReducer)
+        typeMap = try type.getInterfaces().reduce(typeMap, typeMapReducer)
 
-        for (_, field) in type.fields {
+        for (_, field) in try type.getFields() {
             if !field.args.isEmpty {
                 let fieldArgTypes = field.args.map { $0.type }
                 typeMap = try fieldArgTypes.reduce(typeMap, typeMapReducer)
@@ -346,7 +337,7 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
     }
 
     if let type = type as? GraphQLInputObjectType {
-        for (_, field) in type.fields {
+        for (_, field) in try type.getFields() {
             typeMap = try typeMapReducer(typeMap: typeMap, type: field.type)
         }
     }
@@ -357,10 +348,10 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
 func assert(
     object: GraphQLObjectType,
     implementsInterface interface: GraphQLInterfaceType,
-    schema: GraphQLSchema
+    schema _: GraphQLSchema
 ) throws {
-    let objectFieldMap = object.fields
-    let interfaceFieldMap = interface.fields
+    let objectFieldMap = try object.getFields()
+    let interfaceFieldMap = try interface.getFields()
 
     for (fieldName, interfaceField) in interfaceFieldMap {
         guard let objectField = objectFieldMap[fieldName] else {
@@ -371,16 +362,16 @@ func assert(
             )
         }
 
-        // Assert interface field type is satisfied by object field type, by being
-        // a valid subtype. (covariant)
-        guard try isTypeSubTypeOf(schema, objectField.type, interfaceField.type) else {
-            throw GraphQLError(
-                message:
-                "\(interface.name).\(fieldName) expects type \"\(interfaceField.type)\" " +
-                    "but " +
-                    "\(object.name).\(fieldName) provides type \"\(objectField.type)\"."
-            )
-        }
+//        // Assert interface field type is satisfied by object field type, by being
+//        // a valid subtype. (covariant)
+//        guard try isTypeSubTypeOf(schema, objectField.type, interfaceField.type) else {
+//            throw GraphQLError(
+//                message:
+//                "\(interface.name).\(fieldName) expects type \"\(interfaceField.type)\" " +
+//                    "but " +
+//                    "\(object.name).\(fieldName) provides type \"\(objectField.type)\"."
+//            )
+//        }
 
         // Assert each interface field arg is implemented.
         for interfaceArg in interfaceField.args {

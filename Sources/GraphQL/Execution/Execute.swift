@@ -1237,7 +1237,7 @@ func getFieldDef(
     }
 
     // This field should exist because we passed validation before execution
-    guard let fieldDefinition = parentType.fields[fieldName] else {
+    guard let fieldDefinition = try parentType.getFields()[fieldName] else {
         throw GraphQLError(
             message: "Expected field definition not found: '\(fieldName)' on '\(parentType.name)'"
         )
