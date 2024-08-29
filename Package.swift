@@ -1,4 +1,4 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.7
 import PackageDescription
 
 let package = Package(
@@ -7,8 +7,8 @@ let package = Package(
         .library(name: "GraphQL", targets: ["GraphQL"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMajor(from: "2.10.1")),
-        .package(url: "https://github.com/apple/swift-collections", .upToNextMajor(from: "1.0.0")),
+        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMajor(from: "2.70.0")),
+        .package(url: "https://github.com/apple/swift-collections", .upToNextMajor(from: "1.0.3")),
     ],
     targets: [
         .target(
