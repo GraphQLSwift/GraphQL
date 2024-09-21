@@ -440,24 +440,6 @@ func defineInterfaces(
     hasTypeOf: Bool,
     interfaces: [GraphQLInterfaceType]
 ) throws -> [GraphQLInterfaceType] {
-    guard !interfaces.isEmpty else {
-        return []
-    }
-
-    if !hasTypeOf {
-        for interface in interfaces {
-            guard interface.resolveType != nil else {
-                throw GraphQLError(
-                    message:
-                    "Interface Type \(interface.name) does not provide a \"resolveType\" " +
-                        "function and implementing Type \(name) does not provide a " +
-                        "\"isTypeOf\" function. There is no way to resolve this implementing " +
-                        "type during execution."
-                )
-            }
-        }
-    }
-
     return interfaces
 }
 
@@ -1200,12 +1182,6 @@ func defineEnumValues(
     name: String,
     valueMap: GraphQLEnumValueMap
 ) throws -> [GraphQLEnumValueDefinition] {
-    guard !valueMap.isEmpty else {
-        throw GraphQLError(
-            message: "\(name) values must be an object with value names as keys."
-        )
-    }
-
     var definitions: [GraphQLEnumValueDefinition] = []
 
     for (valueName, value) in valueMap {
@@ -1405,14 +1381,6 @@ func defineInputObjectFieldMap(
     name: String,
     fields: InputObjectFieldMap
 ) throws -> InputObjectFieldDefinitionMap {
-    guard !fields.isEmpty else {
-        throw GraphQLError(
-            message:
-            "\(name) fields must be an object with field names as " +
-                "keys or a function which returns such an object."
-        )
-    }
-
     var definitionMap = InputObjectFieldDefinitionMap()
 
     for (name, field) in fields {
