@@ -73,6 +73,10 @@ public final class GraphQLSchema {
         // Build type map now to detect any errors within this schema.
         var initialTypes: [GraphQLNamedType] = []
 
+        if !types.isEmpty {
+            initialTypes.append(contentsOf: types)
+        }
+
         if let query = queryType {
             initialTypes.append(query)
         }
@@ -86,10 +90,6 @@ public final class GraphQLSchema {
         }
 
         initialTypes.append(__Schema)
-
-        if !types.isEmpty {
-            initialTypes.append(contentsOf: types)
-        }
 
         var typeMap = TypeMap()
 
