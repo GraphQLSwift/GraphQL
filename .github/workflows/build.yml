@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        swift: ["5.8", "5.9", "5.10"]
+        swift: ["5.8", "5.9", "5.10", "6.0"]
     steps:
     - uses: swift-actions/setup-swift@v2
       with:
