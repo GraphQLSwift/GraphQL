@@ -8,6 +8,7 @@ public enum DirectiveLocation: String, Encodable {
     case field = "FIELD"
     case fragmentDefinition = "FRAGMENT_DEFINITION"
     case fragmentSpread = "FRAGMENT_SPREAD"
+    case fragmentVariableDefinition = "FRAGMENT_VARIABLE_DEFINITION"
     case inlineFragment = "INLINE_FRAGMENT"
     case variableDefinition = "VARIABLE_DEFINITION"
     // Schema Definitions
@@ -69,7 +70,7 @@ public let GraphQLIncludeDirective = try! GraphQLDirective(
     name: "include",
     description:
     "Directs the executor to include this field or fragment only when " +
-        "the `if` argument is true.",
+        "the \\`if\\` argument is true.",
     locations: [
         .field,
         .fragmentSpread,
@@ -89,7 +90,7 @@ public let GraphQLIncludeDirective = try! GraphQLDirective(
 public let GraphQLSkipDirective = try! GraphQLDirective(
     name: "skip",
     description:
-    "Directs the executor to skip this field or fragment when the `if` " +
+    "Directs the executor to skip this field or fragment when the \\`if\\` " +
         "argument is true.",
     locations: [
         .field,
@@ -128,7 +129,8 @@ public let GraphQLDeprecatedDirective = try! GraphQLDirective(
             description:
             "Explains why this element was deprecated, usually also including a " +
                 "suggestion for how to access supported similar data. Formatted " +
-                "in [Markdown](https://daringfireball.net/projects/markdown/).",
+                "using the Markdown syntax, as specified by [CommonMark]" +
+                "(https://commonmark.org/).",
             defaultValue: defaulDeprecationReason
         ),
     ]
@@ -154,7 +156,7 @@ public let GraphQLSpecifiedByDirective = try! GraphQLDirective(
  */
 public let GraphQLOneOfDirective = try! GraphQLDirective(
     name: "oneOf",
-    description: "Indicates exactly one field must be supplied and this field must not be `null`.",
+    description: "Indicates exactly one field must be supplied and this field must not be \\`null\\`.",
     locations: [.inputObject],
     args: [:]
 )
