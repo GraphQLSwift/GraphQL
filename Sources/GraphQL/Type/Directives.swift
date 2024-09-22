@@ -31,7 +31,7 @@ public enum DirectiveLocation: String, Encodable {
  */
 public struct GraphQLDirective {
     public let name: String
-    public let description: String
+    public let description: String?
     public let locations: [DirectiveLocation]
     public let args: [GraphQLArgumentDefinition]
     public let isRepeatable: Bool
@@ -39,7 +39,7 @@ public struct GraphQLDirective {
 
     public init(
         name: String,
-        description: String = "",
+        description: String? = nil,
         locations: [DirectiveLocation],
         args: GraphQLArgumentConfigMap = [:],
         isRepeatable: Bool = false,
