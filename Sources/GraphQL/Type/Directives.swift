@@ -29,7 +29,7 @@ public enum DirectiveLocation: String, Encodable {
  * Directives are used by the GraphQL runtime as a way of modifying execution
  * behavior. Type system creators will usually not create these directly.
  */
-public struct GraphQLDirective {
+public final class GraphQLDirective {
     public let name: String
     public let description: String?
     public let locations: [DirectiveLocation]
