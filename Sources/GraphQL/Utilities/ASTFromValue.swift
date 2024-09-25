@@ -97,6 +97,11 @@ func astFromValue(
     }
 
     // Others serialize based on their corresponding scalar types.
+    if case let .bool(bool) = serialized {
+        return BooleanValue(value: bool)
+    }
+
+    // JavaScript numbers can be Int or Float values.
     if case let .number(number) = serialized {
         switch number.storageType {
         case .bool:

@@ -370,7 +370,16 @@ let __InputValue = try! GraphQLObjectType(
                     return nil
                 }
 
-                return .string(defaultValue.description)
+                if defaultValue == .null || defaultValue == .undefined {
+                    return defaultValue
+                }
+
+                guard let literal = try astFromValue(value: defaultValue, type: inputValue.type)
+                else {
+                    throw GraphQLError(message: "Invalid default value")
+                }
+
+                return .string(print(ast: literal))
             }
         ),
     ]
