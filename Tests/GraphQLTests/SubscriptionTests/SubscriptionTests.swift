@@ -655,7 +655,7 @@ import XCTest
                     ]]
                 )
             )
-            wait(for: [expectation], timeout: timeoutDuration)
+            await fulfillment(of: [expectation], timeout: timeoutDuration)
             XCTAssertEqual(results, expected)
 
             // Low priority email shouldn't trigger an event
@@ -668,7 +668,7 @@ import XCTest
                 unread: true,
                 priority: 2
             ))
-            wait(for: [expectation], timeout: timeoutDuration)
+            await fulfillment(of: [expectation], timeout: timeoutDuration)
             XCTAssertEqual(results, expected)
 
             // Higher priority one should trigger again
@@ -694,7 +694,7 @@ import XCTest
                     ]]
                 )
             )
-            wait(for: [expectation], timeout: timeoutDuration)
+            await fulfillment(of: [expectation], timeout: timeoutDuration)
             XCTAssertEqual(results, expected)
 
             // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
@@ -756,7 +756,7 @@ import XCTest
                     ]]
                 )
             )
-            wait(for: [expectation], timeout: timeoutDuration)
+            await fulfillment(of: [expectation], timeout: timeoutDuration)
             XCTAssertEqual(results, expected)
 
             db.stop()
@@ -772,7 +772,7 @@ import XCTest
             ))
 
             // Ensure that the current result was the one before the db was stopped
-            wait(for: [expectation], timeout: timeoutDuration)
+            await fulfillment(of: [expectation], timeout: timeoutDuration)
             XCTAssertEqual(results, expected)
 
             // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
@@ -919,7 +919,7 @@ import XCTest
                     ]]
                 )
             )
-            wait(for: [expectation], timeout: timeoutDuration)
+            await fulfillment(of: [expectation], timeout: timeoutDuration)
             XCTAssertEqual(results, expected)
 
             expectation = XCTestExpectation()
@@ -938,7 +938,7 @@ import XCTest
                     ]
                 )
             )
-            wait(for: [expectation], timeout: timeoutDuration)
+            await fulfillment(of: [expectation], timeout: timeoutDuration)
             XCTAssertEqual(results, expected)
 
             expectation = XCTestExpectation()
@@ -959,7 +959,7 @@ import XCTest
                     ]]
                 )
             )
-            wait(for: [expectation], timeout: timeoutDuration)
+            await fulfillment(of: [expectation], timeout: timeoutDuration)
             XCTAssertEqual(results, expected)
 
             // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
