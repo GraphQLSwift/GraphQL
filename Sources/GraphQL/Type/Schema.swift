@@ -71,31 +71,42 @@ public final class GraphQLSchema {
         self.directives = directives.isEmpty ? specifiedDirectives : directives
 
         // Build type map now to detect any errors within this schema.
-        var initialTypes: [GraphQLNamedType] = []
-
-        if !types.isEmpty {
-            initialTypes.append(contentsOf: types)
-        }
-
-        if let query = queryType {
-            initialTypes.append(query)
-        }
-
-        if let mutation = mutationType {
-            initialTypes.append(mutation)
-        }
-
-        if let subscription = subscriptionType {
-            initialTypes.append(subscription)
-        }
-
-        initialTypes.append(__Schema)
 
         var typeMap = TypeMap()
 
-        for type in initialTypes {
-            typeMap = try typeMapReducer(typeMap: typeMap, type: type)
+        // To preserve order of user-provided types, we add first to add them to
+        // the set of "collected" types, so `collectReferencedTypes` ignore them.
+        for type in types {
+            typeMap[type.name] = type
         }
+        if !types.isEmpty {
+            for type in types {
+                // When we ready to process this type, we remove it from "collected" types
+                // and then add it together with all dependent types in the correct position.
+                typeMap[type.name] = nil
+                typeMap = try typeMapReducer(typeMap: typeMap, type: type)
+            }
+        }
+
+        if let query = queryType {
+            typeMap = try typeMapReducer(typeMap: typeMap, type: query)
+        }
+
+        if let mutation = mutationType {
+            typeMap = try typeMapReducer(typeMap: typeMap, type: mutation)
+        }
+
+        if let subscription = subscriptionType {
+            typeMap = try typeMapReducer(typeMap: typeMap, type: subscription)
+        }
+
+        for directive in self.directives {
+            for arg in directive.args {
+                typeMap = try typeMapReducer(typeMap: typeMap, type: arg.type)
+            }
+        }
+
+        typeMap = try typeMapReducer(typeMap: typeMap, type: __Schema)
 
         self.typeMap = typeMap
         try replaceTypeReferences(typeMap: typeMap)
