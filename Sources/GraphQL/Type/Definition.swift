@@ -266,16 +266,18 @@ extension GraphQLScalarType: Hashable {
  *     )
  *
  * When two types need to refer to each other, or a type needs to refer to
- * itself in a field, you can wrap it in a GraphQLTypeReference to supply the fields lazily.
+ * itself in a field, you can use a closure to supply the fields lazily.
  *
  * Example:
  *
  *     let PersonType = GraphQLObjectType(
  *         name: "Person",
- *         fields: [
+ *         fields: {
+ *         [
  *             "name": GraphQLField(type: GraphQLString),
- *             "bestFriend": GraphQLField(type: GraphQLTypeReference("PersonType")),
+ *             "bestFriend": GraphQLField(type: PersonType),
  *         ]
+ *         }
  *     )
  *
  */
@@ -1286,6 +1288,7 @@ public final class GraphQLList {
         ofType = type
     }
 
+    @available(*, deprecated, message: "Just reference type directly.")
     public init(_ name: String) {
         ofType = GraphQLTypeReference(name)
     }
@@ -1351,6 +1354,7 @@ public final class GraphQLNonNull {
         ofType = type
     }
 
+    @available(*, deprecated, message: "Just reference type directly.")
     public init(_ name: String) {
         ofType = GraphQLTypeReference(name)
     }
@@ -1392,6 +1396,7 @@ extension GraphQLNonNull: Hashable {
  * A special type to allow object/interface/input types to reference itself. It's replaced with the real type
  * object when the schema is built.
  */
+@available(*, deprecated, message: "Use `fields` closure to lazily reference types.")
 public final class GraphQLTypeReference: GraphQLType, GraphQLOutputType, GraphQLInputType,
     GraphQLNullableType, GraphQLNamedType
 {
