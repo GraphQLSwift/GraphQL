@@ -72,10 +72,10 @@ let ValidationExampleCanine = try! GraphQLInterfaceType(
             args: ["surname": GraphQLArgument(type: GraphQLBoolean)]
         ),
         "mother": GraphQLField(
-            type: GraphQLTypeReference("Mammal")
+            type: ValidationExampleMammal
         ),
         "father": GraphQLField(
-            type: GraphQLTypeReference("Mammal")
+            type: ValidationExampleMammal
         ),
     ],
     resolveType: { _, _, _ in
@@ -176,14 +176,14 @@ let ValidationExampleDog = try! GraphQLObjectType(
             }
         ),
         "mother": GraphQLField(
-            type: GraphQLTypeReference("Mammal"),
+            type: ValidationExampleMammal,
             resolve: { inputValue, _, _, _ -> String? in
                 print(type(of: inputValue))
                 return nil
             }
         ),
         "father": GraphQLField(
-            type: GraphQLTypeReference("Mammal"),
+            type: ValidationExampleMammal,
             resolve: { inputValue, _, _, _ -> String? in
                 print(type(of: inputValue))
                 return nil
