@@ -34,7 +34,7 @@ public final class GraphQLSchema {
     let extensionASTNodes: [SchemaExtensionDefinition]
 
     // Used as a cache for validateSchema().
-    let validationErrors: [GraphQLError]?
+    var validationErrors: [GraphQLError]?
 
     public let queryType: GraphQLObjectType?
     public let mutationType: GraphQLObjectType?

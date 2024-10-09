@@ -360,7 +360,7 @@ public func == (lhs: Definition, rhs: Definition) -> Bool {
     return false
 }
 
-public enum OperationType: String {
+public enum OperationType: String, CaseIterable {
     case query
     case mutation
     case subscription
