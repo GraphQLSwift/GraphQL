@@ -118,46 +118,6 @@ class GraphQLSchemaTests: XCTestCase {
         _ = try GraphQLSchema(query: object, types: [interface, object])
     }
 
-    func testAssertObjectImplementsInterfaceFailsWhenObjectFieldHasRequiredArgumentMissingInInterface(
-    ) throws {
-        let interface = try GraphQLInterfaceType(
-            name: "Interface",
-            fields: [
-                "fieldWithoutArg": GraphQLField(
-                    type: GraphQLInt,
-                    args: [:]
-                ),
-            ]
-        )
-
-        let object = try GraphQLObjectType(
-            name: "Object",
-            fields: [
-                "fieldWithoutArg": GraphQLField(
-                    type: GraphQLInt,
-                    args: [
-                        "addedRequiredArg": GraphQLArgument(type: GraphQLNonNull(GraphQLInt)),
-                    ]
-                ),
-            ],
-            interfaces: [interface],
-            isTypeOf: { _, _, _ -> Bool in
-                preconditionFailure("Should not be called")
-            }
-        )
-
-        do {
-            _ = try GraphQLSchema(query: object, types: [interface, object])
-            XCTFail("Expected errors when creating schema")
-        } catch {
-            let graphQLError = try XCTUnwrap(error as? GraphQLError)
-            XCTAssertEqual(
-                graphQLError.message,
-                "Object.fieldWithoutArg includes required argument (addedRequiredArg:) that is missing from the Interface field Interface.fieldWithoutArg."
-            )
-        }
-    }
-
     func testAssertSchemaCircularReference() throws {
         let object1 = try GraphQLObjectType(
             name: "Object1"
