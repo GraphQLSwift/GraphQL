@@ -38,7 +38,7 @@ public let specifiedRules: [(ValidationContext) -> Visitor] = [
  */
 public let specifiedSDLRules: [SDLValidationRule] = [
     LoneSchemaDefinitionRule,
-//    UniqueOperationTypesRule,
+    UniqueOperationTypesRule,
 //    UniqueTypeNamesRule,
 //    UniqueEnumValueNamesRule,
 //    UniqueFieldDefinitionNamesRule,
