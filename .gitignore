@@ -6,3 +6,7 @@
 
 ### CI Artifacts ###
 /.test-coverage
+
+# VS Code
+.vscode/
+
