@@ -43,7 +43,7 @@ public let specifiedSDLRules: [SDLValidationRule] = [
     UniqueEnumValueNamesRule,
     UniqueFieldDefinitionNamesRule,
     UniqueArgumentDefinitionNamesRule,
-//    UniqueDirectiveNamesRule,
+    UniqueDirectiveNamesRule,
     KnownTypeNamesRule,
     KnownDirectivesRule,
     UniqueDirectivesPerLocationRule,
