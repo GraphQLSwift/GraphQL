@@ -51,5 +51,5 @@ public let specifiedSDLRules: [SDLValidationRule] = [
     KnownArgumentNamesOnDirectivesRule,
     UniqueArgumentNamesRule,
     UniqueInputFieldNamesRule,
-//    ProvidedRequiredArgumentsOnDirectivesRule,
+    ProvidedRequiredArgumentsOnDirectivesRule,
 ]
