@@ -47,7 +47,7 @@ public let specifiedSDLRules: [SDLValidationRule] = [
     KnownTypeNamesRule,
     KnownDirectivesRule,
     UniqueDirectivesPerLocationRule,
-//    PossibleTypeExtensionsRule,
+    PossibleTypeExtensionsRule,
 //    KnownArgumentNamesOnDirectivesRule,
     UniqueArgumentNamesRule,
     UniqueInputFieldNamesRule,
