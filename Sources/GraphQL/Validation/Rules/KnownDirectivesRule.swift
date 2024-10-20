@@ -74,7 +74,7 @@ func getDirectiveLocationForASTPath(_ ancestors: [NodeResult]) -> DirectiveLocat
         return DirectiveLocation.fragmentDefinition
     case is VariableDefinition:
         return DirectiveLocation.variableDefinition
-    case is SchemaDefinition:
+    case is SchemaDefinition, is SchemaExtensionDefinition:
         return DirectiveLocation.schema
     case is ScalarTypeDefinition, is ScalarExtensionDefinition:
         return DirectiveLocation.scalar
