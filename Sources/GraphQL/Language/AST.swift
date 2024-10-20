@@ -2285,10 +2285,25 @@ extension InputObjectTypeDefinition: Equatable {
     }
 }
 
+protocol TypeExtension: TypeSystemDefinition {
+    var name: Name { get }
+}
+
+extension ScalarExtensionDefinition: TypeExtension {}
+extension TypeExtensionDefinition: TypeExtension {}
+extension InterfaceExtensionDefinition: TypeExtension {}
+extension UnionExtensionDefinition: TypeExtension {}
+extension EnumExtensionDefinition: TypeExtension {}
+extension InputObjectExtensionDefinition: TypeExtension {}
+
 public final class TypeExtensionDefinition {
     public let kind: Kind = .typeExtensionDefinition
     public let loc: Location?
     public let definition: ObjectTypeDefinition
+
+    var name: Name {
+        return definition.name
+    }
 
     init(loc: Location? = nil, definition: ObjectTypeDefinition) {
         self.loc = loc
@@ -2332,6 +2347,10 @@ public final class InterfaceExtensionDefinition {
     public let loc: Location?
     public let definition: InterfaceTypeDefinition
 
+    var name: Name {
+        return definition.name
+    }
+
     init(loc: Location? = nil, definition: InterfaceTypeDefinition) {
         self.loc = loc
         self.definition = definition
@@ -2357,6 +2376,10 @@ public final class ScalarExtensionDefinition {
     public let definition: ScalarTypeDefinition
     public let directives: [Directive]
 
+    var name: Name {
+        return definition.name
+    }
+
     init(loc: Location? = nil, definition: ScalarTypeDefinition, directives: [Directive] = []) {
         self.loc = loc
         self.definition = definition
@@ -2379,6 +2402,10 @@ public final class UnionExtensionDefinition {
     public let loc: Location?
     public let definition: UnionTypeDefinition
 
+    var name: Name {
+        return definition.name
+    }
+
     init(loc: Location? = nil, definition: UnionTypeDefinition) {
         self.loc = loc
         self.definition = definition
@@ -2400,6 +2427,10 @@ public final class EnumExtensionDefinition {
     public let loc: Location?
     public let definition: EnumTypeDefinition
 
+    var name: Name {
+        return definition.name
+    }
+
     init(loc: Location? = nil, definition: EnumTypeDefinition) {
         self.loc = loc
         self.definition = definition
@@ -2420,6 +2451,10 @@ public final class InputObjectExtensionDefinition {
     public let kind: Kind = .inputObjectExtensionDefinition
     public let loc: Location?
     public let definition: InputObjectTypeDefinition
+
+    var name: Name {
+        return definition.name
+    }
 
     init(loc: Location? = nil, definition: InputObjectTypeDefinition) {
         self.loc = loc
