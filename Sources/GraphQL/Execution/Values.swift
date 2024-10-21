@@ -88,8 +88,15 @@ func getVariableValue(
     definitionAST: VariableDefinition,
     input: Map
 ) throws -> Map {
-    let type = typeFromAST(schema: schema, inputTypeAST: definitionAST.type)
+    var type = typeFromAST(schema: schema, inputTypeAST: definitionAST.type)
     let variable = definitionAST.variable
+
+    if let typeReference = type as? GraphQLTypeReference {
+        guard let referencedType = schema.typeMap[typeReference.name] else {
+            throw GraphQLError(message: "Referenced type \(typeReference.name) not found")
+        }
+        type = referencedType
+    }
 
     guard let inputType = type as? GraphQLInputType else {
         throw GraphQLError(
