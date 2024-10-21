@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        swift: ["5.7", "5.8", "5.9", "5.10"]
+        swift: ["5.8", "5.9", "5.10"]
     steps:
     - uses: swift-actions/setup-swift@v2
       with:
@@ -70,17 +70,3 @@ jobs:
     - name: Test
       run: swift test --parallel
 
-  # Swift versions older than 5.7 don't have builds for 22.04. https://www.swift.org/download/ 
-  backcompat-ubuntu-20_04:
-    name: Test Swift ${{ matrix.swift }} on Ubuntu 20.04
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        swift: ["5.4", "5.5", "5.6"]
-    steps:
-    - uses: swift-actions/setup-swift@v2
-      with:
-        swift-version: ${{ matrix.swift }}
-    - uses: actions/checkout@v3
-    - name: Test
-      run: swift test --parallel

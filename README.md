@@ -119,6 +119,10 @@ If you encode a `GraphQLResult` with an ordinary `JSONEncoder`, there are no gua
 violating the [GraphQL spec](https://spec.graphql.org/June2018/#sec-Serialized-Map-Ordering). To preserve this order, `GraphQLResult`
 should be encoded using the `GraphQLJSONEncoder` provided by this package.
 
+## Support
+
+This package supports Swift versions in [alignment with Swift NIO](https://github.com/apple/swift-nio?tab=readme-ov-file#swift-versions).
+
 ## Contributing
 
 If you think you have found a security vulnerability, please follow the

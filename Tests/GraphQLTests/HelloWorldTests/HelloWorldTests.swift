@@ -63,27 +63,23 @@ class HelloWorldTests: XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
-    #if compiler(>=5.5) && canImport(_Concurrency)
+    @available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
+    func testHelloAsync() async throws {
+        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 
-        @available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
-        func testHelloAsync() async throws {
-            let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-
-            defer {
-                XCTAssertNoThrow(try group.syncShutdownGracefully())
-            }
-
-            let query = "{ hello }"
-            let expected = GraphQLResult(data: ["hello": "world"])
-
-            let result = try await graphql(
-                schema: schema,
-                request: query,
-                eventLoopGroup: group
-            )
-
-            XCTAssertEqual(result, expected)
+        defer {
+            XCTAssertNoThrow(try group.syncShutdownGracefully())
         }
 
-    #endif
+        let query = "{ hello }"
+        let expected = GraphQLResult(data: ["hello": "world"])
+
+        let result = try await graphql(
+            schema: schema,
+            request: query,
+            eventLoopGroup: group
+        )
+
+        XCTAssertEqual(result, expected)
+    }
 }
