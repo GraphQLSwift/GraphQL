@@ -1112,7 +1112,8 @@ func parseScalarExtensionDefinition(lexer: Lexer) throws -> ScalarExtensionDefin
         definition: ScalarTypeDefinition(
             name: name,
             directives: directives
-        )
+        ),
+        directives: directives
     )
 }
 

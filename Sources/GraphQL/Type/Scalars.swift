@@ -274,3 +274,15 @@ public let GraphQLID = try! GraphQLScalarType(
         )
     }
 )
+
+let specifiedScalarTypes = [
+    GraphQLString,
+    GraphQLInt,
+    GraphQLFloat,
+    GraphQLBoolean,
+    GraphQLID,
+]
+
+func isSpecifiedScalarType(_ type: GraphQLNamedType) -> Bool {
+    return specifiedScalarTypes.contains { $0.name == type.name }
+}

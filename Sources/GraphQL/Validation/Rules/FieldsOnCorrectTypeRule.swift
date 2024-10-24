@@ -33,11 +33,11 @@ func FieldsOnCorrectTypeRule(context: ValidationContext) -> Visitor {
                         let fieldName = node.name.value
 
                         // First determine if there are any suggested types to condition on.
-                        let suggestedTypeNames = getSuggestedTypeNames(
+                        let suggestedTypeNames = (try? getSuggestedTypeNames(
                             schema: schema,
                             type: type,
                             fieldName: fieldName
-                        )
+                        )) ?? []
 
                         // If there are no suggested types, then perhaps this was a typo?
                         let suggestedFieldNames = !suggestedTypeNames
@@ -76,21 +76,21 @@ func getSuggestedTypeNames(
     schema: GraphQLSchema,
     type: GraphQLOutputType,
     fieldName: String
-) -> [String] {
+) throws -> [String] {
     if let type = type as? GraphQLAbstractType {
         var suggestedObjectTypes: [String] = []
         var interfaceUsageCount: [String: Int] = [:]
 
         for possibleType in schema.getPossibleTypes(abstractType: type) {
-            if possibleType.fields[fieldName] == nil {
+            if try possibleType.getFields()[fieldName] == nil {
                 return []
             }
 
             // This object type defines this field.
             suggestedObjectTypes.append(possibleType.name)
 
-            for possibleInterface in possibleType.interfaces {
-                if possibleInterface.fields[fieldName] == nil {
+            for possibleInterface in try possibleType.getInterfaces() {
+                if try possibleInterface.getFields()[fieldName] == nil {
                     return []
                 }
                 // This interface type defines this field.
@@ -123,7 +123,7 @@ func getSuggestedFieldNames(
     fieldName: String
 ) -> [String] {
     if let type = type as? GraphQLObjectType {
-        let possibleFieldNames = Array(type.fields.keys)
+        let possibleFieldNames = (try? Array(type.getFields().keys)) ?? []
         return suggestionList(
             input: fieldName,
             options: possibleFieldNames
@@ -131,7 +131,7 @@ func getSuggestedFieldNames(
     }
 
     if let type = type as? GraphQLInterfaceType {
-        let possibleFieldNames = Array(type.fields.keys)
+        let possibleFieldNames = (try? Array(type.getFields().keys)) ?? []
         return suggestionList(
             input: fieldName,
             options: possibleFieldNames

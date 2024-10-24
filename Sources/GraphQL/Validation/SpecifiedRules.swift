@@ -32,3 +32,24 @@ public let specifiedRules: [(ValidationContext) -> Visitor] = [
 //    OverlappingFieldsCanBeMergedRule,
     UniqueInputFieldNamesRule,
 ]
+
+/**
+ * @internal
+ */
+public let specifiedSDLRules: [SDLValidationRule] = [
+    LoneSchemaDefinitionRule,
+    UniqueOperationTypesRule,
+    UniqueTypeNamesRule,
+    UniqueEnumValueNamesRule,
+    UniqueFieldDefinitionNamesRule,
+    UniqueArgumentDefinitionNamesRule,
+    UniqueDirectiveNamesRule,
+    KnownTypeNamesRule,
+    KnownDirectivesRule,
+    UniqueDirectivesPerLocationRule,
+    PossibleTypeExtensionsRule,
+    KnownArgumentNamesOnDirectivesRule,
+    UniqueArgumentNamesRule,
+    UniqueInputFieldNamesRule,
+    ProvidedRequiredArgumentsOnDirectivesRule,
+]

@@ -129,3 +129,30 @@ class ValidationTestCase: XCTestCase {
         XCTAssertEqual(errorPath, path, "Unexpected error path", file: testFile, line: testLine)
     }
 }
+
+class SDLValidationTestCase: XCTestCase {
+    typealias Rule = (SDLValidationContext) -> Visitor
+
+    var rule: Rule!
+
+    func assertValidationErrors(
+        _ sdlStr: String,
+        schema: GraphQLSchema? = nil,
+        _ errors: [GraphQLError],
+        testFile _: StaticString = #file,
+        testLine _: UInt = #line
+    ) throws {
+        let doc = try parse(source: sdlStr)
+        let validationErrors = validateSDL(documentAST: doc, schemaToExtend: schema, rules: [rule])
+
+        XCTAssertEqual(
+            validationErrors.map(\.message),
+            errors.map(\.message)
+        )
+
+        XCTAssertEqual(
+            validationErrors.map(\.locations),
+            errors.map(\.locations)
+        )
+    }
+}

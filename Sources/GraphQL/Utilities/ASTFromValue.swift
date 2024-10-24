@@ -62,7 +62,7 @@ func astFromValue(
             return nil
         }
 
-        let fields = type.fields
+        let fields = try type.getFields()
         var fieldASTs: [ObjectField] = []
 
         for (fieldName, field) in fields {
@@ -94,6 +94,11 @@ func astFromValue(
 
     guard serialized != .null else {
         return nil
+    }
+
+    // Others serialize based on their corresponding JavaScript scalar types.
+    if case let .bool(bool) = serialized {
+        return BooleanValue(value: bool)
     }
 
     // Others serialize based on their corresponding scalar types.

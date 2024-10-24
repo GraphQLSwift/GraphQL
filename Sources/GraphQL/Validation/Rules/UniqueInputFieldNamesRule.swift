@@ -7,7 +7,7 @@
  *
  * See https://spec.graphql.org/draft/#sec-Input-Object-Field-Uniqueness
  */
-func UniqueInputFieldNamesRule(context: ValidationContext) -> Visitor {
+func UniqueInputFieldNamesRule(context: ASTValidationContext) -> Visitor {
     var knownNameStack = [[String: Name]]()
     var knownNames = [String: Name]()
 

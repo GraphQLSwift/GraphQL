@@ -8,6 +8,7 @@ public enum DirectiveLocation: String, Encodable {
     case field = "FIELD"
     case fragmentDefinition = "FRAGMENT_DEFINITION"
     case fragmentSpread = "FRAGMENT_SPREAD"
+    case fragmentVariableDefinition = "FRAGMENT_VARIABLE_DEFINITION"
     case inlineFragment = "INLINE_FRAGMENT"
     case variableDefinition = "VARIABLE_DEFINITION"
     // Schema Definitions
@@ -28,19 +29,21 @@ public enum DirectiveLocation: String, Encodable {
  * Directives are used by the GraphQL runtime as a way of modifying execution
  * behavior. Type system creators will usually not create these directly.
  */
-public struct GraphQLDirective: Encodable {
+public final class GraphQLDirective {
     public let name: String
-    public let description: String
+    public let description: String?
     public let locations: [DirectiveLocation]
     public let args: [GraphQLArgumentDefinition]
     public let isRepeatable: Bool
+    public let astNode: DirectiveDefinition?
 
     public init(
         name: String,
-        description: String = "",
+        description: String? = nil,
         locations: [DirectiveLocation],
         args: GraphQLArgumentConfigMap = [:],
-        isRepeatable: Bool = false
+        isRepeatable: Bool = false,
+        astNode: DirectiveDefinition? = nil
     ) throws {
         try assertValid(name: name)
         self.name = name
@@ -48,6 +51,15 @@ public struct GraphQLDirective: Encodable {
         self.locations = locations
         self.args = try defineArgumentMap(args: args)
         self.isRepeatable = isRepeatable
+        self.astNode = astNode
+    }
+
+    func argConfigMap() -> GraphQLArgumentConfigMap {
+        var argConfigs: GraphQLArgumentConfigMap = [:]
+        for argDef in args {
+            argConfigs[argDef.name] = argDef.toArg()
+        }
+        return argConfigs
     }
 }
 
@@ -58,7 +70,7 @@ public let GraphQLIncludeDirective = try! GraphQLDirective(
     name: "include",
     description:
     "Directs the executor to include this field or fragment only when " +
-        "the `if` argument is true.",
+        "the \\`if\\` argument is true.",
     locations: [
         .field,
         .fragmentSpread,
@@ -78,7 +90,7 @@ public let GraphQLIncludeDirective = try! GraphQLDirective(
 public let GraphQLSkipDirective = try! GraphQLDirective(
     name: "skip",
     description:
-    "Directs the executor to skip this field or fragment when the `if` " +
+    "Directs the executor to skip this field or fragment when the \\`if\\` " +
         "argument is true.",
     locations: [
         .field,
@@ -96,7 +108,7 @@ public let GraphQLSkipDirective = try! GraphQLDirective(
 /**
  * Constant string used for default reason for a deprecation.
  */
-let defaulDeprecationReason: Map = "No longer supported"
+let defaultDeprecationReason = "No longer supported"
 
 /**
  * Used to declare element of a GraphQL schema as deprecated.
@@ -117,8 +129,9 @@ public let GraphQLDeprecatedDirective = try! GraphQLDirective(
             description:
             "Explains why this element was deprecated, usually also including a " +
                 "suggestion for how to access supported similar data. Formatted " +
-                "in [Markdown](https://daringfireball.net/projects/markdown/).",
-            defaultValue: defaulDeprecationReason
+                "using the Markdown syntax, as specified by [CommonMark]" +
+                "(https://commonmark.org/).",
+            defaultValue: Map.string(defaultDeprecationReason)
         ),
     ]
 )
@@ -143,7 +156,7 @@ public let GraphQLSpecifiedByDirective = try! GraphQLDirective(
  */
 public let GraphQLOneOfDirective = try! GraphQLDirective(
     name: "oneOf",
-    description: "Indicates exactly one field must be supplied and this field must not be `null`.",
+    description: "Indicates exactly one field must be supplied and this field must not be \\`null\\`.",
     locations: [.inputObject],
     args: [:]
 )
@@ -158,3 +171,9 @@ let specifiedDirectives: [GraphQLDirective] = [
     GraphQLSpecifiedByDirective,
     GraphQLOneOfDirective,
 ]
+
+func isSpecifiedDirective(_ directive: GraphQLDirective) -> Bool {
+    return specifiedDirectives.contains { specifiedDirective in
+        specifiedDirective.name == directive.name
+    }
+}

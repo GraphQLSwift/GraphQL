@@ -466,7 +466,14 @@ func getOperationRootType(
 ) throws -> GraphQLObjectType {
     switch operation.operation {
     case .query:
-        return schema.queryType
+        guard let queryType = schema.queryType else {
+            throw GraphQLError(
+                message: "Schema is not configured for queries",
+                nodes: [operation]
+            )
+        }
+
+        return queryType
     case .mutation:
         guard let mutationType = schema.mutationType else {
             throw GraphQLError(
@@ -962,6 +969,21 @@ func completeValue(
                 )
             }
 
+            // If field type is a TypeReference, find the type itself.
+            if
+                let returnType = returnType as? GraphQLTypeReference,
+                let referencedType = info.schema.typeMap[returnType.name]
+            {
+                return try completeValue(
+                    exeContext: exeContext,
+                    returnType: referencedType,
+                    fieldASTs: fieldASTs,
+                    info: info,
+                    path: path,
+                    result: .success(exeContext.eventLoopGroup.any().makeSucceededFuture(result))
+                )
+            }
+
             // Not reachable. All possible output types have been considered.
             throw GraphQLError(
                 message: "Cannot complete value of unexpected type \"\(returnType)\"."
@@ -1191,6 +1213,14 @@ func defaultResolve(
         let value = subscriptable[info.fieldName]
         return eventLoopGroup.next().makeSucceededFuture(value)
     }
+    if let subscriptable = source as? [String: Any] {
+        let value = subscriptable[info.fieldName]
+        return eventLoopGroup.next().makeSucceededFuture(value)
+    }
+    if let subscriptable = source as? OrderedDictionary<String, Any> {
+        let value = subscriptable[info.fieldName]
+        return eventLoopGroup.next().makeSucceededFuture(value)
+    }
 
     let mirror = Mirror(reflecting: source)
     guard let value = mirror.getValue(named: info.fieldName) else {
@@ -1213,16 +1243,16 @@ func getFieldDef(
     parentType: GraphQLObjectType,
     fieldName: String
 ) throws -> GraphQLFieldDefinition {
-    if fieldName == SchemaMetaFieldDef.name, schema.queryType.name == parentType.name {
+    if fieldName == SchemaMetaFieldDef.name, schema.queryType?.name == parentType.name {
         return SchemaMetaFieldDef
-    } else if fieldName == TypeMetaFieldDef.name, schema.queryType.name == parentType.name {
+    } else if fieldName == TypeMetaFieldDef.name, schema.queryType?.name == parentType.name {
         return TypeMetaFieldDef
     } else if fieldName == TypeNameMetaFieldDef.name {
         return TypeNameMetaFieldDef
     }
 
     // This field should exist because we passed validation before execution
-    guard let fieldDefinition = parentType.fields[fieldName] else {
+    guard let fieldDefinition = try parentType.getFields()[fieldName] else {
         throw GraphQLError(
             message: "Expected field definition not found: '\(fieldName)' on '\(parentType.name)'"
         )

@@ -689,31 +689,32 @@ class StarWarsQueryTests: XCTestCase {
 
         let A = try GraphQLObjectType(
             name: "A",
-            fields: [
-                "nullableA": GraphQLField(
-                    type: GraphQLTypeReference("A"),
-                    resolve: { _, _, _, _ -> [String: String]? in
-                        [:] as [String: String]
-                    }
-                ),
-                "nonNullA": GraphQLField(
-                    type: GraphQLNonNull(GraphQLTypeReference("A")),
-                    resolve: { _, _, _, _ -> [String: String]? in
-                        [:] as [String: String]
-                    }
-                ),
-                "throws": GraphQLField(
-                    type: GraphQLNonNull(GraphQLString),
-                    resolve: { _, _, _, _ -> [String: String]? in
-                        struct 🏃: Error, CustomStringConvertible {
-                            let description: String
-                        }
-
-                        throw 🏃(description: "catch me if you can.")
-                    }
-                ),
-            ]
+            fields: [:]
         )
+        A.fields = { [
+            "nullableA": GraphQLField(
+                type: A,
+                resolve: { _, _, _, _ -> [String: String]? in
+                    [:] as [String: String]
+                }
+            ),
+            "nonNullA": GraphQLField(
+                type: GraphQLNonNull(A),
+                resolve: { _, _, _, _ -> [String: String]? in
+                    [:] as [String: String]
+                }
+            ),
+            "throws": GraphQLField(
+                type: GraphQLNonNull(GraphQLString),
+                resolve: { _, _, _, _ -> [String: String]? in
+                    struct 🏃: Error, CustomStringConvertible {
+                        let description: String
+                    }
+
+                    throw 🏃(description: "catch me if you can.")
+                }
+            ),
+        ] }
 
         let queryType = try GraphQLObjectType(
             name: "query",

@@ -17,6 +17,7 @@ let QueryDocumentKeys: [Kind: [String]] = [
     .floatValue: [],
     .stringValue: [],
     .booleanValue: [],
+    .nullValue: [],
     .enumValue: [],
     .listValue: ["values"],
     .objectValue: ["fields"],
@@ -28,22 +29,29 @@ let QueryDocumentKeys: [Kind: [String]] = [
     .listType: ["type"],
     .nonNullType: ["type"],
 
-    .schemaDefinition: ["directives", "operationTypes"],
+    .schemaDefinition: ["description", "directives", "operationTypes"],
     .operationTypeDefinition: ["type"],
 
-    .scalarTypeDefinition: ["name", "directives"],
-    .objectTypeDefinition: ["name", "interfaces", "directives", "fields"],
-    .fieldDefinition: ["name", "arguments", "type", "directives"],
-    .inputValueDefinition: ["name", "type", "defaultValue", "directives"],
-    .interfaceTypeDefinition: ["name", "interfaces", "directives", "fields"],
-    .unionTypeDefinition: ["name", "directives", "types"],
-    .enumTypeDefinition: ["name", "directives", "values"],
-    .enumValueDefinition: ["name", "directives"],
-    .inputObjectTypeDefinition: ["name", "directives", "fields"],
+    .scalarTypeDefinition: ["description", "name", "directives"],
+    .objectTypeDefinition: ["description", "name", "interfaces", "directives", "fields"],
+    .fieldDefinition: ["description", "name", "arguments", "type", "directives"],
+    .inputValueDefinition: ["description", "name", "type", "defaultValue", "directives"],
+    .interfaceTypeDefinition: ["description", "name", "interfaces", "directives", "fields"],
+    .unionTypeDefinition: ["description", "name", "directives", "types"],
+    .enumTypeDefinition: ["description", "name", "directives", "values"],
+    .enumValueDefinition: ["description", "name", "directives"],
+    .inputObjectTypeDefinition: ["description", "name", "directives", "fields"],
 
-    .typeExtensionDefinition: ["definition"],
+    .directiveDefinition: ["description", "name", "arguments", "locations"],
 
-    .directiveDefinition: ["name", "arguments", "locations"],
+    .schemaExtensionDefinition: ["directives", "operationTypes"],
+
+    .scalarExtensionDefinition: ["name", "directives"],
+    .typeExtensionDefinition: ["name", "interfaces", "directives", "fields"],
+    .interfaceExtensionDefinition: ["name", "interfaces", "directives", "fields"],
+    .unionExtensionDefinition: ["name", "directives", "types"],
+    .enumExtensionDefinition: ["name", "directives", "values"],
+    .inputObjectExtensionDefinition: ["name", "directives", "fields"],
 ]
 
 /**

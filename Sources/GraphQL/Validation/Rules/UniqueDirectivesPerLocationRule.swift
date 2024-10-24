@@ -7,11 +7,11 @@
  *
  * See https://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
  */
-func UniqueDirectivesPerLocationRule(context: ValidationContext) -> Visitor {
+func UniqueDirectivesPerLocationRule(context: SDLorNormalValidationContext) -> Visitor {
     var uniqueDirectiveMap = [String: Bool]()
 
-    let schema = context.schema
-    let definedDirectives = schema.directives
+    let schema = context.getSchema()
+    let definedDirectives = schema?.directives ?? []
     for directive in definedDirectives {
         uniqueDirectiveMap[directive.name] = !directive.isRepeatable
     }

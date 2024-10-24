@@ -79,7 +79,7 @@ func valueFromAST(
             throw GraphQLError(message: "Input object must be object type")
         }
 
-        let fields = objectType.fields
+        let fields = try objectType.getFields()
         let fieldASTs = objectValue.fields.keyMap { $0.name.value }
 
         var object = OrderedDictionary<String, Map>()

@@ -24,16 +24,24 @@ let ValidationExampleBeing = try! GraphQLInterfaceType(
 //  mother: Mammal
 //  father: Mammal
 // }
-let ValidationExampleMammal = try! GraphQLInterfaceType(
-    name: "Mammal",
-    fields: [
-        "mother": GraphQLField(type: GraphQLTypeReference("Mammal")),
-        "father": GraphQLField(type: GraphQLTypeReference("Mammal")),
-    ],
-    resolveType: { _, _, _ in
-        "Unknown"
+let ValidationExampleMammal = {
+    let Mammal = try! GraphQLInterfaceType(
+        name: "Mammal",
+        resolveType: { _, _, _ in
+            "Unknown"
+        }
+    )
+    Mammal.fields = { [weak Mammal] in
+        guard let Mammal = Mammal else {
+            return [:]
+        }
+        return [
+            "mother": GraphQLField(type: Mammal),
+            "father": GraphQLField(type: Mammal),
+        ]
     }
-)
+    return Mammal
+}()
 
 // interface Pet implements Being {
 //  name(surname: Boolean): String
@@ -70,10 +78,10 @@ let ValidationExampleCanine = try! GraphQLInterfaceType(
             args: ["surname": GraphQLArgument(type: GraphQLBoolean)]
         ),
         "mother": GraphQLField(
-            type: GraphQLTypeReference("Mammal")
+            type: ValidationExampleMammal
         ),
         "father": GraphQLField(
-            type: GraphQLTypeReference("Mammal")
+            type: ValidationExampleMammal
         ),
     ],
     resolveType: { _, _, _ in
@@ -174,14 +182,14 @@ let ValidationExampleDog = try! GraphQLObjectType(
             }
         ),
         "mother": GraphQLField(
-            type: GraphQLTypeReference("Mammal"),
+            type: ValidationExampleMammal,
             resolve: { inputValue, _, _, _ -> String? in
                 print(type(of: inputValue))
                 return nil
             }
         ),
         "father": GraphQLField(
-            type: GraphQLTypeReference("Mammal"),
+            type: ValidationExampleMammal,
             resolve: { inputValue, _, _, _ -> String? in
                 print(type(of: inputValue))
                 return nil

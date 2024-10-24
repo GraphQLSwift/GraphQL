@@ -7,7 +7,7 @@
  *
  * See https://spec.graphql.org/draft/#sec-Argument-Names
  */
-func UniqueArgumentNamesRule(context: ValidationContext) -> Visitor {
+func UniqueArgumentNamesRule(context: ASTValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
             let argumentNodes: [Argument]

@@ -7,11 +7,11 @@
  *
  * See https://spec.graphql.org/draft/#sec-Directives-Are-Defined
  */
-func KnownDirectivesRule(context: ValidationContext) -> Visitor {
+func KnownDirectivesRule(context: SDLorNormalValidationContext) -> Visitor {
     var locationsMap = [String: [String]]()
 
-    let schema = context.schema
-    let definedDirectives = schema.directives
+    let schema = context.getSchema()
+    let definedDirectives = schema?.directives ?? specifiedDirectives
     for directive in definedDirectives {
         locationsMap[directive.name] = directive.locations.map { $0.rawValue }
     }
@@ -74,7 +74,7 @@ func getDirectiveLocationForASTPath(_ ancestors: [NodeResult]) -> DirectiveLocat
         return DirectiveLocation.fragmentDefinition
     case is VariableDefinition:
         return DirectiveLocation.variableDefinition
-    case is SchemaDefinition:
+    case is SchemaDefinition, is SchemaExtensionDefinition:
         return DirectiveLocation.schema
     case is ScalarTypeDefinition, is ScalarExtensionDefinition:
         return DirectiveLocation.scalar
