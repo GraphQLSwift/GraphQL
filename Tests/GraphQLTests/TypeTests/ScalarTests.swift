@@ -300,18 +300,12 @@ class ScalarTests: XCTestCase {
             GraphQLBoolean.parseValue(.null),
             "Boolean cannot represent a non boolean value: null"
         )
-        try XCTAssertThrowsError(
-            GraphQLBoolean.parseValue(0),
-            "Boolean cannot represent a non boolean value: 0"
-        )
-        try XCTAssertThrowsError(
-            GraphQLBoolean.parseValue(1),
-            "Boolean cannot represent a non boolean value: 1"
-        )
-        try XCTAssertThrowsError(
-            GraphQLBoolean.parseValue(.double(Double.nan)),
-            "Boolean cannot represent a non boolean value: NaN"
-        )
+        // NOTE: We deviate from graphql-js and allow numeric conversions here because
+        // the MapCoder's round-trip conversion to NSObject for Bool converts to 0/1 numbers.
+        try XCTAssertNoThrow(GraphQLBoolean.parseValue(0))
+        try XCTAssertNoThrow(GraphQLBoolean.parseValue(1))
+        try XCTAssertNoThrow(GraphQLBoolean.parseValue(.double(Double.nan)))
+
         try XCTAssertThrowsError(
             GraphQLBoolean.parseValue(""),
             #"Boolean cannot represent a non boolean value: """#
