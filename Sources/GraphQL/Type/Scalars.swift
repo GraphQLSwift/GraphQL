@@ -201,6 +201,11 @@ public let GraphQLBoolean = try! GraphQLScalarType(
         if case let .bool(value) = inputValue {
             return inputValue
         }
+        // NOTE: We deviate from graphql-js and allow numeric conversions here because
+        // the MapCoder's round-trip conversion to NSObject for Bool converts to 0/1 numbers.
+        if case let .number(value) = inputValue {
+            return .bool(value.intValue != 0)
+        }
         throw GraphQLError(
             message: "Boolean cannot represent a non boolean value: \(inputValue)"
         )
