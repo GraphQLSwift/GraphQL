@@ -124,6 +124,8 @@ should be encoded using the `GraphQLJSONEncoder` provided by this package.
 
 This package supports Swift versions in [alignment with Swift NIO](https://github.com/apple/swift-nio?tab=readme-ov-file#swift-versions).
 
+For details on upgrading to new major versions, see [MIGRATION](MIGRATION.md).
+
 ## Contributing
 
 If you think you have found a security vulnerability, please follow the
