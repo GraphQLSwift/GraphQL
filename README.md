@@ -1,9 +1,10 @@
 # GraphQL
 
 [![Swift][swift-badge]][swift-url]
+[![SSWG][sswg-badge]][sswg-url]
 [![License][mit-badge]][mit-url]
-[![GitHub Actions][gh-actions-badge]][gh-actions-url]
 [![Codebeat][codebeat-badge]][codebeat-url]
+
 
 The Swift implementation for GraphQL, a query language for APIs created by Facebook.
 
@@ -156,8 +157,11 @@ missing, looking at the original code and "translating" it to Swift works, most 
 
 This project is released under the MIT license. See [LICENSE](LICENSE) for details.
 
-[swift-badge]: https://img.shields.io/badge/Swift-5.5-orange.svg?style=flat
+[swift-badge]: https://img.shields.io/badge/Swift-5.10-orange.svg?style=flat
 [swift-url]: https://swift.org
+
+[sswg-badge]: https://img.shields.io/badge/sswg-incubating-blue.svg?style=flat
+[sswg-url]: https://swift.org/sswg/incubation-process.html#incubating-level
 
 [mit-badge]: https://img.shields.io/badge/License-MIT-blue.svg?style=flat
 [mit-url]: https://tldrlegal.com/license/mit-license
