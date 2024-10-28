@@ -89,7 +89,7 @@ let EpisodeEnum = try! GraphQLEnumType(
 let CharacterInterface = try! GraphQLInterfaceType(
     name: "Character",
     description: "A character in the Star Wars Trilogy",
-    fields: [
+    fields: { [
         "id": GraphQLField(
             type: GraphQLNonNull(GraphQLString),
             description: "The id of the character."
@@ -99,7 +99,7 @@ let CharacterInterface = try! GraphQLInterfaceType(
             description: "The name of the character."
         ),
         "friends": GraphQLField(
-            type: GraphQLList(GraphQLTypeReference("Character")),
+            type: GraphQLList(CharacterInterface),
             description: "The friends of the character, or an empty list if they have none."
         ),
         "appearsIn": GraphQLField(
@@ -110,7 +110,7 @@ let CharacterInterface = try! GraphQLInterfaceType(
             type: GraphQLString,
             description: "All secrets about their past."
         ),
-    ],
+    ] },
     resolveType: { character, _, _ in
         switch character {
         case is Human:

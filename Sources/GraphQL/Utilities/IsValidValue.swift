@@ -53,7 +53,7 @@ func validate(value: Map, forType type: GraphQLInputType) throws -> [String] {
             return ["Expected \"\(objectType.name)\", found not an object."]
         }
 
-        let fields = objectType.fields
+        let fields = try objectType.getFields()
         var errors: [String] = []
 
         // Ensure every provided field is defined.

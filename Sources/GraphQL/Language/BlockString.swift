@@ -1,5 +1,70 @@
 import Foundation
 
+func isPrintableAsBlockString(_ value: String) -> Bool {
+    if value == "" {
+        return true // empty string is printable
+    }
+
+    var isEmptyLine = true
+    var hasIndent = false
+    var hasCommonIndent = true
+    var seenNonEmptyLine = false
+
+    let scalars = Array(value.unicodeScalars)
+    for i in 0 ..< scalars.count {
+        switch scalars[i].value {
+        case 0x0000,
+             0x0001,
+             0x0002,
+             0x0003,
+             0x0004,
+             0x0005,
+             0x0006,
+             0x0007,
+             0x0008,
+             0x000B,
+             0x000C,
+             0x000E,
+             0x000F:
+            return false // Has non-printable characters
+
+        case 0x000D: //  \r
+            return false // Has \r or \r\n which will be replaced as \n
+
+        case 10: //  \n
+            if isEmptyLine && !seenNonEmptyLine {
+                return false // Has leading new line
+            }
+            seenNonEmptyLine = true
+
+            isEmptyLine = true
+            hasIndent = false
+
+        case 9, //   \t
+             32: //  <space>
+            if !hasIndent {
+                hasIndent = isEmptyLine
+            }
+
+        default:
+            if hasCommonIndent {
+                hasCommonIndent = hasIndent
+            }
+            isEmptyLine = false
+        }
+    }
+
+    if isEmptyLine {
+        return false // Has trailing empty lines
+    }
+
+    if hasCommonIndent && seenNonEmptyLine {
+        return false // Has internal indent
+    }
+
+    return true
+}
+
 /**
  * Print a block string in the indented block form by adding a leading and
  * trailing blank line. However, if a block string starts with whitespace and is

@@ -53,6 +53,29 @@ public func validate(
 }
 
 /**
+ * @internal
+ */
+func validateSDL(
+    documentAST: Document,
+    schemaToExtend: GraphQLSchema? = nil,
+    rules: [SDLValidationRule] = specifiedSDLRules
+) -> [GraphQLError] {
+    var errors: [GraphQLError] = []
+    let context = SDLValidationContext(
+        ast: documentAST,
+        schema: schemaToExtend
+    ) { error in
+        errors.append(error)
+    }
+
+    let visitors = rules.map { rule in
+        rule(context)
+    }
+    visit(root: documentAST, visitor: visitInParallel(visitors: visitors))
+    return errors
+}
+
+/**
  * This uses a specialized visitor which runs multiple visitors in parallel,
  * while maintaining the visitor skip and break API.
  *
@@ -74,231 +97,37 @@ func visit(
     return context.errors
 }
 
-public enum HasSelectionSet {
-    case operation(OperationDefinition)
-    case fragment(FragmentDefinition)
-
-    public var node: Node {
-        switch self {
-        case let .operation(operation):
-            return operation
-        case let .fragment(fragment):
-            return fragment
-        }
+/**
+ * Utility function which asserts a SDL document is valid by throwing an error
+ * if it is invalid.
+ *
+ * @internal
+ */
+func assertValidSDL(documentAST: Document) throws {
+    let errors = validateSDL(documentAST: documentAST)
+    if !errors.isEmpty {
+        throw GraphQLError(
+            message: errors.map { $0.message }.joined(separator: "\n\n"),
+            locations: []
+        )
     }
 }
-
-extension HasSelectionSet: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        switch self {
-        case let .operation(operation):
-            return hasher.combine(operation.hashValue)
-        case let .fragment(fragment):
-            return hasher.combine(fragment.hashValue)
-        }
-    }
-
-    public static func == (lhs: HasSelectionSet, rhs: HasSelectionSet) -> Bool {
-        switch (lhs, rhs) {
-        case let (.operation(l), .operation(r)):
-            return l == r
-        case let (.fragment(l), .fragment(r)):
-            return l == r
-        default:
-            return false
-        }
-    }
-}
-
-public typealias VariableUsage = (node: Variable, type: GraphQLInputType?, defaultValue: Map?)
 
 /**
- * An instance of this class is passed as the "this" context to all validators,
- * allowing access to commonly useful contextual information from within a
- * validation rule.
+ * Utility function which asserts a SDL document is valid by throwing an error
+ * if it is invalid.
+ *
+ * @internal
  */
-public final class ValidationContext {
-    public let schema: GraphQLSchema
-    let ast: Document
-    let typeInfo: TypeInfo
-    var errors: [GraphQLError]
-    var fragments: [String: FragmentDefinition]
-    var fragmentSpreads: [SelectionSet: [FragmentSpread]]
-    var recursivelyReferencedFragments: [OperationDefinition: [FragmentDefinition]]
-    var variableUsages: [HasSelectionSet: [VariableUsage]]
-    var recursiveVariableUsages: [OperationDefinition: [VariableUsage]]
-
-    init(schema: GraphQLSchema, ast: Document, typeInfo: TypeInfo) {
-        self.schema = schema
-        self.ast = ast
-        self.typeInfo = typeInfo
-        errors = []
-        fragments = [:]
-        fragmentSpreads = [:]
-        recursivelyReferencedFragments = [:]
-        variableUsages = [:]
-        recursiveVariableUsages = [:]
-    }
-
-    public func report(error: GraphQLError) {
-        errors.append(error)
-    }
-
-    public func getFragment(name: String) -> FragmentDefinition? {
-        var fragments = self.fragments
-
-        if fragments.isEmpty {
-            fragments = ast.definitions.reduce([:]) { frags, statement in
-                var frags = frags
-
-                if let statement = statement as? FragmentDefinition {
-                    frags[statement.name.value] = statement
-                }
-
-                return frags
-            }
-
-            self.fragments = fragments
-        }
-
-        return fragments[name]
-    }
-
-    public func getFragmentSpreads(node: SelectionSet) -> [FragmentSpread] {
-        // Uncommenting this creates unpredictably wrong fragment path matching.
-        // Failures can be seen in NoFragmentCyclesRuleTests.testNoSpreadingItselfDeeplyTwoPaths
-//        if let spreads = fragmentSpreads[node] {
-//            return spreads
-//        }
-
-        var spreads = [FragmentSpread]()
-        var setsToVisit: [SelectionSet] = [node]
-
-        while let set = setsToVisit.popLast() {
-            for selection in set.selections {
-                if let selection = selection as? FragmentSpread {
-                    spreads.append(selection)
-                } else if let selection = selection as? InlineFragment {
-                    setsToVisit.append(selection.selectionSet)
-                } else if
-                    let selection = selection as? Field,
-                    let selectionSet = selection.selectionSet
-                {
-                    setsToVisit.append(selectionSet)
-                }
-            }
-        }
-
-//        fragmentSpreads[node] = spreads
-        return spreads
-    }
-
-    public func getRecursivelyReferencedFragments(operation: OperationDefinition)
-        -> [FragmentDefinition]
-    {
-        if let fragments = recursivelyReferencedFragments[operation] {
-            return fragments
-        }
-
-        var fragments = [FragmentDefinition]()
-        var collectedNames: [String: Bool] = [:]
-        var nodesToVisit: [SelectionSet] = [operation.selectionSet]
-
-        while let node = nodesToVisit.popLast() {
-            let spreads = getFragmentSpreads(node: node)
-
-            for spread in spreads {
-                let fragName = spread.name.value
-                if collectedNames[fragName] != true {
-                    collectedNames[fragName] = true
-                    if let fragment = getFragment(name: fragName) {
-                        fragments.append(fragment)
-                        nodesToVisit.append(fragment.selectionSet)
-                    }
-                }
-            }
-        }
-
-        recursivelyReferencedFragments[operation] = fragments
-        return fragments
-    }
-
-    public func getVariableUsages(node: HasSelectionSet) -> [VariableUsage] {
-        if let usages = variableUsages[node] {
-            return usages
-        }
-
-        var usages = [VariableUsage]()
-        let typeInfo = TypeInfo(schema: schema)
-
-        visit(
-            root: node.node,
-            visitor: visitWithTypeInfo(
-                typeInfo: typeInfo,
-                visitor: Visitor(enter: { node, _, _, _, _ in
-                    if node is VariableDefinition {
-                        return .skip
-                    }
-
-                    if let variable = node as? Variable {
-                        usages.append(VariableUsage(
-                            node: variable,
-                            type: typeInfo.inputType,
-                            defaultValue: typeInfo.defaultValue
-                        ))
-                    }
-
-                    return .continue
-                })
-            )
+func assertValidSDLExtension(
+    documentAST: Document,
+    schema: GraphQLSchema
+) throws {
+    let errors = validateSDL(documentAST: documentAST, schemaToExtend: schema)
+    if !errors.isEmpty {
+        throw GraphQLError(
+            message: errors.map { $0.message }.joined(separator: "\n\n"),
+            locations: []
         )
-
-        variableUsages[node] = usages
-        return usages
-    }
-
-    public func getRecursiveVariableUsages(operation: OperationDefinition) -> [VariableUsage] {
-        if let usages = recursiveVariableUsages[operation] {
-            return usages
-        }
-
-        var usages = getVariableUsages(node: .operation(operation))
-        let fragments = getRecursivelyReferencedFragments(operation: operation)
-
-        for fragment in fragments {
-            let newUsages = getVariableUsages(node: .fragment(fragment))
-            usages.append(contentsOf: newUsages)
-        }
-
-        recursiveVariableUsages[operation] = usages
-        return usages
-    }
-
-    public var type: GraphQLOutputType? {
-        return typeInfo.type
-    }
-
-    public var parentType: GraphQLCompositeType? {
-        return typeInfo.parentType
-    }
-
-    public var inputType: GraphQLInputType? {
-        return typeInfo.inputType
-    }
-
-    public var parentInputType: GraphQLInputType? {
-        return typeInfo.parentInputType
-    }
-
-    public var fieldDef: GraphQLFieldDefinition? {
-        return typeInfo.fieldDef
-    }
-
-    public var directive: GraphQLDirective? {
-        return typeInfo.directive
-    }
-
-    public var argument: GraphQLArgumentDefinition? {
-        return typeInfo.argument
     }
 }

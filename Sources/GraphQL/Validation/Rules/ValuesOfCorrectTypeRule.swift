@@ -41,7 +41,8 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                 for field in object.fields {
                     fieldNodeMap[field.name.value] = field
                 }
-                for (fieldName, fieldDef) in type.fields {
+                let fields = (try? type.getFields()) ?? [:]
+                for (fieldName, fieldDef) in fields {
                     if fieldNodeMap[fieldName] == nil, isRequiredInputField(fieldDef) {
                         let typeStr = fieldDef.type
                         context.report(
@@ -70,9 +71,10 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                     context.inputType == nil,
                     let parentType = parentType as? GraphQLInputObjectType
                 {
+                    let parentFields = (try? parentType.getFields()) ?? [:]
                     let suggestions = suggestionList(
                         input: field.name.value,
-                        options: Array(parentType.fields.keys)
+                        options: Array(parentFields.keys)
                     )
                     context.report(
                         error: GraphQLError(

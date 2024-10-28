@@ -168,7 +168,8 @@ final class TypeInfo {
             var inputField: InputObjectFieldDefinition?
 
             if let objectType = objectType as? GraphQLInputObjectType {
-                inputField = objectType.fields[node.name.value]
+                let inputFields = (try? objectType.getFields()) ?? [:]
+                inputField = inputFields[node.name.value]
                 if let inputField = inputField {
                     inputFieldType = inputField.type
                 }
@@ -238,11 +239,11 @@ func getFieldDef(
     let name = fieldAST.name.value
 
     if let parentType = parentType as? GraphQLNamedType {
-        if name == SchemaMetaFieldDef.name, schema.queryType.name == parentType.name {
+        if name == SchemaMetaFieldDef.name, schema.queryType?.name == parentType.name {
             return SchemaMetaFieldDef
         }
 
-        if name == TypeMetaFieldDef.name, schema.queryType.name == parentType.name {
+        if name == TypeMetaFieldDef.name, schema.queryType?.name == parentType.name {
             return TypeMetaFieldDef
         }
     }
@@ -256,11 +257,11 @@ func getFieldDef(
     }
 
     if let parentType = parentType as? GraphQLObjectType {
-        return parentType.fields[name]
+        return try? parentType.getFields()[name]
     }
 
     if let parentType = parentType as? GraphQLInterfaceType {
-        return parentType.fields[name]
+        return try? parentType.getFields()[name]
     }
 
     return nil

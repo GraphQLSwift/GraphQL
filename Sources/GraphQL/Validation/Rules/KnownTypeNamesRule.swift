@@ -7,9 +7,9 @@
  *
  * See https://spec.graphql.org/draft/#sec-Fragment-Spread-Type-Existence
  */
-func KnownTypeNamesRule(context: ValidationContext) -> Visitor {
+func KnownTypeNamesRule(context: SDLorNormalValidationContext) -> Visitor {
     let definitions = context.ast.definitions
-    let existingTypesMap = context.schema.typeMap
+    let existingTypesMap = context.getSchema()?.typeMap ?? [:]
 
     var typeNames = Set<String>()
     for typeName in existingTypesMap.keys {
@@ -17,8 +17,8 @@ func KnownTypeNamesRule(context: ValidationContext) -> Visitor {
     }
     for definition in definitions {
         if
-            let type = definition as? TypeDefinition,
-            let nameResult = type.get(key: "name"),
+            isTypeSystemDefinitionNode(definition),
+            let nameResult = definition.get(key: "name"),
             case let .node(nameNode) = nameResult,
             let name = nameNode as? Name
         {
@@ -27,11 +27,18 @@ func KnownTypeNamesRule(context: ValidationContext) -> Visitor {
     }
 
     return Visitor(
-        enter: { node, _, _, _, _ in
+        enter: { node, _, parent, _, ancestors in
             if let type = node as? NamedType {
                 let typeName = type.name.value
                 if !typeNames.contains(typeName) {
-                    // TODO: Add SDL support
+                    let definitionNode = ancestors.count > 2 ? ancestors[2] : parent
+                    var isSDL = false
+                    if let definitionNode = definitionNode, case let .node(node) = definitionNode {
+                        isSDL = isSDLNode(node)
+                    }
+                    if isSDL, standardTypeNames.contains(typeName) {
+                        return .continue
+                    }
 
                     let suggestedTypes = suggestionList(
                         input: typeName,
@@ -49,4 +56,14 @@ func KnownTypeNamesRule(context: ValidationContext) -> Visitor {
             return .continue
         }
     )
+}
+
+let standardTypeNames: Set<String> = {
+    var result = specifiedScalarTypes.map { $0.name }
+    result.append(contentsOf: introspectionTypes.map { $0.name })
+    return Set(result)
+}()
+
+func isSDLNode(_ value: Node) -> Bool {
+    return isTypeSystemDefinitionNode(value) || isTypeSystemExtensionNode(value)
 }

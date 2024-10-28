@@ -246,28 +246,263 @@ class KnownDirectivesRuleTests: ValidationTestCase {
             return directives
         }()
     )
+}
 
-    // TODO: Add SDL tests
+class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
+    override func setUp() {
+        rule = KnownDirectivesRule
+    }
 
-//    let schemaWithSDLDirectives = try! GraphQLSchema(
-//        directives: {
-//            var directives = specifiedDirectives
-//            directives.append(contentsOf: [
-//                try! GraphQLDirective(name: "onSchema", locations: [.schema]),
-//                try! GraphQLDirective(name: "onScalar", locations: [.scalar]),
-//                try! GraphQLDirective(name: "onObject", locations: [.object]),
-//                try! GraphQLDirective(name: "onFieldDefinition", locations: [.fieldDefinition]),
-//                try! GraphQLDirective(name: "onArgumentDefinition", locations:
-//                [.argumentDefinition]),
-//                try! GraphQLDirective(name: "onInterface", locations: [.interface]),
-//                try! GraphQLDirective(name: "onUnion", locations: [.union]),
-//                try! GraphQLDirective(name: "onEnum", locations: [.enum]),
-//                try! GraphQLDirective(name: "onEnumValue", locations: [.enumValue]),
-//                try! GraphQLDirective(name: "onInputObject", locations: [.inputObject]),
-//                try! GraphQLDirective(name: "onInputFieldDefinition", locations:
-//            [.inputFieldDefinition]),
-//            ])
-//            return directives
-//        }()
-//    )
+    func testWithDirectiveDefinedInsideSDL() throws {
+        try assertValidationErrors(
+            """
+            type Query {
+              foo: String @test
+            }
+
+            directive @test on FIELD_DEFINITION
+            """,
+            []
+        )
+    }
+
+    func testWithStandardDirective() throws {
+        try assertValidationErrors(
+            """
+            type Query {
+              foo: String @deprecated
+            }
+            """,
+            []
+        )
+    }
+
+    func testWithOverriddenStandardDirective() throws {
+        try assertValidationErrors(
+            """
+            schema @deprecated {
+              query: Query
+            }
+            directive @deprecated on SCHEMA
+            """,
+            []
+        )
+    }
+
+    func testWithDirectiveDefinedInSchemaExtension() throws {
+        let schema = try buildSchema(source: """
+        type Query {
+          foo: String
+        }
+        """)
+        let sdl = """
+        directive @test on OBJECT
+
+        extend type Query @test
+        """
+        try assertValidationErrors(sdl, schema: schema, [])
+    }
+
+    func testWithDirectiveUsedInSchemaExtension() throws {
+        let schema = try buildSchema(source: """
+        directive @test on OBJECT
+
+        type Query {
+          foo: String
+        }
+        """)
+        let sdl = """
+        extend type Query @test
+        """
+        try assertValidationErrors(sdl, schema: schema, [])
+    }
+
+    func testWithUnknownDirectiveInSchemaExtension() throws {
+        let schema = try buildSchema(source: """
+        type Query {
+          foo: String
+        }
+        """)
+        let sdl = """
+        extend type Query @unknown
+        """
+        try assertValidationErrors(
+            sdl,
+            schema: schema,
+            [
+                GraphQLError(
+                    message: #"Unknown directive "@unknown"."#,
+                    locations: [.init(line: 1, column: 19)]
+                ),
+            ]
+        )
+    }
+
+    func testWithWellPlacedDirectives() throws {
+        try assertValidationErrors(
+            """
+            type MyObj implements MyInterface @onObject {
+              myField(myArg: Int @onArgumentDefinition): String @onFieldDefinition
+            }
+
+            extend type MyObj @onObject
+
+            scalar MyScalar @onScalar
+
+            extend scalar MyScalar @onScalar
+
+            interface MyInterface @onInterface {
+              myField(myArg: Int @onArgumentDefinition): String @onFieldDefinition
+            }
+
+            extend interface MyInterface @onInterface
+
+            union MyUnion @onUnion = MyObj | Other
+
+            extend union MyUnion @onUnion
+
+            enum MyEnum @onEnum {
+              MY_VALUE @onEnumValue
+            }
+
+            extend enum MyEnum @onEnum
+
+            input MyInput @onInputObject {
+              myField: Int @onInputFieldDefinition
+            }
+
+            extend input MyInput @onInputObject
+
+            schema @onSchema {
+              query: MyQuery
+            }
+
+            directive @myDirective(arg:String) on ARGUMENT_DEFINITION
+            directive @myDirective2(arg:String @myDirective) on FIELD
+
+            extend schema @onSchema
+            """,
+            schema: schemaWithSDLDirectives,
+            []
+        )
+    }
+
+    func testWithMisplacedDirectives() throws {
+        try assertValidationErrors(
+            """
+            type MyObj implements MyInterface @onInterface {
+              myField(myArg: Int @onInputFieldDefinition): String @onInputFieldDefinition
+            }
+
+            scalar MyScalar @onEnum
+
+            interface MyInterface @onObject {
+              myField(myArg: Int @onInputFieldDefinition): String @onInputFieldDefinition
+            }
+
+            union MyUnion @onEnumValue = MyObj | Other
+
+            enum MyEnum @onScalar {
+              MY_VALUE @onUnion
+            }
+
+            input MyInput @onEnum {
+              myField: Int @onArgumentDefinition
+            }
+
+            schema @onObject {
+              query: MyQuery
+            }
+
+            extend schema @onObject
+            """,
+            schema: schemaWithSDLDirectives,
+            [
+                GraphQLError(
+                    message: #"Directive "@onInterface" may not be used on OBJECT."#,
+                    locations: [.init(line: 1, column: 35)]
+                ),
+                GraphQLError(
+                    message: #"Directive "@onInputFieldDefinition" may not be used on ARGUMENT_DEFINITION."#,
+                    locations: [.init(line: 2, column: 22)]
+                ),
+                GraphQLError(
+                    message: #"Directive "@onInputFieldDefinition" may not be used on FIELD_DEFINITION."#,
+                    locations: [.init(line: 2, column: 55)]
+                ),
+                GraphQLError(
+                    message: #"Directive "@onEnum" may not be used on SCALAR."#,
+                    locations: [.init(line: 5, column: 17)]
+                ),
+                GraphQLError(
+                    message: #"Directive "@onObject" may not be used on INTERFACE."#,
+                    locations: [.init(line: 7, column: 23)]
+                ),
+                GraphQLError(
+                    message: #"Directive "@onInputFieldDefinition" may not be used on ARGUMENT_DEFINITION."#,
+                    locations: [.init(line: 8, column: 22)]
+                ),
+                GraphQLError(
+                    message: #"Directive "@onInputFieldDefinition" may not be used on FIELD_DEFINITION."#,
+                    locations: [.init(line: 8, column: 55)]
+                ),
+                GraphQLError(
+                    message: #"Directive "@onEnumValue" may not be used on UNION."#,
+                    locations: [.init(line: 11, column: 15)]
+                ),
+                GraphQLError(
+                    message: #"Directive "@onScalar" may not be used on ENUM."#,
+                    locations: [.init(line: 13, column: 13)]
+                ),
+                GraphQLError(
+                    message: #"Directive "@onUnion" may not be used on ENUM_VALUE."#,
+                    locations: [.init(line: 14, column: 12)]
+                ),
+                GraphQLError(
+                    message: #"Directive "@onEnum" may not be used on INPUT_OBJECT."#,
+                    locations: [.init(line: 17, column: 15)]
+                ),
+                GraphQLError(
+                    message: #"Directive "@onArgumentDefinition" may not be used on INPUT_FIELD_DEFINITION."#,
+                    locations: [.init(line: 18, column: 16)]
+                ),
+                GraphQLError(
+                    message: #"Directive "@onObject" may not be used on SCHEMA."#,
+                    locations: [.init(line: 21, column: 8)]
+                ),
+                GraphQLError(
+                    message: #"Directive "@onObject" may not be used on SCHEMA."#,
+                    locations: [.init(line: 25, column: 15)]
+                ),
+            ]
+        )
+    }
+
+    let schemaWithSDLDirectives = try! GraphQLSchema(
+        directives: {
+            var directives = specifiedDirectives
+            directives.append(contentsOf: [
+                try! GraphQLDirective(name: "onSchema", locations: [.schema]),
+                try! GraphQLDirective(name: "onScalar", locations: [.scalar]),
+                try! GraphQLDirective(name: "onObject", locations: [.object]),
+                try! GraphQLDirective(name: "onFieldDefinition", locations: [.fieldDefinition]),
+                try! GraphQLDirective(
+                    name: "onArgumentDefinition",
+                    locations:
+                    [.argumentDefinition]
+                ),
+                try! GraphQLDirective(name: "onInterface", locations: [.interface]),
+                try! GraphQLDirective(name: "onUnion", locations: [.union]),
+                try! GraphQLDirective(name: "onEnum", locations: [.enum]),
+                try! GraphQLDirective(name: "onEnumValue", locations: [.enumValue]),
+                try! GraphQLDirective(name: "onInputObject", locations: [.inputObject]),
+                try! GraphQLDirective(
+                    name: "onInputFieldDefinition",
+                    locations:
+                    [.inputFieldDefinition]
+                ),
+            ])
+            return directives
+        }()
+    )
 }

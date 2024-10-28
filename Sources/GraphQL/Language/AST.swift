@@ -360,7 +360,7 @@ public func == (lhs: Definition, rhs: Definition) -> Bool {
     return false
 }
 
-public enum OperationType: String {
+public enum OperationType: String, CaseIterable {
     case query
     case mutation
     case subscription
@@ -1739,6 +1739,19 @@ public final class SchemaDefinition {
         self.directives = directives
         self.operationTypes = operationTypes
     }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "description":
+            return description.map { .node($0) }
+        case "directives":
+            return .array(directives)
+        case "operationTypes":
+            return .array(operationTypes)
+        default:
+            return nil
+        }
+    }
 }
 
 extension SchemaDefinition: Equatable {
@@ -1759,6 +1772,15 @@ public final class OperationTypeDefinition {
         self.loc = loc
         self.operation = operation
         self.type = type
+    }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "type":
+            return .node(type)
+        default:
+            return nil
+        }
     }
 }
 
@@ -1831,6 +1853,19 @@ public final class ScalarTypeDefinition {
         self.name = name
         self.directives = directives
     }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "description":
+            return description.map { .node($0) }
+        case "name":
+            return .node(name)
+        case "directives":
+            return .array(directives)
+        default:
+            return nil
+        }
+    }
 }
 
 extension ScalarTypeDefinition: Equatable {
@@ -1864,6 +1899,23 @@ public final class ObjectTypeDefinition {
         self.interfaces = interfaces
         self.directives = directives
         self.fields = fields
+    }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "description":
+            return description.map { .node($0) }
+        case "name":
+            return .node(name)
+        case "interfaces":
+            return .array(interfaces)
+        case "directives":
+            return .array(directives)
+        case "fields":
+            return .array(fields)
+        default:
+            return nil
+        }
     }
 }
 
@@ -1901,6 +1953,23 @@ public final class FieldDefinition {
         self.type = type
         self.directives = directives
     }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "description":
+            return description.map { .node($0) }
+        case "name":
+            return .node(name)
+        case "arguments":
+            return .array(arguments)
+        case "type":
+            return .node(type)
+        case "directives":
+            return .array(directives)
+        default:
+            return nil
+        }
+    }
 }
 
 extension FieldDefinition: Equatable {
@@ -1936,6 +2005,23 @@ public final class InputValueDefinition {
         self.type = type
         self.defaultValue = defaultValue
         self.directives = directives
+    }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "description":
+            return description.map { .node($0) }
+        case "name":
+            return .node(name)
+        case "type":
+            return .node(type)
+        case "defaultValue":
+            return defaultValue.map { .node($0) }
+        case "directives":
+            return .array(directives)
+        default:
+            return nil
+        }
     }
 }
 
@@ -1989,6 +2075,23 @@ public final class InterfaceTypeDefinition {
         self.directives = directives
         self.fields = fields
     }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "description":
+            return description.map { .node($0) }
+        case "name":
+            return .node(name)
+        case "interfaces":
+            return .array(interfaces)
+        case "directives":
+            return .array(directives)
+        case "fields":
+            return .array(fields)
+        default:
+            return nil
+        }
+    }
 }
 
 extension InterfaceTypeDefinition: Equatable {
@@ -2020,6 +2123,21 @@ public final class UnionTypeDefinition {
         self.name = name
         self.directives = directives
         self.types = types
+    }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "description":
+            return description.map { .node($0) }
+        case "name":
+            return .node(name)
+        case "directives":
+            return .array(directives)
+        case "types":
+            return .array(types)
+        default:
+            return nil
+        }
     }
 }
 
@@ -2053,6 +2171,21 @@ public final class EnumTypeDefinition {
         self.directives = directives
         self.values = values
     }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "description":
+            return description.map { .node($0) }
+        case "name":
+            return .node(name)
+        case "directives":
+            return .array(directives)
+        case "values":
+            return .array(values)
+        default:
+            return nil
+        }
+    }
 }
 
 extension EnumTypeDefinition: Equatable {
@@ -2081,6 +2214,19 @@ public final class EnumValueDefinition {
         self.description = description
         self.name = name
         self.directives = directives
+    }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "description":
+            return description.map { .node($0) }
+        case "name":
+            return .node(name)
+        case "directives":
+            return .array(directives)
+        default:
+            return nil
+        }
     }
 }
 
@@ -2113,6 +2259,21 @@ public final class InputObjectTypeDefinition {
         self.directives = directives
         self.fields = fields
     }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "description":
+            return description.map { .node($0) }
+        case "name":
+            return .node(name)
+        case "directives":
+            return .array(directives)
+        case "fields":
+            return .array(fields)
+        default:
+            return nil
+        }
+    }
 }
 
 extension InputObjectTypeDefinition: Equatable {
@@ -2124,14 +2285,33 @@ extension InputObjectTypeDefinition: Equatable {
     }
 }
 
+protocol TypeExtension: TypeSystemDefinition {
+    var name: Name { get }
+}
+
+extension ScalarExtensionDefinition: TypeExtension {}
+extension TypeExtensionDefinition: TypeExtension {}
+extension InterfaceExtensionDefinition: TypeExtension {}
+extension UnionExtensionDefinition: TypeExtension {}
+extension EnumExtensionDefinition: TypeExtension {}
+extension InputObjectExtensionDefinition: TypeExtension {}
+
 public final class TypeExtensionDefinition {
     public let kind: Kind = .typeExtensionDefinition
     public let loc: Location?
     public let definition: ObjectTypeDefinition
 
+    var name: Name {
+        return definition.name
+    }
+
     init(loc: Location? = nil, definition: ObjectTypeDefinition) {
         self.loc = loc
         self.definition = definition
+    }
+
+    public func get(key: String) -> NodeResult? {
+        definition.get(key: key)
     }
 }
 
@@ -2150,6 +2330,10 @@ public final class SchemaExtensionDefinition {
         self.loc = loc
         self.definition = definition
     }
+
+    public func get(key: String) -> NodeResult? {
+        definition.get(key: key)
+    }
 }
 
 extension SchemaExtensionDefinition: Equatable {
@@ -2163,9 +2347,17 @@ public final class InterfaceExtensionDefinition {
     public let loc: Location?
     public let definition: InterfaceTypeDefinition
 
+    var name: Name {
+        return definition.name
+    }
+
     init(loc: Location? = nil, definition: InterfaceTypeDefinition) {
         self.loc = loc
         self.definition = definition
+    }
+
+    public func get(key: String) -> NodeResult? {
+        definition.get(key: key)
     }
 }
 
@@ -2182,10 +2374,20 @@ public final class ScalarExtensionDefinition {
     public let kind: Kind = .scalarExtensionDefinition
     public let loc: Location?
     public let definition: ScalarTypeDefinition
+    public let directives: [Directive]
 
-    init(loc: Location? = nil, definition: ScalarTypeDefinition) {
+    var name: Name {
+        return definition.name
+    }
+
+    init(loc: Location? = nil, definition: ScalarTypeDefinition, directives: [Directive] = []) {
         self.loc = loc
         self.definition = definition
+        self.directives = directives
+    }
+
+    public func get(key: String) -> NodeResult? {
+        definition.get(key: key)
     }
 }
 
@@ -2200,9 +2402,17 @@ public final class UnionExtensionDefinition {
     public let loc: Location?
     public let definition: UnionTypeDefinition
 
+    var name: Name {
+        return definition.name
+    }
+
     init(loc: Location? = nil, definition: UnionTypeDefinition) {
         self.loc = loc
         self.definition = definition
+    }
+
+    public func get(key: String) -> NodeResult? {
+        definition.get(key: key)
     }
 }
 
@@ -2217,9 +2427,17 @@ public final class EnumExtensionDefinition {
     public let loc: Location?
     public let definition: EnumTypeDefinition
 
+    var name: Name {
+        return definition.name
+    }
+
     init(loc: Location? = nil, definition: EnumTypeDefinition) {
         self.loc = loc
         self.definition = definition
+    }
+
+    public func get(key: String) -> NodeResult? {
+        definition.get(key: key)
     }
 }
 
@@ -2234,9 +2452,17 @@ public final class InputObjectExtensionDefinition {
     public let loc: Location?
     public let definition: InputObjectTypeDefinition
 
+    var name: Name {
+        return definition.name
+    }
+
     init(loc: Location? = nil, definition: InputObjectTypeDefinition) {
         self.loc = loc
         self.definition = definition
+    }
+
+    public func get(key: String) -> NodeResult? {
+        definition.get(key: key)
     }
 }
 
@@ -2272,6 +2498,21 @@ public final class DirectiveDefinition {
         self.arguments = arguments
         self.locations = locations
         self.repeatable = repeatable
+    }
+
+    public func get(key: String) -> NodeResult? {
+        switch key {
+        case "description":
+            return description.map { .node($0) }
+        case "name":
+            return .node(name)
+        case "arguments":
+            return .array(arguments)
+        case "locations":
+            return .array(locations)
+        default:
+            return nil
+        }
     }
 }
 
