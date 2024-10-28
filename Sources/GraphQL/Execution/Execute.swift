@@ -969,21 +969,6 @@ func completeValue(
                 )
             }
 
-            // If field type is a TypeReference, find the type itself.
-            if
-                let returnType = returnType as? GraphQLTypeReference,
-                let referencedType = info.schema.typeMap[returnType.name]
-            {
-                return try completeValue(
-                    exeContext: exeContext,
-                    returnType: referencedType,
-                    fieldASTs: fieldASTs,
-                    info: info,
-                    path: path,
-                    result: .success(exeContext.eventLoopGroup.any().makeSucceededFuture(result))
-                )
-            }
-
             // Not reachable. All possible output types have been considered.
             throw GraphQLError(
                 message: "Cannot complete value of unexpected type \"\(returnType)\"."

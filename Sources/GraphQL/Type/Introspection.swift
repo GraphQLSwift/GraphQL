@@ -435,7 +435,6 @@ public enum TypeKind: String, Encodable {
     case inputObject = "INPUT_OBJECT"
     case list = "LIST"
     case nonNull = "NON_NULL"
-    case typeReference = "TYPE_REFERENCE"
 }
 
 let __TypeKind = try! GraphQLEnumType(

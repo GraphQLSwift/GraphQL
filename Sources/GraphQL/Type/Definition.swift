@@ -77,14 +77,6 @@ extension GraphQLObjectType: GraphQLCompositeType {}
 extension GraphQLInterfaceType: GraphQLCompositeType {}
 extension GraphQLUnionType: GraphQLCompositeType {}
 
-protocol GraphQLTypeReferenceContainer: GraphQLNamedType {
-    func replaceTypeReferences(typeMap: TypeMap) throws
-}
-
-extension GraphQLObjectType: GraphQLTypeReferenceContainer {}
-extension GraphQLInterfaceType: GraphQLTypeReferenceContainer {}
-extension GraphQLInputObjectType: GraphQLTypeReferenceContainer {}
-
 /**
  * These types may describe the parent context of a selection set.
  */
@@ -339,15 +331,6 @@ public final class GraphQLObjectType {
     func getInterfaces() throws -> [GraphQLInterfaceType] {
         return try interfaces()
     }
-
-    func replaceTypeReferences(typeMap: TypeMap) throws {
-        for field in try getFields() {
-            try field.value.replaceTypeReferences(typeMap: typeMap)
-        }
-        for interface in try getInterfaces() {
-            try interface.replaceTypeReferences(typeMap: typeMap)
-        }
-    }
 }
 
 extension GraphQLObjectType: CustomDebugStringConvertible {
@@ -570,18 +553,6 @@ public final class GraphQLFieldDefinition {
         self.astNode = astNode
     }
 
-    func replaceTypeReferences(typeMap: TypeMap) throws {
-        let resolvedType = try resolveTypeReference(type: type, typeMap: typeMap)
-
-        guard let outputType = resolvedType as? GraphQLOutputType else {
-            throw GraphQLError(
-                message: "Resolved type \"\(resolvedType)\" is not a valid output type."
-            )
-        }
-
-        type = outputType
-    }
-
     func toField() -> GraphQLField {
         return .init(
             type: type,
@@ -741,12 +712,6 @@ public final class GraphQLInterfaceType {
 
     func getInterfaces() throws -> [GraphQLInterfaceType] {
         return try interfaces()
-    }
-
-    func replaceTypeReferences(typeMap: TypeMap) throws {
-        for field in try getFields() {
-            try field.value.replaceTypeReferences(typeMap: typeMap)
-        }
     }
 }
 
@@ -1144,12 +1109,6 @@ public final class GraphQLInputObjectType {
             fields: fields()
         )
     }
-
-    func replaceTypeReferences(typeMap: TypeMap) throws {
-        for field in try getFields() {
-            try field.value.replaceTypeReferences(typeMap: typeMap)
-        }
-    }
 }
 
 extension GraphQLInputObjectType: CustomDebugStringConvertible {
@@ -1239,18 +1198,6 @@ public final class InputObjectFieldDefinition {
         self.deprecationReason = deprecationReason
         self.astNode = astNode
     }
-
-    func replaceTypeReferences(typeMap: TypeMap) throws {
-        let resolvedType = try resolveTypeReference(type: type, typeMap: typeMap)
-
-        guard let inputType = resolvedType as? GraphQLInputType else {
-            throw GraphQLError(
-                message: "Resolved type \"\(resolvedType)\" is not a valid input type."
-            )
-        }
-
-        type = inputType
-    }
 }
 
 public func isRequiredInputField(_ field: InputObjectFieldDefinition) -> Bool {
@@ -1288,18 +1235,8 @@ public final class GraphQLList {
         ofType = type
     }
 
-    @available(*, deprecated, message: "Just reference type directly.")
-    public init(_ name: String) {
-        ofType = GraphQLTypeReference(name)
-    }
-
     var wrappedType: GraphQLType {
         return ofType
-    }
-
-    func replaceTypeReferences(typeMap: TypeMap) throws -> GraphQLList {
-        let resolvedType = try resolveTypeReference(type: ofType, typeMap: typeMap)
-        return GraphQLList(resolvedType)
     }
 }
 
@@ -1354,25 +1291,8 @@ public final class GraphQLNonNull {
         ofType = type
     }
 
-    @available(*, deprecated, message: "Just reference type directly.")
-    public init(_ name: String) {
-        ofType = GraphQLTypeReference(name)
-    }
-
     var wrappedType: GraphQLType {
         return ofType
-    }
-
-    func replaceTypeReferences(typeMap: TypeMap) throws -> GraphQLNonNull {
-        let resolvedType = try resolveTypeReference(type: ofType, typeMap: typeMap)
-
-        guard let nullableType = resolvedType as? GraphQLNullableType else {
-            throw GraphQLError(
-                message: "Resolved type \"\(resolvedType)\" is not a valid nullable type."
-            )
-        }
-
-        return GraphQLNonNull(nullableType)
     }
 }
 
@@ -1389,27 +1309,5 @@ extension GraphQLNonNull: Hashable {
 
     public static func == (lhs: GraphQLNonNull, rhs: GraphQLNonNull) -> Bool {
         return lhs.hashValue == rhs.hashValue
-    }
-}
-
-/**
- * A special type to allow object/interface/input types to reference itself. It's replaced with the real type
- * object when the schema is built.
- */
-@available(*, deprecated, message: "Use `fields` closure to lazily reference types.")
-public final class GraphQLTypeReference: GraphQLType, GraphQLOutputType, GraphQLInputType,
-    GraphQLNullableType, GraphQLNamedType
-{
-    public let name: String
-    public let kind: TypeKind = .typeReference
-
-    public init(_ name: String) {
-        self.name = name
-    }
-}
-
-extension GraphQLTypeReference: CustomDebugStringConvertible {
-    public var debugDescription: String {
-        return name
     }
 }

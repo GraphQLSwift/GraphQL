@@ -153,30 +153,8 @@ class GraphQLSchemaTests: XCTestCase {
             ]
         )
 
-        let schema = try GraphQLSchema(query: query, types: [object1, object2])
-        for (_, graphQLNamedType) in schema.typeMap {
-            XCTAssertFalse(graphQLNamedType is GraphQLTypeReference)
-        }
-    }
-
-    func testAssertSchemaFailsWhenObjectNotDefined() throws {
-        let object1 = try GraphQLObjectType(
-            name: "Object1",
-            fields: [
-                "object2": GraphQLField(
-                    type: GraphQLTypeReference("Object2")
-                ),
-            ]
-        )
-        let query = try GraphQLObjectType(
-            name: "Query",
-            fields: [
-                "object1": GraphQLField(type: GraphQLTypeReference("Object1")),
-            ]
-        )
-
-        XCTAssertThrowsError(
-            _ = try GraphQLSchema(query: query, types: [object1])
+        XCTAssertNoThrow(
+            try GraphQLSchema(query: query, types: [object1, object2])
         )
     }
 }

@@ -104,7 +104,6 @@ public final class GraphQLSchema {
         }
 
         allReferencedTypes = try typeMapReducer(typeMap: allReferencedTypes, type: __Schema)
-        try replaceTypeReferences(typeMap: allReferencedTypes)
 
         // Storing the resulting map for reference by the schema.
         var typeMap = TypeMap()
@@ -326,26 +325,15 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
     }
 
     if let existingType = typeMap[type.name] {
-        if existingType is GraphQLTypeReference {
-            if type is GraphQLTypeReference {
-                // Just short circuit because they're both type references
-                return typeMap
-            }
-            // Otherwise, fall through and override the type reference
+        if !(existingType == type) {
+            throw GraphQLError(
+                message:
+                "Schema must contain unique named types but contains multiple " +
+                    "types named \"\(type.name)\"."
+            )
         } else {
-            if type is GraphQLTypeReference {
-                // Just ignore the reference and keep the concrete one
-                return typeMap
-            } else if !(existingType == type) {
-                throw GraphQLError(
-                    message:
-                    "Schema must contain unique named types but contains multiple " +
-                        "types named \"\(type.name)\"."
-                )
-            } else {
-                // Otherwise, it's already been defined so short circuit
-                return typeMap
-            }
+            // Otherwise, it's already been defined so short circuit
+            return typeMap
         }
     }
 
@@ -388,56 +376,6 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
     }
 
     return typeMap
-}
-
-func replaceTypeReferences(typeMap: TypeMap) throws {
-    for type in typeMap {
-        if let typeReferenceContainer = type.value as? GraphQLTypeReferenceContainer {
-            try typeReferenceContainer.replaceTypeReferences(typeMap: typeMap)
-        }
-    }
-
-    // Check that no type names map to TypeReferences. That is, they have all been resolved to
-    // actual types.
-    for (typeName, graphQLNamedType) in typeMap {
-        if graphQLNamedType is GraphQLTypeReference {
-            throw GraphQLError(
-                message: "Type \"\(typeName)\" was referenced but not defined."
-            )
-        }
-    }
-}
-
-func resolveTypeReference(type: GraphQLType, typeMap: TypeMap) throws -> GraphQLType {
-    if let type = type as? GraphQLTypeReference {
-        guard let resolvedType = typeMap[type.name] else {
-            throw GraphQLError(
-                message: "Type \"\(type.name)\" not found in schema."
-            )
-        }
-
-        return resolvedType
-    }
-
-    if let type = type as? GraphQLList {
-        return try type.replaceTypeReferences(typeMap: typeMap)
-    }
-
-    if let type = type as? GraphQLNonNull {
-        return try type.replaceTypeReferences(typeMap: typeMap)
-    }
-
-    return type
-}
-
-func resolveTypeReferences(types: [GraphQLType], typeMap: TypeMap) throws -> [GraphQLType] {
-    var resolvedTypes: [GraphQLType] = []
-
-    for type in types {
-        try resolvedTypes.append(resolveTypeReference(type: type, typeMap: typeMap))
-    }
-
-    return resolvedTypes
 }
 
 class GraphQLSchemaNormalizedConfig {
