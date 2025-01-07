@@ -62,7 +62,7 @@ public extension Instrumentation {
 }
 
 func threadId() -> Int {
-    #if os(Linux)
+    #if os(Linux) || os(Android)
         return Int(pthread_self())
     #else
         return Int(pthread_mach_thread_np(pthread_self()))

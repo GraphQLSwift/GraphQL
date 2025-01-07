@@ -2707,7 +2707,7 @@ private extension _MapDecoder {
     func unbox(_ value: Any, as type: Bool.Type) throws -> Bool? {
         guard !(value is NSNull) else { return nil }
 
-        #if DEPLOYMENT_RUNTIME_SWIFT || os(Linux)
+        #if DEPLOYMENT_RUNTIME_SWIFT || os(Linux) || os(Android)
             // Bridging differences require us to split implementations here
             guard let number = __SwiftValue.store(value) as? NSNumber else {
                 throw DecodingError._typeMismatch(at: codingPath, expectation: type, reality: value)
