@@ -279,7 +279,6 @@ public func graphqlSubscribe(
 
 // MARK: Async/Await
 
-@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
 /// This is the primary entry point function for fulfilling GraphQL operations
 /// by parsing, validating, and executing a GraphQL document along side a
 /// GraphQL schema.
@@ -315,6 +314,7 @@ public func graphqlSubscribe(
 /// `errors` if an error occurs only in a specific field. If that happens the value of that
 /// field will be `null` and there will be an error inside `errors` specifying the reason for
 /// the failure and the path of the failed field.
+@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
 public func graphql(
     queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
@@ -343,7 +343,6 @@ public func graphql(
     ).get()
 }
 
-@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
 /// This is the primary entry point function for fulfilling GraphQL subscription
 /// operations by parsing, validating, and executing a GraphQL subscription
 /// document along side a GraphQL schema.
@@ -382,6 +381,7 @@ public func graphql(
 /// If that happens the value of that field will be `null` and there
 /// will be an error inside `errors` specifying the reason for the failure and the path of the
 /// failed field.
+@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
 public func graphqlSubscribe(
     queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
