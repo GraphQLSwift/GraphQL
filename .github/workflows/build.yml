@@ -56,6 +56,14 @@ jobs:
         name: test-coverage-report
         path: .test-coverage
 
+  android:
+    name: Test on Android
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Test
+      uses: skiptools/swift-android-action@v2
+
   backcompat-ubuntu-22_04:
     name: Test Swift ${{ matrix.swift }} on Ubuntu 22.04
     runs-on: ubuntu-22.04
