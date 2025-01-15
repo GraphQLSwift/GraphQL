@@ -1,7 +1,7 @@
 import GraphQL
 
-@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
 /// A very simple publish/subscriber used for testing
+@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
 class SimplePubSub<T> {
     private var subscribers: [Subscriber<T>]
 

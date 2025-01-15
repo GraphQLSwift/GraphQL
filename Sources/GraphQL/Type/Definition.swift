@@ -877,10 +877,7 @@ public final class GraphQLEnumType {
         try assertValid(name: name)
         self.name = name
         self.description = description
-        self.values = try defineEnumValues(
-            name: name,
-            valueMap: values
-        )
+        self.values = try defineEnumValues(valueMap: values)
         self.astNode = astNode
         self.extensionASTNodes = extensionASTNodes
 
@@ -969,7 +966,6 @@ extension GraphQLEnumType: Hashable {
 }
 
 func defineEnumValues(
-    name: String,
     valueMap: GraphQLEnumValueMap
 ) throws -> [GraphQLEnumValueDefinition] {
     var definitions: [GraphQLEnumValueDefinition] = []
