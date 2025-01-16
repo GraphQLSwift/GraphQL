@@ -28,11 +28,11 @@ class SubscriptionTests: XCTestCase {
               }
         """
 
-        let subscriptionResult = try graphqlSubscribe(
+        let subscriptionResult = try await graphqlSubscribe(
             schema: schema,
             request: query,
             eventLoopGroup: eventLoopGroup
-        ).wait()
+        ).get()
         guard let subscription = subscriptionResult.stream else {
             XCTFail(subscriptionResult.errors.description)
             return
@@ -653,7 +653,7 @@ class SubscriptionTests: XCTestCase {
                 ]]
             )
         )
-        wait(for: [expectation], timeout: timeoutDuration)
+        await fulfillment(of: [expectation], timeout: timeoutDuration)
         XCTAssertEqual(results, expected)
 
         // Low priority email shouldn't trigger an event
@@ -666,7 +666,7 @@ class SubscriptionTests: XCTestCase {
             unread: true,
             priority: 2
         ))
-        wait(for: [expectation], timeout: timeoutDuration)
+        await fulfillment(of: [expectation], timeout: timeoutDuration)
         XCTAssertEqual(results, expected)
 
         // Higher priority one should trigger again
@@ -692,7 +692,7 @@ class SubscriptionTests: XCTestCase {
                 ]]
             )
         )
-        wait(for: [expectation], timeout: timeoutDuration)
+        await fulfillment(of: [expectation], timeout: timeoutDuration)
         XCTAssertEqual(results, expected)
 
         // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
@@ -754,7 +754,7 @@ class SubscriptionTests: XCTestCase {
                 ]]
             )
         )
-        wait(for: [expectation], timeout: timeoutDuration)
+        await fulfillment(of: [expectation], timeout: timeoutDuration)
         XCTAssertEqual(results, expected)
 
         db.stop()
@@ -770,7 +770,7 @@ class SubscriptionTests: XCTestCase {
         ))
 
         // Ensure that the current result was the one before the db was stopped
-        wait(for: [expectation], timeout: timeoutDuration)
+        await fulfillment(of: [expectation], timeout: timeoutDuration)
         XCTAssertEqual(results, expected)
 
         // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
@@ -917,7 +917,7 @@ class SubscriptionTests: XCTestCase {
                 ]]
             )
         )
-        wait(for: [expectation], timeout: timeoutDuration)
+        await fulfillment(of: [expectation], timeout: timeoutDuration)
         XCTAssertEqual(results, expected)
 
         expectation = XCTestExpectation()
@@ -936,7 +936,7 @@ class SubscriptionTests: XCTestCase {
                 ]
             )
         )
-        wait(for: [expectation], timeout: timeoutDuration)
+        await fulfillment(of: [expectation], timeout: timeoutDuration)
         XCTAssertEqual(results, expected)
 
         expectation = XCTestExpectation()
@@ -957,7 +957,7 @@ class SubscriptionTests: XCTestCase {
                 ]]
             )
         )
-        wait(for: [expectation], timeout: timeoutDuration)
+        await fulfillment(of: [expectation], timeout: timeoutDuration)
         XCTAssertEqual(results, expected)
 
         // So that the Task won't immediately be cancelled since the ConcurrentEventStream is

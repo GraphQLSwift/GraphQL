@@ -89,8 +89,8 @@ extension Future {
 
 public protocol FutureType {
     associatedtype Expectation
-    func whenSuccess(_ callback: @escaping (Expectation) -> Void)
-    func whenFailure(_ callback: @escaping (Error) -> Void)
+    func whenSuccess(_ callback: @escaping @Sendable (Expectation) -> Void)
+    func whenFailure(_ callback: @escaping @Sendable (Error) -> Void)
     func map<NewValue>(
         file: StaticString,
         line: UInt,
