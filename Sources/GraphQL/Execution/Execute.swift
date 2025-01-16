@@ -149,6 +149,7 @@ public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy,
  *
  * Each field is resolved as an individual task on a concurrent dispatch queue.
  */
+@available(*, deprecated, message: "Use ConcurrentFieldExecutionStrategy instead")
 public struct ConcurrentDispatchFieldExecutionStrategy: QueryFieldExecutionStrategy,
     SubscriptionFieldExecutionStrategy
 {
@@ -220,6 +221,37 @@ public struct ConcurrentDispatchFieldExecutionStrategy: QueryFieldExecutionStrat
             throw error
         }
 
+        return results.compactMapValues { $0 }.flatten(on: exeContext.eventLoopGroup)
+    }
+}
+
+/**
+ * Serial field execution strategy that's suitable for the "Evaluating selection sets" section of the spec for "read" mode.
+ */
+public struct ConcurrentFieldExecutionStrategy: QueryFieldExecutionStrategy,
+SubscriptionFieldExecutionStrategy {
+    public init() {}
+
+    public func executeFields(
+        exeContext: ExecutionContext,
+        parentType: GraphQLObjectType,
+        sourceValue: Any,
+        path: IndexPath,
+        fields: OrderedDictionary<String, [Field]>
+    ) throws -> Future<OrderedDictionary<String, Any>> {
+        var results = OrderedDictionary<String, Future<Any>?>(minimumCapacity: fields.count)
+        for field in fields {
+            let fieldASTs = field.value
+            let fieldKey = field.key
+            let fieldPath = path.appending(fieldKey)
+            results[fieldKey] = try resolveField(
+                exeContext: exeContext,
+                parentType: parentType,
+                source: sourceValue,
+                fieldASTs: fieldASTs,
+                path: fieldPath
+            ).map { $0 ?? Map.null }
+        }
         return results.compactMapValues { $0 }.flatten(on: exeContext.eventLoopGroup)
     }
 }

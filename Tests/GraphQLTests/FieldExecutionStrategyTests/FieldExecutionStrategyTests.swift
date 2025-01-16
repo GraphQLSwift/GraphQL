@@ -313,4 +313,49 @@ class FieldExecutionStrategyTests: XCTestCase {
         }
         // XCTAssertEqualWithAccuracy(0.1, result.seconds, accuracy: 0.25)
     }
+
+    func testConcurrentFieldExecutionStrategyWithSingleField() throws {
+        let result = try timing(graphql(
+            queryStrategy: ConcurrentFieldExecutionStrategy(),
+            schema: schema,
+            request: singleQuery,
+            eventLoopGroup: eventLoopGroup
+        ).wait())
+        XCTAssertEqual(result.value, singleExpected)
+    }
+
+    func testConcurrentFieldExecutionStrategyWithSingleFieldError() throws {
+        let result = try timing(graphql(
+            queryStrategy: ConcurrentFieldExecutionStrategy(),
+            schema: schema,
+            request: singleThrowsQuery,
+            eventLoopGroup: eventLoopGroup
+        ).wait())
+        XCTAssertEqual(result.value, singleThrowsExpected)
+    }
+
+    func testConcurrentFieldExecutionStrategyWithMultipleFields() throws {
+        let result = try timing(graphql(
+            queryStrategy: ConcurrentFieldExecutionStrategy(),
+            schema: schema,
+            request: multiQuery,
+            eventLoopGroup: eventLoopGroup
+        ).wait())
+        XCTAssertEqual(result.value, multiExpected)
+    }
+
+    func testConcurrentFieldExecutionStrategyWithMultipleFieldErrors() throws {
+        let result = try timing(graphql(
+            queryStrategy: ConcurrentFieldExecutionStrategy(),
+            schema: schema,
+            request: multiThrowsQuery,
+            eventLoopGroup: eventLoopGroup
+        ).wait())
+        XCTAssertEqual(result.value.data, multiThrowsExpectedData)
+        let resultErrors = result.value.errors
+        XCTAssertEqual(resultErrors.count, multiThrowsExpectedErrors.count)
+        for m in multiThrowsExpectedErrors {
+            XCTAssertTrue(resultErrors.contains(m), "Expecting result errors to contain \(m)")
+        }
+    }
 }
