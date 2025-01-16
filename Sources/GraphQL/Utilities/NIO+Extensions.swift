@@ -17,16 +17,6 @@ public extension Collection {
     }
 }
 
-extension Collection {
-    func flatMap<S, T>(
-        to _: T.Type,
-        on eventLoopGroup: EventLoopGroup,
-        _ callback: @escaping ([S]) throws -> Future<T>
-    ) -> Future<T> where Element == Future<S> {
-        return flatten(on: eventLoopGroup).flatMap(to: T.self, callback)
-    }
-}
-
 extension Dictionary where Value: FutureType {
     func flatten(on eventLoopGroup: EventLoopGroup) -> Future<[Key: Value.Expectation]> {
         // create array of futures with (key,value) tuple
@@ -60,30 +50,6 @@ extension OrderedDictionary where Value: FutureType {
                 }
                 return result
             }
-    }
-}
-
-extension Future {
-    func flatMap<T>(
-        to _: T.Type = T.self,
-        _ callback: @escaping (Expectation) throws -> Future<T>
-    ) -> Future<T> {
-        let promise = eventLoop.makePromise(of: T.self)
-
-        whenSuccess { expectation in
-            do {
-                let mapped = try callback(expectation)
-                mapped.cascade(to: promise)
-            } catch {
-                promise.fail(error)
-            }
-        }
-
-        whenFailure { error in
-            promise.fail(error)
-        }
-
-        return promise.futureResult
     }
 }
 
