@@ -148,7 +148,7 @@ class InstrumentationTests: XCTestCase, Instrumentation {
     }
 
     func testInstrumentationCalls() throws {
-//        #if os(Linux)
+//        #if os(Linux) || os(Android)
 //        expectedThreadId = Int(pthread_self())
 //        #else
 //        expectedThreadId = Int(pthread_mach_thread_np(pthread_self()))
@@ -172,7 +172,7 @@ class InstrumentationTests: XCTestCase, Instrumentation {
 
     func testDispatchQueueInstrumentationWrapper() throws {
 //        let dispatchGroup = DispatchGroup()
-//        #if os(Linux)
+//        #if os(Linux) || os(Android)
 //        expectedThreadId = Int(pthread_self())
 //        #else
 //        expectedThreadId = Int(pthread_mach_thread_np(pthread_self()))
