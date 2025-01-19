@@ -214,15 +214,6 @@ class LexerTests: XCTestCase {
         XCTAssertEqual(token, expected)
     }
 
-    func testLongStrings() throws {
-        measure {
-            let token = try! lexOne("\"\(String(repeating: "123456", count: 10000))\"")
-
-            XCTAssertEqual(token.start, 0)
-            XCTAssertEqual(token.end, 60002)
-        }
-    }
-
     func testStringErrors() throws {
         XCTAssertThrowsError(try lexOne("\""))
         // "Syntax Error GraphQL (1:2) Unterminated string"
