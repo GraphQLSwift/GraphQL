@@ -919,7 +919,7 @@ func completeValue(
             }
         }
 
-        return result.flatMap(to: Any?.self) { result -> Future<Any?> in
+        return result.tryFlatMap { result throws -> Future<Any?> in
             // If result value is null-ish (nil or .null) then return .null.
             guard let result = result, let r = unwrap(result) else {
                 return exeContext.eventLoopGroup.next().makeSucceededFuture(nil)

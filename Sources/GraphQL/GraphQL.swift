@@ -1,6 +1,6 @@
 import NIO
 
-public struct GraphQLResult: Equatable, Codable, CustomStringConvertible {
+public struct GraphQLResult: Equatable, Codable, Sendable, CustomStringConvertible {
     public var data: Map?
     public var errors: [GraphQLError]
 

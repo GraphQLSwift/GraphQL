@@ -11,7 +11,7 @@ public enum MapError: Error {
 
 // MARK: Map
 
-public enum Map {
+public enum Map: Sendable {
     case undefined
     case null
     case bool(Bool)
@@ -600,7 +600,7 @@ public extension Map {
     }
 }
 
-extension String: CodingKey {
+extension Swift.String: Swift.CodingKey {
     public var stringValue: String {
         return self
     }

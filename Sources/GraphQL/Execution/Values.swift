@@ -88,7 +88,7 @@ func getVariableValue(
     definitionAST: VariableDefinition,
     input: Map
 ) throws -> Map {
-    var type = typeFromAST(schema: schema, inputTypeAST: definitionAST.type)
+    let type = typeFromAST(schema: schema, inputTypeAST: definitionAST.type)
     let variable = definitionAST.variable
 
     guard let inputType = type as? GraphQLInputType else {

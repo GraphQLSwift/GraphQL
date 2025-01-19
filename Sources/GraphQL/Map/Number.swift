@@ -1,7 +1,7 @@
-import Foundation
+@preconcurrency import Foundation
 
-public struct Number {
-    public enum StorageType {
+public struct Number: Sendable {
+    public enum StorageType: Sendable {
         case bool
         case int
         case double
