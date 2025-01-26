@@ -193,10 +193,6 @@ func createSubscription(
     variableValues: [String: Map] = [:]
 ) throws -> SubscriptionEventStream {
     let result = try graphqlSubscribe(
-        queryStrategy: SerialFieldExecutionStrategy(),
-        mutationStrategy: SerialFieldExecutionStrategy(),
-        subscriptionStrategy: SerialFieldExecutionStrategy(),
-        instrumentation: NoOpInstrumentation,
         schema: schema,
         request: query,
         rootValue: (),
