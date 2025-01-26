@@ -66,11 +66,6 @@ public typealias SubscriptionEventStream = EventStream<Future<GraphQLResult>>
 /// may wish to separate the validation and execution phases to a static time
 /// tooling step, and a server runtime step.
 ///
-/// - parameter queryStrategy:        The field execution strategy to use for query requests
-/// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
-/// - parameter subscriptionStrategy: The field execution strategy to use for subscription requests
-/// - parameter instrumentation:      The instrumentation implementation to call during the parsing,
-/// validating, execution, and field resolution stages.
 /// - parameter schema:               The GraphQL type system to use when validating and executing a
 /// query.
 /// - parameter request:              A GraphQL language formatted string representing the requested
@@ -92,9 +87,40 @@ public typealias SubscriptionEventStream = EventStream<Future<GraphQLResult>>
 /// and there will be an error inside `errors` specifying the reason for the failure and the path of
 /// the failed field.
 public func graphql(
-    queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
+    schema: GraphQLSchema,
+    request: String,
+    rootValue: Any = (),
+    context: Any = (),
+    eventLoopGroup: EventLoopGroup,
+    variableValues: [String: Map] = [:],
+    operationName: String? = nil,
+    validationRules: [(ValidationContext) -> Visitor] = []
+) throws -> Future<GraphQLResult> {
+    return try graphql(
+        queryStrategy: ConcurrentFieldExecutionStrategy(),
+        mutationStrategy: SerialFieldExecutionStrategy(),
+        subscriptionStrategy: ConcurrentFieldExecutionStrategy(),
+        instrumentation: NoOpInstrumentation,
+        validationRules: validationRules,
+        schema: schema,
+        request: request,
+        rootValue: rootValue,
+        context: context,
+        eventLoopGroup: eventLoopGroup,
+        variableValues: variableValues,
+        operationName: operationName
+    )
+}
+
+@available(
+    *,
+    deprecated,
+    message: "Specifying exeuction strategies and instrumentation will be removed in a future version."
+)
+public func graphql(
+    queryStrategy: QueryFieldExecutionStrategy = ConcurrentFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
+    subscriptionStrategy: SubscriptionFieldExecutionStrategy = ConcurrentFieldExecutionStrategy(),
     instrumentation: Instrumentation = NoOpInstrumentation,
     validationRules: [(ValidationContext) -> Visitor] = [],
     schema: GraphQLSchema,
@@ -161,9 +187,38 @@ public func graphql(
 /// and there will be an error inside `errors` specifying the reason for the failure and the path of
 /// the failed field.
 public func graphql<Retrieval: PersistedQueryRetrieval>(
-    queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
+    queryRetrieval: Retrieval,
+    queryId: Retrieval.Id,
+    rootValue: Any = (),
+    context: Any = (),
+    eventLoopGroup: EventLoopGroup,
+    variableValues: [String: Map] = [:],
+    operationName: String? = nil
+) throws -> Future<GraphQLResult> {
+    return try graphql(
+        queryStrategy: ConcurrentFieldExecutionStrategy(),
+        mutationStrategy: SerialFieldExecutionStrategy(),
+        subscriptionStrategy: ConcurrentFieldExecutionStrategy(),
+        instrumentation: NoOpInstrumentation,
+        queryRetrieval: queryRetrieval,
+        queryId: queryId,
+        rootValue: rootValue,
+        context: context,
+        eventLoopGroup: eventLoopGroup,
+        variableValues: variableValues,
+        operationName: operationName
+    )
+}
+
+@available(
+    *,
+    deprecated,
+    message: "Specifying exeuction strategies and instrumentation will be removed in a future version."
+)
+public func graphql<Retrieval: PersistedQueryRetrieval>(
+    queryStrategy: QueryFieldExecutionStrategy = ConcurrentFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
+    subscriptionStrategy: SubscriptionFieldExecutionStrategy = ConcurrentFieldExecutionStrategy(),
     instrumentation: Instrumentation = NoOpInstrumentation,
     queryRetrieval: Retrieval,
     queryId: Retrieval.Id,
@@ -235,9 +290,40 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
 /// will be an error inside `errors` specifying the reason for the failure and the path of the
 /// failed field.
 public func graphqlSubscribe(
-    queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
+    schema: GraphQLSchema,
+    request: String,
+    rootValue: Any = (),
+    context: Any = (),
+    eventLoopGroup: EventLoopGroup,
+    variableValues: [String: Map] = [:],
+    operationName: String? = nil,
+    validationRules: [(ValidationContext) -> Visitor] = []
+) throws -> Future<SubscriptionResult> {
+    return try graphqlSubscribe(
+        queryStrategy: ConcurrentFieldExecutionStrategy(),
+        mutationStrategy: SerialFieldExecutionStrategy(),
+        subscriptionStrategy: ConcurrentFieldExecutionStrategy(),
+        instrumentation: NoOpInstrumentation,
+        validationRules: validationRules,
+        schema: schema,
+        request: request,
+        rootValue: rootValue,
+        context: context,
+        eventLoopGroup: eventLoopGroup,
+        variableValues: variableValues,
+        operationName: operationName
+    )
+}
+
+@available(
+    *,
+    deprecated,
+    message: "Specifying exeuction strategies and instrumentation will be removed in a future version."
+)
+public func graphqlSubscribe(
+    queryStrategy: QueryFieldExecutionStrategy = ConcurrentFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
+    subscriptionStrategy: SubscriptionFieldExecutionStrategy = ConcurrentFieldExecutionStrategy(),
     instrumentation: Instrumentation = NoOpInstrumentation,
     validationRules: [(ValidationContext) -> Visitor] = [],
     schema: GraphQLSchema,
@@ -316,9 +402,35 @@ public func graphqlSubscribe(
 /// the failure and the path of the failed field.
 @available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
 public func graphql(
-    queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
+    schema: GraphQLSchema,
+    request: String,
+    rootValue: Any = (),
+    context: Any = (),
+    eventLoopGroup: EventLoopGroup,
+    variableValues: [String: Map] = [:],
+    operationName: String? = nil
+) async throws -> GraphQLResult {
+    return try await graphql(
+        schema: schema,
+        request: request,
+        rootValue: rootValue,
+        context: context,
+        eventLoopGroup: eventLoopGroup,
+        variableValues: variableValues,
+        operationName: operationName
+    ).get()
+}
+
+@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
+@available(
+    *,
+    deprecated,
+    message: "Specifying exeuction strategies and instrumentation will be removed in a future version."
+)
+public func graphql(
+    queryStrategy: QueryFieldExecutionStrategy = ConcurrentFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
+    subscriptionStrategy: SubscriptionFieldExecutionStrategy = ConcurrentFieldExecutionStrategy(),
     instrumentation: Instrumentation = NoOpInstrumentation,
     schema: GraphQLSchema,
     request: String,
@@ -383,9 +495,35 @@ public func graphql(
 /// failed field.
 @available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
 public func graphqlSubscribe(
-    queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
+    schema: GraphQLSchema,
+    request: String,
+    rootValue: Any = (),
+    context: Any = (),
+    eventLoopGroup: EventLoopGroup,
+    variableValues: [String: Map] = [:],
+    operationName: String? = nil
+) async throws -> SubscriptionResult {
+    return try await graphqlSubscribe(
+        schema: schema,
+        request: request,
+        rootValue: rootValue,
+        context: context,
+        eventLoopGroup: eventLoopGroup,
+        variableValues: variableValues,
+        operationName: operationName
+    ).get()
+}
+
+@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
+@available(
+    *,
+    deprecated,
+    message: "Specifying exeuction strategies and instrumentation will be removed in a future version."
+)
+public func graphqlSubscribe(
+    queryStrategy: QueryFieldExecutionStrategy = ConcurrentFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
+    subscriptionStrategy: SubscriptionFieldExecutionStrategy = ConcurrentFieldExecutionStrategy(),
     instrumentation: Instrumentation = NoOpInstrumentation,
     schema: GraphQLSchema,
     request: String,
