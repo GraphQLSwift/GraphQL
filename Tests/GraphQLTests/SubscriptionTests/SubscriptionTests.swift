@@ -28,11 +28,11 @@ class SubscriptionTests: XCTestCase {
               }
         """
 
-        let subscriptionResult = try graphqlSubscribe(
+        let subscriptionResult = try await graphqlSubscribe(
             schema: schema,
             request: query,
             eventLoopGroup: eventLoopGroup
-        ).wait()
+        ).get()
         guard let subscription = subscriptionResult.stream else {
             XCTFail(subscriptionResult.errors.description)
             return
