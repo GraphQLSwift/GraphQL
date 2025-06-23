@@ -1,4 +1,3 @@
-import NIO
 
 public struct GraphQLResult: Equatable, Codable, Sendable, CustomStringConvertible {
     public var data: Map?
@@ -56,7 +55,7 @@ public struct SubscriptionResult {
 
 /// SubscriptionObservable represents an event stream of fully resolved GraphQL subscription
 /// results. Subscribers can be added to this stream.
-public typealias SubscriptionEventStream = EventStream<Future<GraphQLResult>>
+public typealias SubscriptionEventStream = EventStream<GraphQLResult>
 
 /// This is the primary entry point function for fulfilling GraphQL operations
 /// by parsing, validating, and executing a GraphQL document along side a
@@ -101,10 +100,9 @@ public func graphql(
     request: String,
     rootValue: Any = (),
     context: Any = (),
-    eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) throws -> Future<GraphQLResult> {
+) async throws -> GraphQLResult {
     let source = Source(body: request, name: "GraphQL request")
     let documentAST = try parse(instrumentation: instrumentation, source: source)
     let validationErrors = validate(
@@ -115,10 +113,10 @@ public func graphql(
     )
 
     guard validationErrors.isEmpty else {
-        return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: validationErrors))
+        return GraphQLResult(errors: validationErrors)
     }
 
-    return execute(
+    return try await execute(
         queryStrategy: queryStrategy,
         mutationStrategy: mutationStrategy,
         subscriptionStrategy: subscriptionStrategy,
@@ -127,7 +125,6 @@ public func graphql(
         documentAST: documentAST,
         rootValue: rootValue,
         context: context,
-        eventLoopGroup: eventLoopGroup,
         variableValues: variableValues,
         operationName: operationName
     )
@@ -169,19 +166,18 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
     queryId: Retrieval.Id,
     rootValue: Any = (),
     context: Any = (),
-    eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) throws -> Future<GraphQLResult> {
+) async throws -> GraphQLResult {
     switch try queryRetrieval.lookup(queryId) {
     case .unknownId:
         throw GraphQLError(message: "Unknown query id")
     case let .parseError(parseError):
         throw parseError
     case let .validateErrors(_, validationErrors):
-        return eventLoopGroup.next().makeSucceededFuture(GraphQLResult(errors: validationErrors))
+        return GraphQLResult(errors: validationErrors)
     case let .result(schema, documentAST):
-        return execute(
+        return try await execute(
             queryStrategy: queryStrategy,
             mutationStrategy: mutationStrategy,
             subscriptionStrategy: subscriptionStrategy,
@@ -190,7 +186,6 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
             documentAST: documentAST,
             rootValue: rootValue,
             context: context,
-            eventLoopGroup: eventLoopGroup,
             variableValues: variableValues,
             operationName: operationName
         )
@@ -244,10 +239,9 @@ public func graphqlSubscribe(
     request: String,
     rootValue: Any = (),
     context: Any = (),
-    eventLoopGroup: EventLoopGroup,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) throws -> Future<SubscriptionResult> {
+) async throws -> SubscriptionResult {
     let source = Source(body: request, name: "GraphQL Subscription request")
     let documentAST = try parse(instrumentation: instrumentation, source: source)
     let validationErrors = validate(
@@ -258,11 +252,10 @@ public func graphqlSubscribe(
     )
 
     guard validationErrors.isEmpty else {
-        return eventLoopGroup.next()
-            .makeSucceededFuture(SubscriptionResult(errors: validationErrors))
+        return SubscriptionResult(errors: validationErrors)
     }
 
-    return subscribe(
+    return try await subscribe(
         queryStrategy: queryStrategy,
         mutationStrategy: mutationStrategy,
         subscriptionStrategy: subscriptionStrategy,
@@ -271,141 +264,7 @@ public func graphqlSubscribe(
         documentAST: documentAST,
         rootValue: rootValue,
         context: context,
-        eventLoopGroup: eventLoopGroup,
         variableValues: variableValues,
         operationName: operationName
     )
-}
-
-// MARK: Async/Await
-
-/// This is the primary entry point function for fulfilling GraphQL operations
-/// by parsing, validating, and executing a GraphQL document along side a
-/// GraphQL schema.
-///
-/// More sophisticated GraphQL servers, such as those which persist queries,
-/// may wish to separate the validation and execution phases to a static time
-/// tooling step, and a server runtime step.
-///
-/// - parameter queryStrategy:        The field execution strategy to use for query requests
-/// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
-/// - parameter subscriptionStrategy: The field execution strategy to use for subscription
-/// requests
-/// - parameter instrumentation:      The instrumentation implementation to call during the
-/// parsing, validating, execution, and field resolution stages.
-/// - parameter schema:               The GraphQL type system to use when validating and
-/// executing a query.
-/// - parameter request:              A GraphQL language formatted string representing the
-/// requested operation.
-/// - parameter rootValue:            The value provided as the first argument to resolver
-/// functions on the top level type (e.g. the query object type).
-/// - parameter contextValue:         A context value provided to all resolver functions
-/// functions
-/// - parameter variableValues:       A mapping of variable name to runtime value to use for all
-/// variables defined in the `request`.
-/// - parameter operationName:        The name of the operation to use if `request` contains
-/// multiple possible operations. Can be omitted if `request` contains only one operation.
-///
-/// - throws: throws GraphQLError if an error occurs while parsing the `request`.
-///
-/// - returns: returns a `Map` dictionary containing the result of the query inside the key
-/// `data` and any validation or execution errors inside the key `errors`. The value of `data`
-/// might be `null` if, for example, the query is invalid. It's possible to have both `data` and
-/// `errors` if an error occurs only in a specific field. If that happens the value of that
-/// field will be `null` and there will be an error inside `errors` specifying the reason for
-/// the failure and the path of the failed field.
-@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
-public func graphql(
-    queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    instrumentation: Instrumentation = NoOpInstrumentation,
-    schema: GraphQLSchema,
-    request: String,
-    rootValue: Any = (),
-    context: Any = (),
-    eventLoopGroup: EventLoopGroup,
-    variableValues: [String: Map] = [:],
-    operationName: String? = nil
-) async throws -> GraphQLResult {
-    return try await graphql(
-        queryStrategy: queryStrategy,
-        mutationStrategy: mutationStrategy,
-        subscriptionStrategy: subscriptionStrategy,
-        instrumentation: instrumentation,
-        schema: schema,
-        request: request,
-        rootValue: rootValue,
-        context: context,
-        eventLoopGroup: eventLoopGroup,
-        variableValues: variableValues,
-        operationName: operationName
-    ).get()
-}
-
-/// This is the primary entry point function for fulfilling GraphQL subscription
-/// operations by parsing, validating, and executing a GraphQL subscription
-/// document along side a GraphQL schema.
-///
-/// More sophisticated GraphQL servers, such as those which persist queries,
-/// may wish to separate the validation and execution phases to a static time
-/// tooling step, and a server runtime step.
-///
-/// - parameter queryStrategy:        The field execution strategy to use for query requests
-/// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
-/// - parameter subscriptionStrategy: The field execution strategy to use for subscription
-/// requests
-/// - parameter instrumentation:      The instrumentation implementation to call during the
-/// parsing, validating, execution, and field resolution stages.
-/// - parameter schema:               The GraphQL type system to use when validating and
-/// executing a query.
-/// - parameter request:              A GraphQL language formatted string representing the
-/// requested operation.
-/// - parameter rootValue:            The value provided as the first argument to resolver
-/// functions on the top level type (e.g. the query object type).
-/// - parameter contextValue:         A context value provided to all resolver functions
-/// - parameter variableValues:       A mapping of variable name to runtime value to use for all
-/// variables defined in the `request`.
-/// - parameter operationName:        The name of the operation to use if `request` contains
-/// multiple possible operations. Can be omitted if `request` contains only one operation.
-///
-/// - throws: throws GraphQLError if an error occurs while parsing the `request`.
-///
-/// - returns: returns a SubscriptionResult containing the subscription observable inside the
-/// key `observable` and any validation or execution errors inside the key `errors`. The
-/// value of `observable` might be `null` if, for example, the query is invalid. It's not
-/// possible to have both `observable` and `errors`. The observable payloads are
-/// GraphQLResults which contain the result of the query inside the key `data` and any
-/// validation or execution errors inside the key `errors`. The value of `data` might be `null`.
-/// It's possible to have both `data` and `errors` if an error occurs only in a specific field.
-/// If that happens the value of that field will be `null` and there
-/// will be an error inside `errors` specifying the reason for the failure and the path of the
-/// failed field.
-@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
-public func graphqlSubscribe(
-    queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    instrumentation: Instrumentation = NoOpInstrumentation,
-    schema: GraphQLSchema,
-    request: String,
-    rootValue: Any = (),
-    context: Any = (),
-    eventLoopGroup: EventLoopGroup,
-    variableValues: [String: Map] = [:],
-    operationName: String? = nil
-) async throws -> SubscriptionResult {
-    return try await graphqlSubscribe(
-        queryStrategy: queryStrategy,
-        mutationStrategy: mutationStrategy,
-        subscriptionStrategy: subscriptionStrategy,
-        instrumentation: instrumentation,
-        schema: schema,
-        request: request,
-        rootValue: rootValue,
-        context: context,
-        eventLoopGroup: eventLoopGroup,
-        variableValues: variableValues,
-        operationName: operationName
-    ).get()
 }

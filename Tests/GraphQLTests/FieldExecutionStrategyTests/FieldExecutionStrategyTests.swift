@@ -1,6 +1,5 @@
 import Dispatch
 @testable import GraphQL
-import NIO
 import XCTest
 
 class FieldExecutionStrategyTests: XCTestCase {
@@ -14,16 +13,14 @@ class FieldExecutionStrategyTests: XCTestCase {
             fields: [
                 "sleep": GraphQLField(
                     type: GraphQLString,
-                    resolve: { _, _, _, eventLoopGroup, _ in
-                        eventLoopGroup.next().makeSucceededVoidFuture().map {
-                            Thread.sleep(forTimeInterval: 0.1)
-                            return "z"
-                        }
+                    resolve: { _, _, _, _ in
+                        Thread.sleep(forTimeInterval: 0.1)
+                        return "z"
                     }
                 ),
                 "bang": GraphQLField(
                     type: GraphQLString,
-                    resolve: { (_, _, _, _, info: GraphQLResolveInfo) in
+                    resolve: { (_, _, _, info: GraphQLResolveInfo) in
                         let group = DispatchGroup()
                         group.enter()
 
@@ -40,7 +37,7 @@ class FieldExecutionStrategyTests: XCTestCase {
                 ),
                 "futureBang": GraphQLField(
                     type: GraphQLString,
-                    resolve: { (_, _, _, eventLoopGroup, info: GraphQLResolveInfo) in
+                    resolve: { (_, _, _, info: GraphQLResolveInfo) in
                         let g = DispatchGroup()
                         g.enter()
 
@@ -50,9 +47,9 @@ class FieldExecutionStrategyTests: XCTestCase {
 
                         g.wait()
 
-                        return eventLoopGroup.next().makeFailedFuture(StrategyError.exampleError(
+                        throw StrategyError.exampleError(
                             msg: "\(info.fieldName): \(info.path.elements.last!)"
-                        ))
+                        )
                     }
                 ),
             ]
@@ -184,9 +181,10 @@ class FieldExecutionStrategyTests: XCTestCase {
         ),
     ]
 
-    func timing<T>(_ block: @autoclosure () throws -> T) throws -> (value: T, seconds: Double) {
+    func timing<T>(_ block: @autoclosure () async throws -> T) async throws
+    -> (value: T, seconds: Double) {
         let start = DispatchTime.now()
-        let value = try block()
+        let value = try await block()
         let nanoseconds = DispatchTime.now().uptimeNanoseconds - start.uptimeNanoseconds
         let seconds = Double(nanoseconds) / 1_000_000_000
         return (
@@ -195,67 +193,52 @@ class FieldExecutionStrategyTests: XCTestCase {
         )
     }
 
-    private var eventLoopGroup: EventLoopGroup!
-
-    override func setUp() {
-        eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-    }
-
-    override func tearDown() {
-        XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-    }
-
-    func testSerialFieldExecutionStrategyWithSingleField() throws {
-        let result = try timing(graphql(
+    func testSerialFieldExecutionStrategyWithSingleField() async throws {
+        let result = try await timing(await graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
             schema: schema,
-            request: singleQuery,
-            eventLoopGroup: eventLoopGroup
-        ).wait())
+            request: singleQuery
+        ))
         XCTAssertEqual(result.value, singleExpected)
         // XCTAssertEqualWithAccuracy(0.1, result.seconds, accuracy: 0.25)
     }
 
-    func testSerialFieldExecutionStrategyWithSingleFieldError() throws {
-        let result = try timing(graphql(
+    func testSerialFieldExecutionStrategyWithSingleFieldError() async throws {
+        let result = try await timing(await graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
             schema: schema,
-            request: singleThrowsQuery,
-            eventLoopGroup: eventLoopGroup
-        ).wait())
+            request: singleThrowsQuery
+        ))
         XCTAssertEqual(result.value, singleThrowsExpected)
         // XCTAssertEqualWithAccuracy(0.1, result.seconds, accuracy: 0.25)
     }
 
-    func testSerialFieldExecutionStrategyWithSingleFieldFailedFuture() throws {
-        let result = try timing(graphql(
+    func testSerialFieldExecutionStrategyWithSingleFieldFailedFuture() async throws {
+        let result = try await timing(await graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
             schema: schema,
-            request: singleFailedFutureQuery,
-            eventLoopGroup: eventLoopGroup
-        ).wait())
+            request: singleFailedFutureQuery
+        ))
         XCTAssertEqual(result.value, singleFailedFutureExpected)
         // XCTAssertEqualWithAccuracy(0.1, result.seconds, accuracy: 0.25)
     }
 
-    func testSerialFieldExecutionStrategyWithMultipleFields() throws {
-        let result = try timing(graphql(
+    func testSerialFieldExecutionStrategyWithMultipleFields() async throws {
+        let result = try await timing(await graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
             schema: schema,
-            request: multiQuery,
-            eventLoopGroup: eventLoopGroup
-        ).wait())
+            request: multiQuery
+        ))
         XCTAssertEqual(result.value, multiExpected)
 //        XCTAssertEqualWithAccuracy(1.0, result.seconds, accuracy: 0.5)
     }
 
-    func testSerialFieldExecutionStrategyWithMultipleFieldErrors() throws {
-        let result = try timing(graphql(
+    func testSerialFieldExecutionStrategyWithMultipleFieldErrors() async throws {
+        let result = try await timing(await graphql(
             queryStrategy: SerialFieldExecutionStrategy(),
             schema: schema,
-            request: multiThrowsQuery,
-            eventLoopGroup: eventLoopGroup
-        ).wait())
+            request: multiThrowsQuery
+        ))
         XCTAssertEqual(result.value.data, multiThrowsExpectedData)
         let resultErrors = result.value.errors
         XCTAssertEqual(resultErrors.count, multiThrowsExpectedErrors.count)
@@ -265,46 +248,42 @@ class FieldExecutionStrategyTests: XCTestCase {
         // XCTAssertEqualWithAccuracy(1.0, result.seconds, accuracy: 0.5)
     }
 
-    func testConcurrentDispatchFieldExecutionStrategyWithSingleField() throws {
-        let result = try timing(graphql(
-            queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
+    func testConcurrentFieldExecutionStrategyWithSingleField() async throws {
+        let result = try await timing(await graphql(
+            queryStrategy: ConcurrentFieldExecutionStrategy(),
             schema: schema,
-            request: singleQuery,
-            eventLoopGroup: eventLoopGroup
-        ).wait())
+            request: singleQuery
+        ))
         XCTAssertEqual(result.value, singleExpected)
         // XCTAssertEqualWithAccuracy(0.1, result.seconds, accuracy: 0.25)
     }
 
-    func testConcurrentDispatchFieldExecutionStrategyWithSingleFieldError() throws {
-        let result = try timing(graphql(
-            queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
+    func testConcurrentFieldExecutionStrategyWithSingleFieldError() async throws {
+        let result = try await timing(await graphql(
+            queryStrategy: ConcurrentFieldExecutionStrategy(),
             schema: schema,
-            request: singleThrowsQuery,
-            eventLoopGroup: eventLoopGroup
-        ).wait())
+            request: singleThrowsQuery
+        ))
         XCTAssertEqual(result.value, singleThrowsExpected)
         // XCTAssertEqualWithAccuracy(0.1, result.seconds, accuracy: 0.25)
     }
 
-    func testConcurrentDispatchFieldExecutionStrategyWithMultipleFields() throws {
-        let result = try timing(graphql(
-            queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
+    func testConcurrentFieldExecutionStrategyWithMultipleFields() async throws {
+        let result = try await timing(await graphql(
+            queryStrategy: ConcurrentFieldExecutionStrategy(),
             schema: schema,
-            request: multiQuery,
-            eventLoopGroup: eventLoopGroup
-        ).wait())
+            request: multiQuery
+        ))
         XCTAssertEqual(result.value, multiExpected)
 //        XCTAssertEqualWithAccuracy(0.1, result.seconds, accuracy: 0.25)
     }
 
-    func testConcurrentDispatchFieldExecutionStrategyWithMultipleFieldErrors() throws {
-        let result = try timing(graphql(
-            queryStrategy: ConcurrentDispatchFieldExecutionStrategy(),
+    func testConcurrentFieldExecutionStrategyWithMultipleFieldErrors() async throws {
+        let result = try await timing(await graphql(
+            queryStrategy: ConcurrentFieldExecutionStrategy(),
             schema: schema,
-            request: multiThrowsQuery,
-            eventLoopGroup: eventLoopGroup
-        ).wait())
+            request: multiThrowsQuery
+        ))
         XCTAssertEqual(result.value.data, multiThrowsExpectedData)
         let resultErrors = result.value.errors
         XCTAssertEqual(resultErrors.count, multiThrowsExpectedErrors.count)

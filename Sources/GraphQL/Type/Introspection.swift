@@ -1,4 +1,3 @@
-import NIO
 
 let __Schema = try! GraphQLObjectType(
     name: "__Schema",
@@ -492,8 +491,8 @@ let SchemaMetaFieldDef = GraphQLFieldDefinition(
     name: "__schema",
     type: GraphQLNonNull(__Schema),
     description: "Access the current type schema of this server.",
-    resolve: { _, _, _, eventLoopGroup, info in
-        eventLoopGroup.next().makeSucceededFuture(info.schema)
+    resolve: { _, _, _, info in
+        info.schema
     }
 )
 
@@ -507,9 +506,9 @@ let TypeMetaFieldDef = GraphQLFieldDefinition(
             type: GraphQLNonNull(GraphQLString)
         ),
     ],
-    resolve: { _, arguments, _, eventLoopGroup, info in
+    resolve: { _, arguments, _, info in
         let name = arguments["name"].string!
-        return eventLoopGroup.next().makeSucceededFuture(info.schema.getType(name: name))
+        return info.schema.getType(name: name)
     }
 )
 
@@ -517,8 +516,8 @@ let TypeNameMetaFieldDef = GraphQLFieldDefinition(
     name: "__typename",
     type: GraphQLNonNull(GraphQLString),
     description: "The name of the current Object type at runtime.",
-    resolve: { _, _, _, eventLoopGroup, info in
-        eventLoopGroup.next().makeSucceededFuture(info.parentType.name)
+    resolve: { _, _, _, info in
+        info.parentType.name
     }
 )
 

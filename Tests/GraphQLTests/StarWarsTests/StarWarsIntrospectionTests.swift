@@ -1,15 +1,9 @@
-import NIO
 import XCTest
 
 @testable import GraphQL
 
 class StarWarsIntrospectionTests: XCTestCase {
-    func testIntrospectionTypeQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testIntrospectionTypeQuery() async throws {
         do {
             let query = "query IntrospectionTypeQuery {" +
                 "    __schema {" +
@@ -73,23 +67,17 @@ class StarWarsIntrospectionTests: XCTestCase {
                 ]
             )
 
-            let result = try graphql(
+            let result = try await graphql(
                 schema: starWarsSchema,
-                request: query,
-                eventLoopGroup: eventLoopGroup
-            ).wait()
+                request: query
+            )
             XCTAssertEqual(result, expected)
         } catch {
             print(error)
         }
     }
 
-    func testIntrospectionQueryTypeQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testIntrospectionQueryTypeQuery() async throws {
         let query = "query IntrospectionQueryTypeQuery {" +
             "    __schema {" +
             "        queryType {" +
@@ -108,20 +96,14 @@ class StarWarsIntrospectionTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testIntrospectionDroidTypeQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testIntrospectionDroidTypeQuery() async throws {
         let query = "query IntrospectionDroidTypeQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +
@@ -136,20 +118,14 @@ class StarWarsIntrospectionTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testIntrospectionDroidKindQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testIntrospectionDroidKindQuery() async throws {
         let query = "query IntrospectionDroidKindQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +
@@ -166,20 +142,14 @@ class StarWarsIntrospectionTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testIntrospectionCharacterKindQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testIntrospectionCharacterKindQuery() async throws {
         let query = "query IntrospectionCharacterKindQuery {" +
             "    __type(name: \"Character\") {" +
             "        name" +
@@ -196,20 +166,14 @@ class StarWarsIntrospectionTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testIntrospectionDroidFieldsQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testIntrospectionDroidFieldsQuery() async throws {
         let query = "query IntrospectionDroidFieldsQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +
@@ -275,20 +239,14 @@ class StarWarsIntrospectionTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testIntrospectionDroidNestedFieldsQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testIntrospectionDroidNestedFieldsQuery() async throws {
         let query = "query IntrospectionDroidNestedFieldsQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +
@@ -373,20 +331,14 @@ class StarWarsIntrospectionTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testIntrospectionFieldArgsQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testIntrospectionFieldArgsQuery() async throws {
         let query = "query IntrospectionFieldArgsQuery {" +
             "    __schema {" +
             "        queryType {" +
@@ -472,20 +424,14 @@ class StarWarsIntrospectionTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testIntrospectionDroidDescriptionQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testIntrospectionDroidDescriptionQuery() async throws {
         let query = "query IntrospectionDroidDescriptionQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +
@@ -502,11 +448,10 @@ class StarWarsIntrospectionTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 }

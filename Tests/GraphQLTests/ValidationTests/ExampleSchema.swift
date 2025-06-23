@@ -15,7 +15,7 @@ let ValidationExampleBeing = try! GraphQLInterfaceType(
             }
         ),
     ],
-    resolveType: { _, _, _ in
+    resolveType: { _, _ in
         "Unknown"
     }
 )
@@ -32,7 +32,7 @@ let ValidationExampleMammal = try! GraphQLInterfaceType(
             "father": GraphQLField(type: ValidationExampleMammal),
         ]
     },
-    resolveType: { _, _, _ in
+    resolveType: { _, _ in
         "Unknown"
     }
 )
@@ -53,7 +53,7 @@ let ValidationExamplePet = try! GraphQLInterfaceType(
             }
         ),
     ],
-    resolveType: { _, _, _ in
+    resolveType: { _, _ in
         "Unknown"
     }
 )
@@ -78,7 +78,7 @@ let ValidationExampleCanine = try! GraphQLInterfaceType(
             type: ValidationExampleMammal
         ),
     ],
-    resolveType: { _, _, _ in
+    resolveType: { _, _ in
         "Unknown"
     }
 )
@@ -263,7 +263,7 @@ let ValidationExampleCat = try! GraphQLObjectType(
 // union CatOrDog = Cat | Dog
 let ValidationExampleCatOrDog = try! GraphQLUnionType(
     name: "CatOrDog",
-    resolveType: { _, _, _ in
+    resolveType: { _, _ in
         "Unknown"
     },
     types: [ValidationExampleCat, ValidationExampleDog]
@@ -277,7 +277,7 @@ let ValidationExampleIntelligent = try! GraphQLInterfaceType(
     fields: [
         "iq": GraphQLField(type: GraphQLInt),
     ],
-    resolveType: { _, _, _ in
+    resolveType: { _, _ in
         "Unknown"
     }
 )
@@ -293,7 +293,7 @@ let ValidationExampleSentient = try! GraphQLInterfaceType(
             return nil
         },
     ],
-    resolveType: { _, _, _ in
+    resolveType: { _, _ in
         "Unknown"
     }
 )
@@ -363,7 +363,7 @@ let ValidationExampleCatCommand = try! GraphQLEnumType(
 // union DogOrHuman = Dog | Human
 let ValidationExampleDogOrHuman = try! GraphQLUnionType(
     name: "DogOrHuman",
-    resolveType: { _, _, _ in
+    resolveType: { _, _ in
         "Unknown"
     },
     types: [ValidationExampleDog, ValidationExampleHuman]
@@ -372,7 +372,7 @@ let ValidationExampleDogOrHuman = try! GraphQLUnionType(
 // union HumanOrAlien = Human | Alien
 let ValidationExampleHumanOrAlien = try! GraphQLUnionType(
     name: "HumanOrAlien",
-    resolveType: { _, _, _ in
+    resolveType: { _, _ in
         "Unknown"
     },
     types: [ValidationExampleHuman, ValidationExampleAlien]

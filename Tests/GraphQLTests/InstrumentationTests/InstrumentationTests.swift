@@ -1,7 +1,6 @@
 import Dispatch
 import Foundation
 import GraphQL
-import NIO
 import XCTest
 
 class InstrumentationTests: XCTestCase, Instrumentation {
@@ -101,7 +100,6 @@ class InstrumentationTests: XCTestCase, Instrumentation {
         schema _: GraphQLSchema,
         document _: Document,
         rootValue _: Any,
-        eventLoopGroup _: EventLoopGroup,
         variableValues _: [String: Map],
         operation _: OperationDefinition?,
         errors _: [GraphQLError],
@@ -128,9 +126,8 @@ class InstrumentationTests: XCTestCase, Instrumentation {
         finished _: DispatchTime,
         source _: Any,
         args _: Map,
-        eventLoopGroup _: EventLoopGroup,
         info _: GraphQLResolveInfo,
-        result _: Result<Future<Any?>, Error>
+        result _: Result<Any?, Error>
     ) {
         fieldResolutionCalled += 1
 //        XCTAssertEqual(processId, expectedProcessId, "unexpected process id")

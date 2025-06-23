@@ -1,19 +1,8 @@
 @testable import GraphQL
-import NIO
 import XCTest
 
 class IntrospectionTests: XCTestCase {
-    private var eventLoopGroup: EventLoopGroup!
-
-    override func setUp() {
-        eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-    }
-
-    override func tearDown() {
-        XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-    }
-
-    func testDefaultValues() throws {
+    func testDefaultValues() async throws {
         let numEnum = try GraphQLEnumType(
             name: "Enum",
             values: [
@@ -110,7 +99,7 @@ class IntrospectionTests: XCTestCase {
 
         let schema = try GraphQLSchema(query: query, types: [inputObject, outputObject])
 
-        let introspection = try graphql(
+        let introspection = try await graphql(
             schema: schema,
             request: """
             query IntrospectionTypeQuery {
@@ -133,9 +122,8 @@ class IntrospectionTests: XCTestCase {
                 }
               }
             }
-            """,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            """
+        )
 
         let queryType = try XCTUnwrap(
             introspection.data?["__schema"]["types"].array?

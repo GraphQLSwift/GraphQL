@@ -1,6 +1,5 @@
 import Dispatch
 import Foundation
-import NIO
 
 /// Provides the capability to instrument the execution steps of a GraphQL query.
 ///
@@ -35,7 +34,6 @@ public protocol Instrumentation {
         schema: GraphQLSchema,
         document: Document,
         rootValue: Any,
-        eventLoopGroup: EventLoopGroup,
         variableValues: [String: Map],
         operation: OperationDefinition?,
         errors: [GraphQLError],
@@ -49,9 +47,8 @@ public protocol Instrumentation {
         finished: DispatchTime,
         source: Any,
         args: Map,
-        eventLoopGroup: EventLoopGroup,
         info: GraphQLResolveInfo,
-        result: Result<Future<Any?>, Error>
+        result: Result<Any?, Error>
     )
 }
 
@@ -105,7 +102,6 @@ struct noOpInstrumentation: Instrumentation {
         schema _: GraphQLSchema,
         document _: Document,
         rootValue _: Any,
-        eventLoopGroup _: EventLoopGroup,
         variableValues _: [String: Map],
         operation _: OperationDefinition?,
         errors _: [GraphQLError],
@@ -119,8 +115,7 @@ struct noOpInstrumentation: Instrumentation {
         finished _: DispatchTime,
         source _: Any,
         args _: Map,
-        eventLoopGroup _: EventLoopGroup,
         info _: GraphQLResolveInfo,
-        result _: Result<Future<Any?>, Error>
+        result _: Result<Any?, Error>
     ) {}
 }

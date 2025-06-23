@@ -45,8 +45,7 @@ Once a schema has been defined queries may be executed against it using the glob
 ```swift
 let result = try await graphql(
     schema: schema,
-    request: "{ hello }",
-    eventLoopGroup: eventLoopGroup
+    request: "{ hello }"
 )
 ```
 
@@ -59,7 +58,7 @@ The result of this query is a `GraphQLResult` that encodes to the following JSON
 ### Subscription
 
 This package supports GraphQL subscription, but until the integration of `AsyncSequence` in Swift 5.5 the standard Swift library did not
-provide an event-stream construct. For historical reasons and backwards compatibility, this library implements subscriptions using an 
+provide an event-stream construct. For historical reasons and backwards compatibility, this library implements subscriptions using an
 `EventStream` protocol that nearly every asynchronous stream implementation can conform to.
 
 To create a subscription field in a GraphQL schema, use the `subscribe` resolver that returns an `EventStream`. You must also provide a
@@ -70,7 +69,7 @@ let schema = try GraphQLSchema(
     subscribe: GraphQLObjectType(
         name: "Subscribe",
         fields: [
-            "hello": GraphQLField(              
+            "hello": GraphQLField(
                 type: GraphQLString,
                 resolve: { eventResult, _, _, _, _ in       // Defines how to transform each event when it occurs
                     return eventResult
@@ -116,13 +115,13 @@ The example above assumes that your environment has access to Swift Concurrency.
 
 ## Encoding Results
 
-If you encode a `GraphQLResult` with an ordinary `JSONEncoder`, there are no guarantees that the field order will match the query, 
+If you encode a `GraphQLResult` with an ordinary `JSONEncoder`, there are no guarantees that the field order will match the query,
 violating the [GraphQL spec](https://spec.graphql.org/June2018/#sec-Serialized-Map-Ordering). To preserve this order, `GraphQLResult`
 should be encoded using the `GraphQLJSONEncoder` provided by this package.
 
 ## Support
 
-This package supports Swift versions in [alignment with Swift NIO](https://github.com/apple/swift-nio?tab=readme-ov-file#swift-versions).
+This package aims to support the previous three Swift versions.
 
 For details on upgrading to new major versions, see [MIGRATION](MIGRATION.md).
 
@@ -140,7 +139,7 @@ To format your code, install `swiftformat` and run:
 
 ```bash
 swiftformat .
-```  
+```
 
 Most of this repo mirrors the structure of
 (the canonical GraphQL implementation written in Javascript/Typescript)[https://github.com/graphql/graphql-js]. If there is any feature

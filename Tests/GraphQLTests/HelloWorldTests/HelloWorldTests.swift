@@ -1,5 +1,4 @@
 @testable import GraphQL
-import NIO
 import XCTest
 
 class HelloWorldTests: XCTestCase {
@@ -17,32 +16,19 @@ class HelloWorldTests: XCTestCase {
         )
     )
 
-    func testHello() throws {
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-
-        defer {
-            XCTAssertNoThrow(try group.syncShutdownGracefully())
-        }
-
+    func testHello() async throws {
         let query = "{ hello }"
         let expected = GraphQLResult(data: ["hello": "world"])
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: schema,
-            request: query,
-            eventLoopGroup: group
-        ).wait()
+            request: query
+        )
 
         XCTAssertEqual(result, expected)
     }
 
-    func testBoyhowdy() throws {
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-
-        defer {
-            XCTAssertNoThrow(try group.syncShutdownGracefully())
-        }
-
+    func testBoyhowdy() async throws {
         let query = "{ boyhowdy }"
 
         let expected = GraphQLResult(
@@ -54,30 +40,22 @@ class HelloWorldTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: schema,
-            request: query,
-            eventLoopGroup: group
-        ).wait()
+            request: query
+        )
 
         XCTAssertEqual(result, expected)
     }
 
     @available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
     func testHelloAsync() async throws {
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-
-        defer {
-            XCTAssertNoThrow(try group.syncShutdownGracefully())
-        }
-
         let query = "{ hello }"
         let expected = GraphQLResult(data: ["hello": "world"])
 
         let result = try await graphql(
             schema: schema,
-            request: query,
-            eventLoopGroup: group
+            request: query
         )
 
         XCTAssertEqual(result, expected)

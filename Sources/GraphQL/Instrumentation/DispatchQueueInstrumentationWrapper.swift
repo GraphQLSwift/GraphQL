@@ -1,5 +1,4 @@
 import Dispatch
-import NIO
 
 /// Proxies calls through to another `Instrumentation` instance via a DispatchQueue
 ///
@@ -89,7 +88,6 @@ public class DispatchQueueInstrumentationWrapper: Instrumentation {
         schema: GraphQLSchema,
         document: Document,
         rootValue: Any,
-        eventLoopGroup: EventLoopGroup,
         variableValues: [String: Map],
         operation: OperationDefinition?,
         errors: [GraphQLError],
@@ -104,7 +102,6 @@ public class DispatchQueueInstrumentationWrapper: Instrumentation {
                 schema: schema,
                 document: document,
                 rootValue: rootValue,
-                eventLoopGroup: eventLoopGroup,
                 variableValues: variableValues,
                 operation: operation,
                 errors: errors,
@@ -120,9 +117,8 @@ public class DispatchQueueInstrumentationWrapper: Instrumentation {
         finished: DispatchTime,
         source: Any,
         args: Map,
-        eventLoopGroup: EventLoopGroup,
         info: GraphQLResolveInfo,
-        result: Result<Future<Any?>, Error>
+        result: Result<Any?, Error>
     ) {
         dispatchQueue.async(group: dispatchGroup) {
             self.instrumentation.fieldResolution(
@@ -132,7 +128,6 @@ public class DispatchQueueInstrumentationWrapper: Instrumentation {
                 finished: finished,
                 source: source,
                 args: args,
-                eventLoopGroup: eventLoopGroup,
                 info: info,
                 result: result
             )

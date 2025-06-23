@@ -1,5 +1,4 @@
 @testable import GraphQL
-import NIO
 
 // MARK: Types
 
@@ -89,8 +88,6 @@ let EmailQueryType = try! GraphQLObjectType(
 
 // MARK: Test Helpers
 
-let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-
 @available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
 class EmailDb {
     var emails: [Email]
@@ -121,17 +118,17 @@ class EmailDb {
     /// Returns the default email schema, with standard resolvers.
     func defaultSchema() throws -> GraphQLSchema {
         return try emailSchemaWithResolvers(
-            resolve: { emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
+            resolve: { emailAny, _, _, _ throws -> Any? in
                 if let email = emailAny as? Email {
-                    return eventLoopGroup.next().makeSucceededFuture(EmailEvent(
+                    return EmailEvent(
                         email: email,
                         inbox: Inbox(emails: self.emails)
-                    ))
+                    )
                 } else {
                     throw GraphQLError(message: "\(type(of: emailAny)) is not Email")
                 }
             },
-            subscribe: { _, args, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
+            subscribe: { _, args, _, _ throws -> Any? in
                 let priority = args["priority"].int ?? 0
                 let filtered = self.publisher.subscribe().stream
                     .filterStream { emailAny throws in
@@ -141,8 +138,7 @@ class EmailDb {
                             return true
                         }
                     }
-                return eventLoopGroup.next()
-                    .makeSucceededFuture(ConcurrentEventStream<Any>(filtered))
+                return ConcurrentEventStream<Any>(filtered)
             }
         )
     }
@@ -151,8 +147,8 @@ class EmailDb {
     func subscription(
         query: String,
         variableValues: [String: Map] = [:]
-    ) throws -> SubscriptionEventStream {
-        return try createSubscription(
+    ) async throws -> SubscriptionEventStream {
+        return try await createSubscription(
             schema: defaultSchema(),
             query: query,
             variableValues: variableValues
@@ -191,8 +187,8 @@ func createSubscription(
     schema: GraphQLSchema,
     query: String,
     variableValues: [String: Map] = [:]
-) throws -> SubscriptionEventStream {
-    let result = try graphqlSubscribe(
+) async throws -> SubscriptionEventStream {
+    let result = try await graphqlSubscribe(
         queryStrategy: SerialFieldExecutionStrategy(),
         mutationStrategy: SerialFieldExecutionStrategy(),
         subscriptionStrategy: SerialFieldExecutionStrategy(),
@@ -201,10 +197,9 @@ func createSubscription(
         request: query,
         rootValue: (),
         context: (),
-        eventLoopGroup: eventLoopGroup,
         variableValues: variableValues,
         operationName: nil
-    ).wait()
+    )
 
     if let stream = result.stream {
         return stream

@@ -3,7 +3,7 @@ open class EventStream<Element> {
     public init() {}
     /// Template method for mapping an event stream to a new generic type - MUST be overridden by
     /// implementing types.
-    open func map<To>(_: @escaping (Element) throws -> To) -> EventStream<To> {
+    open func map<To>(_: @escaping (Element) async throws -> To) -> EventStream<To> {
         fatalError("This function should be overridden by implementing classes")
     }
 }
@@ -21,7 +21,7 @@ public class ConcurrentEventStream<Element>: EventStream<Element> {
     /// results.
     /// - Parameter closure: The closure to apply to each event in the stream
     /// - Returns: A stream of the results
-    override open func map<To>(_ closure: @escaping (Element) throws -> To)
+    override open func map<To>(_ closure: @escaping (Element) async throws -> To)
     -> ConcurrentEventStream<To> {
         let newStream = stream.mapStream(closure)
         return ConcurrentEventStream<To>(newStream)
@@ -30,13 +30,13 @@ public class ConcurrentEventStream<Element>: EventStream<Element> {
 
 @available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
 extension AsyncThrowingStream {
-    func mapStream<To>(_ closure: @escaping (Element) throws -> To)
+    func mapStream<To>(_ closure: @escaping (Element) async throws -> To)
     -> AsyncThrowingStream<To, Error> {
         return AsyncThrowingStream<To, Error> { continuation in
             let task = Task {
                 do {
                     for try await event in self {
-                        let newEvent = try closure(event)
+                        let newEvent = try await closure(event)
                         continuation.yield(newEvent)
                     }
                     continuation.finish()

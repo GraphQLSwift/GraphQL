@@ -1,5 +1,4 @@
 import Foundation
-import NIO
 import OrderedCollections
 
 /**
@@ -414,13 +413,11 @@ public enum TypeResolveResult {
 
 public typealias GraphQLTypeResolve = (
     _ value: Any,
-    _ eventLoopGroup: EventLoopGroup,
     _ info: GraphQLResolveInfo
 ) throws -> TypeResolveResultRepresentable
 
 public typealias GraphQLIsTypeOf = (
     _ source: Any,
-    _ eventLoopGroup: EventLoopGroup,
     _ info: GraphQLResolveInfo
 ) throws -> Bool
 
@@ -428,9 +425,8 @@ public typealias GraphQLFieldResolve = (
     _ source: Any,
     _ args: Map,
     _ context: Any,
-    _ eventLoopGroup: EventLoopGroup,
     _ info: GraphQLResolveInfo
-) throws -> Future<Any?>
+) async throws -> Any?
 
 public typealias GraphQLFieldResolveInput = (
     _ source: Any,
@@ -511,9 +507,9 @@ public struct GraphQLField {
         self.description = description
         self.astNode = astNode
 
-        self.resolve = { source, args, context, eventLoopGroup, info in
+        self.resolve = { source, args, context, info in
             let result = try resolve(source, args, context, info)
-            return eventLoopGroup.next().makeSucceededFuture(result)
+            return result
         }
         subscribe = nil
     }

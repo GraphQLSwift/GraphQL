@@ -1,9 +1,8 @@
 @testable import GraphQL
-import NIO
 import XCTest
 
 class InputTests: XCTestCase {
-    func testArgsNonNullNoDefault() throws {
+    func testArgsNonNullNoDefault() async throws {
         struct Echo: Codable {
             let field1: String
         }
@@ -20,7 +19,7 @@ class InputTests: XCTestCase {
                     type: GraphQLNonNull(GraphQLString)
                 ),
             ],
-            isTypeOf: { source, _, _ in
+            isTypeOf: { source, _ in
                 source is Echo
             }
         )
@@ -48,49 +47,44 @@ class InputTests: XCTestCase {
             types: [EchoOutputType]
         )
 
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try group.syncShutdownGracefully())
-        }
-
         // Test basic functionality
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo(
-                        field1: "value1"
-                    ) {
-                        field1
-                    }
+        var result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo(
+                    field1: "value1"
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group
-            ).wait(),
+            }
+            """
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                 ],
             ])
         )
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($field1: String!) {
-                    echo(
-                        field1: $field1
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($field1: String!) {
+                echo(
+                    field1: $field1
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [
-                    "field1": "value1",
-                ]
-            ).wait(),
+            }
+            """,
+            variableValues: [
+                "field1": "value1",
+            ]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
@@ -99,77 +93,73 @@ class InputTests: XCTestCase {
         )
 
         // Test providing null results in an error
-        XCTAssertTrue(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo(
-                        field1: null
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo(
+                    field1: null
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group
-            ).wait()
-                .errors.count > 0
+            }
+            """
         )
         XCTAssertTrue(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($field1: String!) {
-                    echo(
-                        field1: $field1
-                    ) {
-                        field1
-                    }
+            result.errors.count > 0
+        )
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($field1: String!) {
+                echo(
+                    field1: $field1
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [
-                    "field1": .null,
-                ]
-            ).wait()
-                .errors.count > 0
+            }
+            """,
+            variableValues: [
+                "field1": .null,
+            ]
+        )
+        XCTAssertTrue(
+            result.errors.count > 0
         )
 
         // Test not providing parameter results in an error
-        XCTAssertTrue(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo {
+                    field1
                 }
-                """,
-                eventLoopGroup: group
-            ).wait()
-                .errors.count > 0
+            }
+            """
         )
         XCTAssertTrue(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($field1: String!) {
-                    echo(
-                        field1: $field1
-                    ) {
-                        field1
-                    }
+            result.errors.count > 0
+        )
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($field1: String!) {
+                echo(
+                    field1: $field1
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [:]
-            ).wait()
-                .errors.count > 0
+            }
+            """,
+            variableValues: [:]
+        )
+        XCTAssertTrue(
+            result.errors.count > 0
         )
     }
 
-    func testArgsNullNoDefault() throws {
+    func testArgsNullNoDefault() async throws {
         struct Echo: Codable {
             let field1: String?
         }
@@ -186,7 +176,7 @@ class InputTests: XCTestCase {
                     type: GraphQLString
                 ),
             ],
-            isTypeOf: { source, _, _ in
+            isTypeOf: { source, _ in
                 source is Echo
             }
         )
@@ -214,49 +204,44 @@ class InputTests: XCTestCase {
             types: [EchoOutputType]
         )
 
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try group.syncShutdownGracefully())
-        }
-
         // Test basic functionality
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo(
-                        field1: "value1"
-                    ) {
-                        field1
-                    }
+        var result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo(
+                    field1: "value1"
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group
-            ).wait(),
+            }
+            """
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                 ],
             ])
         )
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($field1: String) {
-                    echo(
-                        field1: $field1
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($field1: String) {
+                echo(
+                    field1: $field1
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [
-                    "field1": "value1",
-                ]
-            ).wait(),
+            }
+            """,
+            variableValues: [
+                "field1": "value1",
+            ]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
@@ -265,43 +250,43 @@ class InputTests: XCTestCase {
         )
 
         // Test providing null is accepted
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo(
-                        field1: null
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo(
+                    field1: null
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group
-            ).wait(),
+            }
+            """
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": .null,
                 ],
             ])
         )
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($field1: String) {
-                    echo(
-                        field1: $field1
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($field1: String) {
+                echo(
+                    field1: $field1
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [
-                    "field1": .null,
-                ]
-            ).wait(),
+            }
+            """,
+            variableValues: [
+                "field1": .null,
+            ]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": .null,
@@ -310,39 +295,39 @@ class InputTests: XCTestCase {
         )
 
         // Test not providing parameter is accepted
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo {
+                    field1
                 }
-                """,
-                eventLoopGroup: group
-            ).wait(),
+            }
+            """
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": .null,
                 ],
             ])
         )
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($field1: String) {
-                    echo(
-                        field1: $field1
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($field1: String) {
+                echo(
+                    field1: $field1
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [:]
-            ).wait(),
+            }
+            """,
+            variableValues: [:]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": .null,
@@ -351,7 +336,7 @@ class InputTests: XCTestCase {
         )
     }
 
-    func testArgsNonNullDefault() throws {
+    func testArgsNonNullDefault() async throws {
         struct Echo: Codable {
             let field1: String
         }
@@ -368,7 +353,7 @@ class InputTests: XCTestCase {
                     type: GraphQLNonNull(GraphQLString)
                 ),
             ],
-            isTypeOf: { source, _, _ in
+            isTypeOf: { source, _ in
                 source is Echo
             }
         )
@@ -397,49 +382,44 @@ class InputTests: XCTestCase {
             types: [EchoOutputType]
         )
 
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try group.syncShutdownGracefully())
-        }
-
         // Test basic functionality
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo(
-                        field1: "value1"
-                    ) {
-                        field1
-                    }
+        var result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo(
+                    field1: "value1"
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group
-            ).wait(),
+            }
+            """
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                 ],
             ])
         )
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($field1: String!) {
-                    echo(
-                        field1: $field1
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($field1: String!) {
+                echo(
+                    field1: $field1
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [
-                    "field1": "value1",
-                ]
-            ).wait(),
+            }
+            """,
+            variableValues: [
+                "field1": "value1",
+            ]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
@@ -448,76 +428,74 @@ class InputTests: XCTestCase {
         )
 
         // Test providing null results in an error
-        XCTAssertTrue(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo(
-                        field1: null
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo(
+                    field1: null
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group
-            ).wait()
-                .errors.count > 0
+            }
+            """
         )
         XCTAssertTrue(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($field1: String!) {
-                    echo(
-                        field1: $field1
-                    ) {
-                        field1
-                    }
+            result.errors.count > 0
+        )
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($field1: String!) {
+                echo(
+                    field1: $field1
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [
-                    "field1": .null,
-                ]
-            ).wait()
-                .errors.count > 0
+            }
+            """,
+            variableValues: [
+                "field1": .null,
+            ]
+        )
+        XCTAssertTrue(
+            result.errors.count > 0
         )
 
         // Test not providing parameter results in default
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo {
+                    field1
                 }
-                """,
-                eventLoopGroup: group
-            ).wait(),
+            }
+            """
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "defaultValue1",
                 ],
             ])
         )
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($field1: String! = "defaultValue1") {
-                    echo (
-                        field1: $field1
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($field1: String! = "defaultValue1") {
+                echo (
+                    field1: $field1
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [:]
-            ).wait(),
+            }
+            """,
+            variableValues: [:]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "defaultValue1",
@@ -526,26 +504,25 @@ class InputTests: XCTestCase {
         )
 
         // Test variable doesn't get argument default
-        XCTAssertTrue(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($field1: String!) {
-                    echo (
-                        field1: $field1
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($field1: String!) {
+                echo (
+                    field1: $field1
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [:]
-            ).wait()
-                .errors.count > 0
+            }
+            """,
+            variableValues: [:]
+        )
+        XCTAssertTrue(
+            result.errors.count > 0
         )
     }
 
-    func testArgsNullDefault() throws {
+    func testArgsNullDefault() async throws {
         struct Echo: Codable {
             let field1: String?
         }
@@ -562,7 +539,7 @@ class InputTests: XCTestCase {
                     type: GraphQLString
                 ),
             ],
-            isTypeOf: { source, _, _ in
+            isTypeOf: { source, _ in
                 source is Echo
             }
         )
@@ -591,49 +568,44 @@ class InputTests: XCTestCase {
             types: [EchoOutputType]
         )
 
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try group.syncShutdownGracefully())
-        }
-
         // Test basic functionality
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo(
-                        field1: "value1"
-                    ) {
-                        field1
-                    }
+        var result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo(
+                    field1: "value1"
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group
-            ).wait(),
+            }
+            """
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                 ],
             ])
         )
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($field1: String!) {
-                    echo(
-                        field1: $field1
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($field1: String!) {
+                echo(
+                    field1: $field1
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [
-                    "field1": "value1",
-                ]
-            ).wait(),
+            }
+            """,
+            variableValues: [
+                "field1": "value1",
+            ]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
@@ -642,43 +614,43 @@ class InputTests: XCTestCase {
         )
 
         // Test providing null results in a null output
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo(
-                        field1: null
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo(
+                    field1: null
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group
-            ).wait(),
+            }
+            """
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": .null,
                 ],
             ])
         )
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($field1: String) {
-                    echo(
-                        field1: $field1
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($field1: String) {
+                echo(
+                    field1: $field1
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [
-                    "field1": .null,
-                ]
-            ).wait(),
+            }
+            """,
+            variableValues: [
+                "field1": .null,
+            ]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": .null,
@@ -687,39 +659,39 @@ class InputTests: XCTestCase {
         )
 
         // Test not providing parameter results in default
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo {
+                    field1
                 }
-                """,
-                eventLoopGroup: group
-            ).wait(),
+            }
+            """
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "defaultValue1",
                 ],
             ])
         )
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($field1: String = "defaultValue1") {
-                    echo (
-                        field1: $field1
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($field1: String = "defaultValue1") {
+                echo (
+                    field1: $field1
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [:]
-            ).wait(),
+            }
+            """,
+            variableValues: [:]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "defaultValue1",
@@ -728,21 +700,21 @@ class InputTests: XCTestCase {
         )
 
         // Test that nullable unprovided variables are coerced to null
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($field1: String) {
-                    echo (
-                        field1: $field1
-                    ) {
-                        field1
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($field1: String) {
+                echo (
+                    field1: $field1
+                ) {
+                    field1
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [:]
-            ).wait(),
+            }
+            """,
+            variableValues: [:]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": .null,
@@ -752,7 +724,7 @@ class InputTests: XCTestCase {
     }
 
     // Test that input objects parse as expected from non-null literals
-    func testInputNoNull() throws {
+    func testInputNoNull() async throws {
         struct Echo: Codable {
             let field1: String?
             let field2: String?
@@ -798,7 +770,7 @@ class InputTests: XCTestCase {
                     type: GraphQLString
                 ),
             ],
-            isTypeOf: { source, _, _ in
+            isTypeOf: { source, _ in
                 source is Echo
             }
         )
@@ -827,28 +799,23 @@ class InputTests: XCTestCase {
             types: [EchoInputType, EchoOutputType]
         )
 
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try group.syncShutdownGracefully())
-        }
-
         // Test in arguments
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo(input:{
-                        field1: "value1",
-                        field2: "value2",
-                    }) {
-                        field1
-                        field2
-                    }
+        var result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo(input:{
+                    field1: "value1",
+                    field2: "value2",
+                }) {
+                    field1
+                    field2
                 }
-                """,
-                eventLoopGroup: group
-            ).wait(),
+            }
+            """
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
@@ -858,25 +825,25 @@ class InputTests: XCTestCase {
         )
 
         // Test in variables
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($input: EchoInput) {
-                    echo(input: $input) {
-                        field1
-                        field2
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($input: EchoInput) {
+                echo(input: $input) {
+                    field1
+                    field2
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [
-                    "input": [
-                        "field1": "value1",
-                        "field2": "value2",
-                    ],
-                ]
-            ).wait(),
+            }
+            """,
+            variableValues: [
+                "input": [
+                    "field1": "value1",
+                    "field2": "value2",
+                ],
+            ]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
@@ -887,7 +854,7 @@ class InputTests: XCTestCase {
     }
 
     // Test that inputs parse as expected when null literals are present
-    func testInputParsingDefinedNull() throws {
+    func testInputParsingDefinedNull() async throws {
         struct Echo: Codable {
             let field1: String?
             let field2: String?
@@ -933,7 +900,7 @@ class InputTests: XCTestCase {
                     type: GraphQLString
                 ),
             ],
-            isTypeOf: { source, _, _ in
+            isTypeOf: { source, _ in
                 source is Echo
             }
         )
@@ -962,28 +929,23 @@ class InputTests: XCTestCase {
             types: [EchoInputType, EchoOutputType]
         )
 
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try group.syncShutdownGracefully())
-        }
-
         // Test in arguments
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo(input:{
-                        field1: "value1",
-                        field2: null,
-                    }) {
-                        field1
-                        field2
-                    }
+        var result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo(input:{
+                    field1: "value1",
+                    field2: null,
+                }) {
+                    field1
+                    field2
                 }
-                """,
-                eventLoopGroup: group
-            ).wait(),
+            }
+            """
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
@@ -993,25 +955,25 @@ class InputTests: XCTestCase {
         )
 
         // Test in variables
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($input: EchoInput) {
-                    echo(input: $input) {
-                        field1
-                        field2
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($input: EchoInput) {
+                echo(input: $input) {
+                    field1
+                    field2
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [
-                    "input": [
-                        "field1": "value1",
-                        "field2": .null,
-                    ],
-                ]
-            ).wait(),
+            }
+            """,
+            variableValues: [
+                "input": [
+                    "field1": "value1",
+                    "field2": .null,
+                ],
+            ]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
@@ -1022,7 +984,7 @@ class InputTests: XCTestCase {
     }
 
     // Test that input objects parse as expected when there are missing fields with no default
-    func testInputParsingUndefined() throws {
+    func testInputParsingUndefined() async throws {
         struct Echo: Codable {
             let field1: String?
             let field2: String?
@@ -1073,7 +1035,7 @@ class InputTests: XCTestCase {
                     type: GraphQLString
                 ),
             ],
-            isTypeOf: { source, _, _ in
+            isTypeOf: { source, _ in
                 source is Echo
             }
         )
@@ -1102,27 +1064,22 @@ class InputTests: XCTestCase {
             types: [EchoInputType, EchoOutputType]
         )
 
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try group.syncShutdownGracefully())
-        }
-
         // Test in arguments
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo(input:{
-                        field1: "value1"
-                    }) {
-                        field1
-                        field2
-                    }
+        var result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo(input:{
+                    field1: "value1"
+                }) {
+                    field1
+                    field2
                 }
-                """,
-                eventLoopGroup: group
-            ).wait(),
+            }
+            """
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
@@ -1132,24 +1089,24 @@ class InputTests: XCTestCase {
         )
 
         // Test in variables
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($input: EchoInput) {
-                    echo(input: $input) {
-                        field1
-                        field2
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($input: EchoInput) {
+                echo(input: $input) {
+                    field1
+                    field2
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [
-                    "input": [
-                        "field1": "value1",
-                    ],
-                ]
-            ).wait(),
+            }
+            """,
+            variableValues: [
+                "input": [
+                    "field1": "value1",
+                ],
+            ]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
@@ -1160,7 +1117,7 @@ class InputTests: XCTestCase {
     }
 
     // Test that input objects parse as expected when there are missing fields with defaults
-    func testInputParsingUndefinedWithDefault() throws {
+    func testInputParsingUndefinedWithDefault() async throws {
         struct Echo: Codable {
             let field1: String?
             let field2: String?
@@ -1207,7 +1164,7 @@ class InputTests: XCTestCase {
                     type: GraphQLString
                 ),
             ],
-            isTypeOf: { source, _, _ in
+            isTypeOf: { source, _ in
                 source is Echo
             }
         )
@@ -1236,27 +1193,22 @@ class InputTests: XCTestCase {
             types: [EchoInputType, EchoOutputType]
         )
 
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try group.syncShutdownGracefully())
-        }
-
         // Undefined with default gets default
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo(input:{
-                        field1: "value1"
-                    }) {
-                        field1
-                        field2
-                    }
+        var result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo(input:{
+                    field1: "value1"
+                }) {
+                    field1
+                    field2
                 }
-                """,
-                eventLoopGroup: group
-            ).wait(),
+            }
+            """
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
@@ -1265,22 +1217,22 @@ class InputTests: XCTestCase {
             ])
         )
         // Null literal with default gets null
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                {
-                    echo(input:{
-                        field1: "value1"
-                        field2: null
-                    }) {
-                        field1
-                        field2
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            {
+                echo(input:{
+                    field1: "value1"
+                    field2: null
+                }) {
+                    field1
+                    field2
                 }
-                """,
-                eventLoopGroup: group
-            ).wait(),
+            }
+            """
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
@@ -1291,24 +1243,24 @@ class InputTests: XCTestCase {
 
         // Test in variable
         // Undefined with default gets default
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($input: EchoInput) {
-                    echo(input: $input) {
-                        field1
-                        field2
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($input: EchoInput) {
+                echo(input: $input) {
+                    field1
+                    field2
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [
-                    "input": [
-                        "field1": "value1",
-                    ],
-                ]
-            ).wait(),
+            }
+            """,
+            variableValues: [
+                "input": [
+                    "field1": "value1",
+                ],
+            ]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
@@ -1317,25 +1269,25 @@ class InputTests: XCTestCase {
             ])
         )
         // Null literal with default gets null
-        XCTAssertEqual(
-            try graphql(
-                schema: schema,
-                request: """
-                query echo($input: EchoInput) {
-                    echo(input: $input) {
-                        field1
-                        field2
-                    }
+        result = try await graphql(
+            schema: schema,
+            request: """
+            query echo($input: EchoInput) {
+                echo(input: $input) {
+                    field1
+                    field2
                 }
-                """,
-                eventLoopGroup: group,
-                variableValues: [
-                    "input": [
-                        "field1": "value1",
-                        "field2": .null,
-                    ],
-                ]
-            ).wait(),
+            }
+            """,
+            variableValues: [
+                "input": [
+                    "field1": "value1",
+                    "field2": .null,
+                ],
+            ]
+        )
+        XCTAssertEqual(
+            result,
             GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",

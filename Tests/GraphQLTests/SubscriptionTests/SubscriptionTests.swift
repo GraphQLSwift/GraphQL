@@ -1,5 +1,4 @@
 import GraphQL
-import NIO
 import XCTest
 
 /// This follows the graphql-js testing, with deviations where noted.
@@ -30,9 +29,8 @@ class SubscriptionTests: XCTestCase {
 
         let subscriptionResult = try await graphqlSubscribe(
             schema: schema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).get()
+            request: query
+        )
         guard let subscription = subscriptionResult.stream else {
             XCTFail(subscriptionResult.errors.description)
             return
@@ -50,7 +48,7 @@ class SubscriptionTests: XCTestCase {
             unread: true
         ))
         db.stop()
-        let result = try await iterator.next()?.get()
+        let result = try await iterator.next()
         XCTAssertEqual(
             result,
             GraphQLResult(
@@ -85,23 +83,19 @@ class SubscriptionTests: XCTestCase {
                                 type: GraphQLInt
                             ),
                         ],
-                        resolve: { emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<
-                            Any?
-                        > in
+                        resolve: { emailAny, _, _, _ throws -> Any? in
                             guard let email = emailAny as? Email else {
                                 throw GraphQLError(
                                     message: "Source is not Email type: \(type(of: emailAny))"
                                 )
                             }
-                            return eventLoopGroup.next().makeSucceededFuture(EmailEvent(
+                            return EmailEvent(
                                 email: email,
                                 inbox: Inbox(emails: db.emails)
-                            ))
+                            )
                         },
-                        subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<
-                            Any?
-                        > in
-                            eventLoopGroup.next().makeSucceededFuture(db.publisher.subscribe())
+                        subscribe: { _, _, _, _ throws -> Any? in
+                            db.publisher.subscribe()
                         }
                     ),
                     "notImportantEmail": GraphQLField(
@@ -111,29 +105,25 @@ class SubscriptionTests: XCTestCase {
                                 type: GraphQLInt
                             ),
                         ],
-                        resolve: { emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<
-                            Any?
-                        > in
+                        resolve: { emailAny, _, _, _ throws -> Any? in
                             guard let email = emailAny as? Email else {
                                 throw GraphQLError(
                                     message: "Source is not Email type: \(type(of: emailAny))"
                                 )
                             }
-                            return eventLoopGroup.next().makeSucceededFuture(EmailEvent(
+                            return EmailEvent(
                                 email: email,
                                 inbox: Inbox(emails: db.emails)
-                            ))
+                            )
                         },
-                        subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<
-                            Any?
-                        > in
-                            eventLoopGroup.next().makeSucceededFuture(db.publisher.subscribe())
+                        subscribe: { _, _, _, _ throws -> Any? in
+                            db.publisher.subscribe()
                         }
                     ),
                 ]
             )
         )
-        let subscription = try createSubscription(schema: schema, query: """
+        let subscription = try await createSubscription(schema: schema, query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -160,7 +150,7 @@ class SubscriptionTests: XCTestCase {
             unread: true
         ))
 
-        let result = try await iterator.next()?.get()
+        let result = try await iterator.next()
         XCTAssertEqual(
             result,
             GraphQLResult(
@@ -195,34 +185,28 @@ class SubscriptionTests: XCTestCase {
                 fields: [
                     "importantEmail": GraphQLField(
                         type: EmailEventType,
-                        resolve: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                            eventLoopGroup.next().makeSucceededFuture(nil)
+                        resolve: { _, _, _, _ throws -> Any? in
+                            nil
                         },
-                        subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<
-                            Any?
-                        > in
+                        subscribe: { _, _, _, _ throws -> Any? in
                             didResolveImportantEmail = true
-                            return eventLoopGroup.next()
-                                .makeSucceededFuture(db.publisher.subscribe())
+                            return db.publisher.subscribe()
                         }
                     ),
                     "notImportantEmail": GraphQLField(
                         type: EmailEventType,
-                        resolve: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                            eventLoopGroup.next().makeSucceededFuture(nil)
+                        resolve: { _, _, _, _ throws -> Any? in
+                            nil
                         },
-                        subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<
-                            Any?
-                        > in
+                        subscribe: { _, _, _, _ throws -> Any? in
                             didResolveNonImportantEmail = true
-                            return eventLoopGroup.next()
-                                .makeSucceededFuture(db.publisher.subscribe())
+                            return db.publisher.subscribe()
                         }
                     ),
                 ]
             )
         )
-        let _ = try createSubscription(schema: schema, query: """
+        let _ = try await createSubscription(schema: schema, query: """
             subscription {
                 importantEmail {
                     email {
@@ -256,15 +240,16 @@ class SubscriptionTests: XCTestCase {
     // Not implemented because this is taken care of by Swift optional types
 
     /// 'resolves to an error for unknown subscription field'
-    func testErrorUnknownSubscriptionField() throws {
+    func testErrorUnknownSubscriptionField() async throws {
         let db = EmailDb()
-        XCTAssertThrowsError(
-            try db.subscription(query: """
+        do {
+            _ = try await db.subscription(query: """
             subscription {
                 unknownField
             }
             """)
-        ) { error in
+            XCTFail("Error should have been thrown")
+        } catch {
             guard let graphQLError = error as? GraphQLError else {
                 XCTFail("Error was not of type GraphQLError")
                 return
@@ -278,25 +263,26 @@ class SubscriptionTests: XCTestCase {
     }
 
     /// 'should pass through unexpected errors thrown in subscribe'
-    func testPassUnexpectedSubscribeErrors() throws {
+    func testPassUnexpectedSubscribeErrors() async throws {
         let db = EmailDb()
-        XCTAssertThrowsError(
-            try db.subscription(query: "")
-        )
+        do {
+            _ = try await db.subscription(query: "")
+            XCTFail("Error should have been thrown")
+        } catch {}
     }
 
     /// 'throws an error if subscribe does not return an iterator'
-    func testErrorIfSubscribeIsntIterator() throws {
+    func testErrorIfSubscribeIsntIterator() async throws {
         let schema = try emailSchemaWithResolvers(
-            resolve: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                eventLoopGroup.next().makeSucceededFuture(nil)
+            resolve: { _, _, _, _ throws -> Any? in
+                nil
             },
-            subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                eventLoopGroup.next().makeSucceededFuture("test")
+            subscribe: { _, _, _, _ throws -> Any? in
+                "test"
             }
         )
-        XCTAssertThrowsError(
-            try createSubscription(schema: schema, query: """
+        do {
+            _ = try await createSubscription(schema: schema, query: """
                 subscription {
                     importantEmail {
                         email {
@@ -305,7 +291,8 @@ class SubscriptionTests: XCTestCase {
                     }
                 }
             """)
-        ) { error in
+            XCTFail("Error should have been thrown")
+        } catch {
             guard let graphQLError = error as? GraphQLError else {
                 XCTFail("Error was not of type GraphQLError")
                 return
@@ -318,10 +305,10 @@ class SubscriptionTests: XCTestCase {
     }
 
     /// 'resolves to an error for subscription resolver errors'
-    func testErrorForSubscriptionResolverErrors() throws {
-        func verifyError(schema: GraphQLSchema) {
-            XCTAssertThrowsError(
-                try createSubscription(schema: schema, query: """
+    func testErrorForSubscriptionResolverErrors() async throws {
+        func verifyError(schema: GraphQLSchema) async throws {
+            do {
+                _ = try await createSubscription(schema: schema, query: """
                     subscription {
                         importantEmail {
                             email {
@@ -330,7 +317,8 @@ class SubscriptionTests: XCTestCase {
                         }
                     }
                 """)
-            ) { error in
+                XCTFail("Error should have been thrown")
+            } catch {
                 guard let graphQLError = error as? GraphQLError else {
                     XCTFail("Error was not of type GraphQLError")
                     return
@@ -340,23 +328,23 @@ class SubscriptionTests: XCTestCase {
         }
 
         // Throwing an error
-        try verifyError(schema: emailSchemaWithResolvers(
-            subscribe: { _, _, _, _, _ throws -> EventLoopFuture<Any?> in
+        try await verifyError(schema: emailSchemaWithResolvers(
+            subscribe: { _, _, _, _ throws -> Any? in
                 throw GraphQLError(message: "test error")
             }
         ))
 
         // Resolving to an error
-        try verifyError(schema: emailSchemaWithResolvers(
-            subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                eventLoopGroup.next().makeSucceededFuture(GraphQLError(message: "test error"))
+        try await verifyError(schema: emailSchemaWithResolvers(
+            subscribe: { _, _, _, _ throws -> Any? in
+                GraphQLError(message: "test error")
             }
         ))
 
         // Rejecting with an error
-        try verifyError(schema: emailSchemaWithResolvers(
-            subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                eventLoopGroup.next().makeFailedFuture(GraphQLError(message: "test error"))
+        try await verifyError(schema: emailSchemaWithResolvers(
+            subscribe: { _, _, _, _ throws -> Any? in
+                GraphQLError(message: "test error")
             }
         ))
     }
@@ -365,7 +353,7 @@ class SubscriptionTests: XCTestCase {
     // Tests above cover this
 
     /// 'resolves to an error if variables were wrong type'
-    func testErrorVariablesWrongType() throws {
+    func testErrorVariablesWrongType() async throws {
         let db = EmailDb()
         let query = """
             subscription ($priority: Int) {
@@ -382,14 +370,15 @@ class SubscriptionTests: XCTestCase {
               }
         """
 
-        XCTAssertThrowsError(
-            try db.subscription(
+        do {
+            _ = try await db.subscription(
                 query: query,
                 variableValues: [
                     "priority": "meow",
                 ]
             )
-        ) { error in
+            XCTFail("Should have thrown error")
+        } catch {
             guard let graphQLError = error as? GraphQLError else {
                 XCTFail("Error was not of type GraphQLError")
                 return
@@ -406,7 +395,7 @@ class SubscriptionTests: XCTestCase {
     /// 'produces a payload for a single subscriber'
     func testSingleSubscriber() async throws {
         let db = EmailDb()
-        let subscription = try db.subscription(query: """
+        let subscription = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -434,7 +423,7 @@ class SubscriptionTests: XCTestCase {
         ))
         db.stop()
 
-        let result = try await iterator.next()?.get()
+        let result = try await iterator.next()
         XCTAssertEqual(
             result,
             GraphQLResult(
@@ -455,7 +444,7 @@ class SubscriptionTests: XCTestCase {
     /// 'produces a payload for multiple subscribe in same subscription'
     func testMultipleSubscribers() async throws {
         let db = EmailDb()
-        let subscription1 = try db.subscription(query: """
+        let subscription1 = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -474,7 +463,7 @@ class SubscriptionTests: XCTestCase {
             return
         }
 
-        let subscription2 = try db.subscription(query: """
+        let subscription2 = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -503,8 +492,8 @@ class SubscriptionTests: XCTestCase {
             unread: true
         ))
 
-        let result1 = try await iterator1.next()?.get()
-        let result2 = try await iterator2.next()?.get()
+        let result1 = try await iterator1.next()
+        let result2 = try await iterator2.next()
 
         let expected = GraphQLResult(
             data: ["importantEmail": [
@@ -526,7 +515,7 @@ class SubscriptionTests: XCTestCase {
     /// 'produces a payload per subscription event'
     func testPayloadPerEvent() async throws {
         let db = EmailDb()
-        let subscription = try db.subscription(query: """
+        let subscription = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -553,7 +542,7 @@ class SubscriptionTests: XCTestCase {
             message: "Tests are good",
             unread: true
         ))
-        let result1 = try await iterator.next()?.get()
+        let result1 = try await iterator.next()
         XCTAssertEqual(
             result1,
             GraphQLResult(
@@ -577,7 +566,7 @@ class SubscriptionTests: XCTestCase {
             message: "I <3 making things",
             unread: true
         ))
-        let result2 = try await iterator.next()?.get()
+        let result2 = try await iterator.next()
         XCTAssertEqual(
             result2,
             GraphQLResult(
@@ -599,7 +588,7 @@ class SubscriptionTests: XCTestCase {
     /// This is not in the graphql-js tests.
     func testArguments() async throws {
         let db = EmailDb()
-        let subscription = try db.subscription(query: """
+        let subscription = try await db.subscription(query: """
             subscription ($priority: Int = 5) {
                 importantEmail(priority: $priority) {
                   email {
@@ -623,11 +612,9 @@ class SubscriptionTests: XCTestCase {
 
         // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
         // discarded
-        let keepForNow = stream.map { event in
-            event.map { result in
-                results.append(result)
-                expectation.fulfill()
-            }
+        let keepForNow = stream.map { result in
+            results.append(result)
+            expectation.fulfill()
         }
 
         var expected = [GraphQLResult]()
@@ -703,7 +690,7 @@ class SubscriptionTests: XCTestCase {
     /// 'should not trigger when subscription is already done'
     func testNoTriggerAfterDone() async throws {
         let db = EmailDb()
-        let subscription = try db.subscription(query: """
+        let subscription = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -726,11 +713,9 @@ class SubscriptionTests: XCTestCase {
         var expectation = XCTestExpectation()
         // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
         // discarded
-        let keepForNow = stream.map { event in
-            event.map { result in
-                results.append(result)
-                expectation.fulfill()
-            }
+        let keepForNow = stream.map { result in
+            results.append(result)
+            expectation.fulfill()
         }
         var expected = [GraphQLResult]()
 
@@ -784,7 +769,7 @@ class SubscriptionTests: XCTestCase {
     /// 'event order is correct for multiple publishes'
     func testOrderCorrectForMultiplePublishes() async throws {
         let db = EmailDb()
-        let subscription = try db.subscription(query: """
+        let subscription = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -817,7 +802,7 @@ class SubscriptionTests: XCTestCase {
             unread: true
         ))
 
-        let result1 = try await iterator.next()?.get()
+        let result1 = try await iterator.next()
         XCTAssertEqual(
             result1,
             GraphQLResult(
@@ -834,7 +819,7 @@ class SubscriptionTests: XCTestCase {
             )
         )
 
-        let result2 = try await iterator.next()?.get()
+        let result2 = try await iterator.next()
         XCTAssertEqual(
             result2,
             GraphQLResult(
@@ -857,7 +842,7 @@ class SubscriptionTests: XCTestCase {
         let db = EmailDb()
 
         let schema = try emailSchemaWithResolvers(
-            resolve: { emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
+            resolve: { emailAny, _, _, _ throws -> Any? in
                 guard let email = emailAny as? Email else {
                     throw GraphQLError(
                         message: "Source is not Email type: \(type(of: emailAny))"
@@ -866,17 +851,17 @@ class SubscriptionTests: XCTestCase {
                 if email.subject == "Goodbye" { // Force the system to fail here.
                     throw GraphQLError(message: "Never leave.")
                 }
-                return eventLoopGroup.next().makeSucceededFuture(EmailEvent(
+                return EmailEvent(
                     email: email,
                     inbox: Inbox(emails: db.emails)
-                ))
+                )
             },
-            subscribe: { _, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
-                eventLoopGroup.next().makeSucceededFuture(db.publisher.subscribe())
+            subscribe: { _, _, _, _ throws -> Any? in
+                db.publisher.subscribe()
             }
         )
 
-        let subscription = try createSubscription(schema: schema, query: """
+        let subscription = try await createSubscription(schema: schema, query: """
             subscription {
                 importantEmail {
                     email {
@@ -894,11 +879,9 @@ class SubscriptionTests: XCTestCase {
         var expectation = XCTestExpectation()
         // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
         // discarded
-        let keepForNow = stream.map { event in
-            event.map { result in
-                results.append(result)
-                expectation.fulfill()
-            }
+        let keepForNow = stream.map { result in
+            results.append(result)
+            expectation.fulfill()
         }
         var expected = [GraphQLResult]()
 
@@ -971,7 +954,7 @@ class SubscriptionTests: XCTestCase {
     /// Test incorrect emitted type errors
     func testErrorWrongEmitType() async throws {
         let db = EmailDb()
-        let subscription = try db.subscription(query: """
+        let subscription = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -993,7 +976,7 @@ class SubscriptionTests: XCTestCase {
 
         db.publisher.emit(event: "String instead of email")
 
-        let result = try await iterator.next()?.get()
+        let result = try await iterator.next()
         XCTAssertEqual(
             result,
             GraphQLResult(

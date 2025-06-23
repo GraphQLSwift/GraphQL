@@ -1,6 +1,22 @@
 # Migration
 
-## 2.0 to 3.0
+## 3 to 4
+
+### NIO removal
+
+All NIO-based arguments and return types were removed, including all `EventLoopGroup` and `EventLoopFuture` parameters.
+
+As such, all `execute` and `subscribe` calls should have the `eventLoopGroup` argument removed, and the `await` keyword should be used.
+
+Also, all resolver closures must remove the `eventLoopGroup` argument, and all that return an `EventLoopFuture` should be converted to an `async` function.
+
+The documentation here will be very helpful in the conversion: https://www.swift.org/documentation/server/guides/libraries/concurrency-adoption-guidelines.html
+
+### `ConcurrentDispatchFieldExecutionStrategy`
+
+This was changed to `ConcurrentFieldExecutionStrategy`, and takes no parameters.
+
+## 2 to 3
 
 ### TypeReference removal
 
