@@ -48,7 +48,6 @@ class HelloWorldTests: XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
-    @available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
     func testHelloAsync() async throws {
         let query = "{ hello }"
         let expected = GraphQLResult(data: ["hello": "world"])

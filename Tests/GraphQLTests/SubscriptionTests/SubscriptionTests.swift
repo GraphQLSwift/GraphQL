@@ -2,7 +2,6 @@ import GraphQL
 import XCTest
 
 /// This follows the graphql-js testing, with deviations where noted.
-@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
 class SubscriptionTests: XCTestCase {
     let timeoutDuration = 0.5 // in seconds
 

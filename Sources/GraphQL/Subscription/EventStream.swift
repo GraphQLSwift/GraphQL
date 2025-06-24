@@ -9,7 +9,6 @@ open class EventStream<Element> {
 }
 
 /// Event stream that wraps an `AsyncThrowingStream` from Swift's standard concurrency system.
-@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
 public class ConcurrentEventStream<Element>: EventStream<Element> {
     public let stream: AsyncThrowingStream<Element, Error>
 
@@ -28,7 +27,6 @@ public class ConcurrentEventStream<Element>: EventStream<Element> {
     }
 }
 
-@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
 extension AsyncThrowingStream {
     func mapStream<To>(_ closure: @escaping (Element) async throws -> To)
     -> AsyncThrowingStream<To, Error> {

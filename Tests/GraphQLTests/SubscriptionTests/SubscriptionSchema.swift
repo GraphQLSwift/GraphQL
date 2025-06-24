@@ -88,7 +88,6 @@ let EmailQueryType = try! GraphQLObjectType(
 
 // MARK: Test Helpers
 
-@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
 class EmailDb {
     var emails: [Email]
     let publisher: SimplePubSub<Any>
