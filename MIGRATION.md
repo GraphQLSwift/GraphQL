@@ -16,6 +16,10 @@ The documentation here will be very helpful in the conversion: https://www.swift
 
 This was changed to `ConcurrentFieldExecutionStrategy`, and takes no parameters.
 
+### EventStream removal
+
+The `EventStream` abstraction used to provide pre-concurrency subscription support has been removed. This means that `graphqlSubscribe(...).stream` will now be an `AsyncThrowingStream<GraphQLResult, Error>` type, instead of an `EventStream` type, and that downcasting to `ConcurrentEventStream` is no longer necessary.
+
 ## 2 to 3
 
 ### TypeReference removal

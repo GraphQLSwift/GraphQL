@@ -30,15 +30,11 @@ class SubscriptionTests: XCTestCase {
             schema: schema,
             request: query
         )
-        guard let subscription = subscriptionResult.stream else {
+        guard let stream = subscriptionResult.stream else {
             XCTFail(subscriptionResult.errors.description)
             return
         }
-        guard let stream = subscription as? ConcurrentEventStream else {
-            XCTFail("stream isn't ConcurrentEventStream")
-            return
-        }
-        var iterator = stream.stream.makeAsyncIterator()
+        var iterator = stream.makeAsyncIterator()
 
         db.trigger(email: Email(
             from: "yuzhi@graphql.org",
@@ -122,7 +118,7 @@ class SubscriptionTests: XCTestCase {
                 ]
             )
         )
-        let subscription = try await createSubscription(schema: schema, query: """
+        let stream = try await createSubscription(schema: schema, query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -136,11 +132,7 @@ class SubscriptionTests: XCTestCase {
                 }
               }
         """)
-        guard let stream = subscription as? ConcurrentEventStream else {
-            XCTFail("stream isn't ConcurrentEventStream")
-            return
-        }
-        var iterator = stream.stream.makeAsyncIterator()
+        var iterator = stream.makeAsyncIterator()
 
         db.trigger(email: Email(
             from: "yuzhi@graphql.org",
@@ -298,7 +290,7 @@ class SubscriptionTests: XCTestCase {
             }
             XCTAssertEqual(
                 graphQLError.message,
-                "Subscription field resolver must return EventStream<Any>. Received: 'test'"
+                "Subscription field resolver must return an AsyncSequence. Received: 'test'"
             )
         }
     }
@@ -394,7 +386,7 @@ class SubscriptionTests: XCTestCase {
     /// 'produces a payload for a single subscriber'
     func testSingleSubscriber() async throws {
         let db = EmailDb()
-        let subscription = try await db.subscription(query: """
+        let stream = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -408,11 +400,7 @@ class SubscriptionTests: XCTestCase {
                 }
               }
         """)
-        guard let stream = subscription as? ConcurrentEventStream else {
-            XCTFail("stream isn't ConcurrentEventStream")
-            return
-        }
-        var iterator = stream.stream.makeAsyncIterator()
+        var iterator = stream.makeAsyncIterator()
 
         db.trigger(email: Email(
             from: "yuzhi@graphql.org",
@@ -443,7 +431,7 @@ class SubscriptionTests: XCTestCase {
     /// 'produces a payload for multiple subscribe in same subscription'
     func testMultipleSubscribers() async throws {
         let db = EmailDb()
-        let subscription1 = try await db.subscription(query: """
+        let stream1 = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -457,12 +445,8 @@ class SubscriptionTests: XCTestCase {
                 }
               }
         """)
-        guard let stream1 = subscription1 as? ConcurrentEventStream else {
-            XCTFail("stream isn't ConcurrentEventStream")
-            return
-        }
 
-        let subscription2 = try await db.subscription(query: """
+        let stream2 = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -476,13 +460,9 @@ class SubscriptionTests: XCTestCase {
                 }
               }
         """)
-        guard let stream2 = subscription2 as? ConcurrentEventStream else {
-            XCTFail("stream isn't ConcurrentEventStream")
-            return
-        }
 
-        var iterator1 = stream1.stream.makeAsyncIterator()
-        var iterator2 = stream2.stream.makeAsyncIterator()
+        var iterator1 = stream1.makeAsyncIterator()
+        var iterator2 = stream2.makeAsyncIterator()
 
         db.trigger(email: Email(
             from: "yuzhi@graphql.org",
@@ -514,7 +494,7 @@ class SubscriptionTests: XCTestCase {
     /// 'produces a payload per subscription event'
     func testPayloadPerEvent() async throws {
         let db = EmailDb()
-        let subscription = try await db.subscription(query: """
+        let stream = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -528,11 +508,7 @@ class SubscriptionTests: XCTestCase {
                 }
               }
         """)
-        guard let stream = subscription as? ConcurrentEventStream else {
-            XCTFail("stream isn't ConcurrentEventStream")
-            return
-        }
-        var iterator = stream.stream.makeAsyncIterator()
+        var iterator = stream.makeAsyncIterator()
 
         // A new email arrives!
         db.trigger(email: Email(
@@ -587,7 +563,7 @@ class SubscriptionTests: XCTestCase {
     /// This is not in the graphql-js tests.
     func testArguments() async throws {
         let db = EmailDb()
-        let subscription = try await db.subscription(query: """
+        let stream = try await db.subscription(query: """
             subscription ($priority: Int = 5) {
                 importantEmail(priority: $priority) {
                   email {
@@ -601,21 +577,8 @@ class SubscriptionTests: XCTestCase {
                 }
               }
         """)
-        guard let stream = subscription as? ConcurrentEventStream else {
-            XCTFail("stream isn't ConcurrentEventStream")
-            return
-        }
-
-        var results = [GraphQLResult]()
-        var expectation = XCTestExpectation()
-
-        // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
-        // discarded
-        let keepForNow = stream.map { result in
-            results.append(result)
-            expectation.fulfill()
-        }
-
+        var iterator = stream.makeAsyncIterator()
+        var results = [GraphQLResult?]()
         var expected = [GraphQLResult]()
 
         db.trigger(email: Email(
@@ -639,12 +602,10 @@ class SubscriptionTests: XCTestCase {
                 ]]
             )
         )
-        wait(for: [expectation], timeout: timeoutDuration)
+        try await results.append(iterator.next())
         XCTAssertEqual(results, expected)
 
         // Low priority email shouldn't trigger an event
-        expectation = XCTestExpectation()
-        expectation.isInverted = true
         db.trigger(email: Email(
             from: "hyo@graphql.org",
             subject: "Not Important",
@@ -652,11 +613,9 @@ class SubscriptionTests: XCTestCase {
             unread: true,
             priority: 2
         ))
-        wait(for: [expectation], timeout: timeoutDuration)
         XCTAssertEqual(results, expected)
 
         // Higher priority one should trigger again
-        expectation = XCTestExpectation()
         db.trigger(email: Email(
             from: "hyo@graphql.org",
             subject: "Tools",
@@ -678,18 +637,14 @@ class SubscriptionTests: XCTestCase {
                 ]]
             )
         )
-        wait(for: [expectation], timeout: timeoutDuration)
+        try await results.append(iterator.next())
         XCTAssertEqual(results, expected)
-
-        // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
-        // discarded
-        _ = keepForNow
     }
 
     /// 'should not trigger when subscription is already done'
     func testNoTriggerAfterDone() async throws {
         let db = EmailDb()
-        let subscription = try await db.subscription(query: """
+        let stream = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -703,19 +658,8 @@ class SubscriptionTests: XCTestCase {
                 }
               }
         """)
-        guard let stream = subscription as? ConcurrentEventStream else {
-            XCTFail("stream isn't ConcurrentEventStream")
-            return
-        }
-
-        var results = [GraphQLResult]()
-        var expectation = XCTestExpectation()
-        // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
-        // discarded
-        let keepForNow = stream.map { result in
-            results.append(result)
-            expectation.fulfill()
-        }
+        var iterator = stream.makeAsyncIterator()
+        var results = [GraphQLResult?]()
         var expected = [GraphQLResult]()
 
         db.trigger(email: Email(
@@ -738,28 +682,20 @@ class SubscriptionTests: XCTestCase {
                 ]]
             )
         )
-        wait(for: [expectation], timeout: timeoutDuration)
+        try await results.append(iterator.next())
         XCTAssertEqual(results, expected)
 
         db.stop()
 
         // This should not trigger an event.
-        expectation = XCTestExpectation()
-        expectation.isInverted = true
         db.trigger(email: Email(
             from: "hyo@graphql.org",
             subject: "Tools",
             message: "I <3 making things",
             unread: true
         ))
-
         // Ensure that the current result was the one before the db was stopped
-        wait(for: [expectation], timeout: timeoutDuration)
         XCTAssertEqual(results, expected)
-
-        // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
-        // discarded
-        _ = keepForNow
     }
 
     /// 'should not trigger when subscription is thrown'
@@ -768,7 +704,7 @@ class SubscriptionTests: XCTestCase {
     /// 'event order is correct for multiple publishes'
     func testOrderCorrectForMultiplePublishes() async throws {
         let db = EmailDb()
-        let subscription = try await db.subscription(query: """
+        let stream = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -782,11 +718,7 @@ class SubscriptionTests: XCTestCase {
                 }
               }
         """)
-        guard let stream = subscription as? ConcurrentEventStream else {
-            XCTFail("stream isn't ConcurrentEventStream")
-            return
-        }
-        var iterator = stream.stream.makeAsyncIterator()
+        var iterator = stream.makeAsyncIterator()
 
         db.trigger(email: Email(
             from: "yuzhi@graphql.org",
@@ -860,7 +792,7 @@ class SubscriptionTests: XCTestCase {
             }
         )
 
-        let subscription = try await createSubscription(schema: schema, query: """
+        let stream = try await createSubscription(schema: schema, query: """
             subscription {
                 importantEmail {
                     email {
@@ -869,19 +801,8 @@ class SubscriptionTests: XCTestCase {
                 }
             }
         """)
-        guard let stream = subscription as? ConcurrentEventStream else {
-            XCTFail("stream isn't ConcurrentEventStream")
-            return
-        }
-
-        var results = [GraphQLResult]()
-        var expectation = XCTestExpectation()
-        // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
-        // discarded
-        let keepForNow = stream.map { result in
-            results.append(result)
-            expectation.fulfill()
-        }
+        var iterator = stream.makeAsyncIterator()
+        var results = [GraphQLResult?]()
         var expected = [GraphQLResult]()
 
         db.trigger(email: Email(
@@ -899,10 +820,9 @@ class SubscriptionTests: XCTestCase {
                 ]]
             )
         )
-        wait(for: [expectation], timeout: timeoutDuration)
+        try await results.append(iterator.next())
         XCTAssertEqual(results, expected)
 
-        expectation = XCTestExpectation()
         // An error in execution is presented as such.
         db.trigger(email: Email(
             from: "yuzhi@graphql.org",
@@ -918,10 +838,9 @@ class SubscriptionTests: XCTestCase {
                 ]
             )
         )
-        wait(for: [expectation], timeout: timeoutDuration)
+        try await results.append(iterator.next())
         XCTAssertEqual(results, expected)
 
-        expectation = XCTestExpectation()
         // However that does not close the response event stream. Subsequent events are still
         // executed.
         db.trigger(email: Email(
@@ -939,12 +858,8 @@ class SubscriptionTests: XCTestCase {
                 ]]
             )
         )
-        wait(for: [expectation], timeout: timeoutDuration)
+        try await results.append(iterator.next())
         XCTAssertEqual(results, expected)
-
-        // So that the Task won't immediately be cancelled since the ConcurrentEventStream is
-        // discarded
-        _ = keepForNow
     }
 
     /// 'should pass through error thrown in source event stream'
@@ -953,7 +868,7 @@ class SubscriptionTests: XCTestCase {
     /// Test incorrect emitted type errors
     func testErrorWrongEmitType() async throws {
         let db = EmailDb()
-        let subscription = try await db.subscription(query: """
+        let stream = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
                   email {
@@ -967,11 +882,7 @@ class SubscriptionTests: XCTestCase {
                 }
               }
         """)
-        guard let stream = subscription as? ConcurrentEventStream else {
-            XCTFail("stream isn't ConcurrentEventStream")
-            return
-        }
-        var iterator = stream.stream.makeAsyncIterator()
+        var iterator = stream.makeAsyncIterator()
 
         db.publisher.emit(event: "String instead of email")
 

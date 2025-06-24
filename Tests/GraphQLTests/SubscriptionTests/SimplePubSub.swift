@@ -20,8 +20,8 @@ class SimplePubSub<T> {
         }
     }
 
-    func subscribe() -> ConcurrentEventStream<T> {
-        let asyncStream = AsyncThrowingStream<T, Error> { continuation in
+    func subscribe() -> AsyncThrowingStream<T, Error> {
+        return AsyncThrowingStream<T, Error> { continuation in
             let subscriber = Subscriber<T>(
                 callback: { newValue in
                     continuation.yield(newValue)
@@ -32,7 +32,6 @@ class SimplePubSub<T> {
             )
             subscribers.append(subscriber)
         }
-        return ConcurrentEventStream<T>(asyncStream)
     }
 }
 

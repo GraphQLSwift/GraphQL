@@ -75,7 +75,7 @@ let schema = try GraphQLSchema(
                     return eventResult
                 },
                 subscribe: { _, _, _, _, _ in               // Defines how to construct the event stream
-                    let asyncStream = AsyncThrowingStream<String, Error> { continuation in
+                    return AsyncThrowingStream<String, Error> { continuation in
                         let timer = Timer.scheduledTimer(
                             withTimeInterval: 3,
                             repeats: true,
@@ -83,7 +83,6 @@ let schema = try GraphQLSchema(
                             continuation.yield("world")     // Emits "world" every 3 seconds
                         }
                     }
-                    return ConcurrentEventStream<String>(asyncStream)
                 }
             )
         ]
@@ -97,8 +96,6 @@ To execute a subscription use the `graphqlSubscribe` function:
 let subscriptionResult = try await graphqlSubscribe(
     schema: schema,
 )
-// Must downcast from EventStream to concrete type to use in 'for await' loop below
-let concurrentStream = subscriptionResult.stream! as! ConcurrentEventStream
 for try await result in concurrentStream.stream {
     print(result)
 }
@@ -109,9 +106,6 @@ The code above will print the following JSON every 3 seconds:
 ```json
 { "hello": "world" }
 ```
-
-The example above assumes that your environment has access to Swift Concurrency. If that is not the case, try using
-[GraphQLRxSwift](https://github.com/GraphQLSwift/GraphQLRxSwift)
 
 ## Encoding Results
 

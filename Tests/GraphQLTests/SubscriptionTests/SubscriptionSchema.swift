@@ -129,15 +129,14 @@ class EmailDb {
             },
             subscribe: { _, args, _, _ throws -> Any? in
                 let priority = args["priority"].int ?? 0
-                let filtered = self.publisher.subscribe().stream
-                    .filterStream { emailAny throws in
-                        if let email = emailAny as? Email {
-                            return email.priority >= priority
-                        } else {
-                            return true
-                        }
+                let filtered = self.publisher.subscribe().filter { emailAny throws in
+                    if let email = emailAny as? Email {
+                        return email.priority >= priority
+                    } else {
+                        return true
                     }
-                return ConcurrentEventStream<Any>(filtered)
+                }
+                return filtered
             }
         )
     }
@@ -146,7 +145,7 @@ class EmailDb {
     func subscription(
         query: String,
         variableValues: [String: Map] = [:]
-    ) async throws -> SubscriptionEventStream {
+    ) async throws -> AsyncThrowingStream<GraphQLResult, Error> {
         return try await createSubscription(
             schema: defaultSchema(),
             query: query,
@@ -186,7 +185,7 @@ func createSubscription(
     schema: GraphQLSchema,
     query: String,
     variableValues: [String: Map] = [:]
-) async throws -> SubscriptionEventStream {
+) async throws -> AsyncThrowingStream<GraphQLResult, Error> {
     let result = try await graphqlSubscribe(
         queryStrategy: SerialFieldExecutionStrategy(),
         mutationStrategy: SerialFieldExecutionStrategy(),

@@ -46,25 +46,42 @@ func subscribe(
     )
 
     if let sourceStream = sourceResult.stream {
-        let subscriptionStream = sourceStream.map { eventPayload -> GraphQLResult in
-            // For each payload yielded from a subscription, map it over the normal
-            // GraphQL `execute` function, with `payload` as the rootValue.
-            // This implements the "MapSourceToResponseEvent" algorithm described in
-            // the GraphQL specification. The `execute` function provides the
-            // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
-            // "ExecuteQuery" algorithm, for which `execute` is also used.
-            try await execute(
-                queryStrategy: queryStrategy,
-                mutationStrategy: mutationStrategy,
-                subscriptionStrategy: subscriptionStrategy,
-                instrumentation: instrumentation,
-                schema: schema,
-                documentAST: documentAST,
-                rootValue: eventPayload,
-                context: context,
-                variableValues: variableValues,
-                operationName: operationName
-            )
+        // We must create a new AsyncSequence because AsyncSequence.map requires a concrete type
+        // (which we cannot know),
+        // and we need the result to be a concrete type.
+        let subscriptionStream = AsyncThrowingStream<GraphQLResult, Error> { continuation in
+            let task = Task {
+                do {
+                    for try await eventPayload in sourceStream {
+                        // For each payload yielded from a subscription, map it over the normal
+                        // GraphQL `execute` function, with `payload` as the rootValue.
+                        // This implements the "MapSourceToResponseEvent" algorithm described in
+                        // the GraphQL specification. The `execute` function provides the
+                        // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
+                        // "ExecuteQuery" algorithm, for which `execute` is also used.
+                        let newEvent = try await execute(
+                            queryStrategy: queryStrategy,
+                            mutationStrategy: mutationStrategy,
+                            subscriptionStrategy: subscriptionStrategy,
+                            instrumentation: instrumentation,
+                            schema: schema,
+                            documentAST: documentAST,
+                            rootValue: eventPayload,
+                            context: context,
+                            variableValues: variableValues,
+                            operationName: operationName
+                        )
+                        continuation.yield(newEvent)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+
+            continuation.onTermination = { @Sendable reason in
+                task.cancel()
+            }
         }
         return SubscriptionResult(stream: subscriptionStream, errors: sourceResult.errors)
     } else {
@@ -151,7 +168,7 @@ func createSourceEventStream(
 }
 
 func executeSubscription(
-    context: ExecutionContext,
+    context: ExecutionContext
 ) async throws -> SourceEventStreamResult {
     // Get the first node
     let type = try getOperationRootType(schema: context.schema, operation: context.operation)
@@ -245,7 +262,7 @@ func executeSubscription(
         return SourceEventStreamResult(errors: context.errors)
     } else if let error = resolved as? GraphQLError {
         return SourceEventStreamResult(errors: [error])
-    } else if let stream = resolved as? EventStream<Any> {
+    } else if let stream = resolved as? any AsyncSequence {
         return SourceEventStreamResult(stream: stream)
     } else if resolved == nil {
         return SourceEventStreamResult(errors: [
@@ -255,7 +272,7 @@ func executeSubscription(
         let resolvedObj = resolved as AnyObject
         return SourceEventStreamResult(errors: [
             GraphQLError(
-                message: "Subscription field resolver must return EventStream<Any>. Received: '\(resolvedObj)'"
+                message: "Subscription field resolver must return an AsyncSequence. Received: '\(resolvedObj)'"
             ),
         ])
     }
@@ -266,10 +283,10 @@ func executeSubscription(
 // checking. Normal resolvers for subscription fields should handle type casting, same as resolvers
 // for query fields.
 struct SourceEventStreamResult {
-    public let stream: EventStream<Any>?
+    public let stream: (any AsyncSequence)?
     public let errors: [GraphQLError]
 
-    public init(stream: EventStream<Any>? = nil, errors: [GraphQLError] = []) {
+    public init(stream: (any AsyncSequence)? = nil, errors: [GraphQLError] = []) {
         self.stream = stream
         self.errors = errors
     }
