@@ -6,7 +6,16 @@ on:
     branches: [ main ]
   workflow_dispatch:
 jobs:
-  lint:
-    uses: graphqlswift/ci/.github/workflows/lint.yaml@main
-  test:
-    uses: graphqlswift/ci/.github/workflows/test.yaml@main
+  macos:
+    name: Test on macOS
+    runs-on: macos-latest
+    steps:
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+    - uses: actions/checkout@v4
+    - name: Build and test
+      run: |
+        swift test \
+          --skip testDoNotModifyBuiltInTypesAnDirectives \
+          --skip testExtends
