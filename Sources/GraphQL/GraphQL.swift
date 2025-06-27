@@ -67,8 +67,6 @@ public struct SubscriptionResult {
 /// - parameter queryStrategy:        The field execution strategy to use for query requests
 /// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
 /// - parameter subscriptionStrategy: The field execution strategy to use for subscription requests
-/// - parameter instrumentation:      The instrumentation implementation to call during the parsing,
-/// validating, execution, and field resolution stages.
 /// - parameter schema:               The GraphQL type system to use when validating and executing a
 /// query.
 /// - parameter request:              A GraphQL language formatted string representing the requested
@@ -93,7 +91,6 @@ public func graphql(
     queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    instrumentation: Instrumentation = NoOpInstrumentation,
     validationRules: [(ValidationContext) -> Visitor] = [],
     schema: GraphQLSchema,
     request: String,
@@ -103,9 +100,8 @@ public func graphql(
     operationName: String? = nil
 ) async throws -> GraphQLResult {
     let source = Source(body: request, name: "GraphQL request")
-    let documentAST = try parse(instrumentation: instrumentation, source: source)
+    let documentAST = try parse(source: source)
     let validationErrors = validate(
-        instrumentation: instrumentation,
         schema: schema,
         ast: documentAST,
         rules: validationRules
@@ -119,7 +115,6 @@ public func graphql(
         queryStrategy: queryStrategy,
         mutationStrategy: mutationStrategy,
         subscriptionStrategy: subscriptionStrategy,
-        instrumentation: instrumentation,
         schema: schema,
         documentAST: documentAST,
         rootValue: rootValue,
@@ -135,8 +130,6 @@ public func graphql(
 /// - parameter queryStrategy:        The field execution strategy to use for query requests
 /// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
 /// - parameter subscriptionStrategy: The field execution strategy to use for subscription requests
-/// - parameter instrumentation:      The instrumentation implementation to call during the parsing,
-/// validating, execution, and field resolution stages.
 /// - parameter queryRetrieval:       The PersistedQueryRetrieval instance to use for looking up
 /// queries
 /// - parameter queryId:              The id of the query to execute
@@ -160,7 +153,6 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
     queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    instrumentation: Instrumentation = NoOpInstrumentation,
     queryRetrieval: Retrieval,
     queryId: Retrieval.Id,
     rootValue: Any = (),
@@ -180,7 +172,6 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
             queryStrategy: queryStrategy,
             mutationStrategy: mutationStrategy,
             subscriptionStrategy: subscriptionStrategy,
-            instrumentation: instrumentation,
             schema: schema,
             documentAST: documentAST,
             rootValue: rootValue,
@@ -202,8 +193,6 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
 /// - parameter queryStrategy:        The field execution strategy to use for query requests
 /// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
 /// - parameter subscriptionStrategy: The field execution strategy to use for subscription requests
-/// - parameter instrumentation:      The instrumentation implementation to call during the parsing,
-/// validating, execution, and field resolution stages.
 /// - parameter schema:               The GraphQL type system to use when validating and executing a
 /// query.
 /// - parameter request:              A GraphQL language formatted string representing the requested
@@ -232,7 +221,6 @@ public func graphqlSubscribe(
     queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    instrumentation: Instrumentation = NoOpInstrumentation,
     validationRules: [(ValidationContext) -> Visitor] = [],
     schema: GraphQLSchema,
     request: String,
@@ -242,9 +230,8 @@ public func graphqlSubscribe(
     operationName: String? = nil
 ) async throws -> SubscriptionResult {
     let source = Source(body: request, name: "GraphQL Subscription request")
-    let documentAST = try parse(instrumentation: instrumentation, source: source)
+    let documentAST = try parse(source: source)
     let validationErrors = validate(
-        instrumentation: instrumentation,
         schema: schema,
         ast: documentAST,
         rules: validationRules
@@ -258,7 +245,6 @@ public func graphqlSubscribe(
         queryStrategy: queryStrategy,
         mutationStrategy: mutationStrategy,
         subscriptionStrategy: subscriptionStrategy,
-        instrumentation: instrumentation,
         schema: schema,
         documentAST: documentAST,
         rootValue: rootValue,

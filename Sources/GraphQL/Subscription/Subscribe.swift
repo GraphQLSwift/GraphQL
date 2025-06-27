@@ -24,7 +24,6 @@ func subscribe(
     queryStrategy: QueryFieldExecutionStrategy,
     mutationStrategy: MutationFieldExecutionStrategy,
     subscriptionStrategy: SubscriptionFieldExecutionStrategy,
-    instrumentation: Instrumentation,
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: Any,
@@ -36,7 +35,6 @@ func subscribe(
         queryStrategy: queryStrategy,
         mutationStrategy: mutationStrategy,
         subscriptionStrategy: subscriptionStrategy,
-        instrumentation: instrumentation,
         schema: schema,
         documentAST: documentAST,
         rootValue: rootValue,
@@ -63,7 +61,6 @@ func subscribe(
                             queryStrategy: queryStrategy,
                             mutationStrategy: mutationStrategy,
                             subscriptionStrategy: subscriptionStrategy,
-                            instrumentation: instrumentation,
                             schema: schema,
                             documentAST: documentAST,
                             rootValue: eventPayload,
@@ -120,7 +117,6 @@ func createSourceEventStream(
     queryStrategy: QueryFieldExecutionStrategy,
     mutationStrategy: MutationFieldExecutionStrategy,
     subscriptionStrategy: SubscriptionFieldExecutionStrategy,
-    instrumentation: Instrumentation,
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: Any,
@@ -128,8 +124,6 @@ func createSourceEventStream(
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) async throws -> SourceEventStreamResult {
-    let executeStarted = instrumentation.now
-
     do {
         // If a valid context cannot be created due to incorrect arguments,
         // this will throw an error.
@@ -137,7 +131,6 @@ func createSourceEventStream(
             queryStrategy: queryStrategy,
             mutationStrategy: mutationStrategy,
             subscriptionStrategy: subscriptionStrategy,
-            instrumentation: instrumentation,
             schema: schema,
             documentAST: documentAST,
             rootValue: rootValue,
@@ -147,20 +140,6 @@ func createSourceEventStream(
         )
         return try await executeSubscription(context: exeContext)
     } catch let error as GraphQLError {
-        instrumentation.operationExecution(
-            processId: processId(),
-            threadId: threadId(),
-            started: executeStarted,
-            finished: instrumentation.now,
-            schema: schema,
-            document: documentAST,
-            rootValue: rootValue,
-            variableValues: variableValues,
-            operation: nil,
-            errors: [error],
-            result: nil
-        )
-
         return SourceEventStreamResult(errors: [error])
     } catch {
         return SourceEventStreamResult(errors: [GraphQLError(error)])

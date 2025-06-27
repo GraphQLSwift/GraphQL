@@ -37,7 +37,6 @@ public struct GraphQLRequest: Equatable, Codable {
     /// - Returns: The operation type performed by the request
     public func operationType() throws -> OperationType {
         let documentAST = try GraphQL.parse(
-            instrumentation: NoOpInstrumentation,
             source: Source(body: query, name: "GraphQL request")
         )
         let firstOperation = documentAST.definitions.compactMap { $0 as? OperationDefinition }.first

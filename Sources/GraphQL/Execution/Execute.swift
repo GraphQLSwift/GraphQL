@@ -31,7 +31,6 @@ public final class ExecutionContext {
     let queryStrategy: QueryFieldExecutionStrategy
     let mutationStrategy: MutationFieldExecutionStrategy
     let subscriptionStrategy: SubscriptionFieldExecutionStrategy
-    let instrumentation: Instrumentation
     public let schema: GraphQLSchema
     public let fragments: [String: FragmentDefinition]
     public let rootValue: Any
@@ -54,7 +53,6 @@ public final class ExecutionContext {
         queryStrategy: QueryFieldExecutionStrategy,
         mutationStrategy: MutationFieldExecutionStrategy,
         subscriptionStrategy: SubscriptionFieldExecutionStrategy,
-        instrumentation: Instrumentation,
         schema: GraphQLSchema,
         fragments: [String: FragmentDefinition],
         rootValue: Any,
@@ -66,7 +64,6 @@ public final class ExecutionContext {
         self.queryStrategy = queryStrategy
         self.mutationStrategy = mutationStrategy
         self.subscriptionStrategy = subscriptionStrategy
-        self.instrumentation = instrumentation
         self.schema = schema
         self.fragments = fragments
         self.rootValue = rootValue
@@ -180,7 +177,6 @@ func execute(
     queryStrategy: QueryFieldExecutionStrategy,
     mutationStrategy: MutationFieldExecutionStrategy,
     subscriptionStrategy: SubscriptionFieldExecutionStrategy,
-    instrumentation: Instrumentation,
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: Any,
@@ -188,7 +184,6 @@ func execute(
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) async throws -> GraphQLResult {
-    let executeStarted = instrumentation.now
     let buildContext: ExecutionContext
 
     do {
@@ -198,7 +193,6 @@ func execute(
             queryStrategy: queryStrategy,
             mutationStrategy: mutationStrategy,
             subscriptionStrategy: subscriptionStrategy,
-            instrumentation: instrumentation,
             schema: schema,
             documentAST: documentAST,
             rootValue: rootValue,
@@ -207,20 +201,6 @@ func execute(
             operationName: operationName
         )
     } catch let error as GraphQLError {
-        instrumentation.operationExecution(
-            processId: processId(),
-            threadId: threadId(),
-            started: executeStarted,
-            finished: instrumentation.now,
-            schema: schema,
-            document: documentAST,
-            rootValue: rootValue,
-            variableValues: variableValues,
-            operation: nil,
-            errors: [error],
-            result: nil
-        )
-
         return GraphQLResult(errors: [error])
     } catch {
         return GraphQLResult(errors: [GraphQLError(error)])
@@ -264,7 +244,6 @@ func buildExecutionContext(
     queryStrategy: QueryFieldExecutionStrategy,
     mutationStrategy: MutationFieldExecutionStrategy,
     subscriptionStrategy: SubscriptionFieldExecutionStrategy,
-    instrumentation: Instrumentation,
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: Any,
@@ -318,7 +297,6 @@ func buildExecutionContext(
         queryStrategy: queryStrategy,
         mutationStrategy: mutationStrategy,
         subscriptionStrategy: subscriptionStrategy,
-        instrumentation: instrumentation,
         schema: schema,
         fragments: fragments,
         rootValue: rootValue,
@@ -641,8 +619,6 @@ public func resolveField(
         variableValues: exeContext.variableValues
     )
 
-//    let resolveFieldStarted = exeContext.instrumentation.now
-
     // Get the resolve func, regardless of if its result is normal
     // or abrupt (error).
     let result = await resolveOrError(
@@ -652,17 +628,6 @@ public func resolveField(
         context: context,
         info: info
     )
-
-//    exeContext.instrumentation.fieldResolution(
-//        processId: processId(),
-//        threadId: threadId(),
-//        started: resolveFieldStarted,
-//        finished: exeContext.instrumentation.now,
-//        source: source,
-//        args: args,
-//        info: info,
-//        result: result
-//    )
 
     return try await completeValueCatchingError(
         exeContext: exeContext,

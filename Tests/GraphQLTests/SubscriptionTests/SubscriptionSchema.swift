@@ -190,7 +190,6 @@ func createSubscription(
         queryStrategy: SerialFieldExecutionStrategy(),
         mutationStrategy: SerialFieldExecutionStrategy(),
         subscriptionStrategy: SerialFieldExecutionStrategy(),
-        instrumentation: NoOpInstrumentation,
         schema: schema,
         request: query,
         rootValue: (),
