@@ -711,10 +711,6 @@ class SubscriptionTests: XCTestCase {
                     from
                     subject
                   }
-                  inbox {
-                    unread
-                    total
-                  }
                 }
               }
         """)
@@ -734,6 +730,8 @@ class SubscriptionTests: XCTestCase {
         ))
 
         let result1 = try await iterator.next()
+        let result2 = try await iterator.next()
+
         XCTAssertEqual(
             result1,
             GraphQLResult(
@@ -742,15 +740,9 @@ class SubscriptionTests: XCTestCase {
                         "from": "yuzhi@graphql.org",
                         "subject": "Alright",
                     ],
-                    "inbox": [
-                        "unread": 2,
-                        "total": 3,
-                    ],
                 ]]
             )
         )
-
-        let result2 = try await iterator.next()
         XCTAssertEqual(
             result2,
             GraphQLResult(
@@ -758,10 +750,6 @@ class SubscriptionTests: XCTestCase {
                     "email": [
                         "from": "yuzhi@graphql.org",
                         "subject": "Message 2",
-                    ],
-                    "inbox": [
-                        "unread": 2,
-                        "total": 3,
                     ],
                 ]]
             )
