@@ -10,9 +10,7 @@ jobs:
     name: Test on macOS
     runs-on: macos-latest
     steps:
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: latest-stable
+    - uses: swift-actions/setup-swift@v2
     - uses: actions/checkout@v4
     - name: Build and test
       run: |
