@@ -17,10 +17,6 @@ let package = Package(
                 .product(name: "OrderedCollections", package: "swift-collections"),
             ]
         ),
-        .target(
-            name: "DeleteMe",
-            dependencies: ["GraphQL"]
-        ),
         .testTarget(
             name: "GraphQLTests",
             dependencies: ["GraphQL"],
