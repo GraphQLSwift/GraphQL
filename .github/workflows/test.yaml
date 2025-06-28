@@ -16,4 +16,4 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build and test
       run: |
-        swift test --skip ExtendSchemaTests
+        swift test --skip BuildASTSchemaTests
