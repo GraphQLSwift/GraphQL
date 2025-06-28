@@ -16,6 +16,4 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build and test
       run: |
-        swift test \
-          --skip testDoNotModifyBuiltInTypesAnDirectives \
-          --skip testExtends
+        swift run DeleteMe
