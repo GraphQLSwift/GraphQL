@@ -16,4 +16,4 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build and test
       run: |
-        swift test --parallel --skip SubscriptionTests
+        swift test --skip SubscriptionTests
