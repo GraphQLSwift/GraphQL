@@ -1,9 +1,9 @@
-import XCTest
+import Testing
 
 @testable import GraphQL
 
-class StarWarsQueryTests: XCTestCase {
-    func testHeroNameQuery() async throws {
+@Suite struct StarWarsQueryTests {
+    @Test func testHeroNameQuery() async throws {
         let query = """
         query HeroNameQuery {
             hero {
@@ -25,10 +25,10 @@ class StarWarsQueryTests: XCTestCase {
             request: query
         )
 
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testHeroNameAndFriendsQuery() async throws {
+    @Test func testHeroNameAndFriendsQuery() async throws {
         let query = """
         query HeroNameAndFriendsQuery {
             hero {
@@ -60,10 +60,10 @@ class StarWarsQueryTests: XCTestCase {
             request: query
         )
 
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testNestedQuery() async throws {
+    @Test func testNestedQuery() async throws {
         let query = """
         query NestedQuery {
             hero {
@@ -122,10 +122,10 @@ class StarWarsQueryTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testFetchLukeQuery() async throws {
+    @Test func testFetchLukeQuery() async throws {
         let query =
             """
             query FetchLukeQuery {
@@ -147,10 +147,10 @@ class StarWarsQueryTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testOptionalVariable() async throws {
+    @Test func testOptionalVariable() async throws {
         let query =
             """
             query FetchHeroByEpisodeQuery($episode: Episode) {
@@ -180,7 +180,7 @@ class StarWarsQueryTests: XCTestCase {
             request: query,
             variableValues: params
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
 
         // or we can pass "EMPIRE" and expect Luke
         params = [
@@ -200,10 +200,10 @@ class StarWarsQueryTests: XCTestCase {
             request: query,
             variableValues: params
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testFetchSomeIDQuery() async throws {
+    @Test func testFetchSomeIDQuery() async throws {
         let query =
             """
             query FetchSomeIDQuery($someId: String!) {
@@ -234,7 +234,7 @@ class StarWarsQueryTests: XCTestCase {
             request: query,
             variableValues: params
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
 
         params = [
             "someId": "1002",
@@ -253,7 +253,7 @@ class StarWarsQueryTests: XCTestCase {
             request: query,
             variableValues: params
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
 
         params = [
             "someId": "not a valid id",
@@ -270,10 +270,10 @@ class StarWarsQueryTests: XCTestCase {
             request: query,
             variableValues: params
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testFetchLukeAliasedQuery() async throws {
+    @Test func testFetchLukeAliasedQuery() async throws {
         let query =
             """
             query FetchLukeAliasedQuery {
@@ -295,10 +295,10 @@ class StarWarsQueryTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testFetchLukeAndLeiaAliasedQuery() async throws {
+    @Test func testFetchLukeAndLeiaAliasedQuery() async throws {
         let query =
             """
             query FetchLukeAndLeiaAliasedQuery {
@@ -326,10 +326,10 @@ class StarWarsQueryTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testDuplicateFieldsQuery() async throws {
+    @Test func testDuplicateFieldsQuery() async throws {
         let query =
             """
             query DuplicateFieldsQuery {
@@ -361,10 +361,10 @@ class StarWarsQueryTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testUseFragmentQuery() async throws {
+    @Test func testUseFragmentQuery() async throws {
         let query =
             """
             query UseFragmentQuery {
@@ -398,10 +398,10 @@ class StarWarsQueryTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testCheckTypeOfR2Query() async throws {
+    @Test func testCheckTypeOfR2Query() async throws {
         let query =
             """
             query CheckTypeOfR2Query {
@@ -426,10 +426,10 @@ class StarWarsQueryTests: XCTestCase {
             request: query
         )
 
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testCheckTypeOfLukeQuery() async throws {
+    @Test func testCheckTypeOfLukeQuery() async throws {
         let query =
             """
             query CheckTypeOfLukeQuery {
@@ -453,10 +453,10 @@ class StarWarsQueryTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testSecretBackstoryQuery() async throws {
+    @Test func testSecretBackstoryQuery() async throws {
         let query =
             """
             query SecretBackstoryQuery {
@@ -487,10 +487,10 @@ class StarWarsQueryTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testSecretBackstoryListQuery() async throws {
+    @Test func testSecretBackstoryListQuery() async throws {
         let query =
             """
             query SecretBackstoryListQuery {
@@ -547,10 +547,10 @@ class StarWarsQueryTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testSecretBackstoryAliasQuery() async throws {
+    @Test func testSecretBackstoryAliasQuery() async throws {
         let query =
             """
             query SecretBackstoryAliasQuery {
@@ -581,10 +581,10 @@ class StarWarsQueryTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testNonNullableFieldsQuery() async throws {
+    @Test func testNonNullableFieldsQuery() async throws {
         let A = try GraphQLObjectType(
             name: "A",
             fields: [:]
@@ -662,10 +662,10 @@ class StarWarsQueryTests: XCTestCase {
 
         let result = try await graphql(schema: schema, request: query)
 
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testFieldOrderQuery() async throws {
+    @Test func testFieldOrderQuery() async throws {
         var result = try await graphql(
             schema: starWarsSchema,
             request: """
@@ -677,7 +677,7 @@ class StarWarsQueryTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(result, GraphQLResult(
+        #expect(result == GraphQLResult(
             data: [
                 "hero": [
                     "id": "2001",
@@ -697,7 +697,7 @@ class StarWarsQueryTests: XCTestCase {
             }
             """
         )
-        XCTAssertNotEqual(result, GraphQLResult(
+        #expect(result != GraphQLResult(
             data: [
                 "hero": [
                     "name": "R2-D2",

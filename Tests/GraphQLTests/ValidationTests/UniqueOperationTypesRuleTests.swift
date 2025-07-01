@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class UniqueOperationTypesRuleTests: SDLValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = UniqueOperationTypesRule
     }
 
-    func testNoSchemaDefinition() throws {
+    @Test func testNoSchemaDefinition() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -15,7 +16,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testSchemaDefinitionWithAllTypes() throws {
+    @Test func testSchemaDefinitionWithAllTypes() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -30,7 +31,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testSchemaDefinitionWithSingleExtension() throws {
+    @Test func testSchemaDefinitionWithSingleExtension() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -46,7 +47,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testSchemaDefinitionWithSeparateExtensions() throws {
+    @Test func testSchemaDefinitionWithSeparateExtensions() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -59,7 +60,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testExtendSchemaBeforeDefinition() throws {
+    @Test func testExtendSchemaBeforeDefinition() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -73,7 +74,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testDuplicateOperationTypesInsideSingleSchemaDefinition() throws {
+    @Test func testDuplicateOperationTypesInsideSingleSchemaDefinition() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -114,7 +115,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testDuplicateOperationTypesInsideSingleSchemaDefinitionTwice() throws {
+    @Test func testDuplicateOperationTypesInsideSingleSchemaDefinitionTwice() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -184,7 +185,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testDuplicateOperationTypesInsideSecondSchemaExtension() throws {
+    @Test func testDuplicateOperationTypesInsideSecondSchemaExtension() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -230,7 +231,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testDefineAndExtendSchemaInsideExtensionSDL() throws {
+    @Test func testDefineAndExtendSchemaInsideExtensionSDL() throws {
         let schema = try buildSchema(source: "type Foo")
         let sdl = """
         schema { query: Foo }
@@ -240,7 +241,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
-    func testAddingNewOperationTypesToExistingSchema() throws {
+    @Test func testAddingNewOperationTypesToExistingSchema() throws {
         let schema = try buildSchema(source: "type Query")
         let sdl = """
         extend schema { mutation: Foo }
@@ -249,7 +250,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
-    func testAddingConflictingOperationTypesToExistingSchema() throws {
+    @Test func testAddingConflictingOperationTypesToExistingSchema() throws {
         let schema = try buildSchema(source: """
         type Query
         type Mutation
@@ -284,7 +285,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testAddingConflictingOperationTypesToExistingSchemaTwice() throws {
+    @Test func testAddingConflictingOperationTypesToExistingSchemaTwice() throws {
         let schema = try buildSchema(source: """
         type Query
         type Mutation

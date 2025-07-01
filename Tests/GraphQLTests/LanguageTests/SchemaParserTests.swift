@@ -1,5 +1,6 @@
+import Foundation
 @testable import GraphQL
-import XCTest
+import Testing
 
 func nameNode(_ name: String) -> Name {
     return Name(value: name)
@@ -66,8 +67,8 @@ func namedTypeNode(_ name: String) -> NamedType {
     return NamedType(name: nameNode(name))
 }
 
-class SchemaParserTests: XCTestCase {
-    func testSimpleType() throws {
+@Suite struct SchemaParserTests {
+    @Test func testSimpleType() throws {
         let source = "type Hello { world: String }"
 
         let expected = Document(
@@ -85,10 +86,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testParsesTypeWithDescriptionString() throws {
+    @Test func testParsesTypeWithDescriptionString() throws {
         let doc = try parse(source: """
         "Description"
         type Hello {
@@ -96,15 +97,12 @@ class SchemaParserTests: XCTestCase {
         }
         """)
 
-        let type = try XCTUnwrap(doc.definitions[0] as? ObjectTypeDefinition)
+        let type = try #require(doc.definitions[0] as? ObjectTypeDefinition)
 
-        XCTAssertEqual(
-            type.description?.value,
-            "Description"
-        )
+        #expect(type.description?.value == "Description")
     }
 
-    func testParsesTypeWithDescriptionMultiLineString() throws {
+    @Test func testParsesTypeWithDescriptionMultiLineString() throws {
         let doc = try parse(source: #"""
         """
         Description
@@ -115,15 +113,12 @@ class SchemaParserTests: XCTestCase {
         }
         """#)
 
-        let type = try XCTUnwrap(doc.definitions[0] as? ObjectTypeDefinition)
+        let type = try #require(doc.definitions[0] as? ObjectTypeDefinition)
 
-        XCTAssertEqual(
-            type.description?.value,
-            "Description"
-        )
+        #expect(type.description?.value == "Description")
     }
 
-    func testParsesSchemaWithDescriptionMultiLineString() throws {
+    @Test func testParsesSchemaWithDescriptionMultiLineString() throws {
         let doc = try parse(source: """
         "Description"
         schema {
@@ -131,21 +126,18 @@ class SchemaParserTests: XCTestCase {
         }
         """)
 
-        let type = try XCTUnwrap(doc.definitions[0] as? SchemaDefinition)
+        let type = try #require(doc.definitions[0] as? SchemaDefinition)
 
-        XCTAssertEqual(
-            type.description?.value,
-            "Description"
-        )
+        #expect(type.description?.value == "Description")
     }
 
-    func testDescriptionFollowedBySomethingOtherThanTypeSystemDefinitionThrows() throws {
-        XCTAssertThrowsError(
+    @Test func testDescriptionFollowedBySomethingOtherThanTypeSystemDefinitionThrows() throws {
+        #expect(throws: (any Error).self) {
             try parse(source: #""Description" 1"#)
-        )
+        }
     }
 
-    func testSimpleExtension() throws {
+    @Test func testSimpleExtension() throws {
         let source = "extend type Hello { world: String }"
 
         let expected = Document(
@@ -165,13 +157,12 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testObjectExtensionWithoutFields() throws {
-        XCTAssertEqual(
-            try parse(source: "extend type Hello implements Greeting"),
-            Document(
+    @Test func testObjectExtensionWithoutFields() throws {
+        #expect(
+            try parse(source: "extend type Hello implements Greeting") == Document(
                 definitions: [
                     TypeExtensionDefinition(
                         definition: ObjectTypeDefinition(
@@ -186,10 +177,9 @@ class SchemaParserTests: XCTestCase {
         )
     }
 
-    func testInterfaceExtensionWithoutFields() throws {
-        XCTAssertEqual(
-            try parse(source: "extend interface Hello implements Greeting"),
-            Document(
+    @Test func testInterfaceExtensionWithoutFields() throws {
+        #expect(
+            try parse(source: "extend interface Hello implements Greeting") == Document(
                 definitions: [
                     InterfaceExtensionDefinition(
                         definition: InterfaceTypeDefinition(
@@ -204,14 +194,13 @@ class SchemaParserTests: XCTestCase {
         )
     }
 
-    func testObjectExtensionWithoutFieldsFollowedByExtension() throws {
-        XCTAssertEqual(
+    @Test func testObjectExtensionWithoutFieldsFollowedByExtension() throws {
+        #expect(
             try parse(source: """
             extend type Hello implements Greeting
 
             extend type Hello implements SecondGreeting
-            """),
-            Document(
+            """) == Document(
                 definitions: [
                     TypeExtensionDefinition(
                         definition: ObjectTypeDefinition(
@@ -234,23 +223,22 @@ class SchemaParserTests: XCTestCase {
         )
     }
 
-    func testExtensionWithoutAnythingThrows() throws {
-        try XCTAssertThrowsError(parse(source: "extend scalar Hello"))
-        try XCTAssertThrowsError(parse(source: "extend type Hello"))
-        try XCTAssertThrowsError(parse(source: "extend interface Hello"))
-        try XCTAssertThrowsError(parse(source: "extend union Hello"))
-        try XCTAssertThrowsError(parse(source: "extend enum Hello"))
-        try XCTAssertThrowsError(parse(source: "extend input Hello"))
+    @Test func testExtensionWithoutAnythingThrows() throws {
+        #expect(throws: (any Error).self) { try parse(source: "extend scalar Hello") }
+        #expect(throws: (any Error).self) { try parse(source: "extend type Hello") }
+        #expect(throws: (any Error).self) { try parse(source: "extend interface Hello") }
+        #expect(throws: (any Error).self) { try parse(source: "extend union Hello") }
+        #expect(throws: (any Error).self) { try parse(source: "extend enum Hello") }
+        #expect(throws: (any Error).self) { try parse(source: "extend input Hello") }
     }
 
-    func testInterfaceExtensionWithoutFieldsFollowedByExtension() throws {
-        XCTAssertEqual(
+    @Test func testInterfaceExtensionWithoutFieldsFollowedByExtension() throws {
+        #expect(
             try parse(source: """
             extend interface Hello implements Greeting
 
             extend interface Hello implements SecondGreeting
-            """),
-            Document(
+            """) == Document(
                 definitions: [
                     InterfaceExtensionDefinition(
                         definition: InterfaceTypeDefinition(
@@ -273,52 +261,51 @@ class SchemaParserTests: XCTestCase {
         )
     }
 
-    func testObjectExtensionDoNotIncludeDescriptions() throws {
-        XCTAssertThrowsError(
+    @Test func testObjectExtensionDoNotIncludeDescriptions() throws {
+        #expect(throws: (any Error).self) {
             try parse(source: """
             "Description"
             extend type Hello {
               world: String
             }
             """)
-        )
+        }
 
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try parse(source: """
             extend "Description" type Hello {
               world: String
             }
             """)
-        )
+        }
     }
 
-    func testInterfaceExtensionDoNotIncludeDescriptions() throws {
-        XCTAssertThrowsError(
+    @Test func testInterfaceExtensionDoNotIncludeDescriptions() throws {
+        #expect(throws: (any Error).self) {
             try parse(source: """
             "Description"
             extend interface Hello {
               world: String
             }
             """)
-        )
+        }
 
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try parse(source: """
             extend "Description" interface Hello {
               world: String
             }
             """)
-        )
+        }
     }
 
-    func testSchemaExtension() throws {
-        XCTAssertEqual(
+    @Test func testSchemaExtension() throws {
+        #expect(
             try parse(source: """
             extend schema {
               mutation: Mutation
             }
-            """),
-            Document(
+            """) == Document(
                 definitions: [
                     SchemaExtensionDefinition(
                         definition: SchemaDefinition(
@@ -336,10 +323,9 @@ class SchemaParserTests: XCTestCase {
         )
     }
 
-    func testSchemaExtensionWithOnlyDirectives() throws {
-        XCTAssertEqual(
-            try parse(source: "extend schema @directive"),
-            Document(
+    @Test func testSchemaExtensionWithOnlyDirectives() throws {
+        #expect(
+            try parse(source: "extend schema @directive") == Document(
                 definitions: [
                     SchemaExtensionDefinition(
                         definition: SchemaDefinition(
@@ -354,19 +340,19 @@ class SchemaParserTests: XCTestCase {
         )
     }
 
-    func testSchemaExtensionWithoutAnythingThrows() throws {
-        XCTAssertThrowsError(
+    @Test func testSchemaExtensionWithoutAnythingThrows() throws {
+        #expect(throws: (any Error).self) {
             try parse(source: "extend schema")
-        )
+        }
     }
 
-    func testSchemaExtensionWithInvalidOperationTypeThrows() throws {
-        XCTAssertThrowsError(
+    @Test func testSchemaExtensionWithInvalidOperationTypeThrows() throws {
+        #expect(throws: (any Error).self) {
             try parse(source: "extend schema { unknown: SomeType }")
-        )
+        }
     }
 
-    func testSimpleNonNullType() throws {
+    @Test func testSimpleNonNullType() throws {
         let source = "type Hello { world: String! }"
 
         let expected = Document(
@@ -386,13 +372,14 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleInterfaceInheritingInterface() throws {
-        XCTAssertEqual(
-            try parse(source: "interface Hello implements World { field: String }"),
-            Document(
+    @Test func testSimpleInterfaceInheritingInterface() throws {
+        #expect(
+            try parse(
+                source: "interface Hello implements World { field: String }"
+            ) == Document(
                 definitions: [
                     InterfaceTypeDefinition(
                         name: nameNode("Hello"),
@@ -409,7 +396,7 @@ class SchemaParserTests: XCTestCase {
         )
     }
 
-    func testSimpleTypeInheritingInterface() throws {
+    @Test func testSimpleTypeInheritingInterface() throws {
         let source = "type Hello implements World { }"
 
         let expected = Document(
@@ -422,10 +409,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleTypeInheritingMultipleInterfaces() throws {
+    @Test func testSimpleTypeInheritingMultipleInterfaces() throws {
         let source = "type Hello implements Wo & rld { }"
 
         let expected = Document(
@@ -441,13 +428,14 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleInterfaceInheritingMultipleInterfaces() throws {
-        XCTAssertEqual(
-            try parse(source: "interface Hello implements Wo & rld { field: String }"),
-            Document(
+    @Test func testSimpleInterfaceInheritingMultipleInterfaces() throws {
+        #expect(
+            try parse(
+                source: "interface Hello implements Wo & rld { field: String }"
+            ) == Document(
                 definitions: [
                     InterfaceTypeDefinition(
                         name: nameNode("Hello"),
@@ -467,7 +455,7 @@ class SchemaParserTests: XCTestCase {
         )
     }
 
-    func testSimpleTypeInheritingMultipleInterfacesWithLeadingAmbersand() throws {
+    @Test func testSimpleTypeInheritingMultipleInterfacesWithLeadingAmbersand() throws {
         let source = "type Hello implements & Wo & rld { }"
 
         let expected = Document(
@@ -483,13 +471,14 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleInterfaceInheritingMultipleInterfacesWithLeadingAmbersand() throws {
-        XCTAssertEqual(
-            try parse(source: "interface Hello implements & Wo & rld { field: String }"),
-            Document(
+    @Test func testSimpleInterfaceInheritingMultipleInterfacesWithLeadingAmbersand() throws {
+        #expect(
+            try parse(
+                source: "interface Hello implements & Wo & rld { field: String }"
+            ) == Document(
                 definitions: [
                     InterfaceTypeDefinition(
                         name: nameNode("Hello"),
@@ -509,7 +498,7 @@ class SchemaParserTests: XCTestCase {
         )
     }
 
-    func testSingleValueEnum() throws {
+    @Test func testSingleValueEnum() throws {
         let source = "enum Hello { WORLD }"
 
         let expected = Document(
@@ -524,10 +513,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testDoubleValueEnum() throws {
+    @Test func testDoubleValueEnum() throws {
         let source = "enum Hello { WO, RLD }"
 
         let expected = Document(
@@ -543,10 +532,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleInterface() throws {
+    @Test func testSimpleInterface() throws {
         let source = "interface Hello { world: String }"
 
         let expected = Document(
@@ -564,10 +553,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleFieldWithArg() throws {
+    @Test func testSimpleFieldWithArg() throws {
         let source = "type Hello { world(flag: Boolean): String }"
 
         let expected = Document(
@@ -591,10 +580,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleFieldWithArgDefaultValue() throws {
+    @Test func testSimpleFieldWithArgDefaultValue() throws {
         let source = "type Hello { world(flag: Boolean = true): String }"
 
         let expected = Document(
@@ -619,10 +608,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleFieldWithListArg() throws {
+    @Test func testSimpleFieldWithListArg() throws {
         let source = "type Hello { world(things: [String]): String }"
 
         let expected = Document(
@@ -646,10 +635,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleFieldWithTwoArgs() throws {
+    @Test func testSimpleFieldWithTwoArgs() throws {
         let source = "type Hello { world(argOne: Boolean, argTwo: Int): String }"
 
         let expected = Document(
@@ -677,10 +666,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleUnion() throws {
+    @Test func testSimpleUnion() throws {
         let source = "union Hello = World"
 
         let expected = Document(
@@ -695,10 +684,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testUnionTwoTypes() throws {
+    @Test func testUnionTwoTypes() throws {
         let source = "union Hello = Wo | Rld"
 
         let expected = Document(
@@ -714,10 +703,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testScalar() throws {
+    @Test func testScalar() throws {
         let source = "scalar Hello"
 
         let expected = Document(
@@ -729,10 +718,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleInputObject() throws {
+    @Test func testSimpleInputObject() throws {
         let source = "input Hello { world: String }"
 
         let expected = Document(
@@ -750,15 +739,15 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleInputObjectWithArgs() throws {
+    @Test func testSimpleInputObjectWithArgs() throws {
         let source = "input Hello { world(foo: Int): String }"
-        XCTAssertThrowsError(try parse(source: source))
+        #expect(throws: (any Error).self) { try parse(source: source) }
     }
 
-    func testSimpleSchema() throws {
+    @Test func testSimpleSchema() throws {
         let source = "schema { query: Hello }"
         let expected = SchemaDefinition(
             directives: [],
@@ -770,12 +759,12 @@ class SchemaParserTests: XCTestCase {
             ]
         )
         let result = try parse(source: source)
-        XCTAssert(result.definitions[0] == expected)
+        #expect(result.definitions[0] == expected)
     }
 
     // Description tests
 
-    func testTypeWithDescription() throws {
+    @Test func testTypeWithDescription() throws {
         let source = #""The Hello type" type Hello { world: String }"#
 
         let expected = ObjectTypeDefinition(
@@ -790,10 +779,9 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        let firstDefinition = try XCTUnwrap(result.definitions[0] as? ObjectTypeDefinition)
-        XCTAssertEqual(
-            firstDefinition,
-            expected,
+        let firstDefinition = try #require(result.definitions[0] as? ObjectTypeDefinition)
+        #expect(
+            firstDefinition == expected,
             """
             \(dump(firstDefinition))
             \(dump(expected))
@@ -801,7 +789,7 @@ class SchemaParserTests: XCTestCase {
         )
     }
 
-    func testTypeWitMultilinehDescription() throws {
+    @Test func testTypeWitMultilinehDescription() throws {
         let source = #"""
         """
         The Hello type.
@@ -831,10 +819,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testDirectiveDesciption() throws {
+    @Test func testDirectiveDesciption() throws {
         let source = #""directive description" directive @Test(a: String = "hello") on FIELD"#
 
         let expected = Document(
@@ -861,10 +849,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testDirectiveMultilineDesciption() throws {
+    @Test func testDirectiveMultilineDesciption() throws {
         let source = #"""
         """
         directive description
@@ -895,10 +883,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleSchemaWithDescription() throws {
+    @Test func testSimpleSchemaWithDescription() throws {
         let source = #""Hello Schema" schema { query: Hello } "#
 
         let expected = SchemaDefinition(
@@ -912,10 +900,10 @@ class SchemaParserTests: XCTestCase {
             ]
         )
         let result = try parse(source: source)
-        XCTAssert(result.definitions[0] == expected)
+        #expect(result.definitions[0] == expected)
     }
 
-    func testScalarWithDescription() throws {
+    @Test func testScalarWithDescription() throws {
         let source = #""Hello Scaler Test" scalar Hello"#
 
         let expected = Document(
@@ -928,10 +916,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleInterfaceWithDescription() throws {
+    @Test func testSimpleInterfaceWithDescription() throws {
         let source = #""Hello World Interface" interface Hello { world: String } "#
 
         let expected = Document(
@@ -950,10 +938,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleUnionWithDescription() throws {
+    @Test func testSimpleUnionWithDescription() throws {
         let source = #""Hello World Union!" union Hello = World "#
 
         let expected = Document(
@@ -969,10 +957,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSingleValueEnumDescription() throws {
+    @Test func testSingleValueEnumDescription() throws {
         let source = #""Hello World Enum..." enum Hello { WORLD } "#
 
         let expected = Document(
@@ -988,10 +976,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testSimpleInputObjectWithDescription() throws {
+    @Test func testSimpleInputObjectWithDescription() throws {
         let source = #""Hello Input Object" input Hello { world: String }"#
 
         let expected = Document(
@@ -1010,12 +998,12 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
     // Test Fields and values with optional descriptions
 
-    func testSingleValueEnumWithDescription() throws {
+    @Test func testSingleValueEnumWithDescription() throws {
         let source = """
         enum Hello {
             "world description"
@@ -1044,10 +1032,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testTypeFieldWithDescription() throws {
+    @Test func testTypeFieldWithDescription() throws {
         let source = #"type Hello { "The world field." world: String } "#
 
         let expected = Document(
@@ -1066,10 +1054,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testTypeFieldWithMultilineDescription() throws {
+    @Test func testTypeFieldWithMultilineDescription() throws {
         let source = #"""
         type Hello {
             """
@@ -1096,10 +1084,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected, "\(dump(result)) \n\n\(dump(expected))")
+        #expect(result == expected, "\(dump(result)) \n\n\(dump(expected))")
     }
 
-    func testSimpleInputObjectFieldWithDescription() throws {
+    @Test func testSimpleInputObjectFieldWithDescription() throws {
         let source = #"input Hello { "World field" world: String }"#
 
         let expected = Document(
@@ -1118,10 +1106,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testUndefinedType() throws {
+    @Test func testUndefinedType() throws {
         let source = #"type UndefinedType"#
 
         let expected = Document(
@@ -1131,10 +1119,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testUndefinedInterfaceType() throws {
+    @Test func testUndefinedInterfaceType() throws {
         let source = #"interface UndefinedInterface"#
 
         let expected = Document(
@@ -1147,10 +1135,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testInterfaceExtensionType() throws {
+    @Test func testInterfaceExtensionType() throws {
         let source = #"extend interface Bar @onInterface"#
 
         let expected = Document(
@@ -1168,10 +1156,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testUnionPipe() throws {
+    @Test func testUnionPipe() throws {
         let source = #"union AnnotatedUnionTwo @onUnion = | A | B"#
 
         let expected = Document(
@@ -1190,10 +1178,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testExtendScalar() throws {
+    @Test func testExtendScalar() throws {
         let source = #"extend scalar CustomScalar @onScalar"#
 
         let expected = Document(
@@ -1210,10 +1198,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testUndefinedUnion() throws {
+    @Test func testUndefinedUnion() throws {
         let source = #"union UndefinedUnion"#
 
         let expected = Document(
@@ -1226,10 +1214,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testExtendUnion() throws {
+    @Test func testExtendUnion() throws {
         let source = #"extend union Feed = Photo | Video"#
 
         let expected = Document(
@@ -1247,10 +1235,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testUndefinedEnum() throws {
+    @Test func testUndefinedEnum() throws {
         let source = #"enum UndefinedEnum"#
 
         let expected = Document(
@@ -1263,10 +1251,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testEnumExtension() throws {
+    @Test func testEnumExtension() throws {
         let source = #"extend enum Site @onEnum"#
 
         let expected = Document(
@@ -1284,10 +1272,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testUndefinedInput() throws {
+    @Test func testUndefinedInput() throws {
         let source = #"input UndefinedInput"#
 
         let expected = Document(
@@ -1300,10 +1288,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testInputExtension() throws {
+    @Test func testInputExtension() throws {
         let source = #"extend input InputType @include"#
 
         let expected = Document(
@@ -1321,10 +1309,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testDirectivePipe() throws {
+    @Test func testDirectivePipe() throws {
         let source = """
         directive @include2 on
             | FIELD
@@ -1346,10 +1334,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testDirectiveRepeatable() throws {
+    @Test func testDirectiveRepeatable() throws {
         let source = """
         directive @myRepeatableDir repeatable on
           | OBJECT
@@ -1370,10 +1358,10 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 
-    func testKitchenSink() throws {
+    @Test func testKitchenSink() throws {
         guard
             let url = Bundle.module.url(
                 forResource: "schema-kitchen-sink",
@@ -1381,14 +1369,14 @@ class SchemaParserTests: XCTestCase {
             ),
             let kitchenSink = try? String(contentsOf: url, encoding: .utf8)
         else {
-            XCTFail("Could not load kitchen sink")
+            Issue.record("Could not load kitchen sink")
             return
         }
 
         _ = try parse(source: kitchenSink)
     }
 
-    func testSchemeExtension() throws {
+    @Test func testSchemeExtension() throws {
         // Based on Apollo Federation example schema: https://github.com/apollographql/apollo-federation-subgraph-compatibility/blob/main/COMPATIBILITY.md#products-schema-to-be-implemented-by-library-maintainers
         let source =
             """
@@ -1448,6 +1436,6 @@ class SchemaParserTests: XCTestCase {
         )
 
         let result = try parse(source: source)
-        XCTAssert(result == expected)
+        #expect(result == expected)
     }
 }

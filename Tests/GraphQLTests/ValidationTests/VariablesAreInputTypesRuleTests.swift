@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class VariablesAreInputTypesRuleTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = VariablesAreInputTypesRule
     }
 
-    func testUnknownTypesAreIgnored() throws {
+    @Test func testUnknownTypesAreIgnored() throws {
         try assertValid(
             """
             query Foo($a: Unknown, $b: [[Unknown!]]!) {
@@ -16,7 +17,7 @@ class VariablesAreInputTypesRuleTests: ValidationTestCase {
         )
     }
 
-    func testInputTypesAreValid() throws {
+    @Test func testInputTypesAreValid() throws {
         try assertValid(
             """
             query Foo($a: String, $b: [Boolean!]!, $c: ComplexInput) {
@@ -26,7 +27,7 @@ class VariablesAreInputTypesRuleTests: ValidationTestCase {
         )
     }
 
-    func testOutputTypesAreInvalid() throws {
+    @Test func testOutputTypesAreInvalid() throws {
         let errors = try assertInvalid(
             errorCount: 3,
             query:

@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class UniqueFragmentNamesRuleTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = UniqueFragmentNamesRule
     }
 
-    func testNoFragments() throws {
+    @Test func testNoFragments() throws {
         try assertValid(
             """
             {
@@ -16,7 +17,7 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testOneFragment() throws {
+    @Test func testOneFragment() throws {
         try assertValid(
             """
             {
@@ -30,7 +31,7 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testManyFragments() throws {
+    @Test func testManyFragments() throws {
         try assertValid(
             """
             {
@@ -51,7 +52,7 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testInlineFragmentsAreAlwaysUnique() throws {
+    @Test func testInlineFragmentsAreAlwaysUnique() throws {
         try assertValid(
             """
             {
@@ -66,7 +67,7 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testFragmentAndOperationNamedTheSame() throws {
+    @Test func testFragmentAndOperationNamedTheSame() throws {
         try assertValid(
             """
             query Foo {
@@ -79,7 +80,7 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testFragmentsNamedTheSame() throws {
+    @Test func testFragmentsNamedTheSame() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -105,7 +106,7 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testFragmentsNamedTheSameWithoutBeingReferenced() throws {
+    @Test func testFragmentsNamedTheSameWithoutBeingReferenced() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:

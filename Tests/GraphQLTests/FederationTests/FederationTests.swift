@@ -1,8 +1,8 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
-final class FederationTests: XCTestCase {
-    func testFederationSampleSchema() throws {
+@Suite struct FederationTests {
+    @Test func testFederationSampleSchema() throws {
         // Confirm that the Apollo test schema can be parsed as expected https://github.com/apollographql/apollo-federation-subgraph-compatibility/blob/main/COMPATIBILITY.md
         let source =
             """
@@ -328,7 +328,7 @@ final class FederationTests: XCTestCase {
         let document = try parse(source: source)
         let printed = print(ast: document)
 
-        XCTAssertEqual(document, expected)
-        XCTAssertEqual(source, printed)
+        #expect(document == expected)
+        #expect(source == printed)
     }
 }

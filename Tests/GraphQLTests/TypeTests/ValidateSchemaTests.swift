@@ -1,5 +1,5 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 let SomeSchema = try! buildSchema(source: """
 scalar SomeScalar
@@ -72,16 +72,16 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
     )
 }
 
-class ValidateSchemaTests: XCTestCase {
+@Suite struct ValidateSchemaTests {
     // MARK: Type System: A Schema must have Object root types
 
-    func testAcceptsASchemaWhoseQueryTypeIsAnObjectType() throws {
+    @Test func testAcceptsASchemaWhoseQueryTypeIsAnObjectType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
 
         let schemaWithDef = try buildSchema(source: """
           schema {
@@ -92,10 +92,10 @@ class ValidateSchemaTests: XCTestCase {
             test: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schemaWithDef), [])
+        try #expect(validateSchema(schema: schemaWithDef) == [])
     }
 
-    func testAcceptsASchemaWhoseQueryAndMutationTypesAreObjectTypes() throws {
+    @Test func testAcceptsASchemaWhoseQueryAndMutationTypesAreObjectTypes() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: String
@@ -105,7 +105,7 @@ class ValidateSchemaTests: XCTestCase {
             test: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
 
         let schemaWithDef = try buildSchema(source: """
           schema {
@@ -121,10 +121,10 @@ class ValidateSchemaTests: XCTestCase {
             test: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schemaWithDef), [])
+        try #expect(validateSchema(schema: schemaWithDef) == [])
     }
 
-    func testAcceptsASchemaWhoseQueryAndSubscriptionTypesAreObjectTypes() throws {
+    @Test func testAcceptsASchemaWhoseQueryAndSubscriptionTypesAreObjectTypes() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: String
@@ -134,7 +134,7 @@ class ValidateSchemaTests: XCTestCase {
             test: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
 
         let schemaWithDef = try buildSchema(source: """
           schema {
@@ -150,16 +150,16 @@ class ValidateSchemaTests: XCTestCase {
             test: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schemaWithDef), [])
+        try #expect(validateSchema(schema: schemaWithDef) == [])
     }
 
-    func testRejectsASchemaWithoutAQueryType() throws {
+    @Test func testRejectsASchemaWithoutAQueryType() throws {
         let schema = try buildSchema(source: """
           type Mutation {
             test: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(message: "Query root type must be provided."),
         ])
 
@@ -172,7 +172,7 @@ class ValidateSchemaTests: XCTestCase {
             test: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schemaWithDef), [
+        try #expect(validateSchema(schema: schemaWithDef) == [
             GraphQLError(
                 message: "Query root type must be provided.",
                 locations: [.init(line: 2, column: 7)]
@@ -180,17 +180,22 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsASchemaWhoseQueryRootTypeIsNotAnObjectType() throws {
-        XCTAssertThrowsError(
+    @Test func testRejectsASchemaWhoseQueryRootTypeIsNotAnObjectType() throws {
+        #expect(
+            throws: (any Error).self,
+            "Query root type must be Object type, it cannot be Query."
+        ) {
             try buildSchema(source: """
               input Query {
                 test: String
               }
-            """),
-            "Query root type must be Object type, it cannot be Query."
-        )
+            """)
+        }
 
-        XCTAssertThrowsError(
+        #expect(
+            throws: (any Error).self,
+            "Query root type must be Object type, it cannot be SomeInputObject."
+        ) {
             try buildSchema(source: """
               schema {
                 query: SomeInputObject
@@ -199,13 +204,15 @@ class ValidateSchemaTests: XCTestCase {
               input SomeInputObject {
                 test: String
               }
-            """),
-            "Query root type must be Object type, it cannot be SomeInputObject."
-        )
+            """)
+        }
     }
 
-    func testRejectsASchemaWhoseMutationTypeIsAnInputType() throws {
-        XCTAssertThrowsError(
+    @Test func testRejectsASchemaWhoseMutationTypeIsAnInputType() throws {
+        #expect(
+            throws: (any Error).self,
+            "Mutation root type must be Object type if provided, it cannot be Mutation."
+        ) {
             try buildSchema(source: """
               type Query {
                 field: String
@@ -214,11 +221,13 @@ class ValidateSchemaTests: XCTestCase {
               input Mutation {
                 test: String
               }
-            """),
-            "Mutation root type must be Object type if provided, it cannot be Mutation."
-        )
+            """)
+        }
 
-        XCTAssertThrowsError(
+        #expect(
+            throws: (any Error).self,
+            "Mutation root type must be Object type if provided, it cannot be SomeInputObject."
+        ) {
             try buildSchema(source: """
               schema {
                 query: Query
@@ -232,13 +241,15 @@ class ValidateSchemaTests: XCTestCase {
               input SomeInputObject {
                 test: String
               }
-            """),
-            "Mutation root type must be Object type if provided, it cannot be SomeInputObject."
-        )
+            """)
+        }
     }
 
-    func testRejectsASchemaWhoseSubscriptionTypeIsAnInputType() throws {
-        XCTAssertThrowsError(
+    @Test func testRejectsASchemaWhoseSubscriptionTypeIsAnInputType() throws {
+        #expect(
+            throws: (any Error).self,
+            "Subscription root type must be Object type if provided, it cannot be Subscription."
+        ) {
             try buildSchema(source: """
               type Query {
                 field: String
@@ -247,11 +258,13 @@ class ValidateSchemaTests: XCTestCase {
               input Subscription {
                 test: String
               }
-            """),
-            "Subscription root type must be Object type if provided, it cannot be Subscription."
-        )
+            """)
+        }
 
-        XCTAssertThrowsError(
+        #expect(
+            throws: (any Error).self,
+            "Subscription root type must be Object type if provided, it cannot be SomeInputObject."
+        ) {
             try buildSchema(source: """
               schema {
                 query: Query
@@ -265,12 +278,11 @@ class ValidateSchemaTests: XCTestCase {
               input SomeInputObject {
                 test: String
               }
-            """),
-            "Subscription root type must be Object type if provided, it cannot be SomeInputObject."
-        )
+            """)
+        }
     }
 
-    func testRejectsASchemaExtendedWithInvalidRootTypes() throws {
+    @Test func testRejectsASchemaExtendedWithInvalidRootTypes() throws {
         let schema = try buildSchema(source: """
           input SomeInputObject {
             test: String
@@ -283,7 +295,10 @@ class ValidateSchemaTests: XCTestCase {
           }
         """)
 
-        XCTAssertThrowsError(
+        #expect(
+            throws: (any Error).self,
+            "Query root type must be Object type, it cannot be SomeInputObject."
+        ) {
             try extendSchema(
                 schema: schema,
                 documentAST: parse(source: """
@@ -291,11 +306,13 @@ class ValidateSchemaTests: XCTestCase {
                     query: SomeInputObject
                   }
                 """)
-            ),
-            "Query root type must be Object type, it cannot be SomeInputObject."
-        )
+            )
+        }
 
-        XCTAssertThrowsError(
+        #expect(
+            throws: (any Error).self,
+            "Mutation root type must be Object type if provided, it cannot be SomeScalar."
+        ) {
             try extendSchema(
                 schema: schema,
                 documentAST: parse(source: """
@@ -303,11 +320,13 @@ class ValidateSchemaTests: XCTestCase {
                     mutation: SomeScalar
                   }
                 """)
-            ),
-            "Mutation root type must be Object type if provided, it cannot be SomeScalar."
-        )
+            )
+        }
 
-        XCTAssertThrowsError(
+        #expect(
+            throws: (any Error).self,
+            "Subscription root type must be Object type if provided, it cannot be SomeEnum."
+        ) {
             try extendSchema(
                 schema: schema,
                 documentAST: parse(source: """
@@ -315,12 +334,11 @@ class ValidateSchemaTests: XCTestCase {
                     subscription: SomeEnum
                   }
                 """)
-            ),
-            "Subscription root type must be Object type if provided, it cannot be SomeEnum."
-        )
+            )
+        }
     }
 
-    func testRejectsASchemaWhoseDirectivesHaveEmptyLocations() throws {
+    @Test func testRejectsASchemaWhoseDirectivesHaveEmptyLocations() throws {
         let badDirective = try GraphQLDirective(
             name: "BadDirective",
             locations: [],
@@ -330,14 +348,14 @@ class ValidateSchemaTests: XCTestCase {
             query: SomeObjectType,
             directives: [badDirective]
         )
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(message: "Directive @BadDirective must include 1 or more locations."),
         ])
     }
 
     // MARK: Type System: Root types must all be different if provided
 
-    func testAcceptsASchemaWithDifferentRootTypes() throws {
+    @Test func testAcceptsASchemaWithDifferentRootTypes() throws {
         let schema = try buildSchema(source: """
           type SomeObject1 {
             field: String
@@ -357,10 +375,10 @@ class ValidateSchemaTests: XCTestCase {
             subscription: SomeObject3
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testRejectsASchemaWhereTheSameTypeIsUsedForMultipleRootTypes() throws {
+    @Test func testRejectsASchemaWhereTheSameTypeIsUsedForMultipleRootTypes() throws {
         let schema = try buildSchema(source: """
           type SomeObject {
             field: String
@@ -377,7 +395,7 @@ class ValidateSchemaTests: XCTestCase {
           }
         """)
 
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "All root types must be different, \"SomeObject\" type is used as query and subscription root types.",
@@ -389,7 +407,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsASchemaWhereTheSameTypeIsUsedForAllRootTypes() throws {
+    @Test func testRejectsASchemaWhereTheSameTypeIsUsedForAllRootTypes() throws {
         let schema = try buildSchema(source: """
           type SomeObject {
             field: String
@@ -402,7 +420,7 @@ class ValidateSchemaTests: XCTestCase {
           }
         """)
 
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "All root types must be different, \"SomeObject\" type is used as query, mutation, and subscription root types.",
@@ -417,7 +435,7 @@ class ValidateSchemaTests: XCTestCase {
 
     // MARK: Type System: Objects must have fields
 
-    func testAcceptsAnObjectTypeWithFieldsObject() throws {
+    @Test func testAcceptsAnObjectTypeWithFieldsObject() throws {
         let schema = try buildSchema(source: """
           type Query {
             field: SomeObject
@@ -427,10 +445,10 @@ class ValidateSchemaTests: XCTestCase {
             field: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testRejectsAnObjectTypeWithMissingFields() throws {
+    @Test func testRejectsAnObjectTypeWithMissingFields() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: IncompleteObject
@@ -438,7 +456,7 @@ class ValidateSchemaTests: XCTestCase {
 
           type IncompleteObject
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message: "Type IncompleteObject must define one or more fields.",
                 locations: [.init(line: 6, column: 7)]
@@ -451,7 +469,7 @@ class ValidateSchemaTests: XCTestCase {
                 fields: [:]
             )
         )
-        try XCTAssertEqual(validateSchema(schema: manualSchema), [
+        try #expect(validateSchema(schema: manualSchema) == [
             GraphQLError(message: "Type IncompleteObject must define one or more fields."),
         ])
 
@@ -464,12 +482,12 @@ class ValidateSchemaTests: XCTestCase {
                 }
             )
         )
-        try XCTAssertEqual(validateSchema(schema: manualSchema2), [
+        try #expect(validateSchema(schema: manualSchema2) == [
             GraphQLError(message: "Type IncompleteObject must define one or more fields."),
         ])
     }
 
-    func testRejectsAnObjectTypeWithIncorrectlyNamedFields() throws {
+    @Test func testRejectsAnObjectTypeWithIncorrectlyNamedFields() throws {
         let schema = try schemaWithFieldType(
             type:
             GraphQLObjectType(
@@ -479,7 +497,7 @@ class ValidateSchemaTests: XCTestCase {
                 }
             )
         )
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message: "Name \"__badName\" must not begin with \"__\", which is reserved by GraphQL introspection."
             ),
@@ -488,7 +506,7 @@ class ValidateSchemaTests: XCTestCase {
 
     // MARK: Type System: Fields args must be properly named
 
-    func testAcceptsFieldArgsWithValidNames() throws {
+    @Test func testAcceptsFieldArgsWithValidNames() throws {
         let schema = try schemaWithFieldType(
             type:
             GraphQLObjectType(
@@ -503,10 +521,10 @@ class ValidateSchemaTests: XCTestCase {
                 ]
             )
         )
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testRejectsFieldArgWithInvalidNames() throws {
+    @Test func testRejectsFieldArgWithInvalidNames() throws {
         let schema = try schemaWithFieldType(
             type:
             GraphQLObjectType(
@@ -522,7 +540,7 @@ class ValidateSchemaTests: XCTestCase {
             )
         )
 
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message: "Name \"__badName\" must not begin with \"__\", which is reserved by GraphQL introspection."
             ),
@@ -531,7 +549,7 @@ class ValidateSchemaTests: XCTestCase {
 
     // MARK: Type System: Union types must be valid
 
-    func testAcceptsAUnionTypeWithMemberTypes() throws {
+    @Test func testAcceptsAUnionTypeWithMemberTypes() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: GoodUnion
@@ -549,10 +567,10 @@ class ValidateSchemaTests: XCTestCase {
             | TypeA
             | TypeB
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testRejectsAUnionTypeWithEmptyTypes() throws {
+    @Test func testRejectsAUnionTypeWithEmptyTypes() throws {
         var schema = try buildSchema(source: """
           type Query {
             test: BadUnion
@@ -570,7 +588,7 @@ class ValidateSchemaTests: XCTestCase {
             """)
         )
 
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message: "Union type BadUnion must define one or more member types.",
                 locations: [
@@ -581,7 +599,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAUnionTypeWithDuplicatedMemberType() throws {
+    @Test func testRejectsAUnionTypeWithDuplicatedMemberType() throws {
         var schema = try buildSchema(source: """
           type Query {
             test: BadUnion
@@ -601,7 +619,7 @@ class ValidateSchemaTests: XCTestCase {
             | TypeA
         """)
 
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message: "Union type BadUnion can only include type TypeA once.",
                 locations: [
@@ -616,7 +634,7 @@ class ValidateSchemaTests: XCTestCase {
             documentAST: parse(source: "extend union BadUnion = TypeB")
         )
 
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message: "Union type BadUnion can only include type TypeA once.",
                 locations: [
@@ -636,7 +654,7 @@ class ValidateSchemaTests: XCTestCase {
 
     // MARK: Type System: Input Objects must have fields
 
-    func testAcceptsAnInputObjectTypeWithFields() throws {
+    @Test func testAcceptsAnInputObjectTypeWithFields() throws {
         let schema = try buildSchema(source: """
           type Query {
             field(arg: SomeInputObject): String
@@ -646,10 +664,10 @@ class ValidateSchemaTests: XCTestCase {
             field: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testRejectsAnInputObjectTypeWithMissingFields() throws {
+    @Test func testRejectsAnInputObjectTypeWithMissingFields() throws {
         var schema = try buildSchema(source: """
           type Query {
             field(arg: SomeInputObject): String
@@ -667,7 +685,7 @@ class ValidateSchemaTests: XCTestCase {
             """)
         )
 
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Input Object type SomeInputObject must define one or more fields.",
@@ -679,7 +697,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testAcceptsAnInputObjectWithBreakableCircularReference() throws {
+    @Test func testAcceptsAnInputObjectWithBreakableCircularReference() throws {
         let schema = try buildSchema(source: """
           type Query {
             field(arg: SomeInputObject): String
@@ -698,10 +716,10 @@ class ValidateSchemaTests: XCTestCase {
           }
         """)
 
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testRejectsAnInputObjectWithNonBreakableCircularReference() throws {
+    @Test func testRejectsAnInputObjectWithNonBreakableCircularReference() throws {
         let schema = try buildSchema(source: """
           type Query {
             field(arg: SomeInputObject): String
@@ -712,7 +730,7 @@ class ValidateSchemaTests: XCTestCase {
           }
         """)
 
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message: #"Cannot reference Input Object "SomeInputObject" within itself through a series of non-null fields: "nonNullSelf"."#,
                 locations: [.init(line: 7, column: 9)]
@@ -720,7 +738,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsInputObjectsWithNonbreakableCircularReferenceSpreadAcrossThem() throws {
+    @Test func testRejectsInputObjectsWithNonbreakableCircularReferenceSpreadAcrossThem() throws {
         let schema = try buildSchema(source: """
           type Query {
             field(arg: SomeInputObject): String
@@ -739,7 +757,7 @@ class ValidateSchemaTests: XCTestCase {
           }
         """)
 
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 #"Cannot reference Input Object "SomeInputObject" within itself through a series of non-null fields: "startLoop.nextInLoop.closeLoop"."#,
@@ -752,7 +770,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsInputObjectsWithMultipleNonbreakableCircularReference() throws {
+    @Test func testRejectsInputObjectsWithMultipleNonbreakableCircularReference() throws {
         let schema = try buildSchema(source: """
           type Query {
             field(arg: SomeInputObject): String
@@ -773,7 +791,7 @@ class ValidateSchemaTests: XCTestCase {
           }
         """)
 
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 #"Cannot reference Input Object "SomeInputObject" within itself through a series of non-null fields: "startLoop.closeLoop"."#,
@@ -797,8 +815,11 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnInputObjectTypeWithIncorrectlyTypedFields() throws {
-        XCTAssertThrowsError(
+    @Test func testRejectsAnInputObjectTypeWithIncorrectlyTypedFields() throws {
+        #expect(
+            throws: (any Error).self,
+            "The type of SomeInputObject.badObject must be Input Type but got: SomeObject."
+        ) {
             try buildSchema(source: """
               type Query {
                 field(arg: SomeInputObject): String
@@ -815,12 +836,11 @@ class ValidateSchemaTests: XCTestCase {
                 badUnion: SomeUnion
                 goodInputObject: SomeInputObject
               }
-            """),
-            "The type of SomeInputObject.badObject must be Input Type but got: SomeObject."
-        )
+            """)
+        }
     }
 
-    func testRejectsAnInputObjectTypeWithRequiredArgumentThatIsDeprecated() throws {
+    @Test func testRejectsAnInputObjectTypeWithRequiredArgumentThatIsDeprecated() throws {
         let schema = try buildSchema(source: """
           type Query {
             field(arg: SomeInputObject): String
@@ -832,7 +852,7 @@ class ValidateSchemaTests: XCTestCase {
             anotherOptionalField: String! = "" @deprecated
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Required input field SomeInputObject.badField cannot be deprecated.",
@@ -846,7 +866,7 @@ class ValidateSchemaTests: XCTestCase {
 
     // MARK: Type System: Enum types must be well defined
 
-    func testRejectsAnEnumTypeWithoutValues() throws {
+    @Test func testRejectsAnEnumTypeWithoutValues() throws {
         var schema = try buildSchema(source: """
           type Query {
             field: SomeEnum
@@ -864,7 +884,7 @@ class ValidateSchemaTests: XCTestCase {
             """)
         )
 
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message: "Enum type SomeEnum must define one or more values.",
                 locations: [
@@ -875,7 +895,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnEnumTypeWithIncorrectlyNamedValues() throws {
+    @Test func testRejectsAnEnumTypeWithIncorrectlyNamedValues() throws {
         let schema = try schemaWithFieldType(
             type:
             GraphQLEnumType(
@@ -886,7 +906,7 @@ class ValidateSchemaTests: XCTestCase {
             )
         )
 
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message: #"Name "__badName" must not begin with "__", which is reserved by GraphQL introspection."#
             ),
@@ -916,8 +936,11 @@ class ValidateSchemaTests: XCTestCase {
         )
     }
 
-    func testRejectsWithRelevantLocationsForANonoutputTypeAsAnObjectFieldType() throws {
-        XCTAssertThrowsError(
+    @Test func testRejectsWithRelevantLocationsForANonoutputTypeAsAnObjectFieldType() throws {
+        #expect(
+            throws: (any Error).self,
+            "The type of Query.field must be Output Type but got: [SomeInputObject]."
+        ) {
             try buildSchema(source: """
               type Query {
                 field: [SomeInputObject]
@@ -926,15 +949,17 @@ class ValidateSchemaTests: XCTestCase {
               input SomeInputObject {
                 field: String
               }
-            """),
-            "The type of Query.field must be Output Type but got: [SomeInputObject]."
-        )
+            """)
+        }
     }
 
     // MARK: Type System: Objects can only implement unique interfaces
 
-    func testRejectsAnObjectImplementingANoninterfaceType() throws {
-        XCTAssertThrowsError(
+    @Test func testRejectsAnObjectImplementingANoninterfaceType() throws {
+        #expect(
+            throws: (any Error).self,
+            "Type BadObject must only implement Interface types, it cannot implement SomeInputObject."
+        ) {
             try buildSchema(source: """
               type Query {
                 test: BadObject
@@ -947,12 +972,11 @@ class ValidateSchemaTests: XCTestCase {
               type BadObject implements SomeInputObject {
                 field: String
               }
-            """),
-            "Type BadObject must only implement Interface types, it cannot implement SomeInputObject."
-        )
+            """)
+        }
     }
 
-    func testRejectsAnObjectImplementingTheSameInterfaceTwice() throws {
+    @Test func testRejectsAnObjectImplementingTheSameInterfaceTwice() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -966,7 +990,7 @@ class ValidateSchemaTests: XCTestCase {
             field: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message: "Type AnotherObject can only implement AnotherInterface once.",
                 locations: [
@@ -977,7 +1001,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnObjectImplementingTheSameInterfaceTwiceDueToExtension() throws {
+    @Test func testRejectsAnObjectImplementingTheSameInterfaceTwiceDueToExtension() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -995,7 +1019,7 @@ class ValidateSchemaTests: XCTestCase {
             schema: schema,
             documentAST: parse(source: "extend type AnotherObject implements AnotherInterface")
         )
-        try XCTAssertEqual(validateSchema(schema: extendedSchema), [
+        try #expect(validateSchema(schema: extendedSchema) == [
             GraphQLError(
                 message: "Type AnotherObject can only implement AnotherInterface once.",
                 locations: [
@@ -1008,7 +1032,7 @@ class ValidateSchemaTests: XCTestCase {
 
     // MARK: Type System: Interface extensions should be valid
 
-    func testRejectsAnObjectImplementingTheExtendedInterfaceDueToMissingField() throws {
+    @Test func testRejectsAnObjectImplementingTheExtendedInterfaceDueToMissingField() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1034,7 +1058,7 @@ class ValidateSchemaTests: XCTestCase {
               }
             """)
         )
-        try XCTAssertEqual(validateSchema(schema: extendedSchema), [
+        try #expect(validateSchema(schema: extendedSchema) == [
             GraphQLError(
                 message:
                 "Interface field AnotherInterface.newField expected but AnotherObject does not provide it.",
@@ -1047,7 +1071,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnObjectImplementingTheExtendedInterfaceDueToMissingFieldArgs() throws {
+    @Test func testRejectsAnObjectImplementingTheExtendedInterfaceDueToMissingFieldArgs() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1073,7 +1097,7 @@ class ValidateSchemaTests: XCTestCase {
               }
             """)
         )
-        try XCTAssertEqual(validateSchema(schema: extendedSchema), [
+        try #expect(validateSchema(schema: extendedSchema) == [
             GraphQLError(
                 message:
                 "Interface field argument AnotherInterface.newField(test:) expected but AnotherObject.newField does not provide it.",
@@ -1085,6 +1109,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
+    @Test
     func testRejectsObjectsImplementingTheExtendedInterfaceDueToMismatchingInterfaceType() throws {
         let schema = try buildSchema(source: """
           type Query {
@@ -1124,7 +1149,7 @@ class ValidateSchemaTests: XCTestCase {
               }
             """)
         )
-        try XCTAssertEqual(validateSchema(schema: extendedSchema), [
+        try #expect(validateSchema(schema: extendedSchema) == [
             GraphQLError(
                 message:
                 "Interface field AnotherInterface.newInterfaceField expects type NewInterface but AnotherObject.newInterfaceField is type MismatchingInterface.",
@@ -1163,15 +1188,18 @@ class ValidateSchemaTests: XCTestCase {
         )
     }
 
-    func testAcceptsAnOutputTypeAsAnInterfaceFieldType() throws {
+    @Test func testAcceptsAnOutputTypeAsAnInterfaceFieldType() throws {
         for type in outputTypes {
             let schema = try schemaWithInterfaceField(fieldConfig: .init(type: type))
-            try XCTAssertEqual(validateSchema(schema: schema), [])
+            try #expect(validateSchema(schema: schema) == [])
         }
     }
 
-    func testRejectsANonoutputTypeAsAnInterfaceFieldTypeWithLocations() throws {
-        XCTAssertThrowsError(
+    @Test func testRejectsANonoutputTypeAsAnInterfaceFieldTypeWithLocations() throws {
+        #expect(
+            throws: (any Error).self,
+            "The type of SomeInterface.field must be Output Type but got: SomeInputObject."
+        ) {
             try buildSchema(source: """
               type Query {
                 test: SomeInterface
@@ -1188,12 +1216,11 @@ class ValidateSchemaTests: XCTestCase {
               type SomeObject implements SomeInterface {
                 field: SomeInputObject
               }
-            """),
-            "The type of SomeInterface.field must be Output Type but got: SomeInputObject."
-        )
+            """)
+        }
     }
 
-    func testAcceptsAnInterfaceNotImplementedByAtLeastOneObject() throws {
+    @Test func testAcceptsAnInterfaceNotImplementedByAtLeastOneObject() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: SomeInterface
@@ -1203,7 +1230,7 @@ class ValidateSchemaTests: XCTestCase {
             foo: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
     // MARK: Type System: Arguments must have input types
@@ -1240,14 +1267,14 @@ class ValidateSchemaTests: XCTestCase {
         )
     }
 
-    func testAcceptsAnInputTypeAsAFieldArgType() throws {
+    @Test func testAcceptsAnInputTypeAsAFieldArgType() throws {
         for type in inputTypes {
             let schema = try schemaWithArg(argConfig: .init(type: type))
-            try XCTAssertEqual(validateSchema(schema: schema), [])
+            try #expect(validateSchema(schema: schema) == [])
         }
     }
 
-    func testRejectsARequiredArgumentThatIsDeprecated() throws {
+    @Test func testRejectsARequiredArgumentThatIsDeprecated() throws {
         let schema = try buildSchema(source: """
           directive @BadDirective(
             badArg: String! @deprecated
@@ -1263,7 +1290,7 @@ class ValidateSchemaTests: XCTestCase {
             ): String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Required argument @BadDirective(badArg:) cannot be deprecated.",
@@ -1282,8 +1309,11 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsANoninputTypeAsAFieldArgWithLocations() throws {
-        XCTAssertThrowsError(
+    @Test func testRejectsANoninputTypeAsAFieldArgWithLocations() throws {
+        #expect(
+            throws: (any Error).self,
+            "The type of Query.test(arg:) must be Input Type but got: SomeObject."
+        ) {
             try buildSchema(source: """
               type Query {
                 test(arg: SomeObject): String
@@ -1292,9 +1322,8 @@ class ValidateSchemaTests: XCTestCase {
               type SomeObject {
                 foo: String
               }
-            """),
-            "The type of Query.test(arg:) must be Input Type but got: SomeObject."
-        )
+            """)
+        }
     }
 
     // MARK: Type System: Input Object fields must have input types
@@ -1324,15 +1353,18 @@ class ValidateSchemaTests: XCTestCase {
         )
     }
 
-    func testAcceptsAnInputTypeAsAnInputFieldType() throws {
+    @Test func testAcceptsAnInputTypeAsAnInputFieldType() throws {
         for type in inputTypes {
             let schema = try schemaWithInputField(inputFieldConfig: .init(type: type))
-            try XCTAssertEqual(validateSchema(schema: schema), [])
+            try #expect(validateSchema(schema: schema) == [])
         }
     }
 
-    func testRejectsANoninputTypeAsAnInputObjectFieldWithLocations() throws {
-        XCTAssertThrowsError(
+    @Test func testRejectsANoninputTypeAsAnInputObjectFieldWithLocations() throws {
+        #expect(
+            throws: (any Error).self,
+            "The type of SomeInputObject.foo must be Input Type but got: SomeObject."
+        ) {
             try buildSchema(source: """
               type Query {
                 test(arg: SomeInputObject): String
@@ -1345,14 +1377,13 @@ class ValidateSchemaTests: XCTestCase {
               type SomeObject {
                 bar: String
               }
-            """),
-            "The type of SomeInputObject.foo must be Input Type but got: SomeObject."
-        )
+            """)
+        }
     }
 
     // MARK: Type System: OneOf Input Object fields must be nullable
 
-    func testRejectsNonnullableFields() throws {
+    @Test func testRejectsNonnullableFields() throws {
         let schema = try buildSchema(source: """
           type Query {
             test(arg: SomeInputObject): String
@@ -1363,7 +1394,7 @@ class ValidateSchemaTests: XCTestCase {
             b: String!
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message: "OneOf input field SomeInputObject.b must be nullable.",
                 locations: [.init(line: 8, column: 12)]
@@ -1371,7 +1402,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsFieldsWithDefaultValues() throws {
+    @Test func testRejectsFieldsWithDefaultValues() throws {
         let schema = try buildSchema(source: """
           type Query {
             test(arg: SomeInputObject): String
@@ -1382,7 +1413,7 @@ class ValidateSchemaTests: XCTestCase {
             b: String = "foo"
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message: "OneOf input field SomeInputObject.b cannot have a default value.",
                 locations: [.init(line: 8, column: 9)]
@@ -1392,7 +1423,7 @@ class ValidateSchemaTests: XCTestCase {
 
     // MARK: Objects must adhere to Interface they implement
 
-    func testAcceptsAnObjectWhichImplementsAnInterface() throws {
+    @Test func testAcceptsAnObjectWhichImplementsAnInterface() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1406,10 +1437,10 @@ class ValidateSchemaTests: XCTestCase {
             field(input: String): String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testAcceptsAnObjectWhichImplementsAnInterfaceAlongWithMoreFields() throws {
+    @Test func testAcceptsAnObjectWhichImplementsAnInterfaceAlongWithMoreFields() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1424,10 +1455,10 @@ class ValidateSchemaTests: XCTestCase {
             anotherField: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testAcceptsAnObjectWhichImplementsAnInterfaceFieldAlongWithAdditionalOptionalArguments(
+    @Test func testAcceptsAnObjectWhichImplementsAnInterfaceFieldAlongWithAdditionalOptionalArguments(
     ) throws {
         let schema = try buildSchema(source: """
           type Query {
@@ -1442,10 +1473,10 @@ class ValidateSchemaTests: XCTestCase {
             field(input: String, anotherInput: String): String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testRejectsAnObjectMissingAnInterfaceField() throws {
+    @Test func testRejectsAnObjectMissingAnInterfaceField() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1459,7 +1490,7 @@ class ValidateSchemaTests: XCTestCase {
             anotherField: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field AnotherInterface.field expected but AnotherObject does not provide it.",
@@ -1471,7 +1502,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnObjectWithAnIncorrectlyTypedInterfaceField() throws {
+    @Test func testRejectsAnObjectWithAnIncorrectlyTypedInterfaceField() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1485,7 +1516,7 @@ class ValidateSchemaTests: XCTestCase {
             field(input: String): Int
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field AnotherInterface.field expects type String but AnotherObject.field is type Int.",
@@ -1497,7 +1528,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnObjectWithADifferentlyTypedInterfaceField() throws {
+    @Test func testRejectsAnObjectWithADifferentlyTypedInterfaceField() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1514,7 +1545,7 @@ class ValidateSchemaTests: XCTestCase {
             field: B
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field AnotherInterface.field expects type A but AnotherObject.field is type B.",
@@ -1526,7 +1557,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testAcceptsAnObjectWithASubtypedInterfaceField_Interface() throws {
+    @Test func testAcceptsAnObjectWithASubtypedInterfaceField_Interface() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1540,10 +1571,10 @@ class ValidateSchemaTests: XCTestCase {
             field: AnotherObject
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testAcceptsAnObjectWithASubtypedInterfaceField_Union() throws {
+    @Test func testAcceptsAnObjectWithASubtypedInterfaceField_Union() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1563,10 +1594,10 @@ class ValidateSchemaTests: XCTestCase {
             field: SomeObject
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testRejectsAnObjectMissingAnInterfaceArgument() throws {
+    @Test func testRejectsAnObjectMissingAnInterfaceArgument() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1580,7 +1611,7 @@ class ValidateSchemaTests: XCTestCase {
             field: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field argument AnotherInterface.field(input:) expected but AnotherObject.field does not provide it.",
@@ -1592,7 +1623,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnObjectWithAnIncorrectlyTypedInterfaceArgument() throws {
+    @Test func testRejectsAnObjectWithAnIncorrectlyTypedInterfaceArgument() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1606,7 +1637,7 @@ class ValidateSchemaTests: XCTestCase {
             field(input: Int): String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field argument AnotherInterface.field(input:) expects type String but AnotherObject.field(input:) is type Int.",
@@ -1618,7 +1649,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnObjectWithBothAnIncorrectlyTypedFieldAndArgument() throws {
+    @Test func testRejectsAnObjectWithBothAnIncorrectlyTypedFieldAndArgument() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1632,7 +1663,7 @@ class ValidateSchemaTests: XCTestCase {
             field(input: Int): Int
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field AnotherInterface.field expects type String but AnotherObject.field is type Int.",
@@ -1652,7 +1683,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnObjectWhichImplementsAnInterfaceFieldAlongWithAdditionalRequiredArguments(
+    @Test func testRejectsAnObjectWhichImplementsAnInterfaceFieldAlongWithAdditionalRequiredArguments(
     ) throws {
         let schema = try buildSchema(source: """
           type Query {
@@ -1672,7 +1703,7 @@ class ValidateSchemaTests: XCTestCase {
             ): String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 #"Argument "AnotherObject.field(requiredArg:)" must not be required type "String!" if not provided by the Interface field "AnotherInterface.field"."#,
@@ -1684,7 +1715,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testAcceptsAnObjectWithAnEquivalentlyWrappedInterfaceFieldType() throws {
+    @Test func testAcceptsAnObjectWithAnEquivalentlyWrappedInterfaceFieldType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1698,10 +1729,10 @@ class ValidateSchemaTests: XCTestCase {
             field: [String]!
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testRejectsAnObjectWithANonlistInterfaceFieldListType() throws {
+    @Test func testRejectsAnObjectWithANonlistInterfaceFieldListType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1715,7 +1746,7 @@ class ValidateSchemaTests: XCTestCase {
             field: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field AnotherInterface.field expects type [String] but AnotherObject.field is type String.",
@@ -1727,7 +1758,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnObjectWithAListInterfaceFieldNonlistType() throws {
+    @Test func testRejectsAnObjectWithAListInterfaceFieldNonlistType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1741,7 +1772,7 @@ class ValidateSchemaTests: XCTestCase {
             field: [String]
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field AnotherInterface.field expects type String but AnotherObject.field is type [String].",
@@ -1753,7 +1784,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testAcceptsAnObjectWithASubsetNonnullInterfaceFieldType() throws {
+    @Test func testAcceptsAnObjectWithASubsetNonnullInterfaceFieldType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1767,10 +1798,10 @@ class ValidateSchemaTests: XCTestCase {
             field: String!
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testRejectsAnObjectWithASupersetNullableInterfaceFieldType() throws {
+    @Test func testRejectsAnObjectWithASupersetNullableInterfaceFieldType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1784,7 +1815,7 @@ class ValidateSchemaTests: XCTestCase {
             field: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field AnotherInterface.field expects type String! but AnotherObject.field is type String.",
@@ -1796,7 +1827,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnObjectMissingATransitiveInterface_Object() throws {
+    @Test func testRejectsAnObjectMissingATransitiveInterface_Object() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1814,7 +1845,7 @@ class ValidateSchemaTests: XCTestCase {
             field: String!
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Type AnotherObject must implement SuperInterface because it is implemented by AnotherInterface.",
@@ -1828,7 +1859,7 @@ class ValidateSchemaTests: XCTestCase {
 
     // MARK: Interfaces must adhere to Interface they implement
 
-    func testAcceptsAnInterfaceWhichImplementsAnInterface() throws {
+    @Test func testAcceptsAnInterfaceWhichImplementsAnInterface() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -1842,10 +1873,10 @@ class ValidateSchemaTests: XCTestCase {
             field(input: String): String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testAcceptsAnInterfaceWhichImplementsAnInterfaceAlongWithMoreFields() throws {
+    @Test func testAcceptsAnInterfaceWhichImplementsAnInterfaceAlongWithMoreFields() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -1860,10 +1891,10 @@ class ValidateSchemaTests: XCTestCase {
             anotherField: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testAcceptsAnInterfaceWhichImplementsAnInterfaceFieldAlongWithAdditionalOptionalArguments(
+    @Test func testAcceptsAnInterfaceWhichImplementsAnInterfaceFieldAlongWithAdditionalOptionalArguments(
     ) throws {
         let schema = try buildSchema(source: """
           type Query {
@@ -1878,10 +1909,10 @@ class ValidateSchemaTests: XCTestCase {
             field(input: String, anotherInput: String): String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testRejectsAnInterfaceMissingAnInterfaceField() throws {
+    @Test func testRejectsAnInterfaceMissingAnInterfaceField() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -1895,7 +1926,7 @@ class ValidateSchemaTests: XCTestCase {
             anotherField: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field ParentInterface.field expected but ChildInterface does not provide it.",
@@ -1907,7 +1938,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnInterfaceWithAnIncorrectlyTypedInterfaceField() throws {
+    @Test func testRejectsAnInterfaceWithAnIncorrectlyTypedInterfaceField() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -1921,7 +1952,7 @@ class ValidateSchemaTests: XCTestCase {
             field(input: String): Int
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field ParentInterface.field expects type String but ChildInterface.field is type Int.",
@@ -1933,7 +1964,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnInterfaceWithADifferentlyTypedInterfaceField() throws {
+    @Test func testRejectsAnInterfaceWithADifferentlyTypedInterfaceField() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -1950,7 +1981,7 @@ class ValidateSchemaTests: XCTestCase {
             field: B
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field ParentInterface.field expects type A but ChildInterface.field is type B.",
@@ -1962,7 +1993,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testAcceptsAnInterfaceWithASubtypedInterfaceField_Interface() throws {
+    @Test func testAcceptsAnInterfaceWithASubtypedInterfaceField_Interface() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -1976,10 +2007,10 @@ class ValidateSchemaTests: XCTestCase {
             field: ChildInterface
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testAcceptsAnInterfaceWithASubtypedInterfaceField_Union() throws {
+    @Test func testAcceptsAnInterfaceWithASubtypedInterfaceField_Union() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -1999,11 +2030,14 @@ class ValidateSchemaTests: XCTestCase {
             field: SomeObject
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testRejectsAnInterfaceImplementingANoninterfaceType() throws {
-        XCTAssertThrowsError(
+    @Test func testRejectsAnInterfaceImplementingANoninterfaceType() throws {
+        #expect(
+            throws: (any Error).self,
+            "Type BadInterface must only implement Interface types, it cannot implement SomeInputObject."
+        ) {
             try buildSchema(source: """
               type Query {
                 field: String
@@ -2016,12 +2050,11 @@ class ValidateSchemaTests: XCTestCase {
               interface BadInterface implements SomeInputObject {
                 field: String
               }
-            """),
-            "Type BadInterface must only implement Interface types, it cannot implement SomeInputObject."
-        )
+            """)
+        }
     }
 
-    func testRejectsAnInterfaceMissingAnInterfaceArgument() throws {
+    @Test func testRejectsAnInterfaceMissingAnInterfaceArgument() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2035,7 +2068,7 @@ class ValidateSchemaTests: XCTestCase {
             field: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field argument ParentInterface.field(input:) expected but ChildInterface.field does not provide it.",
@@ -2047,7 +2080,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnInterfaceWithAnIncorrectlyTypedInterfaceArgument() throws {
+    @Test func testRejectsAnInterfaceWithAnIncorrectlyTypedInterfaceArgument() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2061,7 +2094,7 @@ class ValidateSchemaTests: XCTestCase {
             field(input: Int): String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field argument ParentInterface.field(input:) expects type String but ChildInterface.field(input:) is type Int.",
@@ -2073,7 +2106,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnInterfaceWithBothAnIncorrectlyTypedFieldAndArgument() throws {
+    @Test func testRejectsAnInterfaceWithBothAnIncorrectlyTypedFieldAndArgument() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2087,7 +2120,7 @@ class ValidateSchemaTests: XCTestCase {
             field(input: Int): Int
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field ParentInterface.field expects type String but ChildInterface.field is type Int.",
@@ -2107,7 +2140,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnInterfaceWhichImplementsAnInterfaceFieldAlongWithAdditionalRequiredArguments(
+    @Test func testRejectsAnInterfaceWhichImplementsAnInterfaceFieldAlongWithAdditionalRequiredArguments(
     ) throws {
         let schema = try buildSchema(source: """
           type Query {
@@ -2127,7 +2160,7 @@ class ValidateSchemaTests: XCTestCase {
             ): String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 #"Argument "ChildInterface.field(requiredArg:)" must not be required type "String!" if not provided by the Interface field "ParentInterface.field"."#,
@@ -2139,7 +2172,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testAcceptsAnInterfaceWithAnEquivalentlyWrappedInterfaceFieldType() throws {
+    @Test func testAcceptsAnInterfaceWithAnEquivalentlyWrappedInterfaceFieldType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2153,10 +2186,10 @@ class ValidateSchemaTests: XCTestCase {
             field: [String]!
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testRejectsAnInterfaceWithANonlistInterfaceFieldListType() throws {
+    @Test func testRejectsAnInterfaceWithANonlistInterfaceFieldListType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2170,7 +2203,7 @@ class ValidateSchemaTests: XCTestCase {
             field: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field ParentInterface.field expects type [String] but ChildInterface.field is type String.",
@@ -2182,7 +2215,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnInterfaceWithAListInterfaceFieldNonlistType() throws {
+    @Test func testRejectsAnInterfaceWithAListInterfaceFieldNonlistType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2196,7 +2229,7 @@ class ValidateSchemaTests: XCTestCase {
             field: [String]
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field ParentInterface.field expects type String but ChildInterface.field is type [String].",
@@ -2208,7 +2241,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testAcceptsAnInterfaceWithASubsetNonnullInterfaceFieldType() throws {
+    @Test func testAcceptsAnInterfaceWithASubsetNonnullInterfaceFieldType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2222,10 +2255,10 @@ class ValidateSchemaTests: XCTestCase {
             field: String!
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [])
+        try #expect(validateSchema(schema: schema) == [])
     }
 
-    func testRejectsAnInterfaceWithASupersetNullableInterfaceFieldType() throws {
+    @Test func testRejectsAnInterfaceWithASupersetNullableInterfaceFieldType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2239,7 +2272,7 @@ class ValidateSchemaTests: XCTestCase {
             field: String
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Interface field ParentInterface.field expects type String! but ChildInterface.field is type String.",
@@ -2251,7 +2284,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsAnObjectMissingATransitiveInterface_Interface() throws {
+    @Test func testRejectsAnObjectMissingATransitiveInterface_Interface() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2269,7 +2302,7 @@ class ValidateSchemaTests: XCTestCase {
             field: String!
           }
         """)
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Type ChildInterface must implement SuperInterface because it is implemented by ParentInterface.",
@@ -2281,7 +2314,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsASelfReferenceInterface() throws {
+    @Test func testRejectsASelfReferenceInterface() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: FooInterface
@@ -2292,7 +2325,7 @@ class ValidateSchemaTests: XCTestCase {
           }
         """)
 
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message: "Type FooInterface cannot implement itself because it would create a circular reference.",
                 locations: [.init(line: 6, column: 41)]
@@ -2300,7 +2333,7 @@ class ValidateSchemaTests: XCTestCase {
         ])
     }
 
-    func testRejectsACircularInterfaceImplementation() throws {
+    @Test func testRejectsACircularInterfaceImplementation() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: FooInterface
@@ -2315,7 +2348,7 @@ class ValidateSchemaTests: XCTestCase {
           }
         """)
 
-        try XCTAssertEqual(validateSchema(schema: schema), [
+        try #expect(validateSchema(schema: schema) == [
             GraphQLError(
                 message:
                 "Type FooInterface cannot implement BarInterface because it would create a circular reference.",
@@ -2337,24 +2370,26 @@ class ValidateSchemaTests: XCTestCase {
 
     // MARK: assertValidSchema
 
-    func testDoesNotThrowOnValidSchemas() throws {
+    @Test func testDoesNotThrowOnValidSchemas() throws {
         let schema = try buildSchema(source: """
           type Query {
             foo: String
           }
         """)
-        try XCTAssertNoThrow(assertValidSchema(schema: schema))
+        #expect(throws: Never.self) { try assertValidSchema(schema: schema) }
     }
 
-    func testCombinesMultipleErrors() throws {
+    @Test func testCombinesMultipleErrors() throws {
         let schema = try buildSchema(source: "type SomeType")
-        try XCTAssertThrowsError(
-            assertValidSchema(schema: schema),
+        #expect(
+            throws: (any Error).self,
             """
             Query root type must be provided.
 
             Type SomeType must define one or more fields.
             """
-        )
+        ) {
+            try assertValidSchema(schema: schema)
+        }
     }
 }

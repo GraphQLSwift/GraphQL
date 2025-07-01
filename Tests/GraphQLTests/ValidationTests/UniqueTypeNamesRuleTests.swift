@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class UniqueTypeNamesRuleTests: SDLValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = UniqueTypeNamesRule
     }
 
-    func testNoTypes() throws {
+    @Test func testNoTypes() throws {
         try assertValidationErrors(
             """
             directive @test on SCHEMA
@@ -15,7 +16,7 @@ class UniqueTypeNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testOneType() throws {
+    @Test func testOneType() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -24,7 +25,7 @@ class UniqueTypeNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testManyTypes() throws {
+    @Test func testManyTypes() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -35,7 +36,7 @@ class UniqueTypeNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testTypeAndNonTypeDefinitionsNamedTheSame() throws {
+    @Test func testTypeAndNonTypeDefinitionsNamedTheSame() throws {
         try assertValidationErrors(
             """
             query Foo { __typename }
@@ -48,7 +49,7 @@ class UniqueTypeNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testTypesNamedTheSame() throws {
+    @Test func testTypesNamedTheSame() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -107,17 +108,17 @@ class UniqueTypeNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testAddingNewTypeToExistingSchema() throws {
+    @Test func testAddingNewTypeToExistingSchema() throws {
         let schema = try buildSchema(source: "type Foo")
         try assertValidationErrors("type Bar", schema: schema, [])
     }
 
-    func testAddingNewTypeToExistingSchemaWithSameNamedDirective() throws {
+    @Test func testAddingNewTypeToExistingSchemaWithSameNamedDirective() throws {
         let schema = try buildSchema(source: "directive @Foo on SCHEMA")
         try assertValidationErrors("type Foo", schema: schema, [])
     }
 
-    func testAddingConflictingTypesToExistingSchema() throws {
+    @Test func testAddingConflictingTypesToExistingSchema() throws {
         let schema = try buildSchema(source: "type Foo")
         let sdl = """
         scalar Foo

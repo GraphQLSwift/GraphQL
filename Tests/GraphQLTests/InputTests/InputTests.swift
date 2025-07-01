@@ -1,8 +1,8 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
-class InputTests: XCTestCase {
-    func testArgsNonNullNoDefault() async throws {
+@Suite struct InputTests {
+    @Test func testArgsNonNullNoDefault() async throws {
         struct Echo: Codable {
             let field1: String
         }
@@ -60,9 +60,8 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                 ],
@@ -83,9 +82,8 @@ class InputTests: XCTestCase {
                 "field1": "value1",
             ]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                 ],
@@ -105,7 +103,7 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertTrue(
+        #expect(
             result.errors.count > 0
         )
         result = try await graphql(
@@ -123,7 +121,7 @@ class InputTests: XCTestCase {
                 "field1": .null,
             ]
         )
-        XCTAssertTrue(
+        #expect(
             result.errors.count > 0
         )
 
@@ -138,7 +136,7 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertTrue(
+        #expect(
             result.errors.count > 0
         )
         result = try await graphql(
@@ -154,12 +152,12 @@ class InputTests: XCTestCase {
             """,
             variableValues: [:]
         )
-        XCTAssertTrue(
+        #expect(
             result.errors.count > 0
         )
     }
 
-    func testArgsNullNoDefault() async throws {
+    @Test func testArgsNullNoDefault() async throws {
         struct Echo: Codable {
             let field1: String?
         }
@@ -217,9 +215,8 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                 ],
@@ -240,9 +237,8 @@ class InputTests: XCTestCase {
                 "field1": "value1",
             ]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                 ],
@@ -262,9 +258,8 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": .null,
                 ],
@@ -285,9 +280,8 @@ class InputTests: XCTestCase {
                 "field1": .null,
             ]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": .null,
                 ],
@@ -305,9 +299,8 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": .null,
                 ],
@@ -326,9 +319,8 @@ class InputTests: XCTestCase {
             """,
             variableValues: [:]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": .null,
                 ],
@@ -336,7 +328,7 @@ class InputTests: XCTestCase {
         )
     }
 
-    func testArgsNonNullDefault() async throws {
+    @Test func testArgsNonNullDefault() async throws {
         struct Echo: Codable {
             let field1: String
         }
@@ -395,9 +387,8 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                 ],
@@ -418,9 +409,8 @@ class InputTests: XCTestCase {
                 "field1": "value1",
             ]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                 ],
@@ -440,7 +430,7 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertTrue(
+        #expect(
             result.errors.count > 0
         )
         result = try await graphql(
@@ -458,7 +448,7 @@ class InputTests: XCTestCase {
                 "field1": .null,
             ]
         )
-        XCTAssertTrue(
+        #expect(
             result.errors.count > 0
         )
 
@@ -473,9 +463,8 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "defaultValue1",
                 ],
@@ -494,9 +483,8 @@ class InputTests: XCTestCase {
             """,
             variableValues: [:]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "defaultValue1",
                 ],
@@ -517,12 +505,12 @@ class InputTests: XCTestCase {
             """,
             variableValues: [:]
         )
-        XCTAssertTrue(
+        #expect(
             result.errors.count > 0
         )
     }
 
-    func testArgsNullDefault() async throws {
+    @Test func testArgsNullDefault() async throws {
         struct Echo: Codable {
             let field1: String?
         }
@@ -581,9 +569,8 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                 ],
@@ -604,9 +591,8 @@ class InputTests: XCTestCase {
                 "field1": "value1",
             ]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                 ],
@@ -626,9 +612,8 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": .null,
                 ],
@@ -649,9 +634,8 @@ class InputTests: XCTestCase {
                 "field1": .null,
             ]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": .null,
                 ],
@@ -669,9 +653,8 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "defaultValue1",
                 ],
@@ -690,9 +673,8 @@ class InputTests: XCTestCase {
             """,
             variableValues: [:]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "defaultValue1",
                 ],
@@ -713,9 +695,8 @@ class InputTests: XCTestCase {
             """,
             variableValues: [:]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": .null,
                 ],
@@ -724,7 +705,7 @@ class InputTests: XCTestCase {
     }
 
     // Test that input objects parse as expected from non-null literals
-    func testInputNoNull() async throws {
+    @Test func testInputNoNull() async throws {
         struct Echo: Codable {
             let field1: String?
             let field2: String?
@@ -736,9 +717,9 @@ class InputTests: XCTestCase {
 
             init(from decoder: Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
-                XCTAssertTrue(container.contains(.field1))
+                #expect(container.contains(.field1))
                 field1 = try container.decodeIfPresent(String.self, forKey: .field1)
-                XCTAssertTrue(container.contains(.field2))
+                #expect(container.contains(.field2))
                 field2 = try container.decodeIfPresent(String.self, forKey: .field2)
             }
         }
@@ -814,9 +795,8 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": "value2",
@@ -842,9 +822,8 @@ class InputTests: XCTestCase {
                 ],
             ]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": "value2",
@@ -854,7 +833,7 @@ class InputTests: XCTestCase {
     }
 
     // Test that inputs parse as expected when null literals are present
-    func testInputParsingDefinedNull() async throws {
+    @Test func testInputParsingDefinedNull() async throws {
         struct Echo: Codable {
             let field1: String?
             let field2: String?
@@ -866,9 +845,9 @@ class InputTests: XCTestCase {
 
             init(from decoder: Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
-                XCTAssertTrue(container.contains(.field1))
+                #expect(container.contains(.field1))
                 field1 = try container.decodeIfPresent(String.self, forKey: .field1)
-                XCTAssertTrue(container.contains(.field2))
+                #expect(container.contains(.field2))
                 field2 = try container.decodeIfPresent(String.self, forKey: .field2)
             }
         }
@@ -944,9 +923,8 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": nil,
@@ -972,9 +950,8 @@ class InputTests: XCTestCase {
                 ],
             ]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": nil,
@@ -984,7 +961,7 @@ class InputTests: XCTestCase {
     }
 
     // Test that input objects parse as expected when there are missing fields with no default
-    func testInputParsingUndefined() async throws {
+    @Test func testInputParsingUndefined() async throws {
         struct Echo: Codable {
             let field1: String?
             let field2: String?
@@ -996,14 +973,10 @@ class InputTests: XCTestCase {
 
             init(from decoder: Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
-                XCTAssertTrue(container.contains(.field1))
+                #expect(container.contains(.field1))
                 field1 = try container.decodeIfPresent(String.self, forKey: .field1)
-                XCTAssertFalse(
-                    container
-                        .contains(
-                            .field2
-                        )
-                ) // Container should not include field2, since it is undefined
+                // Container should not include field2, since it is undefined
+                #expect(!container.contains(.field2))
                 field2 = try container.decodeIfPresent(String.self, forKey: .field2)
             }
         }
@@ -1078,9 +1051,8 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": nil,
@@ -1105,9 +1077,8 @@ class InputTests: XCTestCase {
                 ],
             ]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": nil,
@@ -1117,7 +1088,7 @@ class InputTests: XCTestCase {
     }
 
     // Test that input objects parse as expected when there are missing fields with defaults
-    func testInputParsingUndefinedWithDefault() async throws {
+    @Test func testInputParsingUndefinedWithDefault() async throws {
         struct Echo: Codable {
             let field1: String?
             let field2: String?
@@ -1129,9 +1100,9 @@ class InputTests: XCTestCase {
 
             init(from decoder: Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
-                XCTAssertTrue(container.contains(.field1))
+                #expect(container.contains(.field1))
                 field1 = try container.decodeIfPresent(String.self, forKey: .field1)
-                XCTAssertTrue(container.contains(.field2)) // default value should be used
+                #expect(container.contains(.field2)) // default value should be used
                 field2 = try container.decodeIfPresent(String.self, forKey: .field2)
             }
         }
@@ -1207,9 +1178,8 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": "value2",
@@ -1231,9 +1201,8 @@ class InputTests: XCTestCase {
             }
             """
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": nil,
@@ -1259,9 +1228,8 @@ class InputTests: XCTestCase {
                 ],
             ]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": "value2",
@@ -1286,9 +1254,8 @@ class InputTests: XCTestCase {
                 ],
             ]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "echo": [
                     "field1": "value1",
                     "field2": nil,

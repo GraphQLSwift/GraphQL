@@ -1,15 +1,16 @@
+import Foundation
 @testable import GraphQL
-import XCTest
+import Testing
 
-class SchemaPrinterTests: XCTestCase {
-    func testPrintsMinimalAST() {
+@Suite struct SchemaPrinterTests {
+    @Test func testPrintsMinimalAST() {
         let ast = ScalarTypeDefinition(
             name: .init(value: "foo")
         )
-        XCTAssertEqual(print(ast: ast), "scalar foo")
+        #expect(print(ast: ast) == "scalar foo")
     }
 
-    func testPrintsKitchenSinkWithoutAlteringAST() throws {
+    @Test func testPrintsKitchenSinkWithoutAlteringAST() throws {
         guard
             let url = Bundle.module.url(
                 forResource: "schema-kitchen-sink",
@@ -17,7 +18,7 @@ class SchemaPrinterTests: XCTestCase {
             ),
             let kitchenSink = try? String(contentsOf: url, encoding: .utf8)
         else {
-            XCTFail("Could not load kitchen sink")
+            Issue.record("Could not load kitchen sink")
             return
         }
 
@@ -26,8 +27,8 @@ class SchemaPrinterTests: XCTestCase {
         let printed = print(ast: ast)
         let printedAST = try parse(source: printed, noLocation: true)
 
-        XCTAssertEqual(printed, print(ast: printedAST))
-        XCTAssertEqual(printed, #"""
+        #expect(printed == print(ast: printedAST))
+        #expect(printed == #"""
         """This is a description of the schema as a whole."""
         schema {
           query: QueryType

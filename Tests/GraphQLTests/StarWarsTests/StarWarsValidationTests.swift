@@ -1,5 +1,5 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 /**
  * Helper function to test a query and the expected response.
@@ -10,8 +10,8 @@ func validationErrors(query: String) throws -> [GraphQLError] {
     return validate(schema: starWarsSchema, ast: ast)
 }
 
-class StarWarsValidationTests: XCTestCase {
-    func testNestedQueryWithFragment() throws {
+@Suite struct StarWarsValidationTests {
+    @Test func testNestedQueryWithFragment() throws {
         let query = "query NestedQueryWithFragment {" +
             "    hero {" +
             "        ...NameAndAppearances" +
@@ -28,10 +28,10 @@ class StarWarsValidationTests: XCTestCase {
             "    appearsIn" +
             "}"
 
-        XCTAssert(try validationErrors(query: query).isEmpty)
+        #expect(try validationErrors(query: query).isEmpty)
     }
 
-    func testHeroSpaceshipQuery() throws {
+    @Test func testHeroSpaceshipQuery() throws {
         let query = "query HeroSpaceshipQuery {" +
             "    hero {" +
             "        favoriteSpaceship" +
@@ -42,18 +42,18 @@ class StarWarsValidationTests: XCTestCase {
             "    appearsIn" +
             "}"
 
-        XCTAssertFalse(try validationErrors(query: query).isEmpty)
+        #expect(try !validationErrors(query: query).isEmpty)
     }
 
-    func testHeroNoFieldsQuery() throws {
+    @Test func testHeroNoFieldsQuery() throws {
         let query = "query HeroNoFieldsQuery {" +
             "    hero" +
             "}"
 
-        XCTAssertFalse(try validationErrors(query: query).isEmpty)
+        #expect(try !validationErrors(query: query).isEmpty)
     }
 
-    func testHeroFieldsOnScalarQuery() throws {
+    @Test func testHeroFieldsOnScalarQuery() throws {
         let query = "query HeroFieldsOnScalarQuery {" +
             "    hero {" +
             "        name {" +
@@ -62,10 +62,10 @@ class StarWarsValidationTests: XCTestCase {
             "    }" +
             "}"
 
-        XCTAssertFalse(try validationErrors(query: query).isEmpty)
+        #expect(try !validationErrors(query: query).isEmpty)
     }
 
-    func testDroidFieldOnCharacter() throws {
+    @Test func testDroidFieldOnCharacter() throws {
         let query = "query DroidFieldOnCharacter {" +
             "    hero {" +
             "        name" +
@@ -73,10 +73,10 @@ class StarWarsValidationTests: XCTestCase {
             "    }" +
             "}"
 
-        XCTAssertFalse(try validationErrors(query: query).isEmpty)
+        #expect(try !validationErrors(query: query).isEmpty)
     }
 
-    func testDroidFieldInFragment() throws {
+    @Test func testDroidFieldInFragment() throws {
         let query = "query DroidFieldInFragment {" +
             "    hero {" +
             "        name" +
@@ -87,10 +87,10 @@ class StarWarsValidationTests: XCTestCase {
             "    primaryFunction" +
             "}"
 
-        XCTAssert(try validationErrors(query: query).isEmpty)
+        #expect(try validationErrors(query: query).isEmpty)
     }
 
-    func testDroidFieldInInlineFragment() throws {
+    @Test func testDroidFieldInInlineFragment() throws {
         let query = "query DroidFieldInInlineFragment {" +
             "    hero {" +
             "        name" +
@@ -100,6 +100,6 @@ class StarWarsValidationTests: XCTestCase {
             "    }" +
             "}"
 
-        XCTAssert(try validationErrors(query: query).isEmpty)
+        #expect(try validationErrors(query: query).isEmpty)
     }
 }

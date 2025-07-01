@@ -1,46 +1,51 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
-class DidYouMeanTests: XCTestCase {
-    func testEmptyList() {
-        XCTAssertEqual(
-            didYouMean(suggestions: []),
-            ""
+@Suite struct DidYouMeanTests {
+    @Test func testEmptyList() {
+        #expect(
+            didYouMean(suggestions: []) == ""
         )
     }
 
-    func testSingleSuggestion() {
-        XCTAssertEqual(
-            didYouMean(suggestions: ["A"]),
-            #" Did you mean "A"?"#
+    @Test func testSingleSuggestion() {
+        #expect(
+            didYouMean(
+                suggestions: ["A"]
+            ) == #" Did you mean "A"?"#
         )
     }
 
-    func testTwoSuggestions() {
-        XCTAssertEqual(
-            didYouMean(suggestions: ["A", "B"]),
-            #" Did you mean "A" or "B"?"#
+    @Test func testTwoSuggestions() {
+        #expect(
+            didYouMean(
+                suggestions: ["A", "B"]
+            ) == #" Did you mean "A" or "B"?"#
         )
     }
 
-    func testMultipleSuggestions() {
-        XCTAssertEqual(
-            didYouMean(suggestions: ["A", "B", "C"]),
-            #" Did you mean "A", "B", or "C"?"#
+    @Test func testMultipleSuggestions() {
+        #expect(
+            didYouMean(
+                suggestions: ["A", "B", "C"]
+            ) == #" Did you mean "A", "B", or "C"?"#
         )
     }
 
-    func testLimitsToFiveSuggestions() {
-        XCTAssertEqual(
-            didYouMean(suggestions: ["A", "B", "C", "D", "E", "F"]),
-            #" Did you mean "A", "B", "C", "D", or "E"?"#
+    @Test func testLimitsToFiveSuggestions() {
+        #expect(
+            didYouMean(
+                suggestions: ["A", "B", "C", "D", "E", "F"]
+            ) == #" Did you mean "A", "B", "C", "D", or "E"?"#
         )
     }
 
-    func testAddsSubmessage() {
-        XCTAssertEqual(
-            didYouMean("the letter", suggestions: ["A"]),
-            #" Did you mean the letter "A"?"#
+    @Test func testAddsSubmessage() {
+        #expect(
+            didYouMean(
+                "the letter",
+                suggestions: ["A"]
+            ) == #" Did you mean the letter "A"?"#
         )
     }
 }

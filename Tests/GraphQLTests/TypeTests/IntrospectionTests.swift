@@ -1,8 +1,8 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
-class IntrospectionTests: XCTestCase {
-    func testDefaultValues() async throws {
+@Suite struct IntrospectionTests {
+    @Test func testDefaultValues() async throws {
         let numEnum = try GraphQLEnumType(
             name: "Enum",
             values: [
@@ -125,14 +125,13 @@ class IntrospectionTests: XCTestCase {
             """
         )
 
-        let queryType = try XCTUnwrap(
+        let queryType = try #require(
             introspection.data?["__schema"]["types"].array?
                 .find { $0["name"] == "Query" }
         )
 
-        XCTAssertEqual(
-            queryType,
-            [
+        #expect(
+            queryType == [
                 "fields": [
                     [
                         "args": [

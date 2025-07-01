@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = FragmentsOnCompositeTypesRule
     }
 
-    func testObjectIsValidFragmentType() throws {
+    @Test func testObjectIsValidFragmentType() throws {
         try assertValid(
             """
             fragment validFragment on Dog {
@@ -16,7 +17,7 @@ class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
         )
     }
 
-    func testInterfaceIsValidFragmentType() throws {
+    @Test func testInterfaceIsValidFragmentType() throws {
         try assertValid(
             """
             fragment validFragment on Pet {
@@ -26,7 +27,7 @@ class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
         )
     }
 
-    func testObjectIsValidInlineFragmentType() throws {
+    @Test func testObjectIsValidInlineFragmentType() throws {
         try assertValid(
             """
             fragment validFragment on Pet {
@@ -38,7 +39,7 @@ class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
         )
     }
 
-    func testInterfaceIsValidInlineFragmentType() throws {
+    @Test func testInterfaceIsValidInlineFragmentType() throws {
         try assertValid(
             """
             fragment validFragment on Mammal {
@@ -50,7 +51,7 @@ class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
         )
     }
 
-    func testInlineFragmentWithoutTypeIsValid() throws {
+    @Test func testInlineFragmentWithoutTypeIsValid() throws {
         try assertValid(
             """
             fragment validFragment on Pet {
@@ -62,7 +63,7 @@ class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
         )
     }
 
-    func testUnionIsValidFragmentType() throws {
+    @Test func testUnionIsValidFragmentType() throws {
         try assertValid(
             """
             fragment validFragment on CatOrDog {
@@ -72,7 +73,7 @@ class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
         )
     }
 
-    func testScalarIsInvalidFragmentType() throws {
+    @Test func testScalarIsInvalidFragmentType() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -89,7 +90,7 @@ class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
         )
     }
 
-    func testEnumIsInvalidFragmentType() throws {
+    @Test func testEnumIsInvalidFragmentType() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -106,7 +107,7 @@ class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
         )
     }
 
-    func testInputObjectIsInvalidFragmentType() throws {
+    @Test func testInputObjectIsInvalidFragmentType() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -123,7 +124,7 @@ class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
         )
     }
 
-    func testScalarIsInvalidInlineFragmentType() throws {
+    @Test func testScalarIsInvalidInlineFragmentType() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:

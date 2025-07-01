@@ -1,9 +1,9 @@
-import XCTest
+import Testing
 
 @testable import GraphQL
 
-class StarWarsIntrospectionTests: XCTestCase {
-    func testIntrospectionTypeQuery() async throws {
+@Suite struct StarWarsIntrospectionTests {
+    @Test func testIntrospectionTypeQuery() async throws {
         do {
             let query = "query IntrospectionTypeQuery {" +
                 "    __schema {" +
@@ -71,13 +71,13 @@ class StarWarsIntrospectionTests: XCTestCase {
                 schema: starWarsSchema,
                 request: query
             )
-            XCTAssertEqual(result, expected)
+            #expect(result == expected)
         } catch {
             print(error)
         }
     }
 
-    func testIntrospectionQueryTypeQuery() async throws {
+    @Test func testIntrospectionQueryTypeQuery() async throws {
         let query = "query IntrospectionQueryTypeQuery {" +
             "    __schema {" +
             "        queryType {" +
@@ -100,10 +100,10 @@ class StarWarsIntrospectionTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testIntrospectionDroidTypeQuery() async throws {
+    @Test func testIntrospectionDroidTypeQuery() async throws {
         let query = "query IntrospectionDroidTypeQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +
@@ -122,10 +122,10 @@ class StarWarsIntrospectionTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testIntrospectionDroidKindQuery() async throws {
+    @Test func testIntrospectionDroidKindQuery() async throws {
         let query = "query IntrospectionDroidKindQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +
@@ -146,10 +146,10 @@ class StarWarsIntrospectionTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testIntrospectionCharacterKindQuery() async throws {
+    @Test func testIntrospectionCharacterKindQuery() async throws {
         let query = "query IntrospectionCharacterKindQuery {" +
             "    __type(name: \"Character\") {" +
             "        name" +
@@ -170,10 +170,10 @@ class StarWarsIntrospectionTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testIntrospectionDroidFieldsQuery() async throws {
+    @Test func testIntrospectionDroidFieldsQuery() async throws {
         let query = "query IntrospectionDroidFieldsQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +
@@ -243,10 +243,10 @@ class StarWarsIntrospectionTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testIntrospectionDroidNestedFieldsQuery() async throws {
+    @Test func testIntrospectionDroidNestedFieldsQuery() async throws {
         let query = "query IntrospectionDroidNestedFieldsQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +
@@ -335,10 +335,10 @@ class StarWarsIntrospectionTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testIntrospectionFieldArgsQuery() async throws {
+    @Test func testIntrospectionFieldArgsQuery() async throws {
         let query = "query IntrospectionFieldArgsQuery {" +
             "    __schema {" +
             "        queryType {" +
@@ -428,10 +428,10 @@ class StarWarsIntrospectionTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testIntrospectionDroidDescriptionQuery() async throws {
+    @Test func testIntrospectionDroidDescriptionQuery() async throws {
         let query = "query IntrospectionDroidDescriptionQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +
@@ -452,6 +452,6 @@ class StarWarsIntrospectionTests: XCTestCase {
             schema: starWarsSchema,
             request: query
         )
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 }

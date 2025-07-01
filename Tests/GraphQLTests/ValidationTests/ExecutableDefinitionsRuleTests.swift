@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class ExecutableDefinitionsRuleTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = ExecutableDefinitionsRule
     }
 
-    func testWithOnlyOperation() throws {
+    @Test func testWithOnlyOperation() throws {
         try assertValid(
             """
             query Foo {
@@ -18,7 +19,7 @@ class ExecutableDefinitionsRuleTests: ValidationTestCase {
         )
     }
 
-    func testWithOperationAndFragment() throws {
+    @Test func testWithOperationAndFragment() throws {
         try assertValid(
             """
             query Foo {
@@ -35,7 +36,7 @@ class ExecutableDefinitionsRuleTests: ValidationTestCase {
         )
     }
 
-    func testWithTypeDefinition() throws {
+    @Test func testWithTypeDefinition() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -67,7 +68,7 @@ class ExecutableDefinitionsRuleTests: ValidationTestCase {
         )
     }
 
-    func testWithSchemaDefinition() throws {
+    @Test func testWithSchemaDefinition() throws {
         let errors = try assertInvalid(
             errorCount: 3,
             query: """

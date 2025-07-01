@@ -1,49 +1,49 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
-class PrintBlockStringTests: XCTestCase {
-    func testDoesNotEscapeCharacters() {
+@Suite struct PrintBlockStringTests {
+    @Test func testDoesNotEscapeCharacters() {
         let str = "\" \\ / \n \r \t"
-        XCTAssertEqual(printBlockString(str), "\"\"\"\n" + str + "\n\"\"\"")
-        XCTAssertEqual(printBlockString(str, minimize: true), "\"\"\"\n" + str + "\"\"\"")
+        #expect(printBlockString(str) == "\"\"\"\n" + str + "\n\"\"\"")
+        #expect(printBlockString(str, minimize: true) == "\"\"\"\n" + str + "\"\"\"")
     }
 
-    func testByDefaultPrintBlockStringsAsSingleLine() {
-        XCTAssertEqual(printBlockString("one liner"), "\"\"\"one liner\"\"\"")
+    @Test func testByDefaultPrintBlockStringsAsSingleLine() {
+        #expect(printBlockString("one liner") == "\"\"\"one liner\"\"\"")
     }
 
-    func testByDefaultPrintBlockStringsEndingWithTripleQuotationAsMultiLine() {
+    @Test func testByDefaultPrintBlockStringsEndingWithTripleQuotationAsMultiLine() {
         let str = "triple quotation \"\"\""
-        XCTAssertEqual(printBlockString(str), "\"\"\"\ntriple quotation \\\"\"\"\n\"\"\"")
-        XCTAssertEqual(
-            printBlockString(str, minimize: true),
-            "\"\"\"triple quotation \\\"\"\"\"\"\""
+        #expect(printBlockString(str) == "\"\"\"\ntriple quotation \\\"\"\"\n\"\"\"")
+        #expect(
+            printBlockString(str, minimize: true) ==
+                "\"\"\"triple quotation \\\"\"\"\"\"\""
         )
     }
 
-    func testCorrectlyPrintsSingleLineWithLeadingSpace() {
-        XCTAssertEqual(
-            printBlockString("    space-led value \"quoted string\""),
-            "\"\"\"    space-led value \"quoted string\"\n\"\"\""
+    @Test func testCorrectlyPrintsSingleLineWithLeadingSpace() {
+        #expect(
+            printBlockString("    space-led value \"quoted string\"") ==
+                "\"\"\"    space-led value \"quoted string\"\n\"\"\""
         )
     }
 
-    func testCorrectlyPrintsSingleLineWithTrailingBackslash() {
+    @Test func testCorrectlyPrintsSingleLineWithTrailingBackslash() {
         let str = "backslash \\"
-        XCTAssertEqual(printBlockString(str), "\"\"\"\nbackslash \\\n\"\"\"")
-        XCTAssertEqual(printBlockString(str, minimize: true), "\"\"\"backslash \\\n\"\"\"")
+        #expect(printBlockString(str) == "\"\"\"\nbackslash \\\n\"\"\"")
+        #expect(printBlockString(str, minimize: true) == "\"\"\"backslash \\\n\"\"\"")
     }
 
-    func testCorrectlyPrintsMultiLineWithInternalIndent() {
+    @Test func testCorrectlyPrintsMultiLineWithInternalIndent() {
         let str = "no indent\n with indent"
-        XCTAssertEqual(printBlockString(str), "\"\"\"\nno indent\n with indent\n\"\"\"")
-        XCTAssertEqual(
-            printBlockString(str, minimize: true),
-            "\"\"\"\nno indent\n with indent\"\"\""
+        #expect(printBlockString(str) == "\"\"\"\nno indent\n with indent\n\"\"\"")
+        #expect(
+            printBlockString(str, minimize: true) ==
+                "\"\"\"\nno indent\n with indent\"\"\""
         )
     }
 
-    func testCorrectlyPrintsStringWithAFirstLineIndentation() {
+    @Test func testCorrectlyPrintsStringWithAFirstLineIndentation() {
         let str = [
             "    first  ",
             "  line     ",
@@ -51,9 +51,8 @@ class PrintBlockStringTests: XCTestCase {
             "     string",
         ].joined(separator: "\n")
 
-        XCTAssertEqual(
-            printBlockString(str),
-            [
+        #expect(
+            printBlockString(str) == [
                 "\"\"\"",
                 "    first  ",
                 "  line     ",
@@ -62,9 +61,8 @@ class PrintBlockStringTests: XCTestCase {
                 "\"\"\"",
             ].joined(separator: "\n")
         )
-        XCTAssertEqual(
-            printBlockString(str, minimize: true),
-            [
+        #expect(
+            printBlockString(str, minimize: true) == [
                 "\"\"\"    first  ",
                 "  line     ",
                 "indentation",

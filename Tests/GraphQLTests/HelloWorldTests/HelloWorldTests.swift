@@ -1,7 +1,7 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
-class HelloWorldTests: XCTestCase {
+@Suite struct HelloWorldTests {
     let schema = try! GraphQLSchema(
         query: GraphQLObjectType(
             name: "RootQueryType",
@@ -16,7 +16,7 @@ class HelloWorldTests: XCTestCase {
         )
     )
 
-    func testHello() async throws {
+    @Test func testHello() async throws {
         let query = "{ hello }"
         let expected = GraphQLResult(data: ["hello": "world"])
 
@@ -25,10 +25,10 @@ class HelloWorldTests: XCTestCase {
             request: query
         )
 
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testBoyhowdy() async throws {
+    @Test func testBoyhowdy() async throws {
         let query = "{ boyhowdy }"
 
         let expected = GraphQLResult(
@@ -45,10 +45,10 @@ class HelloWorldTests: XCTestCase {
             request: query
         )
 
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 
-    func testHelloAsync() async throws {
+    @Test func testHelloAsync() async throws {
         let query = "{ hello }"
         let expected = GraphQLResult(data: ["hello": "world"])
 
@@ -57,6 +57,6 @@ class HelloWorldTests: XCTestCase {
             request: query
         )
 
-        XCTAssertEqual(result, expected)
+        #expect(result == expected)
     }
 }

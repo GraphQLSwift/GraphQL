@@ -1,42 +1,42 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
-class PrintStringTests: XCTestCase {
-    func testPrintsASimpleString() {
-        XCTAssertEqual(printString("hello world"), "\"hello world\"")
+@Suite struct PrintStringTests {
+    @Test func testPrintsASimpleString() {
+        #expect(printString("hello world") == "\"hello world\"")
     }
 
-    func testEscapesQutoes() {
-        XCTAssertEqual(printString("\"hello world\""), "\"\\\"hello world\\\"\"")
+    @Test func testEscapesQutoes() {
+        #expect(printString("\"hello world\"") == "\"\\\"hello world\\\"\"")
     }
 
-    func testDoesNotEscapeSingleQuote() {
-        XCTAssertEqual(printString("who's test"), "\"who's test\"")
+    @Test func testDoesNotEscapeSingleQuote() {
+        #expect(printString("who's test") == "\"who's test\"")
     }
 
-    func testEscapesBackslashes() {
-        XCTAssertEqual(printString("escape: \\"), "\"escape: \\\\\"")
+    @Test func testEscapesBackslashes() {
+        #expect(printString("escape: \\") == "\"escape: \\\\\"")
     }
 
-    func testEscapesWellKnownControlChars() {
-        XCTAssertEqual(printString("\n\r\t"), "\"\\n\\r\\t\"")
+    @Test func testEscapesWellKnownControlChars() {
+        #expect(printString("\n\r\t") == "\"\\n\\r\\t\"")
     }
 
-    func testEscapesZeroByte() {
-        XCTAssertEqual(printString("\u{0000}"), "\"\\u0000\"")
+    @Test func testEscapesZeroByte() {
+        #expect(printString("\u{0000}") == "\"\\u0000\"")
     }
 
-    func testDoesNotEscapeSpace() {
-        XCTAssertEqual(printString(" "), "\" \"")
+    @Test func testDoesNotEscapeSpace() {
+        #expect(printString(" ") == "\" \"")
     }
 
     // TODO: We only support UTF8
-    func testDoesNotEscapeSupplementaryCharacter() {
-        XCTAssertEqual(printString("\u{1f600}"), "\"\u{1f600}\"")
+    @Test func testDoesNotEscapeSupplementaryCharacter() {
+        #expect(printString("\u{1f600}") == "\"\u{1f600}\"")
     }
 
-    func testEscapesAllControlChars() {
-        XCTAssertEqual(
+    @Test func testEscapesAllControlChars() {
+        #expect(
             printString(
                 "\u{0000}\u{0001}\u{0002}\u{0003}\u{0004}\u{0005}\u{0006}\u{0007}" +
                     "\u{0008}\u{0009}\u{000A}\u{000B}\u{000C}\u{000D}\u{000E}\u{000F}" +
@@ -58,8 +58,8 @@ class PrintStringTests: XCTestCase {
                     "\u{0088}\u{0089}\u{008A}\u{008B}\u{008C}\u{008D}\u{008E}\u{008F}" +
                     "\u{0090}\u{0091}\u{0092}\u{0093}\u{0094}\u{0095}\u{0096}\u{0097}" +
                     "\u{0098}\u{0099}\u{009A}\u{009B}\u{009C}\u{009D}\u{009E}\u{009F}"
-            ),
-            "\"\\u0000\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007" +
+            ) ==
+                "\"\\u0000\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007" +
                 "\\b\\t\\n\\u000B\\f\\r\\u000E\\u000F" +
                 "\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017" +
                 "\\u0018\\u0019\\u001A\\u001B\\u001C\\u001D\\u001E\\u001F" +

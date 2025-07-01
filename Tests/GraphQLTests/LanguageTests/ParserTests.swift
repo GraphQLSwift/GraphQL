@@ -1,148 +1,100 @@
+import Foundation
 @testable import GraphQL
-import XCTest
+import Testing
 
-class ParserTests: XCTestCase {
-    func testErrorMessages() throws {
+@Suite struct ParserTests {
+    @Test func testErrorMessages() throws {
         var source: String
 
-        XCTAssertThrowsError(try parse(source: "{")) { error in
-            guard let error = error as? GraphQLError else {
-                return XCTFail()
-            }
+        var error = try #require(throws: GraphQLError.self) { try parse(source: "{") }
+        #expect(
+            error.message == """
+            Syntax Error GraphQL (1:2) Expected Name, found <EOF>
 
-            XCTAssertEqual(
-                error.message,
-                """
-                Syntax Error GraphQL (1:2) Expected Name, found <EOF>
+             1: {
+                 ^
 
-                 1: {
-                     ^
+            """
+        )
+        #expect(error.positions == [1])
+        #expect(error.locations[0].line == 1)
+        #expect(error.locations[0].column == 2)
 
-                """
-            )
-
-            XCTAssertEqual(error.positions, [1])
-            XCTAssertEqual(error.locations[0].line, 1)
-            XCTAssertEqual(error.locations[0].column, 2)
+        error = try #require(throws: GraphQLError.self) {
+            try parse(source: "{ ...MissingOn }\nfragment MissingOn Type\n")
         }
+        #expect(error.message.contains(
+            "Syntax Error GraphQL (2:20) Expected \"on\", found Name \"Type\""
+        ))
 
-        XCTAssertThrowsError(try parse(
-            source: "{ ...MissingOn }\nfragment MissingOn Type\n"
-        )) { error in
-            guard let error = error as? GraphQLError else {
-                return XCTFail()
-            }
+        error = try #require(throws: GraphQLError.self) { try parse(source: "{ field: {} }") }
+        #expect(error.message.contains(
+            "Syntax Error GraphQL (1:10) Expected Name, found {"
+        ))
 
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (2:20) Expected \"on\", found Name \"Type\""
+        error = try #require(throws: GraphQLError.self) {
+            try parse(source: "notanoperation Foo { field }")
+        }
+        #expect(error.message.contains(
+            "Syntax Error GraphQL (1:1) Unexpected Name \"notanoperation\""
+        ))
+
+        error = try #require(throws: GraphQLError.self) { try parse(source: "...") }
+        #expect(error.message.contains(
+            "Syntax Error GraphQL (1:1) Unexpected ..."
+        ))
+
+        error = try #require(throws: GraphQLError.self) {
+            try parse(source: Source(
+                body: "query",
+                name: "MyQuery.graphql"
             ))
         }
-
-        XCTAssertThrowsError(try parse(source: "{ field: {} }")) { error in
-            guard let error = error as? GraphQLError else {
-                return XCTFail()
-            }
-
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:10) Expected Name, found {"
-            ))
-        }
-
-        XCTAssertThrowsError(try parse(source: "notanoperation Foo { field }")) { error in
-            guard let error = error as? GraphQLError else {
-                return XCTFail()
-            }
-
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:1) Unexpected Name \"notanoperation\""
-            ))
-        }
-
-        XCTAssertThrowsError(try parse(source: "...")) { error in
-            guard let error = error as? GraphQLError else {
-                return XCTFail()
-            }
-
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:1) Unexpected ..."
-            ))
-        }
-
-        XCTAssertThrowsError(try parse(source: Source(
-            body: "query",
-            name: "MyQuery.graphql"
-        ))) { error in
-            guard let error = error as? GraphQLError else {
-                return XCTFail()
-            }
-
-            XCTAssert(error.message.contains(
-                "Syntax Error MyQuery.graphql (1:6) Expected {, found <EOF>"
-            ))
-        }
+        #expect(error.message.contains(
+            "Syntax Error MyQuery.graphql (1:6) Expected {, found <EOF>"
+        ))
 
         source = "query Foo($x: Complex = { a: { b: [ $var ] } }) { field }"
 
-        XCTAssertThrowsError(try parse(source: source)) { error in
-            guard let error = error as? GraphQLError else {
-                return XCTFail()
-            }
+        error = try #require(throws: GraphQLError.self) { try parse(source: source) }
+        #expect(error.message.contains(
+            "Syntax Error GraphQL (1:37) Unexpected $"
+        ))
 
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:37) Unexpected $"
-            ))
+        error = try #require(throws: GraphQLError.self) {
+            try parse(source: "fragment on on on { on }")
         }
+        #expect(error.message.contains(
+            "Syntax Error GraphQL (1:10) Unexpected Name \"on\""
+        ))
 
-        XCTAssertThrowsError(try parse(source: "fragment on on on { on }")) { error in
-            guard let error = error as? GraphQLError else {
-                return XCTFail()
-            }
+        error = try #require(throws: GraphQLError.self) { try parse(source: "{ ...on }") }
+        #expect(error.message.contains(
+            "Syntax Error GraphQL (1:9) Expected Name, found }"
+        ))
 
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:10) Unexpected Name \"on\""
-            ))
+        error = try #require(throws: GraphQLError.self) {
+            try parse(
+                source: "type WithImplementsButNoTypes implements {}"
+            )
         }
+        #expect(error.message.contains(
+            "Syntax Error GraphQL (1:42) Expected Name, found {"
+        ))
 
-        XCTAssertThrowsError(try parse(source: "{ ...on }")) { error in
-            guard let error = error as? GraphQLError else {
-                return XCTFail()
-            }
-
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:9) Expected Name, found }"
-            ))
-        }
-
-        XCTAssertThrowsError(try parse(
-            source: "type WithImplementsButNoTypes implements {}"
-        )) { error in
-            guard let error = error as? GraphQLError else {
-                return XCTFail()
-            }
-
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:42) Expected Name, found {"
-            ))
-        }
-
-        XCTAssertThrowsError(
+        error = try #require(throws: GraphQLError.self) {
             try parse(source: "type WithImplementsWithTrailingAmp implements AInterface & {}")
-        ) { error in
-            guard let error = error as? GraphQLError else {
-                return XCTFail()
-            }
-
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:60) Expected Name, found {"
-            ))
         }
+        #expect(error.message.contains(
+            "Syntax Error GraphQL (1:60) Expected Name, found {"
+        ))
     }
 
-    func testVariableInlineValues() throws {
+    @Test func testVariableInlineValues() throws {
         _ = try parse(source: "{ field(complex: { a: { b: [ $var ] } }) }")
     }
 
-    func testFieldWithArguments() throws {
+    @Test func testFieldWithArguments() throws {
         let query = """
         {
           stringArgField(stringArg: "Hello World")
@@ -249,7 +201,7 @@ class ParserTests: XCTestCase {
         )
 
         let document = try parse(source: query)
-        XCTAssert(document == expected)
+        #expect(document == expected)
     }
 
 //      it('parses multi-byte characters', async () => {
@@ -279,19 +231,19 @@ class ParserTests: XCTestCase {
         case couldNotFindKitchenSink
     }
 
-    func testKitchenSink() throws {
+    @Test func testKitchenSink() throws {
         guard
             let url = Bundle.module.url(forResource: "kitchen-sink", withExtension: "graphql"),
             let kitchenSink = try? String(contentsOf: url, encoding: .utf8)
         else {
-            XCTFail("Could not load kitchen sink")
+            Issue.record("Could not load kitchen sink")
             return
         }
 
         _ = try parse(source: kitchenSink)
     }
 
-    func testNonKeywordAsName() throws {
+    @Test func testNonKeywordAsName() throws {
         let nonKeywords = [
             "on",
             "fragment",
@@ -321,7 +273,7 @@ class ParserTests: XCTestCase {
         }
     }
 
-    func testAnonymousMutationOperation() throws {
+    @Test func testAnonymousMutationOperation() throws {
         _ = try parse(
             source: "mutation {" +
                 "  mutationField" +
@@ -329,7 +281,7 @@ class ParserTests: XCTestCase {
         )
     }
 
-    func testAnonymousSubscriptionOperation() throws {
+    @Test func testAnonymousSubscriptionOperation() throws {
         _ = try parse(
             source: "subscription {" +
                 "  subscriptionField" +
@@ -337,7 +289,7 @@ class ParserTests: XCTestCase {
         )
     }
 
-    func testNamedMutationOperation() throws {
+    @Test func testNamedMutationOperation() throws {
         _ = try parse(
             source: "mutation Foo {" +
                 "  mutationField" +
@@ -345,7 +297,7 @@ class ParserTests: XCTestCase {
         )
     }
 
-    func testNamedSubscriptionOperation() throws {
+    @Test func testNamedSubscriptionOperation() throws {
         _ = try parse(
             source: "subscription Foo {" +
                 "  subscriptionField" +
@@ -353,7 +305,7 @@ class ParserTests: XCTestCase {
         )
     }
 
-    func testCreateAST() throws {
+    @Test func testCreateAST() throws {
         let query = "{" +
             "  node(id: 4) {" +
             "    id," +
@@ -388,28 +340,28 @@ class ParserTests: XCTestCase {
             ]
         )
 
-        XCTAssert(try parse(source: query) == expected)
+        #expect(try parse(source: query) == expected)
     }
 
-    func testNoLocation() throws {
+    @Test func testNoLocation() throws {
         let result = try parse(source: "{ id }", noLocation: true)
-        XCTAssertNil(result.loc)
+        #expect(result.loc == nil)
     }
 
-    func testLocationSource() throws {
+    @Test func testLocationSource() throws {
         let source = Source(body: "{ id }")
         let result = try parse(source: source)
-        XCTAssertEqual(result.loc?.source, source)
+        #expect(result.loc?.source == source)
     }
 
-    func testLocationTokens() throws {
+    @Test func testLocationTokens() throws {
         let source = Source(body: "{ id }")
         let result = try parse(source: source)
-        XCTAssertEqual(result.loc?.startToken.kind, .sof)
-        XCTAssertEqual(result.loc?.endToken.kind, .eof)
+        #expect(result.loc?.startToken.kind == .sof)
+        #expect(result.loc?.endToken.kind == .eof)
     }
 
-    func testParseValue() throws {
+    @Test func testParseValue() throws {
         let source = "[123 \"abc\"]"
 
         let expected: Value = ListValue(
@@ -419,10 +371,10 @@ class ParserTests: XCTestCase {
             ]
         )
 
-        XCTAssert(try parseValue(source: source) == expected)
+        #expect(try parseValue(source: source) == expected)
     }
 
-    func testParseType() throws {
+    @Test func testParseType() throws {
         var source: String
         var expected: Type
 
@@ -432,7 +384,7 @@ class ParserTests: XCTestCase {
             name: Name(value: "String")
         )
 
-        XCTAssert(try parseType(source: source) == expected)
+        #expect(try parseType(source: source) == expected)
 
         source = "MyType"
 
@@ -440,7 +392,7 @@ class ParserTests: XCTestCase {
             name: Name(value: "MyType")
         )
 
-        XCTAssert(try parseType(source: source) == expected)
+        #expect(try parseType(source: source) == expected)
 
         source = "[MyType]"
 
@@ -450,7 +402,7 @@ class ParserTests: XCTestCase {
             )
         )
 
-        XCTAssert(try parseType(source: source) == expected)
+        #expect(try parseType(source: source) == expected)
 
         source = "MyType!"
 
@@ -460,7 +412,7 @@ class ParserTests: XCTestCase {
             )
         )
 
-        XCTAssert(try parseType(source: source) == expected)
+        #expect(try parseType(source: source) == expected)
 
         source = "[MyType!]"
 
@@ -472,10 +424,10 @@ class ParserTests: XCTestCase {
             )
         )
 
-        XCTAssert(try parseType(source: source) == expected)
+        #expect(try parseType(source: source) == expected)
     }
 
-    func testParseDirective() throws {
+    @Test func testParseDirective() throws {
         let source = #"""
         directive @restricted(
           """The reason for this restriction"""
@@ -505,6 +457,6 @@ class ParserTests: XCTestCase {
         ])
 
         let document = try parse(source: source)
-        XCTAssert(document == expected)
+        #expect(document == expected)
     }
 }

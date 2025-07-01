@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class LoneAnonymousOperationRuleTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = LoneAnonymousOperationRule
     }
 
-    func testNoOperations() throws {
+    @Test func testNoOperations() throws {
         try assertValid(
             """
             fragment fragA on Type {
@@ -16,7 +17,7 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         )
     }
 
-    func testOneAnonOperation() throws {
+    @Test func testOneAnonOperation() throws {
         try assertValid(
             """
             {
@@ -26,7 +27,7 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleNamedOperations() throws {
+    @Test func testMultipleNamedOperations() throws {
         try assertValid(
             """
             query Foo {
@@ -40,7 +41,7 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         )
     }
 
-    func testAnonOperationWithFragment() throws {
+    @Test func testAnonOperationWithFragment() throws {
         try assertValid(
             """
             {
@@ -53,7 +54,7 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleAnonOperations() throws {
+    @Test func testMultipleAnonOperations() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
@@ -78,7 +79,7 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         )
     }
 
-    func testAnonOperationWithAMutation() throws {
+    @Test func testAnonOperationWithAMutation() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -98,7 +99,7 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         )
     }
 
-    func testAnonOperationWithASubscription() throws {
+    @Test func testAnonOperationWithASubscription() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:

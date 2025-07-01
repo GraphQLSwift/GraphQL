@@ -1,24 +1,25 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class KnownArgumentNamesTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = KnownArgumentNamesRule
     }
 
-    func testValidWithObjectWithoutArguments() throws {
+    @Test func testValidWithObjectWithoutArguments() throws {
         try assertValid(
             "fragment objectFieldSelection on Dog { __typename name }"
         )
     }
 
-    func testValidWithCorrectArgumentNames() throws {
+    @Test func testValidWithCorrectArgumentNames() throws {
         try assertValid(
             "fragment objectFieldSelection on Dog { __typename isHousetrained(atOtherHomes: true) }"
         )
     }
 
-    func testInvalidWithSlightlyMisspelledArgument() throws {
+    @Test func testInvalidWithSlightlyMisspelledArgument() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: "fragment objectFieldSelection on Dog { __typename isHousetrained(atOtherHomees: true) }"
@@ -30,7 +31,7 @@ class KnownArgumentNamesTests: ValidationTestCase {
         )
     }
 
-    func testInvalidWithUnrelatedArgument() throws {
+    @Test func testInvalidWithUnrelatedArgument() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: "fragment objectFieldSelection on Dog { __typename name(uppercased: true) }"

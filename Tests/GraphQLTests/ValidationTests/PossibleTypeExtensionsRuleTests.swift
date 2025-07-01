@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = PossibleTypeExtensionsRule
     }
 
-    func testNoExtensions() throws {
+    @Test func testNoExtensions() throws {
         try assertValidationErrors(
             """
             scalar FooScalar
@@ -20,28 +21,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testOneExtensionPerType() throws {
-        try assertValidationErrors(
-            """
-            scalar FooScalar
-            type FooObject
-            interface FooInterface
-            union FooUnion
-            enum FooEnum
-            input FooInputObject
-
-            extend scalar FooScalar @dummy
-            extend type FooObject @dummy
-            extend interface FooInterface @dummy
-            extend union FooUnion @dummy
-            extend enum FooEnum @dummy
-            extend input FooInputObject @dummy
-            """,
-            []
-        )
-    }
-
-    func testManyExtensionsPerType() throws {
+    @Test func testOneExtensionPerType() throws {
         try assertValidationErrors(
             """
             scalar FooScalar
@@ -57,6 +37,27 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
             extend union FooUnion @dummy
             extend enum FooEnum @dummy
             extend input FooInputObject @dummy
+            """,
+            []
+        )
+    }
+
+    @Test func testManyExtensionsPerType() throws {
+        try assertValidationErrors(
+            """
+            scalar FooScalar
+            type FooObject
+            interface FooInterface
+            union FooUnion
+            enum FooEnum
+            input FooInputObject
+
+            extend scalar FooScalar @dummy
+            extend type FooObject @dummy
+            extend interface FooInterface @dummy
+            extend union FooUnion @dummy
+            extend enum FooEnum @dummy
+            extend input FooInputObject @dummy
 
             extend scalar FooScalar @dummy
             extend type FooObject @dummy
@@ -69,7 +70,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testExtendingUnknownType() throws {
+    @Test func testExtendingUnknownType() throws {
         try assertValidationErrors(
             """
             type Known
@@ -110,7 +111,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testDoesNotConsiderNonTypeDefinitions() throws {
+    @Test func testDoesNotConsiderNonTypeDefinitions() throws {
         try assertValidationErrors(
             """
             query Foo { __typename }
@@ -153,7 +154,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testExtendingWithDifferentKinds() throws {
+    @Test func testExtendingWithDifferentKinds() throws {
         try assertValidationErrors(
             """
             scalar FooScalar
@@ -217,7 +218,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testExtendingTypesWithinExistingSchema() throws {
+    @Test func testExtendingTypesWithinExistingSchema() throws {
         let schema = try buildSchema(source: """
         scalar FooScalar
         type FooObject
@@ -237,7 +238,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
-    func testExtendingUnknownTypesWithinExistingSchema() throws {
+    @Test func testExtendingUnknownTypesWithinExistingSchema() throws {
         let schema = try buildSchema(source: "type Known")
         let sdl = """
         extend scalar Unknown @dummy
@@ -279,7 +280,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testExtendingTypesWithDifferentKindsWithinExistingSchema() throws {
+    @Test func testExtendingTypesWithDifferentKindsWithinExistingSchema() throws {
         let schema = try buildSchema(source: """
         scalar FooScalar
         type FooObject

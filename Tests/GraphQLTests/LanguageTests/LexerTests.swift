@@ -1,18 +1,18 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 func lexOne(_ string: String) throws -> Token {
     let lexer = createLexer(source: Source(body: string))
     return try lexer.advance()
 }
 
-class LexerTests: XCTestCase {
-    func testInvalidCharacter() throws {
-        XCTAssertThrowsError(try lexOne("\u{0007}"))
+@Suite struct LexerTests {
+    @Test func testInvalidCharacter() throws {
+        #expect(throws: (any Error).self) { try lexOne("\u{0007}") }
 //        'Syntax Error GraphQL (1:1) Invalid character "\\u0007"'
     }
 
-    func testBOMHeader() throws {
+    @Test func testBOMHeader() throws {
         let token = try lexOne("\u{FEFF} foo")
 
         let expected = Token(
@@ -24,10 +24,10 @@ class LexerTests: XCTestCase {
             value: "foo"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
     }
 
-    func testRecordsLineAndColumn() throws {
+    @Test func testRecordsLineAndColumn() throws {
         let token = try lexOne("\n \r\n \r  foo\n")
 
         let expected = Token(
@@ -39,16 +39,16 @@ class LexerTests: XCTestCase {
             value: "foo"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
     }
 
-    func testTokenDescription() throws {
+    @Test func testTokenDescription() throws {
         let token = try lexOne("foo")
         let expected = "Token(kind: Name, value: foo, line: 1, column: 1)"
-        XCTAssertEqual(token.description, expected)
+        #expect(token.description == expected)
     }
 
-    func testSkipsWhitespace() throws {
+    @Test func testSkipsWhitespace() throws {
         let token = try lexOne("""
 
 
@@ -66,10 +66,10 @@ class LexerTests: XCTestCase {
             value: "foo"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
     }
 
-    func testSkipsComments() throws {
+    @Test func testSkipsComments() throws {
         let token = try lexOne("""
             #comment\r
             foo#comment
@@ -84,10 +84,10 @@ class LexerTests: XCTestCase {
             value: "foo"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
     }
 
-    func testSkipsCommas() throws {
+    @Test func testSkipsCommas() throws {
         let token = try lexOne(",,,foo,,,")
 
         let expected = Token(
@@ -99,17 +99,17 @@ class LexerTests: XCTestCase {
             value: "foo"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
     }
 
-    func testErrorsRespectWhitespaces() throws {
-        XCTAssertThrowsError(try lexOne("""
+    @Test func testErrorsRespectWhitespaces() throws {
+        #expect(throws: (any Error).self) { try lexOne("""
 
 
         ?
 
 
-        """))
+        """) }
 //      'Syntax Error GraphQL (3:5) Unexpected character "?".\n' +
 //      '\n' +
 //      '2: \n' +
@@ -118,7 +118,7 @@ class LexerTests: XCTestCase {
 //      '4: \n'
     }
 
-    func testStrings() throws {
+    @Test func testStrings() throws {
         var token: Token
         var expected: Token
 
@@ -133,7 +133,7 @@ class LexerTests: XCTestCase {
             value: "simple"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("\"😎\"")
 
@@ -146,7 +146,7 @@ class LexerTests: XCTestCase {
             value: "😎"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("\" white space \"")
 
@@ -159,7 +159,7 @@ class LexerTests: XCTestCase {
             value: " white space "
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("\"quote \\\"\"")
 
@@ -172,7 +172,7 @@ class LexerTests: XCTestCase {
             value: "quote \""
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("\"escaped \\n\\r\\b\\t\\f\"")
 
@@ -185,7 +185,7 @@ class LexerTests: XCTestCase {
             value: "escaped \n\r\u{8}\u{9}\u{12}"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("\"slashes \\\\\\\\ \\\\/\"")
 
@@ -198,7 +198,7 @@ class LexerTests: XCTestCase {
             value: "slashes \\\\ \\/"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("\"unicode \\u1234\\u5678\\u90AB\\uCDEF\"")
 
@@ -211,51 +211,57 @@ class LexerTests: XCTestCase {
             value: "unicode \u{1234}\u{5678}\u{90AB}\u{CDEF}"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
     }
 
-    func testStringErrors() throws {
-        XCTAssertThrowsError(try lexOne("\""))
+    @Test func testStringErrors() throws {
+        #expect(throws: (any Error).self) { try lexOne("\"") }
         // "Syntax Error GraphQL (1:2) Unterminated string"
 
-        XCTAssertThrowsError(try lexOne("\"contains unescaped \u{0007} control char\""))
+        #expect(throws: (any Error).self) {
+            try lexOne("\"contains unescaped \u{0007} control char\"")
+        }
         // "Syntax Error GraphQL (1:21) Invalid character within String: "\\u0007"."
 
-        XCTAssertThrowsError(try lexOne("\"null-byte is not \u{0000} end of file\""))
+        #expect(throws: (any Error).self) {
+            try lexOne("\"null-byte is not \u{0000} end of file\"")
+        }
         // "Syntax Error GraphQL (1:19) Invalid character within String: "\\u0000"."
 
-        XCTAssertThrowsError(try lexOne("""
-        "multi
-        line"
-        """))
+        #expect(throws: (any Error).self) {
+            try lexOne("""
+            "multi
+            line"
+            """)
+        }
         // "Syntax Error GraphQL (1:7) Unterminated string"
 
-        XCTAssertThrowsError(try lexOne("\"multi\rline\""))
+        #expect(throws: (any Error).self) { try lexOne("\"multi\rline\"") }
         // "Syntax Error GraphQL (1:7) Unterminated string"
 
-        XCTAssertThrowsError(try lexOne("\"bad \\z esc\""))
+        #expect(throws: (any Error).self) { try lexOne("\"bad \\z esc\"") }
         // "Syntax Error GraphQL (1:7) Invalid character escape sequence: \\z."
 
-        XCTAssertThrowsError(try lexOne("\"bad \\x esc\""))
+        #expect(throws: (any Error).self) { try lexOne("\"bad \\x esc\"") }
         // "Syntax Error GraphQL (1:7) Invalid character escape sequence: \\x."
 
-        XCTAssertThrowsError(try lexOne("\"bad \\u1 esc\""))
+        #expect(throws: (any Error).self) { try lexOne("\"bad \\u1 esc\"") }
         // "Syntax Error GraphQL (1:7) Invalid character escape sequence: \\u1 es."
 
-        XCTAssertThrowsError(try lexOne("\"bad \\u0XX1 esc\""))
+        #expect(throws: (any Error).self) { try lexOne("\"bad \\u0XX1 esc\"") }
         // "Syntax Error GraphQL (1:7) Invalid character escape sequence: \\u0XX1."
 
-        XCTAssertThrowsError(try lexOne("\"bad \\uXXXX esc\""))
+        #expect(throws: (any Error).self) { try lexOne("\"bad \\uXXXX esc\"") }
         // "Syntax Error GraphQL (1:7) Invalid character escape sequence: \\uXXXX."
 
-        XCTAssertThrowsError(try lexOne("\"bad \\uFXXX esc\""))
+        #expect(throws: (any Error).self) { try lexOne("\"bad \\uFXXX esc\"") }
         // "Syntax Error GraphQL (1:7) Invalid character escape sequence: \\uFXXX."
 
-        XCTAssertThrowsError(try lexOne("\"bad \\uXXXF esc\""))
+        #expect(throws: (any Error).self) { try lexOne("\"bad \\uXXXF esc\"") }
         // "Syntax Error GraphQL (1:7) Invalid character escape sequence: \\uXXXF."
     }
 
-    func testNumbers() throws {
+    @Test func testNumbers() throws {
         var token: Token
         var expected: Token
 
@@ -270,7 +276,7 @@ class LexerTests: XCTestCase {
             value: "7"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("4.123")
 
@@ -283,7 +289,7 @@ class LexerTests: XCTestCase {
             value: "4.123"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("-4")
 
@@ -296,7 +302,7 @@ class LexerTests: XCTestCase {
             value: "-4"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("9")
 
@@ -309,7 +315,7 @@ class LexerTests: XCTestCase {
             value: "9"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("0")
 
@@ -322,7 +328,7 @@ class LexerTests: XCTestCase {
             value: "0"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("-4.123")
 
@@ -335,7 +341,7 @@ class LexerTests: XCTestCase {
             value: "-4.123"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("0.123")
 
@@ -348,7 +354,7 @@ class LexerTests: XCTestCase {
             value: "0.123"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("123e4")
 
@@ -361,7 +367,7 @@ class LexerTests: XCTestCase {
             value: "123e4"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("123E4")
 
@@ -374,7 +380,7 @@ class LexerTests: XCTestCase {
             value: "123E4"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("123e-4")
 
@@ -387,7 +393,7 @@ class LexerTests: XCTestCase {
             value: "123e-4"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("123e+4")
 
@@ -400,7 +406,7 @@ class LexerTests: XCTestCase {
             value: "123e+4"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("-1.123e4")
 
@@ -413,7 +419,7 @@ class LexerTests: XCTestCase {
             value: "-1.123e4"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("-1.123E4")
 
@@ -426,7 +432,7 @@ class LexerTests: XCTestCase {
             value: "-1.123E4"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("-1.123e-4")
 
@@ -439,7 +445,7 @@ class LexerTests: XCTestCase {
             value: "-1.123e-4"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("-1.123e+4")
 
@@ -452,7 +458,7 @@ class LexerTests: XCTestCase {
             value: "-1.123e+4"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("-1.123e4567")
 
@@ -465,42 +471,42 @@ class LexerTests: XCTestCase {
             value: "-1.123e4567"
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
     }
 
-    func testNumberErrors() throws {
-        XCTAssertThrowsError(try lexOne("00"))
+    @Test func testNumberErrors() throws {
+        #expect(throws: (any Error).self) { try lexOne("00") }
 //        'Syntax Error GraphQL (1:2) Invalid number, ' +
 //        'unexpected digit after 0: "0".'
 
-        XCTAssertThrowsError(try lexOne("+1"))
+        #expect(throws: (any Error).self) { try lexOne("+1") }
         // "Syntax Error GraphQL (1:1) Unexpected character "+""
 
-        XCTAssertThrowsError(try lexOne("1."))
+        #expect(throws: (any Error).self) { try lexOne("1.") }
 //        'Syntax Error GraphQL (1:3) Invalid number, ' +
 //        'expected digit but got: <EOF>.'
 
-        XCTAssertThrowsError(try lexOne(".123"))
+        #expect(throws: (any Error).self) { try lexOne(".123") }
         // "Syntax Error GraphQL (1:1) Unexpected character ".""
 
-        XCTAssertThrowsError(try lexOne("1.A"))
+        #expect(throws: (any Error).self) { try lexOne("1.A") }
 //        'Syntax Error GraphQL (1:3) Invalid number, ' +
 //        'expected digit but got: "A".'
 
-        XCTAssertThrowsError(try lexOne("-A"))
+        #expect(throws: (any Error).self) { try lexOne("-A") }
 //        'Syntax Error GraphQL (1:2) Invalid number, ' +
 //        'expected digit but got: "A".'
 
-        XCTAssertThrowsError(try lexOne("1.0e"))
+        #expect(throws: (any Error).self) { try lexOne("1.0e") }
 //        'Syntax Error GraphQL (1:5) Invalid number, ' +
 //        'expected digit but got: <EOF>.');
 
-        XCTAssertThrowsError(try lexOne("1.0eA"))
+        #expect(throws: (any Error).self) { try lexOne("1.0eA") }
 //        'Syntax Error GraphQL (1:5) Invalid number, ' +
 //        'expected digit but got: "A".'
     }
 
-    func testSymbols() throws {
+    @Test func testSymbols() throws {
         var token: Token
         var expected: Token
 
@@ -515,7 +521,7 @@ class LexerTests: XCTestCase {
             value: nil
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("$")
 
@@ -528,7 +534,7 @@ class LexerTests: XCTestCase {
             value: nil
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("(")
 
@@ -541,7 +547,7 @@ class LexerTests: XCTestCase {
             value: nil
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne(")")
 
@@ -554,7 +560,7 @@ class LexerTests: XCTestCase {
             value: nil
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("...")
 
@@ -567,7 +573,7 @@ class LexerTests: XCTestCase {
             value: nil
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne(":")
 
@@ -580,7 +586,7 @@ class LexerTests: XCTestCase {
             value: nil
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("=")
 
@@ -593,7 +599,7 @@ class LexerTests: XCTestCase {
             value: nil
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("@")
 
@@ -606,7 +612,7 @@ class LexerTests: XCTestCase {
             value: nil
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("[")
 
@@ -619,7 +625,7 @@ class LexerTests: XCTestCase {
             value: nil
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("]")
 
@@ -632,7 +638,7 @@ class LexerTests: XCTestCase {
             value: nil
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("{")
 
@@ -645,7 +651,7 @@ class LexerTests: XCTestCase {
             value: nil
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("|")
 
@@ -658,7 +664,7 @@ class LexerTests: XCTestCase {
             value: nil
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
 
         token = try lexOne("}")
 
@@ -671,24 +677,24 @@ class LexerTests: XCTestCase {
             value: nil
         )
 
-        XCTAssertEqual(token, expected)
+        #expect(token == expected)
     }
 
-    func testUnknownCharacterErrors() throws {
-        XCTAssertThrowsError(try lexOne(".."))
+    @Test func testUnknownCharacterErrors() throws {
+        #expect(throws: (any Error).self) { try lexOne("..") }
         // "Syntax Error GraphQL (1:1) Unexpected character ".""
 
-        XCTAssertThrowsError(try lexOne("?"))
+        #expect(throws: (any Error).self) { try lexOne("?") }
         // "Syntax Error GraphQL (1:1) Unexpected character "?""
 
-        XCTAssertThrowsError(try lexOne("\u{203B}"))
+        #expect(throws: (any Error).self) { try lexOne("\u{203B}") }
         // "Syntax Error GraphQL (1:1) Unexpected character "\\u203B""
 
-        XCTAssertThrowsError(try lexOne("\u{200b}"))
+        #expect(throws: (any Error).self) { try lexOne("\u{200b}") }
         // "Syntax Error GraphQL (1:1) Unexpected character "\\u200B""
     }
 
-    func testDashInName() throws {
+    @Test func testDashInName() throws {
         let q = "a-b"
         let lexer = createLexer(source: Source(body: q))
         let firstToken = try lexer.advance()
@@ -702,13 +708,13 @@ class LexerTests: XCTestCase {
             value: "a"
         )
 
-        XCTAssertEqual(firstToken, expected)
+        #expect(firstToken == expected)
 
-        XCTAssertThrowsError(try lexer.advance())
+        #expect(throws: (any Error).self) { try lexer.advance() }
         // "Syntax Error GraphQL (1:3) Invalid number, expected digit but got: "b"."
     }
 
-    func testDoubleLinkedList() throws {
+    @Test func testDoubleLinkedList() throws {
         let q = """
         {
             #comment
@@ -722,19 +728,19 @@ class LexerTests: XCTestCase {
 
         repeat {
             endToken = try lexer.advance()
-            XCTAssertNotEqual(endToken.kind, .comment)
+            #expect(endToken.kind != .comment)
         } while
             endToken.kind != .eof
 
-        XCTAssertEqual(startToken.prev, nil)
-        XCTAssertEqual(endToken.next, nil)
+        #expect(startToken.prev == nil)
+        #expect(endToken.next == nil)
 
         var tokens: [Token] = []
         var token: Token = startToken
 
         while true {
             if !tokens.isEmpty {
-                XCTAssertEqual(token.prev, tokens[tokens.count - 1])
+                #expect(token.prev == tokens[tokens.count - 1])
             }
             tokens.append(token)
 
@@ -754,14 +760,14 @@ class LexerTests: XCTestCase {
             .eof,
         ]
 
-        XCTAssertEqual(tokens.map { $0.kind }, expectedKinds)
+        #expect(tokens.map { $0.kind } == expectedKinds)
     }
 
     //
     // Tests for Blockstring support
     //
 
-    func testBlockStringIndentAndBlankLine() throws {
+    @Test func testBlockStringIndentAndBlankLine() throws {
         let rawString =
             """
 
@@ -778,7 +784,7 @@ class LexerTests: XCTestCase {
             """
         let cleanedString = blockStringValue(rawValue: rawString)
 
-        XCTAssertEqual(cleanedString, """
+        #expect(cleanedString == """
         TopLevel {
             indented
             alsoIndented
@@ -786,7 +792,7 @@ class LexerTests: XCTestCase {
         """)
     }
 
-    func testBlockStringDoubleIndentAndBlankLine() throws {
+    @Test func testBlockStringDoubleIndentAndBlankLine() throws {
         let rawString =
             """
 
@@ -805,9 +811,8 @@ class LexerTests: XCTestCase {
             """
         let cleanedString = blockStringValue(rawValue: rawString)
 
-        XCTAssertEqual(
-            cleanedString,
-            """
+        #expect(
+            cleanedString == """
             TopLevel {
                 indented: {
                     foo: String
@@ -818,7 +823,7 @@ class LexerTests: XCTestCase {
         )
     }
 
-    func testBlockStringIndentAndBlankLineFirstLineNotIndent() throws {
+    @Test func testBlockStringIndentAndBlankLineFirstLineNotIndent() throws {
         let rawString = """
 
 
@@ -834,7 +839,7 @@ class LexerTests: XCTestCase {
         """
         let cleanedString = blockStringValue(rawValue: rawString)
 
-        XCTAssertEqual(cleanedString, """
+        #expect(cleanedString == """
         TopLevel {
                 indented
                 alsoIndented
@@ -842,7 +847,7 @@ class LexerTests: XCTestCase {
         """)
     }
 
-    func testBlockStringIndentBlankLineFirstLineNotIndentWeird() throws {
+    @Test func testBlockStringIndentBlankLineFirstLineNotIndentWeird() throws {
         let rawString = """
 
 
@@ -856,7 +861,7 @@ class LexerTests: XCTestCase {
         """
         let cleanedString = blockStringValue(rawValue: rawString)
 
-        XCTAssertEqual(cleanedString, """
+        #expect(cleanedString == """
         TopLevel {
             indented
             alsoIndented
@@ -864,7 +869,7 @@ class LexerTests: XCTestCase {
         """)
     }
 
-    func testBlockStringIndentMultilineWithSingleSpaceIndent() throws {
+    @Test func testBlockStringIndentMultilineWithSingleSpaceIndent() throws {
         let rawString = """
          Multi-line string
          With Inner \"foo\"
@@ -872,14 +877,14 @@ class LexerTests: XCTestCase {
         """
         let cleanedString = blockStringValue(rawValue: rawString)
 
-        XCTAssertEqual(cleanedString, """
+        #expect(cleanedString == """
          Multi-line string
         With Inner \"foo\"
         should be Valid
         """)
     }
 
-    func testBlockStringIndentMultilineWithSingleSpaceIndentExtraLines() throws {
+    @Test func testBlockStringIndentMultilineWithSingleSpaceIndentExtraLines() throws {
         let rawString = """
 
          Multi-line string
@@ -888,7 +893,7 @@ class LexerTests: XCTestCase {
         """
         let cleanedString = blockStringValue(rawValue: rawString)
 
-        XCTAssertEqual(cleanedString, """
+        #expect(cleanedString == """
         Multi-line string
         With Inner \"foo\"
         should be Valid
@@ -897,7 +902,7 @@ class LexerTests: XCTestCase {
 
     // Lexer tests for Blockstring token parsing
 
-    func testBlockStrings() throws {
+    @Test func testBlockStrings() throws {
         let token = try lexOne(#" """ Multi-line string\n With Inner "foo" \nshould be Valid """ "#)
         let expected = Token(
             kind: .blockstring,
@@ -908,9 +913,8 @@ class LexerTests: XCTestCase {
             value: " Multi-line string\\n With Inner \"foo\" \\nshould be Valid "
         )
 
-        XCTAssertEqual(
-            token,
-            expected,
+        #expect(
+            token == expected,
             """
 
             expected:
@@ -923,7 +927,7 @@ class LexerTests: XCTestCase {
         )
     }
 
-    func testBlockStringSingleSpaceIndent() throws {
+    @Test func testBlockStringSingleSpaceIndent() throws {
         let token = try lexOne(#"""
         """
          Multi-line string
@@ -944,9 +948,8 @@ class LexerTests: XCTestCase {
             """
         )
 
-        XCTAssertEqual(
-            token,
-            expected,
+        #expect(
+            token == expected,
             """
 
             expected:
@@ -959,7 +962,7 @@ class LexerTests: XCTestCase {
         )
     }
 
-    func testBlockStringUnescapedReturns() throws {
+    @Test func testBlockStringUnescapedReturns() throws {
         let token = try lexOne(#"""
         """
          Multi-line string
@@ -981,16 +984,10 @@ class LexerTests: XCTestCase {
             """
         )
 
-        XCTAssertEqual(token, expected, """
-        expected:
-        \(dump(expected))
-        got:
-        \(dump(token))
-
-        """)
+        #expect(token == expected)
     }
 
-    func testBlockStringUnescapedReturnsIndentTest() throws {
+    @Test func testBlockStringUnescapedReturnsIndentTest() throws {
         let token = try lexOne(#"""
         """
         Multi-line string {
@@ -1014,16 +1011,10 @@ class LexerTests: XCTestCase {
             """
         )
 
-        XCTAssertEqual(token, expected, """
-         expected:
-             \(dump(expected))
-            got:
-            \(dump(token))
-
-        """)
+        #expect(token == expected)
     }
 
-    func testIndentedBlockStringWithIndents() throws {
+    @Test func testIndentedBlockStringWithIndents() throws {
         let sourceStr =
             #"""
                 """
@@ -1052,54 +1043,33 @@ class LexerTests: XCTestCase {
 
         print(sourceStr)
 
-        XCTAssertEqual(token, expected, """
-        expected:
-        \(dump(expected))
-        got:
-        \(dump(token))
-
-        """)
+        #expect(token == expected)
     }
 
     // Test empty strings & multi-line string lexer token parsing
 
-    func testEmptyQuote() throws {
+    @Test func testEmptyQuote() throws {
         let token = try lexOne(#" "" "#)
         let expected = Token(kind: .string, start: 1, end: 3, line: 1, column: 2, value: "")
-        XCTAssertEqual(token, expected, """
-
-        \(dump(expected))
-        \(dump(token))
-
-        """)
+        #expect(token == expected)
     }
 
-    func testEmptySimpleBlockString() throws {
+    @Test func testEmptySimpleBlockString() throws {
         let token = try lexOne(#" """""" "#)
         let expected = Token(kind: .blockstring, start: 1, end: 7, line: 1, column: 2, value: "")
-        XCTAssertEqual(token, expected, """
-
-        \(dump(expected))
-        \(dump(token))
-
-        """)
+        #expect(token == expected)
     }
 
-    func testEmptyTrimmedCharactersBlockString() throws {
+    @Test func testEmptyTrimmedCharactersBlockString() throws {
         let token = try lexOne(#"""
         """
         """
         """#)
         let expected = Token(kind: .blockstring, start: 0, end: 7, line: 1, column: 1, value: "")
-        XCTAssertEqual(token, expected, """
-
-        \(dump(expected))
-        \(dump(token))
-
-        """)
+        #expect(token == expected)
     }
 
-    func testEscapedTripleQuoteInBlockString() throws {
+    @Test func testEscapedTripleQuoteInBlockString() throws {
         let token = try lexOne(#"""
         """
         \"""
@@ -1113,11 +1083,6 @@ class LexerTests: XCTestCase {
             column: 1,
             value: "\"\"\""
         )
-        XCTAssertEqual(token, expected, """
-
-        \(dump(expected))
-        \(dump(token))
-
-        """)
+        #expect(token == expected)
     }
 }

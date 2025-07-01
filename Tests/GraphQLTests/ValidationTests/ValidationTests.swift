@@ -1,7 +1,7 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
-class ValidationTestCase: XCTestCase {
+class ValidationTestCase {
     typealias Rule = @Sendable (ValidationContext) -> Visitor
 
     var rule: Rule!
@@ -19,35 +19,19 @@ class ValidationTestCase: XCTestCase {
 
     func assertValid(
         _ query: String,
-        schema: GraphQLSchema = ValidationExampleSchema,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        schema: GraphQLSchema = ValidationExampleSchema
     ) throws {
         let errors = try validate(body: query, schema: schema)
-        XCTAssertEqual(
-            errors.count,
-            0,
-            "Expecting to pass validation without any errors",
-            file: file,
-            line: line
-        )
+        #expect(errors.count == 0)
     }
 
     @discardableResult func assertInvalid(
         errorCount: Int,
         query: String,
-        schema: GraphQLSchema = ValidationExampleSchema,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        schema: GraphQLSchema = ValidationExampleSchema
     ) throws -> [GraphQLError] {
         let errors = try validate(body: query, schema: schema)
-        XCTAssertEqual(
-            errors.count,
-            errorCount,
-            "Expecting to fail validation with at least 1 error",
-            file: file,
-            line: line
-        )
+        #expect(errors.count == errorCount)
         return errors
     }
 
@@ -56,81 +40,43 @@ class ValidationTestCase: XCTestCase {
         line: Int,
         column: Int,
         path: String = "",
-        message: String,
-        testFile: StaticString = #filePath,
-        testLine: UInt = #line
+        message: String
     ) throws {
         guard let error = error else {
-            return XCTFail("Error was not provided")
+            Issue.record("Error was not provided")
+            return
         }
 
-        XCTAssertEqual(
-            error.message,
-            message,
-            "Unexpected error message",
-            file: testFile,
-            line: testLine
-        )
-        XCTAssertEqual(
-            error.locations[0].line,
-            line,
-            "Unexpected line location",
-            file: testFile,
-            line: testLine
-        )
-        XCTAssertEqual(
-            error.locations[0].column,
-            column,
-            "Unexpected column location",
-            file: testFile,
-            line: testLine
-        )
+        #expect(error.message == message)
+        #expect(error.locations[0].line == line)
+        #expect(error.locations[0].column == column)
         let errorPath = error.path.elements.map { $0.description }.joined(separator: " ")
-        XCTAssertEqual(errorPath, path, "Unexpected error path", file: testFile, line: testLine)
+        #expect(errorPath == path)
     }
 
     func assertValidationError(
         error: GraphQLError?,
         locations: [(line: Int, column: Int)],
         path: String = "",
-        message: String,
-        testFile: StaticString = #filePath,
-        testLine: UInt = #line
+        message: String
     ) throws {
         guard let error = error else {
-            return XCTFail("Error was not provided")
+            Issue.record("Error was not provided")
+            return
         }
 
-        XCTAssertEqual(
-            error.message,
-            message,
-            "Unexpected error message",
-            file: testFile,
-            line: testLine
-        )
+        #expect(error.message == message)
         for (index, actualLocation) in error.locations.enumerated() {
             let expectedLocation = locations[index]
-            XCTAssertEqual(
-                actualLocation.line,
-                expectedLocation.line,
-                "Unexpected line location",
-                file: testFile,
-                line: testLine
-            )
-            XCTAssertEqual(
-                actualLocation.column,
-                expectedLocation.column,
-                "Unexpected column location",
-                file: testFile,
-                line: testLine
-            )
+            #expect(actualLocation.line == expectedLocation.line)
+            #expect(actualLocation.column == expectedLocation.column)
         }
         let errorPath = error.path.elements.map { $0.description }.joined(separator: " ")
-        XCTAssertEqual(errorPath, path, "Unexpected error path", file: testFile, line: testLine)
+        #expect(errorPath == path)
     }
 }
 
-class SDLValidationTestCase: XCTestCase {
+class SDLValidationTestCase {
     typealias Rule = @Sendable (SDLValidationContext) -> Visitor
 
     var rule: Rule!
@@ -138,21 +84,19 @@ class SDLValidationTestCase: XCTestCase {
     func assertValidationErrors(
         _ sdlStr: String,
         schema: GraphQLSchema? = nil,
-        _ errors: [GraphQLError],
-        testFile _: StaticString = #filePath,
-        testLine _: UInt = #line
+        _ errors: [GraphQLError]
     ) throws {
         let doc = try parse(source: sdlStr)
         let validationErrors = validateSDL(documentAST: doc, schemaToExtend: schema, rules: [rule])
 
-        XCTAssertEqual(
-            validationErrors.map(\.message),
-            errors.map(\.message)
+        #expect(
+            validationErrors.map(\.message) ==
+                errors.map(\.message)
         )
 
-        XCTAssertEqual(
-            validationErrors.map(\.locations),
-            errors.map(\.locations)
+        #expect(
+            validationErrors.map(\.locations) ==
+                errors.map(\.locations)
         )
     }
 }
