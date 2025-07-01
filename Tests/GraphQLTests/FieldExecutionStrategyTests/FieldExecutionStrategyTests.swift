@@ -2,6 +2,8 @@ import Dispatch
 @testable import GraphQL
 import XCTest
 
+let queue = DispatchQueue(label: "testQueue")
+
 class FieldExecutionStrategyTests: XCTestCase {
     enum StrategyError: Error {
         case exampleError(msg: String)
@@ -24,7 +26,7 @@ class FieldExecutionStrategyTests: XCTestCase {
                         let group = DispatchGroup()
                         group.enter()
 
-                        DispatchQueue.global().asyncAfter(wallDeadline: .now() + 0.1) {
+                        queue.asyncAfter(wallDeadline: .now() + 0.1) {
                             group.leave()
                         }
 
@@ -41,7 +43,7 @@ class FieldExecutionStrategyTests: XCTestCase {
                         let g = DispatchGroup()
                         g.enter()
 
-                        DispatchQueue.global().asyncAfter(wallDeadline: .now() + 0.1) {
+                        queue.asyncAfter(wallDeadline: .now() + 0.1) {
                             g.leave()
                         }
 
