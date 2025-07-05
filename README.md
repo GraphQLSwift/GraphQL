@@ -57,12 +57,9 @@ The result of this query is a `GraphQLResult` that encodes to the following JSON
 
 ### Subscription
 
-This package supports GraphQL subscription, but until the integration of `AsyncSequence` in Swift 5.5 the standard Swift library did not
-provide an event-stream construct. For historical reasons and backwards compatibility, this library implements subscriptions using an
-`EventStream` protocol that nearly every asynchronous stream implementation can conform to.
-
-To create a subscription field in a GraphQL schema, use the `subscribe` resolver that returns an `EventStream`. You must also provide a
-`resolver`, which defines how to process each event as it occurs and must return the field result type. Here is an example:
+This package supports GraphQL subscription. To create a subscription field in a GraphQL schema, use the `subscribe`
+resolver that returns any type that conforms to `AsyncSequence`. You must also provide a `resolver`, which defines how
+to process each event as it occurs and must return the field result type. Here is an example:
 
 ```swift
 let schema = try GraphQLSchema(
@@ -71,16 +68,16 @@ let schema = try GraphQLSchema(
         fields: [
             "hello": GraphQLField(
                 type: GraphQLString,
-                resolve: { eventResult, _, _, _, _ in       // Defines how to transform each event when it occurs
+                resolve: { eventResult, _, _, _ in       // Defines how to transform each event when it occurs
                     return eventResult
                 },
-                subscribe: { _, _, _, _, _ in               // Defines how to construct the event stream
+                subscribe: { _, _, _, _ in               // Defines how to construct the event stream
                     return AsyncThrowingStream<String, Error> { continuation in
                         let timer = Timer.scheduledTimer(
                             withTimeInterval: 3,
                             repeats: true,
                         ) {
-                            continuation.yield("world")     // Emits "world" every 3 seconds
+                            continuation.yield("world")  // Emits "world" every 3 seconds
                         }
                     }
                 }
@@ -96,7 +93,8 @@ To execute a subscription use the `graphqlSubscribe` function:
 let subscriptionResult = try await graphqlSubscribe(
     schema: schema,
 )
-for try await result in concurrentStream.stream {
+let stream = subscriptionResult.get()
+for try await result in stream {
     print(result)
 }
 ```
