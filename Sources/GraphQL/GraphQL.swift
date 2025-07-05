@@ -42,16 +42,11 @@ public struct GraphQLResult: Equatable, Codable, Sendable, CustomStringConvertib
     }
 }
 
-/// SubscriptionResult wraps the observable and error data returned by the subscribe request.
-public struct SubscriptionResult {
-    public let stream: AsyncThrowingStream<GraphQLResult, Error>?
+/// A collection of GraphQL errors. Enables returning multiple errors from Result types.
+public struct GraphQLErrors: Error, Sendable {
     public let errors: [GraphQLError]
 
-    public init(
-        stream: AsyncThrowingStream<GraphQLResult, Error>? = nil,
-        errors: [GraphQLError] = []
-    ) {
-        self.stream = stream
+    public init(_ errors: [GraphQLError]) {
         self.errors = errors
     }
 }
@@ -228,7 +223,7 @@ public func graphqlSubscribe(
     context: Any = (),
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) async throws -> SubscriptionResult {
+) async throws -> Result<AsyncThrowingStream<GraphQLResult, Error>, GraphQLErrors> {
     let source = Source(body: request, name: "GraphQL Subscription request")
     let documentAST = try parse(source: source)
     let validationErrors = validate(
@@ -238,7 +233,7 @@ public func graphqlSubscribe(
     )
 
     guard validationErrors.isEmpty else {
-        return SubscriptionResult(errors: validationErrors)
+        return .failure(.init(validationErrors))
     }
 
     return try await subscribe(

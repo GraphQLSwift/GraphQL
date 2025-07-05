@@ -30,10 +30,7 @@ class SubscriptionTests: XCTestCase {
             schema: schema,
             request: query
         )
-        guard let stream = subscriptionResult.stream else {
-            XCTFail(subscriptionResult.errors.description)
-            return
-        }
+        let stream = try subscriptionResult.get()
         var iterator = stream.makeAsyncIterator()
 
         db.trigger(email: Email(
@@ -241,15 +238,19 @@ class SubscriptionTests: XCTestCase {
             """)
             XCTFail("Error should have been thrown")
         } catch {
-            guard let graphQLError = error as? GraphQLError else {
-                XCTFail("Error was not of type GraphQLError")
+            guard let graphQLErrors = error as? GraphQLErrors else {
+                XCTFail("Error was not of type GraphQLErrors")
                 return
             }
             XCTAssertEqual(
-                graphQLError.message,
-                "Cannot query field \"unknownField\" on type \"Subscription\"."
+                graphQLErrors.errors,
+                [
+                    GraphQLError(
+                        message: "Cannot query field \"unknownField\" on type \"Subscription\".",
+                        locations: [SourceLocation(line: 2, column: 5)]
+                    ),
+                ]
             )
-            XCTAssertEqual(graphQLError.locations, [SourceLocation(line: 2, column: 5)])
         }
     }
 
@@ -284,13 +285,15 @@ class SubscriptionTests: XCTestCase {
             """)
             XCTFail("Error should have been thrown")
         } catch {
-            guard let graphQLError = error as? GraphQLError else {
+            guard let graphQLErrors = error as? GraphQLErrors else {
                 XCTFail("Error was not of type GraphQLError")
                 return
             }
             XCTAssertEqual(
-                graphQLError.message,
-                "Subscription field resolver must return an AsyncSequence. Received: 'test'"
+                graphQLErrors.errors,
+                [GraphQLError(
+                    message: "Subscription field resolver must return an AsyncSequence. Received: 'test'"
+                )]
             )
         }
     }
@@ -310,11 +313,11 @@ class SubscriptionTests: XCTestCase {
                 """)
                 XCTFail("Error should have been thrown")
             } catch {
-                guard let graphQLError = error as? GraphQLError else {
+                guard let graphQLErrors = error as? GraphQLErrors else {
                     XCTFail("Error was not of type GraphQLError")
                     return
                 }
-                XCTAssertEqual(graphQLError.message, "test error")
+                XCTAssertEqual(graphQLErrors.errors, [GraphQLError(message: "test error")])
             }
         }
 

@@ -20,6 +20,10 @@ This was changed to `ConcurrentFieldExecutionStrategy`, and takes no parameters.
 
 The `EventStream` abstraction used to provide pre-concurrency subscription support has been removed. This means that `graphqlSubscribe(...).stream` will now be an `AsyncThrowingStream<GraphQLResult, Error>` type, instead of an `EventStream` type, and that downcasting to `ConcurrentEventStream` is no longer necessary.
 
+### SubscriptionResult removal
+
+The `SubscriptionResult` type was removed, and `graphqlSubscribe` now returns a true Swift `Result` type.
+
 ### Instrumentation removal
 
 The `Instrumentation` type has been removed, with anticipated support for tracing using [`swift-distributed-tracing`](https://github.com/apple/swift-distributed-tracing). `instrumentation` arguments must be removed from `graphql` and `graphqlSubscribe` calls.

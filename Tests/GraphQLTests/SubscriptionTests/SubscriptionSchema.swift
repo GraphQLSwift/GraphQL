@@ -197,10 +197,5 @@ func createSubscription(
         variableValues: variableValues,
         operationName: nil
     )
-
-    if let stream = result.stream {
-        return stream
-    } else {
-        throw result.errors.first! // We may have more than one...
-    }
+    return try result.get()
 }
