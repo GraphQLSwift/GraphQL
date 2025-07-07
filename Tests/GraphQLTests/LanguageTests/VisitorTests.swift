@@ -5,7 +5,7 @@ import Testing
 @Suite struct VisitorTests {
     @Test func testHandlesEmptyVisitor() throws {
         let ast = try parse(source: "{ a }", noLocation: true)
-        #expect(throws: Never.self) { try visit(root: ast, visitor: .init()) }
+        visit(root: ast, visitor: .init())
     }
 
     @Test func testValidatesPathArgument() throws {
