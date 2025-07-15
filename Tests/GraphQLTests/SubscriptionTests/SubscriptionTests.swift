@@ -857,35 +857,5 @@ class SubscriptionTests: XCTestCase {
     // Handled by AsyncThrowingStream
 
     /// Test incorrect emitted type errors
-    func testErrorWrongEmitType() async throws {
-        let db = EmailDb()
-        let stream = try await db.subscription(query: """
-            subscription ($priority: Int = 0) {
-                importantEmail(priority: $priority) {
-                  email {
-                    from
-                    subject
-                  }
-                  inbox {
-                    unread
-                    total
-                  }
-                }
-              }
-        """)
-        var iterator = stream.makeAsyncIterator()
-
-        db.publisher.emit(event: "String instead of email")
-
-        let result = try await iterator.next()
-        XCTAssertEqual(
-            result,
-            GraphQLResult(
-                data: ["importantEmail": nil],
-                errors: [
-                    GraphQLError(message: "String is not Email"),
-                ]
-            )
-        )
-    }
+    // Handled by strongly typed PubSub
 }

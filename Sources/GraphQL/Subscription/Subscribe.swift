@@ -38,43 +38,24 @@ func subscribe(
     )
 
     return sourceResult.map { sourceStream in
-        // We must create a new AsyncSequence because AsyncSequence.map requires a concrete type
-        // (which we cannot know),
-        // and we need the result to be a concrete type.
-        let subscriptionStream = AsyncThrowingStream<GraphQLResult, Error> { continuation in
-            let task = Task {
-                do {
-                    for try await eventPayload in sourceStream {
-                        // For each payload yielded from a subscription, map it over the normal
-                        // GraphQL `execute` function, with `payload` as the rootValue.
-                        // This implements the "MapSourceToResponseEvent" algorithm described in
-                        // the GraphQL specification. The `execute` function provides the
-                        // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
-                        // "ExecuteQuery" algorithm, for which `execute` is also used.
-                        let newEvent = try await execute(
-                            queryStrategy: queryStrategy,
-                            mutationStrategy: mutationStrategy,
-                            subscriptionStrategy: subscriptionStrategy,
-                            schema: schema,
-                            documentAST: documentAST,
-                            rootValue: eventPayload,
-                            context: context,
-                            variableValues: variableValues,
-                            operationName: operationName
-                        )
-                        continuation.yield(newEvent)
-                    }
-                    continuation.finish()
-                } catch {
-                    continuation.finish(throwing: error)
-                }
+        AsyncThrowingStream<GraphQLResult, Error> {
+            // The type-cast below is required on Swift <6. Once we drop Swift 5 support it may be removed.
+            var iterator = sourceStream.makeAsyncIterator() as (any AsyncIteratorProtocol)
+            guard let eventPayload = try await iterator.next() else {
+                return nil
             }
-
-            continuation.onTermination = { @Sendable reason in
-                task.cancel()
-            }
+            return try await execute(
+                queryStrategy: queryStrategy,
+                mutationStrategy: mutationStrategy,
+                subscriptionStrategy: subscriptionStrategy,
+                schema: schema,
+                documentAST: documentAST,
+                rootValue: eventPayload,
+                context: context,
+                variableValues: variableValues,
+                operationName: operationName
+            )
         }
-        return subscriptionStream
     }
 }
 
@@ -111,7 +92,7 @@ func createSourceEventStream(
     context: Any,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) async throws -> Result<any AsyncSequence, GraphQLErrors> {
+) async throws -> Result<any AsyncSequence & Sendable, GraphQLErrors> {
     // If a valid context cannot be created due to incorrect arguments,
     // this will throw an error.
     let exeContext = try buildExecutionContext(
@@ -141,7 +122,7 @@ func createSourceEventStream(
 
 func executeSubscription(
     context: ExecutionContext
-) async throws -> Result<any AsyncSequence, GraphQLErrors> {
+) async throws -> Result<any AsyncSequence & Sendable, GraphQLErrors> {
     // Get the first node
     let type = try getOperationRootType(schema: context.schema, operation: context.operation)
     var inputFields: OrderedDictionary<String, [Field]> = [:]

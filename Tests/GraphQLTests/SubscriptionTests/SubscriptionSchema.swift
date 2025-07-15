@@ -90,7 +90,7 @@ let EmailQueryType = try! GraphQLObjectType(
 
 class EmailDb {
     var emails: [Email]
-    let publisher: SimplePubSub<Any>
+    let publisher: SimplePubSub<Email>
 
     init() {
         emails = [
@@ -101,7 +101,7 @@ class EmailDb {
                 unread: false
             ),
         ]
-        publisher = SimplePubSub<Any>()
+        publisher = SimplePubSub<Email>()
     }
 
     /// Adds a new email to the database and triggers all observers
@@ -129,12 +129,8 @@ class EmailDb {
             },
             subscribe: { _, args, _, _ throws -> Any? in
                 let priority = args["priority"].int ?? 0
-                let filtered = self.publisher.subscribe().filter { emailAny throws in
-                    if let email = emailAny as? Email {
-                        return email.priority >= priority
-                    } else {
-                        return true
-                    }
+                let filtered = self.publisher.subscribe().filter { email throws in
+                    return email.priority >= priority
                 }
                 return filtered
             }
