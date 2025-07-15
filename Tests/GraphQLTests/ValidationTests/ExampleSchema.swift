@@ -288,7 +288,9 @@ let ValidationExampleIntelligent = try! GraphQLInterfaceType(
 let ValidationExampleSentient = try! GraphQLInterfaceType(
     name: "Sentient",
     fields: [
-        "name": GraphQLField(type: GraphQLNonNull(GraphQLString)) { inputValue, _, _, _ -> String? in
+        "name": GraphQLField(
+            type: GraphQLNonNull(GraphQLString)
+        ) { inputValue, _, _, _ -> String? in
             print(type(of: inputValue))
             return nil
         },
@@ -305,7 +307,9 @@ let ValidationExampleSentient = try! GraphQLInterfaceType(
 let ValidationExampleAlien = try! GraphQLObjectType(
     name: "Alien",
     fields: [
-        "name": GraphQLField(type: GraphQLNonNull(GraphQLString)) { inputValue, _, _, _ -> String? in
+        "name": GraphQLField(
+            type: GraphQLNonNull(GraphQLString)
+        ) { inputValue, _, _, _ -> String? in
             print(type(of: inputValue))
             return nil
         },
@@ -501,7 +505,9 @@ let ValidationExampleComplicatedArgs = try! GraphQLObjectType(
         "stringListNonNullArgField": GraphQLField(
             type: GraphQLString,
             args: [
-                "stringListNonNullArg": GraphQLArgument(type: GraphQLList(GraphQLNonNull(GraphQLString))),
+                "stringListNonNullArg": GraphQLArgument(
+                    type: GraphQLList(GraphQLNonNull(GraphQLString))
+                ),
             ],
             resolve: { inputValue, _, _, _ -> String? in
                 print(type(of: inputValue))

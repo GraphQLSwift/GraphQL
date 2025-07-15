@@ -194,7 +194,7 @@ class SubscriptionTests: XCTestCase {
                 ]
             )
         )
-        let _ = try await createSubscription(schema: schema, query: """
+        _ = try await createSubscription(schema: schema, query: """
             subscription {
                 importantEmail {
                     email {

@@ -39,7 +39,8 @@ func subscribe(
 
     return sourceResult.map { sourceStream in
         AsyncThrowingStream<GraphQLResult, Error> {
-            // The type-cast below is required on Swift <6. Once we drop Swift 5 support it may be removed.
+            // The type-cast below is required on Swift <6. Once we drop Swift 5 support it may be
+            // removed.
             var iterator = sourceStream.makeAsyncIterator() as (any AsyncIteratorProtocol)
             guard let eventPayload = try await iterator.next() else {
                 return nil

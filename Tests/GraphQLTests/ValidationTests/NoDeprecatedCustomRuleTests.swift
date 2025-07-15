@@ -132,8 +132,10 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
                 ],
                 args: [
                     "normalArg": .init(type: GraphQLString),
-                    "deprecatedArg": .init(type: GraphQLString,
-                                           deprecationReason: "Some arg reason."),
+                    "deprecatedArg": .init(
+                        type: GraphQLString,
+                        deprecationReason: "Some arg reason."
+                    ),
                 ]
             ),
         ]
@@ -184,8 +186,10 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
     let deprecatedInputFieldSchema: GraphQLSchema = {
         let inputType = try! GraphQLInputObjectType(name: "InputType", fields: [
             "normalField": .init(type: GraphQLString),
-            "deprecatedField": .init(type: GraphQLString,
-                                     deprecationReason: "Some input field reason."),
+            "deprecatedField": .init(
+                type: GraphQLString,
+                deprecationReason: "Some input field reason."
+            ),
         ])
         return try! GraphQLSchema(
             query: .init(name: "Query", fields: [
@@ -273,8 +277,10 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
     let deprecatedEnumValueSchema: GraphQLSchema = {
         let enumType = try! GraphQLEnumType(name: "EnumType", values: [
             "NORMAL_VALUE": .init(value: .string("NORMAL_VALUE")),
-            "DEPRECATED_VALUE": .init(value: .string("DEPRECATED_VALUE"),
-                                      deprecationReason: "Some enum reason."),
+            "DEPRECATED_VALUE": .init(
+                value: .string("DEPRECATED_VALUE"),
+                deprecationReason: "Some enum reason."
+            ),
         ])
         return try! GraphQLSchema(
             query: .init(name: "Query", fields: [

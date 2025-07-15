@@ -970,7 +970,9 @@ class TypeSystemPrinterTests: XCTestCase {
             name: "Virus",
             fields: [
                 "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
-                "knownMutations": GraphQLField(type: GraphQLNonNull(GraphQLList(GraphQLNonNull(Mutation)))),
+                "knownMutations": GraphQLField(
+                    type: GraphQLNonNull(GraphQLList(GraphQLNonNull(Mutation)))
+                ),
             ]
         )
 

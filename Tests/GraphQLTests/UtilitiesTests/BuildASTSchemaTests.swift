@@ -988,12 +988,12 @@ class BuildASTSchemaTests: XCTestCase {
         let query = try XCTUnwrap(schema.getType(name: "Query") as? GraphQLObjectType)
         let testInput = try XCTUnwrap(schema.getType(name: "TestInput") as? GraphQLInputObjectType)
         let testEnum = try XCTUnwrap(schema.getType(name: "TestEnum") as? GraphQLEnumType)
-        let _ = try XCTUnwrap(schema.getType(name: "TestUnion") as? GraphQLUnionType)
+        XCTAssertNotNil(schema.getType(name: "TestUnion") as? GraphQLUnionType)
         let testInterface = try XCTUnwrap(
             schema.getType(name: "TestInterface") as? GraphQLInterfaceType
         )
         let testType = try XCTUnwrap(schema.getType(name: "TestType") as? GraphQLObjectType)
-        let _ = try XCTUnwrap(schema.getType(name: "TestScalar") as? GraphQLScalarType)
+        XCTAssertNotNil(schema.getType(name: "TestScalar") as? GraphQLScalarType)
         let testDirective = try XCTUnwrap(schema.getDirective(name: "test"))
 
         // No `Equatable` conformance

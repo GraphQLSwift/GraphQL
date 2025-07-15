@@ -83,7 +83,9 @@ let __Directive = try! GraphQLObjectType(
         "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
         "description": GraphQLField(type: GraphQLString),
         "isRepeatable": GraphQLField(type: GraphQLNonNull(GraphQLBoolean)),
-        "locations": GraphQLField(type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__DirectiveLocation)))),
+        "locations": GraphQLField(
+            type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__DirectiveLocation)))
+        ),
         "args": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__InputValue))),
             args: [
