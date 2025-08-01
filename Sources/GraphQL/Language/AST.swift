@@ -213,11 +213,6 @@ public extension Node {
         return nil
     }
 
-    @available(*, deprecated, message: "Use set(value _: NodeResult?, key _: String)")
-    func set(value: Node?, key: String) {
-        return set(value: value.map { .node($0) }, key: key)
-    }
-
     func set(value _: NodeResult?, key _: String) {
         // This should be overridden by each type on which it should do something
     }

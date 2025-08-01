@@ -28,6 +28,10 @@ The `SubscriptionResult` type was removed, and `graphqlSubscribe` now returns a 
 
 The `Instrumentation` type has been removed, with anticipated support for tracing using [`swift-distributed-tracing`](https://github.com/apple/swift-distributed-tracing). `instrumentation` arguments must be removed from `graphql` and `graphqlSubscribe` calls.
 
+### AST Node `set`
+
+The deprecated `Node.set(value: Node?, key: String)` function was removed in preference of the `Node.set(value _: NodeResult?, key _: String)`. Change any calls from `node.set(value: node, key: string)` to `node.set(.node(node), string)`.
+
 ## 2 to 3
 
 ### TypeReference removal
