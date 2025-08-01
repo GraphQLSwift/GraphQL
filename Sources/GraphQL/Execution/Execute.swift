@@ -82,7 +82,7 @@ public final class ExecutionContext {
     }
 }
 
-public protocol FieldExecutionStrategy {
+public protocol FieldExecutionStrategy: Sendable {
     func executeFields(
         exeContext: ExecutionContext,
         parentType: GraphQLObjectType,
