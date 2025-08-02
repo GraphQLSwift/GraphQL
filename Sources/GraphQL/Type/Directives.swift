@@ -1,6 +1,6 @@
 import OrderedCollections
 
-public enum DirectiveLocation: String, Encodable {
+public enum DirectiveLocation: String, Encodable, Sendable {
     // Operations
     case query = "QUERY"
     case mutation = "MUTATION"
@@ -29,7 +29,7 @@ public enum DirectiveLocation: String, Encodable {
  * Directives are used by the GraphQL runtime as a way of modifying execution
  * behavior. Type system creators will usually not create these directly.
  */
-public final class GraphQLDirective {
+public final class GraphQLDirective: Sendable {
     public let name: String
     public let description: String?
     public let locations: [DirectiveLocation]

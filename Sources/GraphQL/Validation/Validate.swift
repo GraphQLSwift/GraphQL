@@ -31,7 +31,7 @@ public func validate(
 public func validate(
     schema: GraphQLSchema,
     ast: Document,
-    rules: [(ValidationContext) -> Visitor]
+    rules: [@Sendable (ValidationContext) -> Visitor]
 ) -> [GraphQLError] {
     let typeInfo = TypeInfo(schema: schema)
     let rules = rules.isEmpty ? specifiedRules : rules
@@ -69,7 +69,7 @@ func validateSDL(
  * @internal
  */
 func visit(
-    usingRules rules: [(ValidationContext) -> Visitor],
+    usingRules rules: [@Sendable (ValidationContext) -> Visitor],
     schema: GraphQLSchema,
     typeInfo: TypeInfo,
     documentAST: Document

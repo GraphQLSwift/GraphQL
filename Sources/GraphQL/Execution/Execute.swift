@@ -27,14 +27,14 @@ import OrderedCollections
  * Namely, schema of the type system that is currently executing,
  * and the fragments defined in the query document
  */
-public final class ExecutionContext {
+public final class ExecutionContext: @unchecked Sendable {
     let queryStrategy: QueryFieldExecutionStrategy
     let mutationStrategy: MutationFieldExecutionStrategy
     let subscriptionStrategy: SubscriptionFieldExecutionStrategy
     public let schema: GraphQLSchema
     public let fragments: [String: FragmentDefinition]
-    public let rootValue: Any
-    public let context: Any
+    public let rootValue: any Sendable
+    public let context: any Sendable
     public let operation: OperationDefinition
     public let variableValues: [String: Map]
 
@@ -55,8 +55,8 @@ public final class ExecutionContext {
         subscriptionStrategy: SubscriptionFieldExecutionStrategy,
         schema: GraphQLSchema,
         fragments: [String: FragmentDefinition],
-        rootValue: Any,
-        context: Any,
+        rootValue: any Sendable,
+        context: any Sendable,
         operation: OperationDefinition,
         variableValues: [String: Map],
         errors: [GraphQLError]
@@ -86,10 +86,10 @@ public protocol FieldExecutionStrategy: Sendable {
     func executeFields(
         exeContext: ExecutionContext,
         parentType: GraphQLObjectType,
-        sourceValue: Any,
+        sourceValue: any Sendable,
         path: IndexPath,
         fields: OrderedDictionary<String, [Field]>
-    ) async throws -> OrderedDictionary<String, Any>
+    ) async throws -> OrderedDictionary<String, any Sendable>
 }
 
 public protocol MutationFieldExecutionStrategy: FieldExecutionStrategy {}
@@ -107,11 +107,11 @@ public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy,
     public func executeFields(
         exeContext: ExecutionContext,
         parentType: GraphQLObjectType,
-        sourceValue: Any,
+        sourceValue: any Sendable,
         path: IndexPath,
         fields: OrderedDictionary<String, [Field]>
-    ) async throws -> OrderedDictionary<String, Any> {
-        var results = OrderedDictionary<String, Any>()
+    ) async throws -> OrderedDictionary<String, any Sendable> {
+        var results = OrderedDictionary<String, any Sendable>()
         for field in fields {
             let fieldASTs = field.value
             let fieldPath = path.appending(field.key)
@@ -138,13 +138,14 @@ public struct ConcurrentFieldExecutionStrategy: QueryFieldExecutionStrategy,
     public func executeFields(
         exeContext: ExecutionContext,
         parentType: GraphQLObjectType,
-        sourceValue: Any,
+        sourceValue: any Sendable,
         path: IndexPath,
         fields: OrderedDictionary<String, [Field]>
-    ) async throws -> OrderedDictionary<String, Any> {
-        return try await withThrowingTaskGroup(of: (String, Any?).self) { group in
+    ) async throws -> OrderedDictionary<String, any Sendable> {
+        return try await withThrowingTaskGroup(of: (String, (any Sendable)?).self) { group in
             // preserve field order by assigning to null and filtering later
-            var results: OrderedDictionary<String, Any?> = fields.mapValues { _ -> Any? in nil }
+            var results: OrderedDictionary<String, (any Sendable)?> = fields
+                .mapValues { _ -> Any? in nil }
             for field in fields {
                 group.addTask {
                     let fieldASTs = field.value
@@ -179,8 +180,8 @@ func execute(
     subscriptionStrategy: SubscriptionFieldExecutionStrategy,
     schema: GraphQLSchema,
     documentAST: Document,
-    rootValue: Any,
-    context: Any,
+    rootValue: any Sendable,
+    context: any Sendable,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) async throws -> GraphQLResult {
@@ -246,8 +247,8 @@ func buildExecutionContext(
     subscriptionStrategy: SubscriptionFieldExecutionStrategy,
     schema: GraphQLSchema,
     documentAST: Document,
-    rootValue: Any,
-    context: Any,
+    rootValue: any Sendable,
+    context: any Sendable,
     rawVariableValues: [String: Map],
     operationName: String?
 ) throws -> ExecutionContext {
@@ -313,8 +314,8 @@ func buildExecutionContext(
 func executeOperation(
     exeContext: ExecutionContext,
     operation: OperationDefinition,
-    rootValue: Any
-) async throws -> OrderedDictionary<String, Any> {
+    rootValue: any Sendable
+) async throws -> OrderedDictionary<String, any Sendable> {
     let type = try getOperationRootType(schema: exeContext.schema, operation: operation)
     var inputFields: OrderedDictionary<String, [Field]> = [:]
     var visitedFragmentNames: [String: Bool] = [:]
@@ -574,10 +575,10 @@ func getFieldEntryKey(node: Field) -> String {
 public func resolveField(
     exeContext: ExecutionContext,
     parentType: GraphQLObjectType,
-    source: Any,
+    source: any Sendable,
     fieldASTs: [Field],
     path: IndexPath
-) async throws -> Any? {
+) async throws -> (any Sendable)? {
     let fieldAST = fieldASTs[0]
     let fieldName = fieldAST.name.value
 
@@ -643,11 +644,11 @@ public func resolveField(
 // function. Returns the result of `resolve` or the abrupt-return Error object.
 func resolveOrError(
     resolve: GraphQLFieldResolve,
-    source: Any,
+    source: any Sendable,
     args: Map,
-    context: Any,
+    context: any Sendable,
     info: GraphQLResolveInfo
-) async -> Result<Any?, Error> {
+) async -> Result<(any Sendable)?, Error> {
     do {
         let result = try await resolve(source, args, context, info)
         return .success(result)
@@ -664,8 +665,8 @@ func completeValueCatchingError(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: IndexPath,
-    result: Result<Any?, Error>
-) async throws -> Any? {
+    result: Result<(any Sendable)?, Error>
+) async throws -> (any Sendable)? {
     // If the field type is non-nullable, then it is resolved without any
     // protection from errors, however it still properly locates the error.
     if let returnType = returnType as? GraphQLNonNull {
@@ -708,8 +709,8 @@ func completeValueWithLocatedError(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: IndexPath,
-    result: Result<Any?, Error>
-) async throws -> Any? {
+    result: Result<(any Sendable)?, Error>
+) async throws -> (any Sendable)? {
     do {
         return try await completeValue(
             exeContext: exeContext,
@@ -755,8 +756,8 @@ func completeValue(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: IndexPath,
-    result: Result<Any?, Error>
-) async throws -> Any? {
+    result: Result<(any Sendable)?, Error>
+) async throws -> (any Sendable)? {
     switch result {
     case let .failure(error):
         throw error
@@ -846,9 +847,9 @@ func completeListValue(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: IndexPath,
-    result: Any
-) async throws -> [Any?] {
-    guard let result = result as? [Any?] else {
+    result: any Sendable
+) async throws -> [(any Sendable)?] {
+    guard let result = result as? [(any Sendable)?] else {
         throw GraphQLError(
             message:
             "Expected array, but did not find one for field " +
@@ -858,9 +859,9 @@ func completeListValue(
 
     let itemType = returnType.ofType
 
-    return try await withThrowingTaskGroup(of: (Int, Any?).self) { group in
+    return try await withThrowingTaskGroup(of: (Int, (any Sendable)?).self) { group in
         // To preserve order, match size to result, and filter out nils at the end.
-        var results: [Any?] = result.map { _ in nil }
+        var results: [(any Sendable)?] = result.map { _ in nil }
         for (index, item) in result.enumerated() {
             group.addTask {
                 // No need to modify the info object containing the path,
@@ -889,7 +890,7 @@ func completeListValue(
  * Complete a Scalar or Enum by serializing to a valid value, returning
  * .null if serialization is not possible.
  */
-func completeLeafValue(returnType: GraphQLLeafType, result: Any?) throws -> Map {
+func completeLeafValue(returnType: GraphQLLeafType, result: (any Sendable)?) throws -> Map {
     guard let result = result else {
         return .null
     }
@@ -910,8 +911,8 @@ func completeAbstractValue(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: IndexPath,
-    result: Any
-) async throws -> Any? {
+    result: any Sendable
+) async throws -> (any Sendable)? {
     var resolveRes = try returnType.resolveType?(result, info)
         .typeResolveResult
 
@@ -976,8 +977,8 @@ func completeObjectValue(
     fieldASTs: [Field],
     info: GraphQLResolveInfo,
     path: IndexPath,
-    result: Any
-) async throws -> Any? {
+    result: any Sendable
+) async throws -> (any Sendable)? {
     // If there is an isTypeOf predicate func, call it with the
     // current result. If isTypeOf returns false, then raise an error rather
     // than continuing execution.
@@ -1023,7 +1024,7 @@ func completeObjectValue(
  * isTypeOf for the object being coerced, returning the first type that matches.
  */
 func defaultResolveType(
-    value: Any,
+    value: any Sendable,
     info: GraphQLResolveInfo,
     abstractType: GraphQLAbstractType
 ) throws -> TypeResolveResult? {
@@ -1045,11 +1046,11 @@ func defaultResolveType(
  * and returns it as the result.
  */
 func defaultResolve(
-    source: Any,
+    source: any Sendable,
     args _: Map,
-    context _: Any,
+    context _: any Sendable,
     info: GraphQLResolveInfo
-) async throws -> Any? {
+) async throws -> (any Sendable)? {
     guard let source = unwrap(source) else {
         return nil
     }
@@ -1058,11 +1059,11 @@ func defaultResolve(
         let value = subscriptable[info.fieldName]
         return value
     }
-    if let subscriptable = source as? [String: Any] {
+    if let subscriptable = source as? [String: any Sendable] {
         let value = subscriptable[info.fieldName]
         return value
     }
-    if let subscriptable = source as? OrderedDictionary<String, Any> {
+    if let subscriptable = source as? OrderedDictionary<String, any Sendable> {
         let value = subscriptable[info.fieldName]
         return value
     }

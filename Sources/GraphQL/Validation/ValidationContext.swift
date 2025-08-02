@@ -137,7 +137,7 @@ public class ASTValidationContext {
     }
 }
 
-typealias ValidationRule = (ValidationContext) -> Visitor
+typealias ValidationRule = @Sendable (ValidationContext) -> Visitor
 
 public class SDLValidationContext: ASTValidationContext {
     public let schema: GraphQLSchema?
@@ -160,7 +160,7 @@ public class SDLValidationContext: ASTValidationContext {
     }
 }
 
-public typealias SDLValidationRule = (SDLValidationContext) -> Visitor
+public typealias SDLValidationRule = @Sendable (SDLValidationContext) -> Visitor
 
 /**
  * An instance of this class is passed as the "this" context to all validators,

@@ -27,7 +27,7 @@ import OrderedCollections
  *     )
  *
  */
-public final class GraphQLSchema {
+public final class GraphQLSchema: @unchecked Sendable {
     let description: String?
     let extensions: [GraphQLSchemaExtensions]
     let astNode: SchemaDefinition?

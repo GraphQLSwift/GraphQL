@@ -7,7 +7,7 @@
  * Note that since Source parsing is heavily UTF8 dependent, the body
  * is converted into contiguous UTF8 bytes if necessary for optimal performance.
  */
-public struct Source {
+public struct Source: Hashable, Sendable {
     public let body: String
     public let name: String
 

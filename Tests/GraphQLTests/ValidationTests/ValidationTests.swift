@@ -2,7 +2,7 @@
 import XCTest
 
 class ValidationTestCase: XCTestCase {
-    typealias Rule = (ValidationContext) -> Visitor
+    typealias Rule = @Sendable (ValidationContext) -> Visitor
 
     var rule: Rule!
 
@@ -131,7 +131,7 @@ class ValidationTestCase: XCTestCase {
 }
 
 class SDLValidationTestCase: XCTestCase {
-    typealias Rule = (SDLValidationContext) -> Visitor
+    typealias Rule = @Sendable (SDLValidationContext) -> Visitor
 
     var rule: Rule!
 

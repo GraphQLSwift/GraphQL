@@ -18,11 +18,11 @@ struct Email: Encodable {
     }
 }
 
-struct Inbox: Encodable {
+struct Inbox: Encodable, Sendable {
     let emails: [Email]
 }
 
-struct EmailEvent: Encodable {
+struct EmailEvent: Encodable, Sendable {
     let email: Email
     let inbox: Inbox
 }
@@ -88,7 +88,7 @@ let EmailQueryType = try! GraphQLObjectType(
 
 // MARK: Test Helpers
 
-class EmailDb {
+actor EmailDb {
     var emails: [Email]
     let publisher: SimplePubSub<Email>
 
@@ -105,13 +105,13 @@ class EmailDb {
     }
 
     /// Adds a new email to the database and triggers all observers
-    func trigger(email: Email) {
+    func trigger(email: Email) async {
         emails.append(email)
-        publisher.emit(event: email)
+        await publisher.emit(event: email)
     }
 
-    func stop() {
-        publisher.cancel()
+    func stop() async {
+        await publisher.cancel()
     }
 
     /// Returns the default email schema, with standard resolvers.
@@ -119,7 +119,7 @@ class EmailDb {
         return try emailSchemaWithResolvers(
             resolve: { emailAny, _, _, _ throws -> Any? in
                 if let email = emailAny as? Email {
-                    return EmailEvent(
+                    return await EmailEvent(
                         email: email,
                         inbox: Inbox(emails: self.emails)
                     )
@@ -129,7 +129,7 @@ class EmailDb {
             },
             subscribe: { _, args, _, _ throws -> Any? in
                 let priority = args["priority"].int ?? 0
-                let filtered = self.publisher.subscribe().filter { email throws in
+                let filtered = await self.publisher.subscribe().filter { email throws in
                     return email.priority >= priority
                 }
                 return filtered

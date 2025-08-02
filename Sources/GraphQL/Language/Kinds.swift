@@ -1,4 +1,4 @@
-public enum Kind: String, CaseIterable {
+public enum Kind: String, CaseIterable, Sendable, Hashable {
     case name
     case document
     case operationDefinition

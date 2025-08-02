@@ -112,6 +112,7 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
             node = parent
             parent = ancestors.popLast()
 
+            var parentEdited = false
             if isEdited {
                 if inArray {
                     var editOffset = 0
@@ -132,20 +133,22 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
                     }
                 } else {
                     if case let .node(n) = node {
+                        var newNode = n
                         for (editKey, editValue) in edits {
                             if let editValue = editValue {
                                 if let key = editKey.keyValue {
-                                    n.set(value: .node(editValue), key: key)
+                                    newNode = newNode.set(value: .node(editValue), key: key)
                                 }
                             }
                         }
-                        node = .node(n)
+                        node = .node(newNode)
                     }
                 }
 
                 // Since Swift cannot mutate node in-place, we must pass the changes up to parent.
                 if let key = key, let node = node {
                     parent = parent?.set(value: node, key: key)
+                    parentEdited = true
                 }
             }
 
@@ -154,6 +157,11 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
             edits = stack!.edits
             inArray = stack!.inArray
             stack = stack!.prev
+            // If parent has been edited, we must pass it up to the parent's parent and so on until
+            // we get to the root (at which point stack has no .prev)
+            if parentEdited, case let .node(parent) = parent, let stackPrev = stack?.prev {
+                edits.append((stackPrev.keys.last ?? "root", parent))
+            }
         } else if let parent = parent {
             key = keys[index]
             node = parent.get(key: key!)

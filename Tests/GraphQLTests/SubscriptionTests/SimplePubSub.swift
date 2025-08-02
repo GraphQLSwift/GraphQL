@@ -1,7 +1,7 @@
 import GraphQL
 
 /// A very simple publish/subscriber used for testing
-class SimplePubSub<T> {
+actor SimplePubSub<T: Sendable> {
     private var subscribers: [Subscriber<T>]
 
     init() {

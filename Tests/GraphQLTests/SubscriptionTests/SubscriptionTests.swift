@@ -10,7 +10,7 @@ class SubscriptionTests: XCTestCase {
     /// This test is not present in graphql-js, but just tests basic functionality.
     func testGraphqlSubscribe() async throws {
         let db = EmailDb()
-        let schema = try db.defaultSchema()
+        let schema = try await db.defaultSchema()
         let query = """
             subscription ($priority: Int = 0) {
                 importantEmail(priority: $priority) {
@@ -33,13 +33,13 @@ class SubscriptionTests: XCTestCase {
         let stream = try subscriptionResult.get()
         var iterator = stream.makeAsyncIterator()
 
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
             unread: true
         ))
-        db.stop()
+        await db.stop()
         let result = try await iterator.next()
         XCTAssertEqual(
             result,
@@ -75,7 +75,7 @@ class SubscriptionTests: XCTestCase {
                                 type: GraphQLInt
                             ),
                         ],
-                        resolve: { emailAny, _, _, _ throws -> Any? in
+                        resolve: { emailAny, _, _, _ throws in
                             guard let email = emailAny as? Email else {
                                 throw GraphQLError(
                                     message: "Source is not Email type: \(type(of: emailAny))"
@@ -83,11 +83,11 @@ class SubscriptionTests: XCTestCase {
                             }
                             return EmailEvent(
                                 email: email,
-                                inbox: Inbox(emails: db.emails)
+                                inbox: Inbox(emails: await db.emails)
                             )
                         },
-                        subscribe: { _, _, _, _ throws -> Any? in
-                            db.publisher.subscribe()
+                        subscribe: { _, _, _, _ throws in
+                            await db.publisher.subscribe()
                         }
                     ),
                     "notImportantEmail": GraphQLField(
@@ -97,7 +97,7 @@ class SubscriptionTests: XCTestCase {
                                 type: GraphQLInt
                             ),
                         ],
-                        resolve: { emailAny, _, _, _ throws -> Any? in
+                        resolve: { emailAny, _, _, _ throws in
                             guard let email = emailAny as? Email else {
                                 throw GraphQLError(
                                     message: "Source is not Email type: \(type(of: emailAny))"
@@ -105,11 +105,11 @@ class SubscriptionTests: XCTestCase {
                             }
                             return EmailEvent(
                                 email: email,
-                                inbox: Inbox(emails: db.emails)
+                                inbox: Inbox(emails: await db.emails)
                             )
                         },
-                        subscribe: { _, _, _, _ throws -> Any? in
-                            db.publisher.subscribe()
+                        subscribe: { _, _, _, _ throws in
+                            await db.publisher.subscribe()
                         }
                     ),
                 ]
@@ -131,7 +131,7 @@ class SubscriptionTests: XCTestCase {
         """)
         var iterator = stream.makeAsyncIterator()
 
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
@@ -163,8 +163,18 @@ class SubscriptionTests: XCTestCase {
     func testInvalidMultiField() async throws {
         let db = EmailDb()
 
-        var didResolveImportantEmail = false
-        var didResolveNonImportantEmail = false
+        actor ResolveChecker {
+            var didResolveImportantEmail = false
+            var didResolveNonImportantEmail = false
+            func resolveImportantEmail() async {
+                didResolveImportantEmail = true
+            }
+
+            func resolveNonImportantEmail() async {
+                didResolveNonImportantEmail = true
+            }
+        }
+        let resolveChecker = ResolveChecker()
 
         let schema = try GraphQLSchema(
             query: EmailQueryType,
@@ -173,28 +183,28 @@ class SubscriptionTests: XCTestCase {
                 fields: [
                     "importantEmail": GraphQLField(
                         type: EmailEventType,
-                        resolve: { _, _, _, _ throws -> Any? in
+                        resolve: { _, _, _, _ in
                             nil
                         },
-                        subscribe: { _, _, _, _ throws -> Any? in
-                            didResolveImportantEmail = true
-                            return db.publisher.subscribe()
+                        subscribe: { _, _, _, _ in
+                            await resolveChecker.resolveImportantEmail()
+                            return await db.publisher.subscribe()
                         }
                     ),
                     "notImportantEmail": GraphQLField(
                         type: EmailEventType,
-                        resolve: { _, _, _, _ throws -> Any? in
+                        resolve: { _, _, _, _ in
                             nil
                         },
-                        subscribe: { _, _, _, _ throws -> Any? in
-                            didResolveNonImportantEmail = true
-                            return db.publisher.subscribe()
+                        subscribe: { _, _, _, _ in
+                            await resolveChecker.resolveNonImportantEmail()
+                            return await db.publisher.subscribe()
                         }
                     ),
                 ]
             )
         )
-        _ = try await createSubscription(schema: schema, query: """
+        let subscriptionResult = try await createSubscription(schema: schema, query: """
             subscription {
                 importantEmail {
                     email {
@@ -208,15 +218,20 @@ class SubscriptionTests: XCTestCase {
                 }
             }
         """)
+        var iterator = subscriptionResult.makeAsyncIterator()
 
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
             unread: true
         ))
 
+        _ = try await iterator.next()
+
         // One and only one should be true
+        let didResolveImportantEmail = await resolveChecker.didResolveImportantEmail
+        let didResolveNonImportantEmail = await resolveChecker.didResolveNonImportantEmail
         XCTAssertTrue(didResolveImportantEmail || didResolveNonImportantEmail)
         XCTAssertFalse(didResolveImportantEmail && didResolveNonImportantEmail)
     }
@@ -266,10 +281,10 @@ class SubscriptionTests: XCTestCase {
     /// 'throws an error if subscribe does not return an iterator'
     func testErrorIfSubscribeIsntIterator() async throws {
         let schema = try emailSchemaWithResolvers(
-            resolve: { _, _, _, _ throws -> Any? in
+            resolve: { _, _, _, _ throws in
                 nil
             },
-            subscribe: { _, _, _, _ throws -> Any? in
+            subscribe: { _, _, _, _ throws in
                 "test"
             }
         )
@@ -323,21 +338,21 @@ class SubscriptionTests: XCTestCase {
 
         // Throwing an error
         try await verifyError(schema: emailSchemaWithResolvers(
-            subscribe: { _, _, _, _ throws -> Any? in
+            subscribe: { _, _, _, _ throws in
                 throw GraphQLError(message: "test error")
             }
         ))
 
         // Resolving to an error
         try await verifyError(schema: emailSchemaWithResolvers(
-            subscribe: { _, _, _, _ throws -> Any? in
+            subscribe: { _, _, _, _ throws in
                 GraphQLError(message: "test error")
             }
         ))
 
         // Rejecting with an error
         try await verifyError(schema: emailSchemaWithResolvers(
-            subscribe: { _, _, _, _ throws -> Any? in
+            subscribe: { _, _, _, _ throws in
                 GraphQLError(message: "test error")
             }
         ))
@@ -405,13 +420,13 @@ class SubscriptionTests: XCTestCase {
         """)
         var iterator = stream.makeAsyncIterator()
 
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
             unread: true
         ))
-        db.stop()
+        await db.stop()
 
         let result = try await iterator.next()
         XCTAssertEqual(
@@ -467,7 +482,7 @@ class SubscriptionTests: XCTestCase {
         var iterator1 = stream1.makeAsyncIterator()
         var iterator2 = stream2.makeAsyncIterator()
 
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
@@ -514,7 +529,7 @@ class SubscriptionTests: XCTestCase {
         var iterator = stream.makeAsyncIterator()
 
         // A new email arrives!
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
@@ -538,7 +553,7 @@ class SubscriptionTests: XCTestCase {
         )
 
         // Another new email arrives
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "hyo@graphql.org",
             subject: "Tools",
             message: "I <3 making things",
@@ -584,7 +599,7 @@ class SubscriptionTests: XCTestCase {
         var results = [GraphQLResult?]()
         var expected = [GraphQLResult]()
 
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
@@ -609,7 +624,7 @@ class SubscriptionTests: XCTestCase {
         XCTAssertEqual(results, expected)
 
         // Low priority email shouldn't trigger an event
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "hyo@graphql.org",
             subject: "Not Important",
             message: "Ignore this email",
@@ -619,7 +634,7 @@ class SubscriptionTests: XCTestCase {
         XCTAssertEqual(results, expected)
 
         // Higher priority one should trigger again
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "hyo@graphql.org",
             subject: "Tools",
             message: "I <3 making things",
@@ -665,7 +680,7 @@ class SubscriptionTests: XCTestCase {
         var results = [GraphQLResult?]()
         var expected = [GraphQLResult]()
 
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
@@ -688,10 +703,10 @@ class SubscriptionTests: XCTestCase {
         try await results.append(iterator.next())
         XCTAssertEqual(results, expected)
 
-        db.stop()
+        await db.stop()
 
         // This should not trigger an event.
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "hyo@graphql.org",
             subject: "Tools",
             message: "I <3 making things",
@@ -719,13 +734,13 @@ class SubscriptionTests: XCTestCase {
         """)
         var iterator = stream.makeAsyncIterator()
 
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Alright",
             message: "Tests are good",
             unread: true
         ))
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Message 2",
             message: "Tests are good 2",
@@ -764,7 +779,7 @@ class SubscriptionTests: XCTestCase {
         let db = EmailDb()
 
         let schema = try emailSchemaWithResolvers(
-            resolve: { emailAny, _, _, _ throws -> Any? in
+            resolve: { emailAny, _, _, _ throws in
                 guard let email = emailAny as? Email else {
                     throw GraphQLError(
                         message: "Source is not Email type: \(type(of: emailAny))"
@@ -775,11 +790,11 @@ class SubscriptionTests: XCTestCase {
                 }
                 return EmailEvent(
                     email: email,
-                    inbox: Inbox(emails: db.emails)
+                    inbox: Inbox(emails: await db.emails)
                 )
             },
-            subscribe: { _, _, _, _ throws -> Any? in
-                db.publisher.subscribe()
+            subscribe: { _, _, _, _ throws in
+                await db.publisher.subscribe()
             }
         )
 
@@ -796,7 +811,7 @@ class SubscriptionTests: XCTestCase {
         var results = [GraphQLResult?]()
         var expected = [GraphQLResult]()
 
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Hello",
             message: "Tests are good",
@@ -815,7 +830,7 @@ class SubscriptionTests: XCTestCase {
         XCTAssertEqual(results, expected)
 
         // An error in execution is presented as such.
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Goodbye",
             message: "Tests are good",
@@ -834,7 +849,7 @@ class SubscriptionTests: XCTestCase {
 
         // However that does not close the response event stream. Subsequent events are still
         // executed.
-        db.trigger(email: Email(
+        await db.trigger(email: Email(
             from: "yuzhi@graphql.org",
             subject: "Bonjour",
             message: "Tests are good",

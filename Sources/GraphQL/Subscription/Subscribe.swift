@@ -20,8 +20,8 @@ func subscribe(
     subscriptionStrategy: SubscriptionFieldExecutionStrategy,
     schema: GraphQLSchema,
     documentAST: Document,
-    rootValue: Any,
-    context: Any,
+    rootValue: any Sendable,
+    context: any Sendable,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) async throws -> Result<AsyncThrowingStream<GraphQLResult, Error>, GraphQLErrors> {
@@ -45,13 +45,16 @@ func subscribe(
             guard let eventPayload = try await iterator.next() else {
                 return nil
             }
+            // Despite the warning, we must force unwrap because on optional unwrap, compiler throws:
+            // `marker protocol 'Sendable' cannot be used in a conditional cast`
+            let rootValue = eventPayload as! (any Sendable)
             return try await execute(
                 queryStrategy: queryStrategy,
                 mutationStrategy: mutationStrategy,
                 subscriptionStrategy: subscriptionStrategy,
                 schema: schema,
                 documentAST: documentAST,
-                rootValue: eventPayload,
+                rootValue: rootValue,
                 context: context,
                 variableValues: variableValues,
                 operationName: operationName
@@ -89,8 +92,8 @@ func createSourceEventStream(
     subscriptionStrategy: SubscriptionFieldExecutionStrategy,
     schema: GraphQLSchema,
     documentAST: Document,
-    rootValue: Any,
-    context: Any,
+    rootValue: any Sendable,
+    context: any Sendable,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) async throws -> Result<any AsyncSequence & Sendable, GraphQLErrors> {
@@ -217,7 +220,9 @@ func executeSubscription(
     } else if let error = resolved as? GraphQLError {
         return .failure(.init([error]))
     } else if let stream = resolved as? any AsyncSequence {
-        return .success(stream)
+        // Despite the warning, we must force unwrap because on optional unwrap, compiler throws:
+        // `marker protocol 'Sendable' cannot be used in a conditional cast`
+        return .success(stream as! (any AsyncSequence & Sendable))
     } else if resolved == nil {
         return .failure(.init([
             GraphQLError(message: "Resolved subscription was nil"),

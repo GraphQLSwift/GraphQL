@@ -25,5 +25,6 @@ let package = Package(
                 .copy("LanguageTests/schema-kitchen-sink.graphql"),
             ]
         ),
-    ]
+    ],
+    swiftLanguageVersions: [.v5, .version("6")]
 )

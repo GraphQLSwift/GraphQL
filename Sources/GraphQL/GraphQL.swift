@@ -86,11 +86,11 @@ public func graphql(
     queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    validationRules: [(ValidationContext) -> Visitor] = [],
+    validationRules: [@Sendable (ValidationContext) -> Visitor] = [],
     schema: GraphQLSchema,
     request: String,
-    rootValue: Any = (),
-    context: Any = (),
+    rootValue: (any Sendable) = (),
+    context: (any Sendable) = (),
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) async throws -> GraphQLResult {
@@ -150,8 +150,8 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
     subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     queryRetrieval: Retrieval,
     queryId: Retrieval.Id,
-    rootValue: Any = (),
-    context: Any = (),
+    rootValue: (any Sendable) = (),
+    context: (any Sendable) = (),
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) async throws -> GraphQLResult {
@@ -216,11 +216,11 @@ public func graphqlSubscribe(
     queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    validationRules: [(ValidationContext) -> Visitor] = [],
+    validationRules: [@Sendable (ValidationContext) -> Visitor] = [],
     schema: GraphQLSchema,
     request: String,
-    rootValue: Any = (),
-    context: Any = (),
+    rootValue: (any Sendable) = (),
+    context: (any Sendable) = (),
     variableValues: [String: Map] = [:],
     operationName: String? = nil
 ) async throws -> Result<AsyncThrowingStream<GraphQLResult, Error>, GraphQLErrors> {

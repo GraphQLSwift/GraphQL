@@ -169,7 +169,7 @@ extension GraphQLError: Hashable {
 
 // MARK: IndexPath
 
-public struct IndexPath: Codable {
+public struct IndexPath: Codable, Sendable {
     public let elements: [IndexPathValue]
 
     public init(_ elements: [IndexPathElement] = []) {
@@ -197,7 +197,7 @@ extension IndexPath: ExpressibleByArrayLiteral {
     }
 }
 
-public enum IndexPathValue: Codable, Equatable {
+public enum IndexPathValue: Codable, Equatable, Sendable {
     case index(Int)
     case key(String)
 

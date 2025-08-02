@@ -1,7 +1,7 @@
 /**
  * This set includes all validation rules defined by the GraphQL spec.
  */
-public let specifiedRules: [(ValidationContext) -> Visitor] = [
+public let specifiedRules: [@Sendable (ValidationContext) -> Visitor] = [
     ExecutableDefinitionsRule,
     UniqueOperationNamesRule,
     LoneAnonymousOperationRule,

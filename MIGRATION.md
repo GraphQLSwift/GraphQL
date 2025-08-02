@@ -12,6 +12,10 @@ Also, all resolver closures must remove the `eventLoopGroup` argument, and all t
 
 The documentation here will be very helpful in the conversion: https://www.swift.org/documentation/server/guides/libraries/concurrency-adoption-guidelines.html
 
+### Swift Concurrency checking
+
+With the conversion from NIO to Swift Concurrency, types used across async boundaries should conform to `Sendable` to avoid errors and warnings. This includes the Swift types and functions that back the GraphQL schema. For more details on the conversion, see the [Sendable documentation](https://developer.apple.com/documentation/swift/sendable).
+
 ### `ConcurrentDispatchFieldExecutionStrategy`
 
 This was changed to `ConcurrentFieldExecutionStrategy`, and takes no parameters.
@@ -22,7 +26,7 @@ The `EventStream` abstraction used to provide pre-concurrency subscription suppo
 
 ### SubscriptionResult removal
 
-The `SubscriptionResult` type was removed, and `graphqlSubscribe` now returns a true Swift `Result` type.
+The `SubscriptionResult` type was removed, and `graphqlSubscribe` now returns `Result<AsyncThrowingStream<GraphQLResult, Error>, GraphQLErrors>`.
 
 ### Instrumentation removal
 

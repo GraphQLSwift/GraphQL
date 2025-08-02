@@ -1,3 +1,3 @@
 public protocol KeySubscriptable {
-    subscript(_: String) -> Any? { get }
+    subscript(_: String) -> (any Sendable)? { get }
 }
