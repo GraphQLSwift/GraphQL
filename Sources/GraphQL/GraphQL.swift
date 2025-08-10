@@ -80,13 +80,13 @@ public struct GraphQLErrors: Error, Sendable {
 /// and there will be an error inside `errors` specifying the reason for the failure and the path of
 /// the failed field.
 public func graphql(
-    validationRules: [@Sendable (ValidationContext) -> Visitor] = [],
     schema: GraphQLSchema,
     request: String,
     rootValue: (any Sendable) = (),
     context: (any Sendable) = (),
     variableValues: [String: Map] = [:],
-    operationName: String? = nil
+    operationName: String? = nil,
+    validationRules: [@Sendable (ValidationContext) -> Visitor] = specifiedRules
 ) async throws -> GraphQLResult {
     let source = Source(body: request, name: "GraphQL request")
     let documentAST = try parse(source: source)
@@ -192,13 +192,13 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
 /// will be an error inside `errors` specifying the reason for the failure and the path of the
 /// failed field.
 public func graphqlSubscribe(
-    validationRules: [@Sendable (ValidationContext) -> Visitor] = [],
     schema: GraphQLSchema,
     request: String,
     rootValue: (any Sendable) = (),
     context: (any Sendable) = (),
     variableValues: [String: Map] = [:],
-    operationName: String? = nil
+    operationName: String? = nil,
+    validationRules: [@Sendable (ValidationContext) -> Visitor] = specifiedRules
 ) async throws -> Result<AsyncThrowingStream<GraphQLResult, Error>, GraphQLErrors> {
     let source = Source(body: request, name: "GraphQL Subscription request")
     let documentAST = try parse(source: source)

@@ -20,6 +20,25 @@ With the conversion from NIO to Swift Concurrency, types used across async bound
 
 The `queryStrategy`, `mutationStrategy`, and `subscriptionStrategy` arguments have been removed from `graphql` and `graphqlSubscribe`. Instead Queries and Subscriptions are executed in parallel and Mutations are executed serially, [as required by the spec](https://spec.graphql.org/October2021/#sec-Mutation).
 
+### `validationRules` argument reorder
+
+The `validationRules` argument has been moved from the beginning of  `graphql` and `graphqlSubscribe` to the end to better reflect its relative importance:
+
+
+```swift
+// Before
+let result = try await graphql(
+    validationRules: [ruleABC],
+    schema: schema,
+    ...
+)
+// After
+let result = try await graphql(
+    schema: schema,
+    ...
+    validationRules: [ruleABC]
+)
+```
 
 ### EventStream removal
 

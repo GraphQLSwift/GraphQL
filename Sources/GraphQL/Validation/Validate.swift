@@ -1,20 +1,3 @@
-/// Implements the "Validation" section of the spec.
-///
-/// Validation runs synchronously, returning an array of encountered errors, or
-/// an empty array if no errors were encountered and the document is valid.
-///
-/// - Parameters:
-/// execution, and field resolution stages.
-///   - schema:          The GraphQL type system to use when validating and executing a query.
-///   - ast:             A GraphQL document representing the requested operation.
-/// - Returns: zero or more errors
-public func validate(
-    schema: GraphQLSchema,
-    ast: Document
-) -> [GraphQLError] {
-    return validate(schema: schema, ast: ast, rules: [])
-}
-
 /**
  * Implements the "Validation" section of the spec.
  *
@@ -31,7 +14,7 @@ public func validate(
 public func validate(
     schema: GraphQLSchema,
     ast: Document,
-    rules: [@Sendable (ValidationContext) -> Visitor]
+    rules: [@Sendable (ValidationContext) -> Visitor] = specifiedRules
 ) -> [GraphQLError] {
     let typeInfo = TypeInfo(schema: schema)
     let rules = rules.isEmpty ? specifiedRules : rules
