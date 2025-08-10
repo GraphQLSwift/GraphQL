@@ -15,9 +15,6 @@ import OrderedCollections
  * representing the response stream.
  */
 func subscribe(
-    queryStrategy: QueryFieldExecutionStrategy,
-    mutationStrategy: MutationFieldExecutionStrategy,
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy,
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: any Sendable,
@@ -26,9 +23,6 @@ func subscribe(
     operationName: String? = nil
 ) async throws -> Result<AsyncThrowingStream<GraphQLResult, Error>, GraphQLErrors> {
     let sourceResult = try await createSourceEventStream(
-        queryStrategy: queryStrategy,
-        mutationStrategy: mutationStrategy,
-        subscriptionStrategy: subscriptionStrategy,
         schema: schema,
         documentAST: documentAST,
         rootValue: rootValue,
@@ -49,9 +43,6 @@ func subscribe(
             // `marker protocol 'Sendable' cannot be used in a conditional cast`
             let rootValue = eventPayload as! (any Sendable)
             return try await execute(
-                queryStrategy: queryStrategy,
-                mutationStrategy: mutationStrategy,
-                subscriptionStrategy: subscriptionStrategy,
                 schema: schema,
                 documentAST: documentAST,
                 rootValue: rootValue,
@@ -87,9 +78,6 @@ func subscribe(
  * "Supporting Subscriptions at Scale" information in the GraphQL specification.
  */
 func createSourceEventStream(
-    queryStrategy: QueryFieldExecutionStrategy,
-    mutationStrategy: MutationFieldExecutionStrategy,
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy,
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: any Sendable,
@@ -100,9 +88,6 @@ func createSourceEventStream(
     // If a valid context cannot be created due to incorrect arguments,
     // this will throw an error.
     let exeContext = try buildExecutionContext(
-        queryStrategy: queryStrategy,
-        mutationStrategy: mutationStrategy,
-        subscriptionStrategy: subscriptionStrategy,
         schema: schema,
         documentAST: documentAST,
         rootValue: rootValue,

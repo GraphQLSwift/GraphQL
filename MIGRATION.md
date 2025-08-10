@@ -16,9 +16,10 @@ The documentation here will be very helpful in the conversion: https://www.swift
 
 With the conversion from NIO to Swift Concurrency, types used across async boundaries should conform to `Sendable` to avoid errors and warnings. This includes the Swift types and functions that back the GraphQL schema. For more details on the conversion, see the [Sendable documentation](https://developer.apple.com/documentation/swift/sendable).
 
-### `ConcurrentDispatchFieldExecutionStrategy`
+### `ExecutionStrategy` argument removals
 
-This was changed to `ConcurrentFieldExecutionStrategy`, and takes no parameters.
+The `queryStrategy`, `mutationStrategy`, and `subscriptionStrategy` arguments have been removed from `graphql` and `graphqlSubscribe`. Instead Queries and Subscriptions are executed in parallel and Mutations are executed serially, [as required by the spec](https://spec.graphql.org/October2021/#sec-Mutation).
+
 
 ### EventStream removal
 

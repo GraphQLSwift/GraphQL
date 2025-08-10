@@ -59,9 +59,6 @@ public struct GraphQLErrors: Error, Sendable {
 /// may wish to separate the validation and execution phases to a static time
 /// tooling step, and a server runtime step.
 ///
-/// - parameter queryStrategy:        The field execution strategy to use for query requests
-/// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
-/// - parameter subscriptionStrategy: The field execution strategy to use for subscription requests
 /// - parameter schema:               The GraphQL type system to use when validating and executing a
 /// query.
 /// - parameter request:              A GraphQL language formatted string representing the requested
@@ -83,9 +80,6 @@ public struct GraphQLErrors: Error, Sendable {
 /// and there will be an error inside `errors` specifying the reason for the failure and the path of
 /// the failed field.
 public func graphql(
-    queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     validationRules: [@Sendable (ValidationContext) -> Visitor] = [],
     schema: GraphQLSchema,
     request: String,
@@ -107,9 +101,6 @@ public func graphql(
     }
 
     return try await execute(
-        queryStrategy: queryStrategy,
-        mutationStrategy: mutationStrategy,
-        subscriptionStrategy: subscriptionStrategy,
         schema: schema,
         documentAST: documentAST,
         rootValue: rootValue,
@@ -122,9 +113,6 @@ public func graphql(
 /// This is the primary entry point function for fulfilling GraphQL operations
 /// by using persisted queries.
 ///
-/// - parameter queryStrategy:        The field execution strategy to use for query requests
-/// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
-/// - parameter subscriptionStrategy: The field execution strategy to use for subscription requests
 /// - parameter queryRetrieval:       The PersistedQueryRetrieval instance to use for looking up
 /// queries
 /// - parameter queryId:              The id of the query to execute
@@ -145,9 +133,6 @@ public func graphql(
 /// and there will be an error inside `errors` specifying the reason for the failure and the path of
 /// the failed field.
 public func graphql<Retrieval: PersistedQueryRetrieval>(
-    queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     queryRetrieval: Retrieval,
     queryId: Retrieval.Id,
     rootValue: (any Sendable) = (),
@@ -164,9 +149,6 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
         return GraphQLResult(errors: validationErrors)
     case let .result(schema, documentAST):
         return try await execute(
-            queryStrategy: queryStrategy,
-            mutationStrategy: mutationStrategy,
-            subscriptionStrategy: subscriptionStrategy,
             schema: schema,
             documentAST: documentAST,
             rootValue: rootValue,
@@ -185,9 +167,6 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
 /// may wish to separate the validation and execution phases to a static time
 /// tooling step, and a server runtime step.
 ///
-/// - parameter queryStrategy:        The field execution strategy to use for query requests
-/// - parameter mutationStrategy:     The field execution strategy to use for mutation requests
-/// - parameter subscriptionStrategy: The field execution strategy to use for subscription requests
 /// - parameter schema:               The GraphQL type system to use when validating and executing a
 /// query.
 /// - parameter request:              A GraphQL language formatted string representing the requested
@@ -213,9 +192,6 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
 /// will be an error inside `errors` specifying the reason for the failure and the path of the
 /// failed field.
 public func graphqlSubscribe(
-    queryStrategy: QueryFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy(),
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy = SerialFieldExecutionStrategy(),
     validationRules: [@Sendable (ValidationContext) -> Visitor] = [],
     schema: GraphQLSchema,
     request: String,
@@ -237,9 +213,6 @@ public func graphqlSubscribe(
     }
 
     return try await subscribe(
-        queryStrategy: queryStrategy,
-        mutationStrategy: mutationStrategy,
-        subscriptionStrategy: subscriptionStrategy,
         schema: schema,
         documentAST: documentAST,
         rootValue: rootValue,

@@ -183,9 +183,6 @@ func createSubscription(
     variableValues: [String: Map] = [:]
 ) async throws -> AsyncThrowingStream<GraphQLResult, Error> {
     let result = try await graphqlSubscribe(
-        queryStrategy: SerialFieldExecutionStrategy(),
-        mutationStrategy: SerialFieldExecutionStrategy(),
-        subscriptionStrategy: SerialFieldExecutionStrategy(),
         schema: schema,
         request: query,
         rootValue: (),

@@ -28,9 +28,10 @@ import OrderedCollections
  * and the fragments defined in the query document
  */
 public final class ExecutionContext: @unchecked Sendable {
-    let queryStrategy: QueryFieldExecutionStrategy
-    let mutationStrategy: MutationFieldExecutionStrategy
-    let subscriptionStrategy: SubscriptionFieldExecutionStrategy
+    let queryStrategy: QueryFieldExecutionStrategy = ConcurrentFieldExecutionStrategy()
+    let mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy()
+    let subscriptionStrategy: SubscriptionFieldExecutionStrategy =
+        ConcurrentFieldExecutionStrategy()
     public let schema: GraphQLSchema
     public let fragments: [String: FragmentDefinition]
     public let rootValue: any Sendable
@@ -59,9 +60,6 @@ public final class ExecutionContext: @unchecked Sendable {
     }
 
     init(
-        queryStrategy: QueryFieldExecutionStrategy,
-        mutationStrategy: MutationFieldExecutionStrategy,
-        subscriptionStrategy: SubscriptionFieldExecutionStrategy,
         schema: GraphQLSchema,
         fragments: [String: FragmentDefinition],
         rootValue: any Sendable,
@@ -70,9 +68,6 @@ public final class ExecutionContext: @unchecked Sendable {
         variableValues: [String: Map],
         errors: [GraphQLError]
     ) {
-        self.queryStrategy = queryStrategy
-        self.mutationStrategy = mutationStrategy
-        self.subscriptionStrategy = subscriptionStrategy
         self.schema = schema
         self.fragments = fragments
         self.rootValue = rootValue
@@ -179,10 +174,7 @@ public struct ConcurrentFieldExecutionStrategy: QueryFieldExecutionStrategy,
  * If the arguments to this func do not result in a legal execution context,
  * a GraphQLError will be thrown immediately explaining the invalid input.
  */
-func execute(
-    queryStrategy: QueryFieldExecutionStrategy,
-    mutationStrategy: MutationFieldExecutionStrategy,
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy,
+public func execute(
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: any Sendable,
@@ -196,9 +188,6 @@ func execute(
         // If a valid context cannot be created due to incorrect arguments,
         // this will throw an error.
         buildContext = try buildExecutionContext(
-            queryStrategy: queryStrategy,
-            mutationStrategy: mutationStrategy,
-            subscriptionStrategy: subscriptionStrategy,
             schema: schema,
             documentAST: documentAST,
             rootValue: rootValue,
@@ -247,9 +236,6 @@ func execute(
  * Throws a GraphQLError if a valid execution context cannot be created.
  */
 func buildExecutionContext(
-    queryStrategy: QueryFieldExecutionStrategy,
-    mutationStrategy: MutationFieldExecutionStrategy,
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy,
     schema: GraphQLSchema,
     documentAST: Document,
     rootValue: any Sendable,
@@ -300,9 +286,6 @@ func buildExecutionContext(
     )
 
     return ExecutionContext(
-        queryStrategy: queryStrategy,
-        mutationStrategy: mutationStrategy,
-        subscriptionStrategy: subscriptionStrategy,
         schema: schema,
         fragments: fragments,
         rootValue: rootValue,
