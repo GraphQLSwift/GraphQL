@@ -164,7 +164,7 @@ class PrinterTests: XCTestCase {
     func testPrintsKitchenSinkWithoutAlteringAST() throws {
         guard
             let url = Bundle.module.url(forResource: "kitchen-sink", withExtension: "graphql"),
-            let kitchenSink = try? String(contentsOf: url)
+            let kitchenSink = try? String(contentsOf: url, encoding: .utf8)
         else {
             XCTFail("Could not load kitchen sink")
             return

@@ -22,11 +22,11 @@ extension Dictionary: _JSONStringDictionaryEncodableMarker where Key == String, 
 ///
 /// This is exactly the same as this `JSONEncoder`
 /// except with all Dictionary objects replaced with OrderedDictionary, and the name changed from JSONEncoder to GraphQLJSONEncoder
-open class GraphQLJSONEncoder {
+open class GraphQLJSONEncoder: @unchecked Sendable {
     // MARK: Options
 
     /// The formatting of the output JSON data.
-    public struct OutputFormatting: OptionSet {
+    public struct OutputFormatting: OptionSet, Sendable {
         /// The format's default value.
         public let rawValue: UInt
 
@@ -39,7 +39,6 @@ open class GraphQLJSONEncoder {
         public static let prettyPrinted = OutputFormatting(rawValue: 1 << 0)
 
         /// Produce JSON with dictionary keys sorted in lexicographic order.
-        @available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *)
         public static let sortedKeys = OutputFormatting(rawValue: 1 << 1)
 
         /// By default slashes get escaped ("/" → "\/", "http://apple.com/" → "http:\/\/apple.com\/")
@@ -61,7 +60,6 @@ open class GraphQLJSONEncoder {
         case millisecondsSince1970
 
         /// Encode the `Date` as an ISO-8601-formatted string (in RFC 3339 format).
-        @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
         case iso8601
 
         /// Encode the `Date` as a string formatted by the given formatter.
@@ -562,7 +560,7 @@ extension _SpecialTreatmentEncoder {
 
         case .iso8601:
             if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
-                return .string(_iso8601Formatter.string(from: date))
+                return .string(_iso8601Formatter().string(from: date))
             } else {
                 fatalError("ISO8601DateFormatter is unavailable on this platform.")
             }
@@ -1298,12 +1296,11 @@ internal struct _JSONKey: CodingKey {
 //===----------------------------------------------------------------------===//
 
 // NOTE: This value is implicitly lazy and _must_ be lazy. We're compiled against the latest SDK (w/ ISO8601DateFormatter), but linked against whichever Foundation the user has. ISO8601DateFormatter might not exist, so we better not hit this code path on an older OS.
-@available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
-private var _iso8601Formatter: ISO8601DateFormatter = {
+private func _iso8601Formatter() -> ISO8601DateFormatter {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = .withInternetDateTime
     return formatter
-}()
+}
 
 //===----------------------------------------------------------------------===//
 // Error Utilities

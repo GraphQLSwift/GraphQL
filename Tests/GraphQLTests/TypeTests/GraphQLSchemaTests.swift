@@ -47,7 +47,7 @@ class GraphQLSchemaTests: XCTestCase {
                 ),
             ],
             interfaces: [interface],
-            isTypeOf: { _, _, _ -> Bool in
+            isTypeOf: { _, _ -> Bool in
                 preconditionFailure("Should not be called")
             }
         )
@@ -81,7 +81,7 @@ class GraphQLSchemaTests: XCTestCase {
                 ),
             ],
             interfaces: [interface],
-            isTypeOf: { _, _, _ -> Bool in
+            isTypeOf: { _, _ -> Bool in
                 preconditionFailure("Should not be called")
             }
         )
@@ -110,7 +110,7 @@ class GraphQLSchemaTests: XCTestCase {
                 ),
             ],
             interfaces: [interface],
-            isTypeOf: { _, _, _ -> Bool in
+            isTypeOf: { _, _ -> Bool in
                 preconditionFailure("Should not be called")
             }
         )

@@ -2,7 +2,7 @@
  * Contains a range of UTF-8 character offsets and token references that
  * identify the region of the source from which the AST derived.
  */
-public struct Location: Equatable {
+public struct Location: Equatable, Sendable {
     /**
      * The character offset at which this Node begins.
      */
@@ -33,8 +33,10 @@ public struct Location: Equatable {
  * Represents a range of characters represented by a lexical token
  * within a Source.
  */
-public final class Token {
-    public enum Kind: String, CustomStringConvertible {
+public final class Token: @unchecked Sendable {
+    /// Token is sendable because it is not mutated after being Lexed, which is controlled
+    /// internally.
+    public enum Kind: String, CustomStringConvertible, Sendable {
         case sof = "<SOF>"
         case eof = "<EOF>"
         case bang = "!"
@@ -93,7 +95,7 @@ public final class Token {
      * including ignored tokens. <SOF> is always the first node and <EOF>
      * the last.
      */
-    public internal(set) weak var prev: Token?
+    public let prev: Token?
     public internal(set) var next: Token?
 
     init(
@@ -181,8 +183,7 @@ public enum NodeResult {
             guard let key = key.keyValue else {
                 return nil
             }
-            node.set(value: value, key: key)
-            return .node(node)
+            return .node(node.set(value: value, key: key))
         case var .array(array):
             switch value {
             case let .node(value):
@@ -201,11 +202,11 @@ public enum NodeResult {
 /**
  * The list of all possible AST node types.
  */
-public protocol Node {
+public protocol Node: Sendable {
     var kind: Kind { get }
     var loc: Location? { get }
     func get(key: String) -> NodeResult?
-    func set(value: NodeResult?, key: String)
+    func set(value: NodeResult?, key: String) -> Self
 }
 
 public extension Node {
@@ -213,13 +214,9 @@ public extension Node {
         return nil
     }
 
-    @available(*, deprecated, message: "Use set(value _: NodeResult?, key _: String)")
-    func set(value: Node?, key: String) {
-        return set(value: value.map { .node($0) }, key: key)
-    }
-
-    func set(value _: NodeResult?, key _: String) {
+    func set(value _: NodeResult?, key _: String) -> Self {
         // This should be overridden by each type on which it should do something
+        return self
     }
 }
 
@@ -261,7 +258,7 @@ extension TypeExtensionDefinition: Node {}
 extension SchemaExtensionDefinition: Node {}
 extension DirectiveDefinition: Node {}
 
-public final class Name {
+public struct Name: Sendable {
     public let kind: Kind = .name
     public let loc: Location?
     public let value: String
@@ -278,7 +275,7 @@ extension Name: Equatable {
     }
 }
 
-public final class Document {
+public struct Document {
     public let kind: Kind = .document
     public let loc: Location?
     public private(set) var definitions: [Definition]
@@ -300,22 +297,24 @@ public final class Document {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
+        var new = self
         switch key {
         case "definitions":
             guard
                 case let .array(values) = value,
                 let definitions = values as? [Definition]
             else {
-                return
+                break
             }
-            self.definitions = definitions
+            new.definitions = definitions
         default:
-            return
+            break
         }
+        return new
     }
 }
 
@@ -360,7 +359,7 @@ public func == (lhs: Definition, rhs: Definition) -> Bool {
     return false
 }
 
-public enum OperationType: String, CaseIterable {
+public enum OperationType: String, CaseIterable, Sendable {
     case query
     case mutation
     case subscription
@@ -370,10 +369,10 @@ public final class OperationDefinition {
     public let kind: Kind = .operationDefinition
     public let loc: Location?
     public let operation: OperationType
-    public private(set) var name: Name?
-    public private(set) var variableDefinitions: [VariableDefinition]
-    public private(set) var directives: [Directive]
-    public private(set) var selectionSet: SelectionSet
+    public let name: Name?
+    public let variableDefinitions: [VariableDefinition]
+    public let directives: [Directive]
+    public let selectionSet: SelectionSet
 
     init(
         loc: Location? = nil,
@@ -412,9 +411,9 @@ public final class OperationDefinition {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
         switch key {
         case "name":
@@ -422,35 +421,63 @@ public final class OperationDefinition {
                 case let .node(node) = value,
                 let name = node as? Name
             else {
-                return
+                return self
             }
-            self.name = name
+            return Self(
+                loc: loc,
+                operation: operation,
+                name: name,
+                variableDefinitions: variableDefinitions,
+                directives: directives,
+                selectionSet: selectionSet
+            )
         case "variableDefinitions":
             guard
                 case let .array(values) = value,
                 let variableDefinitions = values as? [VariableDefinition]
             else {
-                return
+                return self
             }
-            self.variableDefinitions = variableDefinitions
+            return Self(
+                loc: loc,
+                operation: operation,
+                name: name,
+                variableDefinitions: variableDefinitions,
+                directives: directives,
+                selectionSet: selectionSet
+            )
         case "directives":
             guard
                 case let .array(values) = value,
                 let directives = values as? [Directive]
             else {
-                return
+                return self
             }
-            self.directives = directives
+            return Self(
+                loc: loc,
+                operation: operation,
+                name: name,
+                variableDefinitions: variableDefinitions,
+                directives: directives,
+                selectionSet: selectionSet
+            )
         case "selectionSet":
             guard
                 case let .node(value) = value,
                 let selectionSet = value as? SelectionSet
             else {
-                return
+                return self
             }
-            self.selectionSet = selectionSet
+            return Self(
+                loc: loc,
+                operation: operation,
+                name: name,
+                variableDefinitions: variableDefinitions,
+                directives: directives,
+                selectionSet: selectionSet
+            )
         default:
-            return
+            return self
         }
     }
 }
@@ -469,7 +496,7 @@ extension OperationDefinition: Hashable {
     }
 }
 
-public final class VariableDefinition {
+public struct VariableDefinition {
     public let kind: Kind = .variableDefinition
     public let loc: Location?
     public private(set) var variable: Variable
@@ -509,46 +536,48 @@ public final class VariableDefinition {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
+        var new = self
         switch key {
         case "variable":
             guard
                 case let .node(node) = value,
                 let variable = node as? Variable
             else {
-                return
+                break
             }
-            self.variable = variable
+            new.variable = variable
         case "type":
             guard
                 case let .node(node) = value,
                 let type = node as? Type
             else {
-                return
+                break
             }
-            self.type = type
+            new.type = type
         case "defaultValue":
             guard
                 case let .node(node) = value,
                 let defaultValue = node as? Value?
             else {
-                return
+                break
             }
-            self.defaultValue = defaultValue
+            new.defaultValue = defaultValue
         case "directives":
             guard
                 case let .array(values) = value,
                 let directives = values as? [Directive]
             else {
-                return
+                break
             }
-            self.directives = directives
+            new.directives = directives
         default:
-            return
+            break
         }
+        return new
     }
 }
 
@@ -574,7 +603,7 @@ extension VariableDefinition: Equatable {
     }
 }
 
-public final class Variable {
+public struct Variable {
     public let kind: Kind = .variable
     public let loc: Location?
     public private(set) var name: Name
@@ -593,22 +622,24 @@ public final class Variable {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
+        var new = self
         switch key {
         case "name":
             guard
                 case let .node(node) = value,
                 let name = node as? Name
             else {
-                return
+                break
             }
-            self.name = name
+            new.name = name
         default:
-            return
+            break
         }
+        return new
     }
 }
 
@@ -621,7 +652,7 @@ extension Variable: Equatable {
 public final class SelectionSet {
     public let kind: Kind = .selectionSet
     public let loc: Location?
-    public private(set) var selections: [Selection]
+    public let selections: [Selection]
 
     init(loc: Location? = nil, selections: [Selection]) {
         self.loc = loc
@@ -640,9 +671,9 @@ public final class SelectionSet {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
         switch key {
         case "selections":
@@ -650,11 +681,14 @@ public final class SelectionSet {
                 case let .array(values) = value,
                 let selections = values as? [Selection]
             else {
-                return
+                return self
             }
-            self.selections = selections
+            return Self(
+                loc: loc,
+                selections: selections
+            )
         default:
-            return
+            return self
         }
     }
 }
@@ -705,7 +739,7 @@ public func == (lhs: Selection, rhs: Selection) -> Bool {
     return false
 }
 
-public final class Field {
+public struct Field {
     public let kind: Kind = .field
     public let loc: Location?
     public private(set) var alias: Name?
@@ -753,54 +787,56 @@ public final class Field {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
+        var new = self
         switch key {
         case "alias":
             guard
                 case let .node(node) = value,
                 let alias = node as? Name
             else {
-                return
+                break
             }
-            self.alias = alias
+            new.alias = alias
         case "name":
             guard
                 case let .node(node) = value,
                 let name = node as? Name
             else {
-                return
+                break
             }
-            self.name = name
+            new.name = name
         case "arguments":
             guard
                 case let .array(values) = value,
                 let arguments = values as? [Argument]
             else {
-                return
+                break
             }
-            self.arguments = arguments
+            new.arguments = arguments
         case "directives":
             guard
                 case let .array(values) = value,
                 let directives = values as? [Directive]
             else {
-                return
+                break
             }
-            self.directives = directives
+            new.directives = directives
         case "selectionSet":
             guard
                 case let .node(value) = value,
                 let selectionSet = value as? SelectionSet
             else {
-                return
+                break
             }
-            self.selectionSet = selectionSet
+            new.selectionSet = selectionSet
         default:
-            return
+            break
         }
+        return new
     }
 }
 
@@ -814,7 +850,7 @@ extension Field: Equatable {
     }
 }
 
-public final class Argument {
+public struct Argument {
     public let kind: Kind = .argument
     public let loc: Location?
     public private(set) var name: Name
@@ -837,30 +873,32 @@ public final class Argument {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
+        var new = self
         switch key {
         case "name":
             guard
                 case let .node(node) = value,
                 let name = node as? Name
             else {
-                return
+                break
             }
-            self.name = name
+            new.name = name
         case "value":
             guard
                 case let .node(node) = value,
                 let value = node as? Value
             else {
-                return
+                break
             }
-            self.value = value
+            new.value = value
         default:
-            return
+            break
         }
+        return new
     }
 }
 
@@ -875,7 +913,7 @@ public protocol Fragment: Selection {}
 extension FragmentSpread: Fragment {}
 extension InlineFragment: Fragment {}
 
-public final class FragmentSpread {
+public struct FragmentSpread {
     public let kind: Kind = .fragmentSpread
     public let loc: Location?
     public private(set) var name: Name
@@ -901,30 +939,32 @@ public final class FragmentSpread {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
+        var new = self
         switch key {
         case "name":
             guard
                 case let .node(node) = value,
                 let name = node as? Name
             else {
-                return
+                break
             }
-            self.name = name
+            new.name = name
         case "directives":
             guard
                 case let .array(values) = value,
                 let directives = values as? [Directive]
             else {
-                return
+                break
             }
-            self.directives = directives
+            new.directives = directives
         default:
-            return
+            break
         }
+        return new
     }
 }
 
@@ -951,7 +991,7 @@ extension FragmentDefinition: HasTypeCondition {
     }
 }
 
-public final class InlineFragment {
+public struct InlineFragment {
     public let kind: Kind = .inlineFragment
     public let loc: Location?
     public private(set) var typeCondition: NamedType?
@@ -969,10 +1009,8 @@ public final class InlineFragment {
         self.directives = directives
         self.selectionSet = selectionSet
     }
-}
 
-public extension InlineFragment {
-    func get(key: String) -> NodeResult? {
+    public func get(key: String) -> NodeResult? {
         switch key {
         case "typeCondition":
             return typeCondition.map { .node($0) }
@@ -988,38 +1026,40 @@ public extension InlineFragment {
         }
     }
 
-    func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
+        var new = self
         switch key {
         case "typeCondition":
             guard
                 case let .node(node) = value,
                 let typeCondition = node as? NamedType
             else {
-                return
+                break
             }
-            self.typeCondition = typeCondition
+            new.typeCondition = typeCondition
         case "directives":
             guard
                 case let .array(values) = value,
                 let directives = values as? [Directive]
             else {
-                return
+                break
             }
-            self.directives = directives
+            new.directives = directives
         case "selectionSet":
             guard
                 case let .node(value) = value,
                 let selectionSet = value as? SelectionSet
             else {
-                return
+                break
             }
-            self.selectionSet = selectionSet
+            new.selectionSet = selectionSet
         default:
-            return
+            break
         }
+        return new
     }
 }
 
@@ -1034,10 +1074,10 @@ extension InlineFragment: Equatable {
 public final class FragmentDefinition {
     public let kind: Kind = .fragmentDefinition
     public let loc: Location?
-    public private(set) var name: Name
-    public private(set) var typeCondition: NamedType
-    public private(set) var directives: [Directive]
-    public private(set) var selectionSet: SelectionSet
+    public let name: Name
+    public let typeCondition: NamedType
+    public let directives: [Directive]
+    public let selectionSet: SelectionSet
 
     init(
         loc: Location? = nil,
@@ -1071,9 +1111,9 @@ public final class FragmentDefinition {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
         switch key {
         case "name":
@@ -1081,35 +1121,59 @@ public final class FragmentDefinition {
                 case let .node(node) = value,
                 let name = node as? Name
             else {
-                return
+                return self
             }
-            self.name = name
+            return Self(
+                loc: loc,
+                name: name,
+                typeCondition: typeCondition,
+                directives: directives,
+                selectionSet: selectionSet
+            )
         case "typeCondition":
             guard
                 case let .node(node) = value,
                 let typeCondition = node as? NamedType
             else {
-                return
+                return self
             }
-            self.typeCondition = typeCondition
+            return Self(
+                loc: loc,
+                name: name,
+                typeCondition: typeCondition,
+                directives: directives,
+                selectionSet: selectionSet
+            )
         case "directives":
             guard
                 case let .array(values) = value,
                 let directives = values as? [Directive]
             else {
-                return
+                return self
             }
-            self.directives = directives
+            return Self(
+                loc: loc,
+                name: name,
+                typeCondition: typeCondition,
+                directives: directives,
+                selectionSet: selectionSet
+            )
         case "selectionSet":
             guard
                 case let .node(value) = value,
                 let selectionSet = value as? SelectionSet
             else {
-                return
+                return self
             }
-            self.selectionSet = selectionSet
+            return Self(
+                loc: loc,
+                name: name,
+                typeCondition: typeCondition,
+                directives: directives,
+                selectionSet: selectionSet
+            )
         default:
-            return
+            return self
         }
     }
 }
@@ -1183,7 +1247,7 @@ public func == (lhs: Value, rhs: Value) -> Bool {
     return false
 }
 
-public final class IntValue {
+public struct IntValue {
     public let kind: Kind = .intValue
     public let loc: Location?
     public let value: String
@@ -1200,7 +1264,7 @@ extension IntValue: Equatable {
     }
 }
 
-public final class FloatValue {
+public struct FloatValue {
     public let kind: Kind = .floatValue
     public let loc: Location?
     public let value: String
@@ -1217,7 +1281,7 @@ extension FloatValue: Equatable {
     }
 }
 
-public final class StringValue {
+public struct StringValue: Sendable {
     public let kind: Kind = .stringValue
     public let loc: Location?
     public let value: String
@@ -1236,7 +1300,7 @@ extension StringValue: Equatable {
     }
 }
 
-public final class BooleanValue {
+public struct BooleanValue {
     public let kind: Kind = .booleanValue
     public let loc: Location?
     public let value: Bool
@@ -1253,7 +1317,7 @@ extension BooleanValue: Equatable {
     }
 }
 
-public final class NullValue {
+public struct NullValue {
     public let kind: Kind = .nullValue
     public let loc: Location?
 
@@ -1268,7 +1332,7 @@ extension NullValue: Equatable {
     }
 }
 
-public final class EnumValue {
+public struct EnumValue {
     public let kind: Kind = .enumValue
     public let loc: Location?
     public let value: String
@@ -1285,7 +1349,7 @@ extension EnumValue: Equatable {
     }
 }
 
-public final class ListValue {
+public struct ListValue {
     public let kind: Kind = .listValue
     public let loc: Location?
     public private(set) var values: [Value]
@@ -1304,22 +1368,24 @@ public final class ListValue {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
+        var new = self
         switch key {
         case "values":
             guard
                 case let .array(values) = value,
                 let values = values as? [Value]
             else {
-                return
+                break
             }
-            self.values = values
+            new.values = values
         default:
-            return
+            break
         }
+        return new
     }
 }
 
@@ -1339,7 +1405,7 @@ extension ListValue: Equatable {
     }
 }
 
-public final class ObjectValue {
+public struct ObjectValue {
     public let kind: Kind = .objectValue
     public let loc: Location?
     public private(set) var fields: [ObjectField]
@@ -1358,22 +1424,24 @@ public final class ObjectValue {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
+        var new = self
         switch key {
         case "fields":
             guard
                 case let .array(values) = value,
                 let fields = values as? [ObjectField]
             else {
-                return
+                break
             }
-            self.fields = fields
+            new.fields = fields
         default:
-            return
+            break
         }
+        return new
     }
 }
 
@@ -1383,7 +1451,7 @@ extension ObjectValue: Equatable {
     }
 }
 
-public final class ObjectField {
+public struct ObjectField {
     public let kind: Kind = .objectField
     public let loc: Location?
     public private(set) var name: Name
@@ -1406,30 +1474,32 @@ public final class ObjectField {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
+        var new = self
         switch key {
         case "name":
             guard
                 case let .node(node) = value,
                 let name = node as? Name
             else {
-                return
+                break
             }
-            self.name = name
+            new.name = name
         case "value":
             guard
                 case let .node(node) = value,
                 let value = node as? Value
             else {
-                return
+                break
             }
-            self.value = value
+            new.value = value
         default:
-            return
+            break
         }
+        return new
     }
 }
 
@@ -1440,7 +1510,7 @@ extension ObjectField: Equatable {
     }
 }
 
-public final class Directive {
+public struct Directive: Sendable {
     public let kind: Kind = .directive
     public let loc: Location?
     public private(set) var name: Name
@@ -1463,30 +1533,32 @@ public final class Directive {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
+        var new = self
         switch key {
         case "name":
             guard
                 case let .node(node) = value,
                 let name = node as? Name
             else {
-                return
+                break
             }
-            self.name = name
+            new.name = name
         case "arguments":
             guard
                 case let .array(nodes) = value,
                 let arguments = nodes as? [Argument]
             else {
-                return
+                break
             }
-            self.arguments = arguments
+            new.arguments = arguments
         default:
-            return
+            break
         }
+        return new
     }
 }
 
@@ -1523,7 +1595,7 @@ public func == (lhs: Type, rhs: Type) -> Bool {
     return false
 }
 
-public final class NamedType {
+public struct NamedType {
     public let kind: Kind = .namedType
     public let loc: Location?
     public private(set) var name: Name
@@ -1542,22 +1614,24 @@ public final class NamedType {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
+        var new = self
         switch key {
         case "name":
             guard
                 case let .node(node) = value,
                 let name = node as? Name
             else {
-                return
+                break
             }
-            self.name = name
+            new.name = name
         default:
-            return
+            break
         }
+        return new
     }
 }
 
@@ -1567,7 +1641,7 @@ extension NamedType: Equatable {
     }
 }
 
-public final class ListType {
+public struct ListType {
     public let kind: Kind = .listType
     public let loc: Location?
     public private(set) var type: Type
@@ -1586,22 +1660,24 @@ public final class ListType {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
+        var new = self
         switch key {
         case "type":
             guard
                 case let .node(node) = value,
                 let type = node as? Type
             else {
-                return
+                break
             }
-            self.type = type
+            new.type = type
         default:
-            return
+            break
         }
+        return new
     }
 }
 
@@ -1615,7 +1691,7 @@ public protocol NonNullableType: Type {}
 extension ListType: NonNullableType {}
 extension NamedType: NonNullableType {}
 
-public final class NonNullType {
+public struct NonNullType {
     public let kind: Kind = .nonNullType
     public let loc: Location?
     public private(set) var type: NonNullableType
@@ -1634,22 +1710,24 @@ public final class NonNullType {
         }
     }
 
-    public func set(value: NodeResult?, key: String) {
+    public func set(value: NodeResult?, key: String) -> Self {
         guard let value = value else {
-            return
+            return self
         }
+        var new = self
         switch key {
         case "type":
             guard
                 case let .node(node) = value,
                 let type = node as? NonNullableType
             else {
-                return
+                break
             }
-            self.type = type
+            new.type = type
         default:
-            return
+            break
         }
+        return new
     }
 }
 
@@ -1721,7 +1799,7 @@ public func == (lhs: TypeSystemDefinition, rhs: TypeSystemDefinition) -> Bool {
     return false
 }
 
-public final class SchemaDefinition {
+public struct SchemaDefinition {
     public let kind: Kind = .schemaDefinition
     public let loc: Location?
     public let description: StringValue?
@@ -1762,7 +1840,7 @@ extension SchemaDefinition: Equatable {
     }
 }
 
-public final class OperationTypeDefinition {
+public struct OperationTypeDefinition {
     public let kind: Kind = .operationDefinition
     public let loc: Location?
     public let operation: OperationType
@@ -1835,7 +1913,7 @@ public func == (lhs: TypeDefinition, rhs: TypeDefinition) -> Bool {
     return false
 }
 
-public final class ScalarTypeDefinition {
+public struct ScalarTypeDefinition: Sendable {
     public let kind: Kind = .scalarTypeDefinition
     public let loc: Location?
     public let description: StringValue?
@@ -1876,7 +1954,7 @@ extension ScalarTypeDefinition: Equatable {
     }
 }
 
-public final class ObjectTypeDefinition {
+public struct ObjectTypeDefinition {
     public let kind: Kind = .objectTypeDefinition
     public let loc: Location?
     public let description: StringValue?
@@ -1929,7 +2007,7 @@ extension ObjectTypeDefinition: Equatable {
     }
 }
 
-public final class FieldDefinition {
+public struct FieldDefinition {
     public let kind: Kind = .fieldDefinition
     public let loc: Location?
     public let description: StringValue?
@@ -1982,7 +2060,7 @@ extension FieldDefinition: Equatable {
     }
 }
 
-public final class InputValueDefinition {
+public struct InputValueDefinition: Sendable {
     public let kind: Kind = .inputValueDefinition
     public let loc: Location?
     public let description: StringValue?
@@ -2051,7 +2129,7 @@ extension InputValueDefinition: Equatable {
     }
 }
 
-public final class InterfaceTypeDefinition {
+public struct InterfaceTypeDefinition {
     public let kind: Kind = .interfaceTypeDefinition
     public let loc: Location?
     public let description: StringValue?
@@ -2103,7 +2181,7 @@ extension InterfaceTypeDefinition: Equatable {
     }
 }
 
-public final class UnionTypeDefinition {
+public struct UnionTypeDefinition {
     public let kind: Kind = .unionTypeDefinition
     public let loc: Location?
     public let description: StringValue?
@@ -2150,7 +2228,7 @@ extension UnionTypeDefinition: Equatable {
     }
 }
 
-public final class EnumTypeDefinition {
+public struct EnumTypeDefinition: Sendable {
     public let kind: Kind = .enumTypeDefinition
     public let loc: Location?
     public let description: StringValue?
@@ -2197,7 +2275,7 @@ extension EnumTypeDefinition: Equatable {
     }
 }
 
-public final class EnumValueDefinition {
+public struct EnumValueDefinition: Sendable {
     public let kind: Kind = .enumValueDefinition
     public let loc: Location?
     public let description: StringValue?
@@ -2238,7 +2316,7 @@ extension EnumValueDefinition: Equatable {
     }
 }
 
-public final class InputObjectTypeDefinition {
+public struct InputObjectTypeDefinition {
     public let kind: Kind = .inputObjectTypeDefinition
     public let loc: Location?
     public let description: StringValue?
@@ -2296,7 +2374,7 @@ extension UnionExtensionDefinition: TypeExtension {}
 extension EnumExtensionDefinition: TypeExtension {}
 extension InputObjectExtensionDefinition: TypeExtension {}
 
-public final class TypeExtensionDefinition {
+public struct TypeExtensionDefinition {
     public let kind: Kind = .typeExtensionDefinition
     public let loc: Location?
     public let definition: ObjectTypeDefinition
@@ -2321,7 +2399,7 @@ extension TypeExtensionDefinition: Equatable {
     }
 }
 
-public final class SchemaExtensionDefinition {
+public struct SchemaExtensionDefinition {
     public let kind: Kind = .schemaExtensionDefinition
     public let loc: Location?
     public let definition: SchemaDefinition
@@ -2342,7 +2420,7 @@ extension SchemaExtensionDefinition: Equatable {
     }
 }
 
-public final class InterfaceExtensionDefinition {
+public struct InterfaceExtensionDefinition {
     public let kind: Kind = .interfaceExtensionDefinition
     public let loc: Location?
     public let definition: InterfaceTypeDefinition
@@ -2370,7 +2448,7 @@ extension InterfaceExtensionDefinition: Equatable {
     }
 }
 
-public final class ScalarExtensionDefinition {
+public struct ScalarExtensionDefinition: Sendable {
     public let kind: Kind = .scalarExtensionDefinition
     public let loc: Location?
     public let definition: ScalarTypeDefinition
@@ -2397,7 +2475,7 @@ extension ScalarExtensionDefinition: Equatable {
     }
 }
 
-public final class UnionExtensionDefinition {
+public struct UnionExtensionDefinition {
     public let kind: Kind = .unionExtensionDefinition
     public let loc: Location?
     public let definition: UnionTypeDefinition
@@ -2422,7 +2500,7 @@ extension UnionExtensionDefinition: Equatable {
     }
 }
 
-public final class EnumExtensionDefinition {
+public struct EnumExtensionDefinition: Sendable {
     public let kind: Kind = .enumExtensionDefinition
     public let loc: Location?
     public let definition: EnumTypeDefinition
@@ -2447,7 +2525,7 @@ extension EnumExtensionDefinition: Equatable {
     }
 }
 
-public final class InputObjectExtensionDefinition {
+public struct InputObjectExtensionDefinition {
     public let kind: Kind = .inputObjectExtensionDefinition
     public let loc: Location?
     public let definition: InputObjectTypeDefinition
@@ -2475,7 +2553,7 @@ extension InputObjectExtensionDefinition: Equatable {
     }
 }
 
-public final class DirectiveDefinition {
+public struct DirectiveDefinition {
     public let kind: Kind = .directiveDefinition
     public let loc: Location?
     public let description: StringValue?

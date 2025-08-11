@@ -1,4 +1,3 @@
-import NIO
 
 let __Schema = try! GraphQLObjectType(
     name: "__Schema",
@@ -84,7 +83,9 @@ let __Directive = try! GraphQLObjectType(
         "name": GraphQLField(type: GraphQLNonNull(GraphQLString)),
         "description": GraphQLField(type: GraphQLString),
         "isRepeatable": GraphQLField(type: GraphQLNonNull(GraphQLBoolean)),
-        "locations": GraphQLField(type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__DirectiveLocation)))),
+        "locations": GraphQLField(
+            type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__DirectiveLocation)))
+        ),
         "args": GraphQLField(
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__InputValue))),
             args: [
@@ -201,8 +202,7 @@ let __Type: GraphQLObjectType = {
             "beyond a name, description and optional \\`specifiedByURL\\`, while Enum types provide their values. " +
             "Object and Interface types provide the fields they describe. Abstract " +
             "types, Union and Interface, provide the Object types possible " +
-            "at runtime. List and NonNull types compose other types.",
-        fields: [:]
+            "at runtime. List and NonNull types compose other types."
     )
     __Type.fields = { [
         "kind": GraphQLField(
@@ -426,7 +426,7 @@ let __EnumValue = try! GraphQLObjectType(
     ]
 )
 
-public enum TypeKind: String, Encodable {
+public enum TypeKind: String, Encodable, Sendable {
     case scalar = "SCALAR"
     case object = "OBJECT"
     case interface = "INTERFACE"
@@ -492,8 +492,8 @@ let SchemaMetaFieldDef = GraphQLFieldDefinition(
     name: "__schema",
     type: GraphQLNonNull(__Schema),
     description: "Access the current type schema of this server.",
-    resolve: { _, _, _, eventLoopGroup, info in
-        eventLoopGroup.next().makeSucceededFuture(info.schema)
+    resolve: { _, _, _, info in
+        info.schema
     }
 )
 
@@ -507,9 +507,9 @@ let TypeMetaFieldDef = GraphQLFieldDefinition(
             type: GraphQLNonNull(GraphQLString)
         ),
     ],
-    resolve: { _, arguments, _, eventLoopGroup, info in
+    resolve: { _, arguments, _, info in
         let name = arguments["name"].string!
-        return eventLoopGroup.next().makeSucceededFuture(info.schema.getType(name: name))
+        return info.schema.getType(name: name)
     }
 )
 
@@ -517,8 +517,8 @@ let TypeNameMetaFieldDef = GraphQLFieldDefinition(
     name: "__typename",
     type: GraphQLNonNull(GraphQLString),
     description: "The name of the current Object type at runtime.",
-    resolve: { _, _, _, eventLoopGroup, info in
-        eventLoopGroup.next().makeSucceededFuture(info.parentType.name)
+    resolve: { _, _, _, info in
+        info.parentType.name
     }
 )
 

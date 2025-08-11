@@ -1,5 +1,4 @@
 @testable import GraphQL
-import NIO
 import XCTest
 
 class ScalarTests: XCTestCase {

@@ -1,13 +1,10 @@
 @testable import GraphQL
-import NIO
 import XCTest
 
 class OneOfTests: XCTestCase {
-    let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-
     // MARK: OneOf Input Objects
 
-    func testAcceptsAGoodDefaultValue() throws {
+    func testAcceptsAGoodDefaultValue() async throws {
         let query = """
         query ($input: TestInputObject! = {a: "abc"}) {
           test(input: $input) {
@@ -16,11 +13,10 @@ class OneOfTests: XCTestCase {
           }
         }
         """
-        let result = try graphql(
+        let result = try await graphql(
             schema: getSchema(),
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(
             result,
             GraphQLResult(data: [
@@ -32,7 +28,7 @@ class OneOfTests: XCTestCase {
         )
     }
 
-    func testRejectsABadDefaultValue() throws {
+    func testRejectsABadDefaultValue() async throws {
         let query = """
         query ($input: TestInputObject! = {a: "abc", b: 123}) {
           test(input: $input) {
@@ -41,11 +37,10 @@ class OneOfTests: XCTestCase {
           }
         }
         """
-        let result = try graphql(
+        let result = try await graphql(
             schema: getSchema(),
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result.errors.count, 1)
         XCTAssertEqual(
             result.errors[0].message,
@@ -53,7 +48,7 @@ class OneOfTests: XCTestCase {
         )
     }
 
-    func testAcceptsAGoodVariable() throws {
+    func testAcceptsAGoodVariable() async throws {
         let query = """
         query ($input: TestInputObject!) {
           test(input: $input) {
@@ -62,12 +57,11 @@ class OneOfTests: XCTestCase {
           }
         }
         """
-        let result = try graphql(
+        let result = try await graphql(
             schema: getSchema(),
             request: query,
-            eventLoopGroup: eventLoopGroup,
             variableValues: ["input": ["a": "abc"]]
-        ).wait()
+        )
         XCTAssertEqual(
             result,
             GraphQLResult(data: [
@@ -79,7 +73,7 @@ class OneOfTests: XCTestCase {
         )
     }
 
-    func testAcceptsAGoodVariableWithAnUndefinedKey() throws {
+    func testAcceptsAGoodVariableWithAnUndefinedKey() async throws {
         let query = """
         query ($input: TestInputObject!) {
           test(input: $input) {
@@ -88,12 +82,11 @@ class OneOfTests: XCTestCase {
           }
         }
         """
-        let result = try graphql(
+        let result = try await graphql(
             schema: getSchema(),
             request: query,
-            eventLoopGroup: eventLoopGroup,
             variableValues: ["input": ["a": "abc", "b": .undefined]]
-        ).wait()
+        )
         XCTAssertEqual(
             result,
             GraphQLResult(data: [
@@ -105,7 +98,7 @@ class OneOfTests: XCTestCase {
         )
     }
 
-    func testRejectsAVariableWithMultipleNonNullKeys() throws {
+    func testRejectsAVariableWithMultipleNonNullKeys() async throws {
         let query = """
         query ($input: TestInputObject!) {
           test(input: $input) {
@@ -114,12 +107,11 @@ class OneOfTests: XCTestCase {
           }
         }
         """
-        let result = try graphql(
+        let result = try await graphql(
             schema: getSchema(),
             request: query,
-            eventLoopGroup: eventLoopGroup,
             variableValues: ["input": ["a": "abc", "b": 123]]
-        ).wait()
+        )
         XCTAssertEqual(result.errors.count, 1)
         XCTAssertEqual(
             result.errors[0].message,
@@ -130,7 +122,7 @@ class OneOfTests: XCTestCase {
         )
     }
 
-    func testRejectsAVariableWithMultipleNullableKeys() throws {
+    func testRejectsAVariableWithMultipleNullableKeys() async throws {
         let query = """
         query ($input: TestInputObject!) {
           test(input: $input) {
@@ -139,12 +131,11 @@ class OneOfTests: XCTestCase {
           }
         }
         """
-        let result = try graphql(
+        let result = try await graphql(
             schema: getSchema(),
             request: query,
-            eventLoopGroup: eventLoopGroup,
             variableValues: ["input": ["a": "abc", "b": .null]]
-        ).wait()
+        )
         XCTAssertEqual(result.errors.count, 1)
         XCTAssertEqual(
             result.errors[0].message,
@@ -163,7 +154,7 @@ func getSchema() throws -> GraphQLSchema {
             "a": GraphQLField(type: GraphQLString),
             "b": GraphQLField(type: GraphQLInt),
         ],
-        isTypeOf: { source, _, _ in
+        isTypeOf: { source, _ in
             source is TestObject
         }
     )

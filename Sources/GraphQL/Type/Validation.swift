@@ -5,7 +5,7 @@
  * Validation runs synchronously, returning an array of encountered errors, or
  * an empty array if no errors were encountered and the Schema is valid.
  */
-func validateSchema(
+public func validateSchema(
     schema: GraphQLSchema
 ) throws -> [GraphQLError] {
     // If this Schema has already been validated, return the previous results.

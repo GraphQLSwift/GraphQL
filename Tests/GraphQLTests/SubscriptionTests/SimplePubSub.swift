@@ -1,8 +1,7 @@
 import GraphQL
 
 /// A very simple publish/subscriber used for testing
-@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
-class SimplePubSub<T> {
+actor SimplePubSub<T: Sendable> {
     private var subscribers: [Subscriber<T>]
 
     init() {
@@ -21,8 +20,8 @@ class SimplePubSub<T> {
         }
     }
 
-    func subscribe() -> ConcurrentEventStream<T> {
-        let asyncStream = AsyncThrowingStream<T, Error> { continuation in
+    func subscribe() -> AsyncThrowingStream<T, Error> {
+        return AsyncThrowingStream<T, Error> { continuation in
             let subscriber = Subscriber<T>(
                 callback: { newValue in
                     continuation.yield(newValue)
@@ -33,7 +32,6 @@ class SimplePubSub<T> {
             )
             subscribers.append(subscriber)
         }
-        return ConcurrentEventStream<T>(asyncStream)
     }
 }
 

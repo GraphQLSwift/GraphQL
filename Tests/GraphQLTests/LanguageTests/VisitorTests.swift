@@ -87,9 +87,10 @@ class VisitorTests: XCTestCase {
                     let newName = node.name
                         .map { Name(loc: $0.loc, value: $0.value + ".enter") } ??
                         Name(value: "enter")
-                    node.set(value: .node(newName), key: "name")
-                    node.set(value: .node(SelectionSet(selections: [])), key: "selectionSet")
-                    return .node(node)
+                    let newNode = node
+                        .set(value: .node(newName), key: "name")
+                        .set(value: .node(SelectionSet(selections: [])), key: "selectionSet")
+                    return .node(newNode)
                 }
                 return .continue
             },
@@ -99,9 +100,10 @@ class VisitorTests: XCTestCase {
                     let newName = node.name
                         .map { Name(loc: $0.loc, value: $0.value + ".leave") } ??
                         Name(value: "leave")
-                    node.set(value: .node(newName), key: "name")
-                    node.set(value: .node(selectionSet!), key: "selectionSet")
-                    return .node(node)
+                    let newNode = node
+                        .set(value: .node(newName), key: "name")
+                        .set(value: .node(selectionSet!), key: "selectionSet")
+                    return .node(newNode)
                 }
                 return .continue
             }
@@ -129,11 +131,11 @@ class VisitorTests: XCTestCase {
                             locations: [.init(value: "root")]
                         )
                     )
-                    node.set(
+                    let newNode = node.set(
                         value: .array(newDefinitions),
                         key: "definitions"
                     )
-                    return .node(node)
+                    return .node(newNode)
                 }
                 return .continue
             },
@@ -147,11 +149,11 @@ class VisitorTests: XCTestCase {
                             locations: [.init(value: "root")]
                         )
                     )
-                    node.set(
+                    let newNode = node.set(
                         value: .array(newDefinitions),
                         key: "definitions"
                     )
-                    return .node(node)
+                    return .node(newNode)
                 }
                 return .continue
             }
@@ -266,11 +268,13 @@ class VisitorTests: XCTestCase {
                         var newSelections = selectionSet.selections
                         newSelections.append(addedField)
 
-                        let newSelectionSet = selectionSet
-                        newSelectionSet.set(value: .array(newSelections), key: "selections")
+                        var newSelectionSet = selectionSet
+                        newSelectionSet = newSelectionSet.set(
+                            value: .array(newSelections),
+                            key: "selections"
+                        )
 
-                        let newNode = node
-                        newNode.set(value: .node(newSelectionSet), key: "selectionSet")
+                        let newNode = node.set(value: .node(newSelectionSet), key: "selectionSet")
                         return .node(newNode)
                     }
                 }
@@ -500,7 +504,7 @@ class VisitorTests: XCTestCase {
 
         guard
             let url = Bundle.module.url(forResource: "kitchen-sink", withExtension: "graphql"),
-            let kitchenSink = try? String(contentsOf: url)
+            let kitchenSink = try? String(contentsOf: url, encoding: .utf8)
         else {
             XCTFail("Could not load kitchen sink")
             return

@@ -403,7 +403,7 @@ func extendSchemaImpl(
         )
     }
 
-    struct OperationTypes {
+    struct OperationTypes: Sendable {
         let query: GraphQLObjectType?
         let mutation: GraphQLObjectType?
         let subscription: GraphQLObjectType?

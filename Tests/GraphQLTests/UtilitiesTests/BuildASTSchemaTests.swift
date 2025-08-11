@@ -1,5 +1,4 @@
 @testable import GraphQL
-import NIO
 import XCTest
 
 class BuildASTSchemaTests: XCTestCase {
@@ -12,7 +11,7 @@ class BuildASTSchemaTests: XCTestCase {
         return try printSchema(schema: buildSchema(source: sdl))
     }
 
-    func testCanUseBuiltSchemaForLimitedExecution() throws {
+    func testCanUseBuiltSchemaForLimitedExecution() async throws {
         let schema = try buildASTSchema(
             documentAST: parse(
                 source: """
@@ -23,12 +22,11 @@ class BuildASTSchemaTests: XCTestCase {
             )
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: schema,
             request: "{ str }",
-            rootValue: ["str": 123],
-            eventLoopGroup: MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        ).wait()
+            rootValue: ["str": 123]
+        )
 
         XCTAssertEqual(
             result,
@@ -50,16 +48,15 @@ class BuildASTSchemaTests: XCTestCase {
 //            )
 //        )
 //
-//        let result = try graphql(
+//        let result = try await graphql(
 //            schema: schema,
 //            request: "{ add(x: 34, y: 55) }",
 //            rootValue: [
 //                "add": { (x: Int, y: Int) in
 //                    return x + y
 //                }
-//            ],
-//            eventLoopGroup: MultiThreadedEventLoopGroup(numberOfThreads: 1)
-//        ).wait()
+//            ]
+//        )
 //
 //        XCTAssertEqual(
 //            result,
@@ -991,12 +988,12 @@ class BuildASTSchemaTests: XCTestCase {
         let query = try XCTUnwrap(schema.getType(name: "Query") as? GraphQLObjectType)
         let testInput = try XCTUnwrap(schema.getType(name: "TestInput") as? GraphQLInputObjectType)
         let testEnum = try XCTUnwrap(schema.getType(name: "TestEnum") as? GraphQLEnumType)
-        let _ = try XCTUnwrap(schema.getType(name: "TestUnion") as? GraphQLUnionType)
+        XCTAssertNotNil(schema.getType(name: "TestUnion") as? GraphQLUnionType)
         let testInterface = try XCTUnwrap(
             schema.getType(name: "TestInterface") as? GraphQLInterfaceType
         )
         let testType = try XCTUnwrap(schema.getType(name: "TestType") as? GraphQLObjectType)
-        let _ = try XCTUnwrap(schema.getType(name: "TestScalar") as? GraphQLScalarType)
+        XCTAssertNotNil(schema.getType(name: "TestScalar") as? GraphQLScalarType)
         let testDirective = try XCTUnwrap(schema.getDirective(name: "test"))
 
         // No `Equatable` conformance

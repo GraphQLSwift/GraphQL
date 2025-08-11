@@ -1,79 +1,56 @@
-import NIO
 import OrderedCollections
 
 /**
  * Implements the "Subscribe" algorithm described in the GraphQL specification.
  *
- * Returns a future which resolves to a SubscriptionResult containing either
- * a SubscriptionObservable (if successful), or GraphQLErrors (error).
+ * Returns a `Result` that either succeeds with an `AsyncThrowingStream`, or fails with `GraphQLErrors`.
  *
  * If the client-provided arguments to this function do not result in a
- * compliant subscription, the future will resolve to a
- * SubscriptionResult containing `errors` and no `observable`.
+ * compliant subscription, the `Result` will fails with descriptive errors.
  *
  * If the source stream could not be created due to faulty subscription
- * resolver logic or underlying systems, the future will resolve to a
- * SubscriptionResult containing `errors` and no `observable`.
+ * resolver logic or underlying systems, the `Result` will fail with errors.
  *
- * If the operation succeeded, the future will resolve to a SubscriptionResult,
- * containing an `observable` which yields a stream of GraphQLResults
+ * If the operation succeeded, the `Result` will succeed with an `AsyncThrowingStream` of `GraphQLResult`s
  * representing the response stream.
- *
- * Accepts either an object with named arguments, or individual arguments.
  */
 func subscribe(
-    queryStrategy: QueryFieldExecutionStrategy,
-    mutationStrategy: MutationFieldExecutionStrategy,
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy,
-    instrumentation: Instrumentation,
     schema: GraphQLSchema,
     documentAST: Document,
-    rootValue: Any,
-    context: Any,
-    eventLoopGroup: EventLoopGroup,
+    rootValue: any Sendable,
+    context: any Sendable,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) -> EventLoopFuture<SubscriptionResult> {
-    let sourceFuture = createSourceEventStream(
-        queryStrategy: queryStrategy,
-        mutationStrategy: mutationStrategy,
-        subscriptionStrategy: subscriptionStrategy,
-        instrumentation: instrumentation,
+) async throws -> Result<AsyncThrowingStream<GraphQLResult, Error>, GraphQLErrors> {
+    let sourceResult = try await createSourceEventStream(
         schema: schema,
         documentAST: documentAST,
         rootValue: rootValue,
         context: context,
-        eventLoopGroup: eventLoopGroup,
         variableValues: variableValues,
         operationName: operationName
     )
 
-    return sourceFuture.map { sourceResult -> SubscriptionResult in
-        if let sourceStream = sourceResult.stream {
-            let subscriptionStream = sourceStream.map { eventPayload -> Future<GraphQLResult> in
-                // For each payload yielded from a subscription, map it over the normal
-                // GraphQL `execute` function, with `payload` as the rootValue.
-                // This implements the "MapSourceToResponseEvent" algorithm described in
-                // the GraphQL specification. The `execute` function provides the
-                // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
-                // "ExecuteQuery" algorithm, for which `execute` is also used.
-                execute(
-                    queryStrategy: queryStrategy,
-                    mutationStrategy: mutationStrategy,
-                    subscriptionStrategy: subscriptionStrategy,
-                    instrumentation: instrumentation,
-                    schema: schema,
-                    documentAST: documentAST,
-                    rootValue: eventPayload,
-                    context: context,
-                    eventLoopGroup: eventLoopGroup,
-                    variableValues: variableValues,
-                    operationName: operationName
-                )
+    return sourceResult.map { sourceStream in
+        AsyncThrowingStream<GraphQLResult, Error> {
+            // The type-cast below is required on Swift <6. Once we drop Swift 5 support it may be
+            // removed.
+            var iterator = sourceStream.makeAsyncIterator() as (any AsyncIteratorProtocol)
+            guard let eventPayload = try await iterator.next() else {
+                return nil
             }
-            return SubscriptionResult(stream: subscriptionStream, errors: sourceResult.errors)
-        } else {
-            return SubscriptionResult(errors: sourceResult.errors)
+            // Despite the warning, we must force unwrap because on optional unwrap, compiler
+            // throws:
+            // `marker protocol 'Sendable' cannot be used in a conditional cast`
+            let rootValue = eventPayload as! (any Sendable)
+            return try await execute(
+                schema: schema,
+                documentAST: documentAST,
+                rootValue: rootValue,
+                context: context,
+                variableValues: variableValues,
+                operationName: operationName
+            )
         }
     }
 }
@@ -82,20 +59,16 @@ func subscribe(
  * Implements the "CreateSourceEventStream" algorithm described in the
  * GraphQL specification, resolving the subscription source event stream.
  *
- * Returns a Future which resolves to a SourceEventStreamResult, containing
- * either an Observable (if successful) or GraphQLErrors (error).
+ * Returns a Result that either succeeds with an `AsyncSequence` or fails with `GraphQLErrors`.
  *
  * If the client-provided arguments to this function do not result in a
- * compliant subscription, the future will resolve to a
- * SourceEventStreamResult containing `errors` and no `observable`.
+ * compliant subscription, the `Result` will fail with descriptive errors.
  *
  * If the source stream could not be created due to faulty subscription
- * resolver logic or underlying systems, the future will resolve to a
- * SourceEventStreamResult containing `errors` and no `observable`.
+ * resolver logic or underlying systems, the `Result` will fail with errors.
  *
- * If the operation succeeded, the future will resolve to a SubscriptionResult,
- * containing an `observable` which yields a stream of event objects
- * returned by the subscription resolver.
+ * If the operation succeeded, the `Result` will succeed with an AsyncSequence for the
+ * event stream returned by the resolver.
  *
  * A Source Event Stream represents a sequence of events, each of which triggers
  * a GraphQL execution for that event.
@@ -106,64 +79,40 @@ func subscribe(
  * "Supporting Subscriptions at Scale" information in the GraphQL specification.
  */
 func createSourceEventStream(
-    queryStrategy: QueryFieldExecutionStrategy,
-    mutationStrategy: MutationFieldExecutionStrategy,
-    subscriptionStrategy: SubscriptionFieldExecutionStrategy,
-    instrumentation: Instrumentation,
     schema: GraphQLSchema,
     documentAST: Document,
-    rootValue: Any,
-    context: Any,
-    eventLoopGroup: EventLoopGroup,
+    rootValue: any Sendable,
+    context: any Sendable,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) -> EventLoopFuture<SourceEventStreamResult> {
-    let executeStarted = instrumentation.now
-
+) async throws -> Result<any AsyncSequence & Sendable, GraphQLErrors> {
+    // If a valid context cannot be created due to incorrect arguments,
+    // this will throw an error.
+    let exeContext = try buildExecutionContext(
+        schema: schema,
+        documentAST: documentAST,
+        rootValue: rootValue,
+        context: context,
+        rawVariableValues: variableValues,
+        operationName: operationName
+    )
     do {
-        // If a valid context cannot be created due to incorrect arguments,
-        // this will throw an error.
-        let exeContext = try buildExecutionContext(
-            queryStrategy: queryStrategy,
-            mutationStrategy: mutationStrategy,
-            subscriptionStrategy: subscriptionStrategy,
-            instrumentation: instrumentation,
-            schema: schema,
-            documentAST: documentAST,
-            rootValue: rootValue,
-            context: context,
-            eventLoopGroup: eventLoopGroup,
-            rawVariableValues: variableValues,
-            operationName: operationName
-        )
-        return try executeSubscription(context: exeContext, eventLoopGroup: eventLoopGroup)
+        return try await executeSubscription(context: exeContext)
     } catch let error as GraphQLError {
-        instrumentation.operationExecution(
-            processId: processId(),
-            threadId: threadId(),
-            started: executeStarted,
-            finished: instrumentation.now,
-            schema: schema,
-            document: documentAST,
-            rootValue: rootValue,
-            eventLoopGroup: eventLoopGroup,
-            variableValues: variableValues,
-            operation: nil,
-            errors: [error],
-            result: nil
-        )
-
-        return eventLoopGroup.next().makeSucceededFuture(SourceEventStreamResult(errors: [error]))
+        // If it is a GraphQLError, report it as a failure.
+        return .failure(.init([error]))
+    } catch let errors as GraphQLErrors {
+        // If it is a GraphQLErrors, report it as a failure.
+        return .failure(errors)
     } catch {
-        return eventLoopGroup.next()
-            .makeSucceededFuture(SourceEventStreamResult(errors: [GraphQLError(error)]))
+        // Otherwise treat the error as a system-class error and re-throw it.
+        throw error
     }
 }
 
 func executeSubscription(
-    context: ExecutionContext,
-    eventLoopGroup: EventLoopGroup
-) throws -> EventLoopFuture<SourceEventStreamResult> {
+    context: ExecutionContext
+) async throws -> Result<any AsyncSequence & Sendable, GraphQLErrors> {
     // Get the first node
     let type = try getOperationRootType(schema: context.schema, operation: context.operation)
     var inputFields: OrderedDictionary<String, [Field]> = [:]
@@ -233,17 +182,16 @@ func executeSubscription(
 
     // Get the resolve func, regardless of if its result is normal
     // or abrupt (error).
-    let resolvedFutureOrError = resolveOrError(
+    let resolvedOrError = await resolveOrError(
         resolve: resolve,
         source: context.rootValue,
         args: args,
         context: contextValue,
-        eventLoopGroup: eventLoopGroup,
         info: info
     )
 
-    let resolvedFuture: Future<Any?>
-    switch resolvedFutureOrError {
+    let resolved: Any?
+    switch resolvedOrError {
     case let .failure(error):
         if let graphQLError = error as? GraphQLError {
             throw graphQLError
@@ -251,40 +199,26 @@ func executeSubscription(
             throw GraphQLError(error)
         }
     case let .success(success):
-        resolvedFuture = success
+        resolved = success
     }
-    return resolvedFuture.map { resolved -> SourceEventStreamResult in
-        if !context.errors.isEmpty {
-            return SourceEventStreamResult(errors: context.errors)
-        } else if let error = resolved as? GraphQLError {
-            return SourceEventStreamResult(errors: [error])
-        } else if let stream = resolved as? EventStream<Any> {
-            return SourceEventStreamResult(stream: stream)
-        } else if resolved == nil {
-            return SourceEventStreamResult(errors: [
-                GraphQLError(message: "Resolved subscription was nil"),
-            ])
-        } else {
-            let resolvedObj = resolved as AnyObject
-            return SourceEventStreamResult(errors: [
-                GraphQLError(
-                    message: "Subscription field resolver must return EventStream<Any>. Received: '\(resolvedObj)'"
-                ),
-            ])
-        }
-    }
-}
-
-// Subscription resolvers MUST return observables that are declared as 'Any' due to Swift not having
-// covariant generic support for type
-// checking. Normal resolvers for subscription fields should handle type casting, same as resolvers
-// for query fields.
-struct SourceEventStreamResult {
-    public let stream: EventStream<Any>?
-    public let errors: [GraphQLError]
-
-    public init(stream: EventStream<Any>? = nil, errors: [GraphQLError] = []) {
-        self.stream = stream
-        self.errors = errors
+    if !context.errors.isEmpty {
+        return .failure(.init(context.errors))
+    } else if let error = resolved as? GraphQLError {
+        return .failure(.init([error]))
+    } else if let stream = resolved as? any AsyncSequence {
+        // Despite the warning, we must force unwrap because on optional unwrap, compiler throws:
+        // `marker protocol 'Sendable' cannot be used in a conditional cast`
+        return .success(stream as! (any AsyncSequence & Sendable))
+    } else if resolved == nil {
+        return .failure(.init([
+            GraphQLError(message: "Resolved subscription was nil"),
+        ]))
+    } else {
+        let resolvedObj = resolved as AnyObject
+        return .failure(.init([
+            GraphQLError(
+                message: "Subscription field resolver must return an AsyncSequence. Received: '\(resolvedObj)'"
+            ),
+        ]))
     }
 }

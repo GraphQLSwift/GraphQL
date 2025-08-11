@@ -1,18 +1,7 @@
 @testable import GraphQL
-import NIO
 import XCTest
 
 class ExtendSchemaTests: XCTestCase {
-    private var eventLoopGroup: EventLoopGroup!
-
-    override func setUp() {
-        eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-    }
-
-    override func tearDown() {
-        XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-    }
-
     func schemaChanges(
         _ schema: GraphQLSchema,
         _ extendedSchema: GraphQLSchema
@@ -46,7 +35,7 @@ class ExtendSchemaTests: XCTestCase {
         )
     }
 
-    func testCanBeUsedForLimitedExecution() throws {
+    func testCanBeUsedForLimitedExecution() async throws {
         let schema = try buildSchema(source: "type Query")
         let extendAST = try parse(source: """
         extend type Query {
@@ -54,12 +43,11 @@ class ExtendSchemaTests: XCTestCase {
         }
         """)
         let extendedSchema = try extendSchema(schema: schema, documentAST: extendAST)
-        let result = try graphql(
+        let result = try await graphql(
             schema: extendedSchema,
             request: "{ newField }",
-            rootValue: ["newField": 123],
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            rootValue: ["newField": 123]
+        )
         XCTAssertEqual(
             result,
             .init(data: ["newField": "123"])

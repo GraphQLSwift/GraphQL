@@ -1,6 +1,62 @@
 # Migration
 
-## 2.0 to 3.0
+## 3 to 4
+
+### NIO removal
+
+All NIO-based arguments and return types were removed, including all `EventLoopGroup` and `EventLoopFuture` parameters.
+
+As such, all `execute` and `subscribe` calls should have the `eventLoopGroup` argument removed, and the `await` keyword should be used.
+
+Also, all resolver closures must remove the `eventLoopGroup` argument, and all that return an `EventLoopFuture` should be converted to an `async` function.
+
+The documentation here will be very helpful in the conversion: https://www.swift.org/documentation/server/guides/libraries/concurrency-adoption-guidelines.html
+
+### Swift Concurrency checking
+
+With the conversion from NIO to Swift Concurrency, types used across async boundaries should conform to `Sendable` to avoid errors and warnings. This includes the Swift types and functions that back the GraphQL schema. For more details on the conversion, see the [Sendable documentation](https://developer.apple.com/documentation/swift/sendable).
+
+### `ExecutionStrategy` argument removals
+
+The `queryStrategy`, `mutationStrategy`, and `subscriptionStrategy` arguments have been removed from `graphql` and `graphqlSubscribe`. Instead Queries and Subscriptions are executed in parallel and Mutations are executed serially, [as required by the spec](https://spec.graphql.org/October2021/#sec-Mutation).
+
+### `validationRules` argument reorder
+
+The `validationRules` argument has been moved from the beginning of  `graphql` and `graphqlSubscribe` to the end to better reflect its relative importance:
+
+
+```swift
+// Before
+let result = try await graphql(
+    validationRules: [ruleABC],
+    schema: schema,
+    ...
+)
+// After
+let result = try await graphql(
+    schema: schema,
+    ...
+    validationRules: [ruleABC]
+)
+```
+
+### EventStream removal
+
+The `EventStream` abstraction used to provide pre-concurrency subscription support has been removed. This means that `graphqlSubscribe(...).stream` will now be an `AsyncThrowingStream<GraphQLResult, Error>` type, instead of an `EventStream` type, and that downcasting to `ConcurrentEventStream` is no longer necessary.
+
+### SubscriptionResult removal
+
+The `SubscriptionResult` type was removed, and `graphqlSubscribe` now returns `Result<AsyncThrowingStream<GraphQLResult, Error>, GraphQLErrors>`.
+
+### Instrumentation removal
+
+The `Instrumentation` type has been removed, with anticipated support for tracing using [`swift-distributed-tracing`](https://github.com/apple/swift-distributed-tracing). `instrumentation` arguments must be removed from `graphql` and `graphqlSubscribe` calls.
+
+### AST Node `set`
+
+The deprecated `Node.set(value: Node?, key: String)` function was removed in preference of the `Node.set(value _: NodeResult?, key _: String)`. Change any calls from `node.set(value: node, key: string)` to `node.set(.node(node), string)`.
+
+## 2 to 3
 
 ### TypeReference removal
 

@@ -35,13 +35,11 @@ public struct Number: Sendable {
         storageType = .bool
     }
 
-    @available(OSX 10.5, *)
     public init(_ value: Int) {
         _number = NSNumber(value: value)
         storageType = .int
     }
 
-    @available(OSX 10.5, *)
     public init(_ value: UInt) {
         _number = NSNumber(value: value)
         storageType = .int
@@ -101,12 +99,10 @@ public struct Number: Sendable {
         return _number.boolValue
     }
 
-    @available(OSX 10.5, *)
     public var intValue: Int {
         return _number.intValue
     }
 
-    @available(OSX 10.5, *)
     public var uintValue: UInt {
         return _number.uintValue
     }

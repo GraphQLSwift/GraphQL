@@ -1,16 +1,9 @@
-import NIO
 import XCTest
 
 @testable import GraphQL
 
 class StarWarsQueryTests: XCTestCase {
-    func testHeroNameQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testHeroNameQuery() async throws {
         let query = """
         query HeroNameQuery {
             hero {
@@ -27,22 +20,15 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
 
         XCTAssertEqual(result, expected)
     }
 
-    func testHeroNameAndFriendsQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testHeroNameAndFriendsQuery() async throws {
         let query = """
         query HeroNameAndFriendsQuery {
             hero {
@@ -69,22 +55,15 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
 
         XCTAssertEqual(result, expected)
     }
 
-    func testNestedQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testNestedQuery() async throws {
         let query = """
         query NestedQuery {
             hero {
@@ -139,20 +118,14 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testFetchLukeQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testFetchLukeQuery() async throws {
         let query =
             """
             query FetchLukeQuery {
@@ -170,20 +143,14 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testOptionalVariable() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testOptionalVariable() async throws {
         let query =
             """
             query FetchHeroByEpisodeQuery($episode: Episode) {
@@ -208,12 +175,11 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        result = try graphql(
+        result = try await graphql(
             schema: starWarsSchema,
             request: query,
-            eventLoopGroup: eventLoopGroup,
             variableValues: params
-        ).wait()
+        )
         XCTAssertEqual(result, expected)
 
         // or we can pass "EMPIRE" and expect Luke
@@ -229,21 +195,15 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        result = try graphql(
+        result = try await graphql(
             schema: starWarsSchema,
             request: query,
-            eventLoopGroup: eventLoopGroup,
             variableValues: params
-        ).wait()
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testFetchSomeIDQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testFetchSomeIDQuery() async throws {
         let query =
             """
             query FetchSomeIDQuery($someId: String!) {
@@ -269,12 +229,11 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        result = try graphql(
+        result = try await graphql(
             schema: starWarsSchema,
             request: query,
-            eventLoopGroup: eventLoopGroup,
             variableValues: params
-        ).wait()
+        )
         XCTAssertEqual(result, expected)
 
         params = [
@@ -289,12 +248,11 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        result = try graphql(
+        result = try await graphql(
             schema: starWarsSchema,
             request: query,
-            eventLoopGroup: eventLoopGroup,
             variableValues: params
-        ).wait()
+        )
         XCTAssertEqual(result, expected)
 
         params = [
@@ -307,21 +265,15 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        result = try graphql(
+        result = try await graphql(
             schema: starWarsSchema,
             request: query,
-            eventLoopGroup: eventLoopGroup,
             variableValues: params
-        ).wait()
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testFetchLukeAliasedQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testFetchLukeAliasedQuery() async throws {
         let query =
             """
             query FetchLukeAliasedQuery {
@@ -339,20 +291,14 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testFetchLukeAndLeiaAliasedQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testFetchLukeAndLeiaAliasedQuery() async throws {
         let query =
             """
             query FetchLukeAndLeiaAliasedQuery {
@@ -376,20 +322,14 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testDuplicateFieldsQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testDuplicateFieldsQuery() async throws {
         let query =
             """
             query DuplicateFieldsQuery {
@@ -417,20 +357,14 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testUseFragmentQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testUseFragmentQuery() async throws {
         let query =
             """
             query UseFragmentQuery {
@@ -460,20 +394,14 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testCheckTypeOfR2Query() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testCheckTypeOfR2Query() async throws {
         let query =
             """
             query CheckTypeOfR2Query {
@@ -493,21 +421,15 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
 
         XCTAssertEqual(result, expected)
     }
 
-    func testCheckTypeOfLukeQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testCheckTypeOfLukeQuery() async throws {
         let query =
             """
             query CheckTypeOfLukeQuery {
@@ -527,20 +449,14 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testSecretBackstoryQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testSecretBackstoryQuery() async throws {
         let query =
             """
             query SecretBackstoryQuery {
@@ -567,20 +483,14 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testSecretBackstoryListQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testSecretBackstoryListQuery() async throws {
         let query =
             """
             query SecretBackstoryListQuery {
@@ -633,20 +543,14 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testSecretBackstoryAliasQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testSecretBackstoryAliasQuery() async throws {
         let query =
             """
             query SecretBackstoryAliasQuery {
@@ -673,20 +577,14 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(
+        let result = try await graphql(
             schema: starWarsSchema,
-            request: query,
-            eventLoopGroup: eventLoopGroup
-        ).wait()
+            request: query
+        )
         XCTAssertEqual(result, expected)
     }
 
-    func testNonNullableFieldsQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
+    func testNonNullableFieldsQuery() async throws {
         let A = try GraphQLObjectType(
             name: "A",
             fields: [:]
@@ -762,19 +660,13 @@ class StarWarsQueryTests: XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: schema, request: query, eventLoopGroup: eventLoopGroup)
-            .wait()
+        let result = try await graphql(schema: schema, request: query)
+
         XCTAssertEqual(result, expected)
     }
 
-    func testFieldOrderQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
-        XCTAssertEqual(try graphql(
+    func testFieldOrderQuery() async throws {
+        var result = try await graphql(
             schema: starWarsSchema,
             request: """
             query HeroNameQuery {
@@ -783,9 +675,9 @@ class StarWarsQueryTests: XCTestCase {
                     name
                 }
             }
-            """,
-            eventLoopGroup: eventLoopGroup
-        ).wait(), GraphQLResult(
+            """
+        )
+        XCTAssertEqual(result, GraphQLResult(
             data: [
                 "hero": [
                     "id": "2001",
@@ -794,7 +686,7 @@ class StarWarsQueryTests: XCTestCase {
             ]
         ))
 
-        XCTAssertNotEqual(try graphql(
+        result = try await graphql(
             schema: starWarsSchema,
             request: """
             query HeroNameQuery {
@@ -803,9 +695,9 @@ class StarWarsQueryTests: XCTestCase {
                     name
                 }
             }
-            """,
-            eventLoopGroup: eventLoopGroup
-        ).wait(), GraphQLResult(
+            """
+        )
+        XCTAssertNotEqual(result, GraphQLResult(
             data: [
                 "hero": [
                     "name": "R2-D2",

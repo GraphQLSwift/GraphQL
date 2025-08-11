@@ -1,6 +1,6 @@
 import Foundation
 
-public struct SourceLocation: Codable, Equatable {
+public struct SourceLocation: Codable, Equatable, Sendable {
     public let line: Int
     public let column: Int
 

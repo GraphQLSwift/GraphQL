@@ -1,11 +1,10 @@
 import Foundation
-import NIO
 import OrderedCollections
 
 /**
  * These are all of the possible kinds of types.
  */
-public protocol GraphQLType: CustomDebugStringConvertible {}
+public protocol GraphQLType: CustomDebugStringConvertible, Sendable {}
 extension GraphQLScalarType: GraphQLType {}
 extension GraphQLObjectType: GraphQLType {}
 extension GraphQLInterfaceType: GraphQLType {}
@@ -158,7 +157,7 @@ extension GraphQLNonNull: GraphQLWrapperType {}
  *     )
  *
  */
-public final class GraphQLScalarType {
+public final class GraphQLScalarType: Sendable {
     public let name: String
     public let description: String?
     public let specifiedByURL: String?
@@ -166,17 +165,17 @@ public final class GraphQLScalarType {
     public let extensionASTNodes: [ScalarExtensionDefinition]
     public let kind: TypeKind = .scalar
 
-    let serialize: (Any) throws -> Map
-    let parseValue: (Map) throws -> Map
-    let parseLiteral: (Value) throws -> Map
+    let serialize: @Sendable (Any) throws -> Map
+    let parseValue: @Sendable (Map) throws -> Map
+    let parseLiteral: @Sendable (Value) throws -> Map
 
     public init(
         name: String,
         description: String? = nil,
         specifiedByURL: String? = nil,
-        serialize: @escaping (Any) throws -> Map = { try map(from: $0) },
-        parseValue: ((Map) throws -> Map)? = nil,
-        parseLiteral: ((Value) throws -> Map)? = nil,
+        serialize: @escaping @Sendable (Any) throws -> Map = { try map(from: $0) },
+        parseValue: (@Sendable (Map) throws -> Map)? = nil,
+        parseLiteral: (@Sendable (Value) throws -> Map)? = nil,
         astNode: ScalarTypeDefinition? = nil,
         extensionASTNodes: [ScalarExtensionDefinition] = []
     ) throws {
@@ -207,11 +206,11 @@ public final class GraphQLScalarType {
     }
 }
 
-let defaultParseValue: ((Map) throws -> Map) = { value in
+let defaultParseValue: (@Sendable (Map) throws -> Map) = { value in
     value
 }
 
-let defaultParseLiteral: ((Value) throws -> Map) = { value in
+let defaultParseLiteral: (@Sendable (Value) throws -> Map) = { value in
     try valueFromASTUntyped(valueAST: value)
 }
 
@@ -273,9 +272,11 @@ extension GraphQLScalarType: Hashable {
  *     )
  *
  */
-public final class GraphQLObjectType {
+public final class GraphQLObjectType: @unchecked Sendable {
     public let name: String
     public let description: String?
+    // While technically not sendable, fields and interfaces should not be mutated after schema
+    // creation.
     public var fields: () throws -> GraphQLFieldMap
     public var interfaces: () throws -> [GraphQLInterfaceType]
     public let isTypeOf: GraphQLIsTypeOf?
@@ -407,39 +408,36 @@ extension String: TypeResolveResultRepresentable {
     }
 }
 
-public enum TypeResolveResult {
+public enum TypeResolveResult: Sendable {
     case type(GraphQLObjectType)
     case name(String)
 }
 
-public typealias GraphQLTypeResolve = (
-    _ value: Any,
-    _ eventLoopGroup: EventLoopGroup,
+public typealias GraphQLTypeResolve = @Sendable (
+    _ value: any Sendable,
     _ info: GraphQLResolveInfo
 ) throws -> TypeResolveResultRepresentable
 
-public typealias GraphQLIsTypeOf = (
-    _ source: Any,
-    _ eventLoopGroup: EventLoopGroup,
+public typealias GraphQLIsTypeOf = @Sendable (
+    _ source: any Sendable,
     _ info: GraphQLResolveInfo
 ) throws -> Bool
 
-public typealias GraphQLFieldResolve = (
-    _ source: Any,
+public typealias GraphQLFieldResolve = @Sendable (
+    _ source: any Sendable,
     _ args: Map,
-    _ context: Any,
-    _ eventLoopGroup: EventLoopGroup,
+    _ context: any Sendable,
     _ info: GraphQLResolveInfo
-) throws -> Future<Any?>
+) async throws -> (any Sendable)?
 
-public typealias GraphQLFieldResolveInput = (
-    _ source: Any,
+public typealias GraphQLFieldResolveInput = @Sendable (
+    _ source: any Sendable,
     _ args: Map,
-    _ context: Any,
+    _ context: any Sendable,
     _ info: GraphQLResolveInfo
-) throws -> Any?
+) throws -> (any Sendable)?
 
-public struct GraphQLResolveInfo {
+public struct GraphQLResolveInfo: Sendable {
     public let fieldName: String
     public let fieldASTs: [Field]
     public let returnType: GraphQLOutputType
@@ -447,14 +445,14 @@ public struct GraphQLResolveInfo {
     public let path: IndexPath
     public let schema: GraphQLSchema
     public let fragments: [String: FragmentDefinition]
-    public let rootValue: Any
+    public let rootValue: any Sendable
     public let operation: OperationDefinition
-    public let variableValues: [String: Any]
+    public let variableValues: [String: any Sendable]
 }
 
 public typealias GraphQLFieldMap = OrderedDictionary<String, GraphQLField>
 
-public struct GraphQLField {
+public struct GraphQLField: Sendable {
     public let type: GraphQLOutputType
     public let args: GraphQLArgumentConfigMap
     public let deprecationReason: String?
@@ -511,9 +509,9 @@ public struct GraphQLField {
         self.description = description
         self.astNode = astNode
 
-        self.resolve = { source, args, context, eventLoopGroup, info in
+        self.resolve = { source, args, context, info in
             let result = try resolve(source, args, context, info)
-            return eventLoopGroup.next().makeSucceededFuture(result)
+            return result
         }
         subscribe = nil
     }
@@ -521,10 +519,10 @@ public struct GraphQLField {
 
 public typealias GraphQLFieldDefinitionMap = OrderedDictionary<String, GraphQLFieldDefinition>
 
-public final class GraphQLFieldDefinition {
+public final class GraphQLFieldDefinition: Sendable {
     public let name: String
     public let description: String?
-    public internal(set) var type: GraphQLOutputType
+    public let type: GraphQLOutputType
     public let args: [GraphQLArgumentDefinition]
     public let resolve: GraphQLFieldResolve?
     public let subscribe: GraphQLFieldResolve?
@@ -576,7 +574,7 @@ public final class GraphQLFieldDefinition {
 
 public typealias GraphQLArgumentConfigMap = OrderedDictionary<String, GraphQLArgument>
 
-public struct GraphQLArgument {
+public struct GraphQLArgument: Sendable {
     public let type: GraphQLInputType
     public let description: String?
     public let defaultValue: Map?
@@ -598,7 +596,7 @@ public struct GraphQLArgument {
     }
 }
 
-public struct GraphQLArgumentDefinition {
+public struct GraphQLArgumentDefinition: Sendable {
     public let name: String
     public let type: GraphQLInputType
     public let defaultValue: Map?
@@ -655,10 +653,12 @@ public func isRequiredArgument(_ arg: GraphQLArgumentDefinition) -> Bool {
  *     )
  *
  */
-public final class GraphQLInterfaceType {
+public final class GraphQLInterfaceType: @unchecked Sendable {
     public let name: String
     public let description: String?
     public let resolveType: GraphQLTypeResolve?
+    // While technically not sendable, fields and interfaces should not be mutated after schema
+    // creation.
     public var fields: () throws -> GraphQLFieldMap
     public var interfaces: () throws -> [GraphQLInterfaceType]
     public let astNode: InterfaceTypeDefinition?
@@ -758,12 +758,13 @@ public typealias GraphQLUnionTypeExtensions = [String: String]?
  *     )
  *
  */
-public final class GraphQLUnionType {
+public final class GraphQLUnionType: @unchecked Sendable {
     public let kind: TypeKind = .union
     public let name: String
     public let description: String?
     public let resolveType: GraphQLTypeResolve?
-    public let types: () throws -> [GraphQLObjectType]
+    // While technically not sendable, types should not be mutated after schema creation.
+    public internal(set) var types: () throws -> [GraphQLObjectType]
     public let possibleTypeNames: [String: Bool]
     let extensions: [GraphQLUnionTypeExtensions]
     let astNode: UnionTypeDefinition?
@@ -857,7 +858,7 @@ extension GraphQLUnionType: Hashable {
  * Note: If a value is not provided in a definition, the name of the enum value
  * will be used as its internal value.
  */
-public final class GraphQLEnumType {
+public final class GraphQLEnumType: Sendable {
     public let name: String
     public let description: String?
     public let values: [GraphQLEnumValueDefinition]
@@ -1009,7 +1010,7 @@ public struct GraphQLEnumValue {
     }
 }
 
-public struct GraphQLEnumValueDefinition {
+public struct GraphQLEnumValueDefinition: Sendable {
     public let name: String
     public let description: String?
     public let deprecationReason: String?
@@ -1054,9 +1055,10 @@ public struct GraphQLEnumValueDefinition {
  *     )
  *
  */
-public final class GraphQLInputObjectType {
+public final class GraphQLInputObjectType: @unchecked Sendable {
     public let name: String
     public let description: String?
+    // While technically not sendable, this should not be mutated after schema creation.
     public var fields: () throws -> InputObjectFieldMap
     public let astNode: InputObjectTypeDefinition?
     public let extensionASTNodes: [InputObjectExtensionDefinition]
@@ -1147,7 +1149,7 @@ func defineInputObjectFieldMap(
     return definitionMap
 }
 
-public struct InputObjectField {
+public struct InputObjectField: Sendable {
     public let type: GraphQLInputType
     public let defaultValue: Map?
     public let description: String?
@@ -1171,9 +1173,9 @@ public struct InputObjectField {
 
 public typealias InputObjectFieldMap = OrderedDictionary<String, InputObjectField>
 
-public final class InputObjectFieldDefinition {
+public final class InputObjectFieldDefinition: Sendable {
     public let name: String
-    public internal(set) var type: GraphQLInputType
+    public let type: GraphQLInputType
     public let description: String?
     public let defaultValue: Map?
     public let deprecationReason: String?

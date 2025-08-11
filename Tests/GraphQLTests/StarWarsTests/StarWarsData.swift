@@ -8,7 +8,7 @@ import GraphQL
  * values in a more complex demo.
  */
 
-enum Episode: String, Encodable {
+enum Episode: String, Encodable, Sendable {
     case newHope = "NEWHOPE"
     case empire = "EMPIRE"
     case jedi = "JEDI"
@@ -22,7 +22,7 @@ enum Episode: String, Encodable {
     }
 }
 
-protocol Character: Encodable {
+protocol Character: Encodable, Sendable {
     var id: String { get }
     var name: String { get }
     var friends: [String] { get }
@@ -129,14 +129,14 @@ let droidData: [String: Droid] = [
 /**
  * Helper function to get a character by ID.
  */
-func getCharacter(id: String) -> Character? {
+@Sendable func getCharacter(id: String) -> Character? {
     return humanData[id] ?? droidData[id]
 }
 
 /**
  * Allows us to query for a character"s friends.
  */
-func getFriends(character: Character) -> [Character] {
+@Sendable func getFriends(character: Character) -> [Character] {
     return character.friends.reduce(into: []) { friends, friendID in
         if let friend = getCharacter(id: friendID) {
             friends.append(friend)
@@ -147,7 +147,7 @@ func getFriends(character: Character) -> [Character] {
 /**
  * Allows us to fetch the undisputed hero of the Star Wars trilogy, R2-D2.
  */
-func getHero(episode: Episode?) -> Character {
+@Sendable func getHero(episode: Episode?) -> Character {
     if episode == .empire {
         // Luke is the hero of Episode V.
         return luke
@@ -159,13 +159,13 @@ func getHero(episode: Episode?) -> Character {
 /**
  * Allows us to query for the human with the given id.
  */
-func getHuman(id: String) -> Human? {
+@Sendable func getHuman(id: String) -> Human? {
     return humanData[id]
 }
 
 /**
  * Allows us to query for the droid with the given id.
  */
-func getDroid(id: String) -> Droid? {
+@Sendable func getDroid(id: String) -> Droid? {
     return droidData[id]
 }

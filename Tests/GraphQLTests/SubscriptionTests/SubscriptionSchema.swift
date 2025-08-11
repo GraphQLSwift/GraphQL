@@ -1,5 +1,4 @@
 @testable import GraphQL
-import NIO
 
 // MARK: Types
 
@@ -19,11 +18,11 @@ struct Email: Encodable {
     }
 }
 
-struct Inbox: Encodable {
+struct Inbox: Encodable, Sendable {
     let emails: [Email]
 }
 
-struct EmailEvent: Encodable {
+struct EmailEvent: Encodable, Sendable {
     let email: Email
     let inbox: Inbox
 }
@@ -89,12 +88,9 @@ let EmailQueryType = try! GraphQLObjectType(
 
 // MARK: Test Helpers
 
-let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-
-@available(macOS 10.15, iOS 15, watchOS 8, tvOS 15, *)
-class EmailDb {
+actor EmailDb {
     var emails: [Email]
-    let publisher: SimplePubSub<Any>
+    let publisher: SimplePubSub<Email>
 
     init() {
         emails = [
@@ -105,44 +101,38 @@ class EmailDb {
                 unread: false
             ),
         ]
-        publisher = SimplePubSub<Any>()
+        publisher = SimplePubSub<Email>()
     }
 
     /// Adds a new email to the database and triggers all observers
-    func trigger(email: Email) {
+    func trigger(email: Email) async {
         emails.append(email)
-        publisher.emit(event: email)
+        await publisher.emit(event: email)
     }
 
-    func stop() {
-        publisher.cancel()
+    func stop() async {
+        await publisher.cancel()
     }
 
     /// Returns the default email schema, with standard resolvers.
     func defaultSchema() throws -> GraphQLSchema {
         return try emailSchemaWithResolvers(
-            resolve: { emailAny, _, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
+            resolve: { emailAny, _, _, _ throws -> Any? in
                 if let email = emailAny as? Email {
-                    return eventLoopGroup.next().makeSucceededFuture(EmailEvent(
+                    return await EmailEvent(
                         email: email,
                         inbox: Inbox(emails: self.emails)
-                    ))
+                    )
                 } else {
                     throw GraphQLError(message: "\(type(of: emailAny)) is not Email")
                 }
             },
-            subscribe: { _, args, _, eventLoopGroup, _ throws -> EventLoopFuture<Any?> in
+            subscribe: { _, args, _, _ throws -> Any? in
                 let priority = args["priority"].int ?? 0
-                let filtered = self.publisher.subscribe().stream
-                    .filterStream { emailAny throws in
-                        if let email = emailAny as? Email {
-                            return email.priority >= priority
-                        } else {
-                            return true
-                        }
-                    }
-                return eventLoopGroup.next()
-                    .makeSucceededFuture(ConcurrentEventStream<Any>(filtered))
+                let filtered = await self.publisher.subscribe().filter { email throws in
+                    return email.priority >= priority
+                }
+                return filtered
             }
         )
     }
@@ -151,8 +141,8 @@ class EmailDb {
     func subscription(
         query: String,
         variableValues: [String: Map] = [:]
-    ) throws -> SubscriptionEventStream {
-        return try createSubscription(
+    ) async throws -> AsyncThrowingStream<GraphQLResult, Error> {
+        return try await createSubscription(
             schema: defaultSchema(),
             query: query,
             variableValues: variableValues
@@ -191,24 +181,14 @@ func createSubscription(
     schema: GraphQLSchema,
     query: String,
     variableValues: [String: Map] = [:]
-) throws -> SubscriptionEventStream {
-    let result = try graphqlSubscribe(
-        queryStrategy: SerialFieldExecutionStrategy(),
-        mutationStrategy: SerialFieldExecutionStrategy(),
-        subscriptionStrategy: SerialFieldExecutionStrategy(),
-        instrumentation: NoOpInstrumentation,
+) async throws -> AsyncThrowingStream<GraphQLResult, Error> {
+    let result = try await graphqlSubscribe(
         schema: schema,
         request: query,
         rootValue: (),
         context: (),
-        eventLoopGroup: eventLoopGroup,
         variableValues: variableValues,
         operationName: nil
-    ).wait()
-
-    if let stream = result.stream {
-        return stream
-    } else {
-        throw result.errors.first! // We may have more than one...
-    }
+    )
+    return try result.get()
 }
