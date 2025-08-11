@@ -39,7 +39,8 @@ func subscribe(
             guard let eventPayload = try await iterator.next() else {
                 return nil
             }
-            // Despite the warning, we must force unwrap because on optional unwrap, compiler throws:
+            // Despite the warning, we must force unwrap because on optional unwrap, compiler
+            // throws:
             // `marker protocol 'Sendable' cannot be used in a conditional cast`
             let rootValue = eventPayload as! (any Sendable)
             return try await execute(
