@@ -38,15 +38,24 @@ public final class ExecutionContext: @unchecked Sendable {
     public let operation: OperationDefinition
     public let variableValues: [String: Map]
 
-    private var errorsSemaphore = DispatchSemaphore(value: 1)
     private var _errors: [GraphQLError]
-
+    private let errorsQueue = DispatchQueue(
+        label: "graphql.schema.validationerrors",
+        attributes: .concurrent
+    )
     public var errors: [GraphQLError] {
-        errorsSemaphore.wait()
-        defer {
-            errorsSemaphore.signal()
+        get {
+            // Reads can occur concurrently.
+            return errorsQueue.sync {
+                _errors
+            }
         }
-        return _errors
+        set {
+            // Writes occur sequentially.
+            return errorsQueue.async(flags: .barrier) {
+                self._errors = newValue
+            }
+        }
     }
 
     init(
@@ -74,11 +83,7 @@ public final class ExecutionContext: @unchecked Sendable {
     }
 
     public func append(error: GraphQLError) {
-        errorsSemaphore.wait()
-        defer {
-            errorsSemaphore.signal()
-        }
-        _errors.append(error)
+        errors.append(error)
     }
 }
 

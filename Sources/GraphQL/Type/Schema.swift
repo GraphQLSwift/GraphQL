@@ -1,3 +1,4 @@
+import Dispatch
 import OrderedCollections
 
 /**
@@ -34,15 +35,53 @@ public final class GraphQLSchema: @unchecked Sendable {
     let extensionASTNodes: [SchemaExtensionDefinition]
 
     // Used as a cache for validateSchema().
-    var validationErrors: [GraphQLError]?
+    private var _validationErrors: [GraphQLError]?
+    private let validationErrorQueue = DispatchQueue(
+        label: "graphql.schema.validationerrors",
+        attributes: .concurrent
+    )
+    var validationErrors: [GraphQLError]? {
+        get {
+            // Reads can occur concurrently.
+            return validationErrorQueue.sync {
+                _validationErrors
+            }
+        }
+        set {
+            // Writes occur sequentially.
+            return validationErrorQueue.async(flags: .barrier) {
+                self._validationErrors = newValue
+            }
+        }
+    }
 
     public let queryType: GraphQLObjectType?
     public let mutationType: GraphQLObjectType?
     public let subscriptionType: GraphQLObjectType?
     public let directives: [GraphQLDirective]
     public let typeMap: TypeMap
-    public internal(set) var implementations: [String: InterfaceImplementations]
-    private var subTypeMap: [String: [String: Bool]] = [:]
+    public let implementations: [String: InterfaceImplementations]
+
+    // Used as a cache for validateSchema().
+    private var _subTypeMap: [String: [String: Bool]] = [:]
+    private let subTypeMapQueue = DispatchQueue(
+        label: "graphql.schema.subtypeMap",
+        attributes: .concurrent
+    )
+    var subTypeMap: [String: [String: Bool]] {
+        get {
+            // Reads can occur concurrently.
+            return subTypeMapQueue.sync {
+                _subTypeMap
+            }
+        }
+        set {
+            // Writes occur sequentially.
+            return subTypeMapQueue.async(flags: .barrier) {
+                self._subTypeMap = newValue
+            }
+        }
+    }
 
     public init(
         description: String? = nil,
@@ -56,7 +95,7 @@ public final class GraphQLSchema: @unchecked Sendable {
         extensionASTNodes: [SchemaExtensionDefinition] = [],
         assumeValid: Bool = false
     ) throws {
-        validationErrors = assumeValid ? [] : nil
+        _validationErrors = assumeValid ? [] : nil
 
         self.description = description
         self.extensions = extensions
@@ -109,7 +148,38 @@ public final class GraphQLSchema: @unchecked Sendable {
         var typeMap = TypeMap()
 
         // Keep track of all implementations by interface name.
-        implementations = try collectImplementations(types: Array(typeMap.values))
+        func collectImplementations(
+            types: [GraphQLNamedType]
+        ) throws -> [String: InterfaceImplementations] {
+            var implementations: [String: InterfaceImplementations] = [:]
+
+            for type in types {
+                if let type = type as? GraphQLInterfaceType {
+                    if implementations[type.name] == nil {
+                        implementations[type.name] = InterfaceImplementations()
+                    }
+
+                    // Store implementations by interface.
+                    for iface in try type.getInterfaces() {
+                        implementations[iface.name] = InterfaceImplementations(
+                            interfaces: (implementations[iface.name]?.interfaces ?? []) + [type]
+                        )
+                    }
+                }
+
+                if let type = type as? GraphQLObjectType {
+                    // Store implementations by objects.
+                    for iface in try type.getInterfaces() {
+                        implementations[iface.name] = InterfaceImplementations(
+                            objects: (implementations[iface.name]?.objects ?? []) + [type]
+                        )
+                    }
+                }
+            }
+
+            return implementations
+        }
+        var implementations = try collectImplementations(types: Array(typeMap.values))
 
         for namedType in allReferencedTypes.values {
             let typeName = namedType.name
@@ -124,37 +194,38 @@ public final class GraphQLSchema: @unchecked Sendable {
             if let namedType = namedType as? GraphQLInterfaceType {
                 // Store implementations by interface.
                 for iface in try namedType.getInterfaces() {
-                    let implementations = self.implementations[iface.name] ?? .init(
+                    let implementation = implementations[iface.name] ?? .init(
                         objects: [],
                         interfaces: []
                     )
 
-                    var interfaces = implementations.interfaces
+                    var interfaces = implementation.interfaces
                     interfaces.append(namedType)
-                    self.implementations[iface.name] = .init(
-                        objects: implementations.objects,
+                    implementations[iface.name] = .init(
+                        objects: implementation.objects,
                         interfaces: interfaces
                     )
                 }
             } else if let namedType = namedType as? GraphQLObjectType {
                 // Store implementations by objects.
                 for iface in try namedType.getInterfaces() {
-                    let implementations = self.implementations[iface.name] ?? .init(
+                    let implementation = implementations[iface.name] ?? .init(
                         objects: [],
                         interfaces: []
                     )
 
-                    var objects = implementations.objects
+                    var objects = implementation.objects
                     objects.append(namedType)
-                    self.implementations[iface.name] = .init(
+                    implementations[iface.name] = .init(
                         objects: objects,
-                        interfaces: implementations.interfaces
+                        interfaces: implementation.interfaces
                     )
                 }
             }
         }
 
         self.typeMap = typeMap
+        self.implementations = implementations
     }
 
     convenience init(config: GraphQLSchemaNormalizedConfig) throws {
@@ -268,7 +339,7 @@ public final class GraphQLSchema: @unchecked Sendable {
 
 public typealias TypeMap = OrderedDictionary<String, GraphQLNamedType>
 
-public struct InterfaceImplementations {
+public struct InterfaceImplementations: Sendable {
     public let objects: [GraphQLObjectType]
     public let interfaces: [GraphQLInterfaceType]
 
@@ -279,38 +350,6 @@ public struct InterfaceImplementations {
         self.objects = objects
         self.interfaces = interfaces
     }
-}
-
-func collectImplementations(
-    types: [GraphQLNamedType]
-) throws -> [String: InterfaceImplementations] {
-    var implementations: [String: InterfaceImplementations] = [:]
-
-    for type in types {
-        if let type = type as? GraphQLInterfaceType {
-            if implementations[type.name] == nil {
-                implementations[type.name] = InterfaceImplementations()
-            }
-
-            // Store implementations by interface.
-            for iface in try type.getInterfaces() {
-                implementations[iface.name] = InterfaceImplementations(
-                    interfaces: (implementations[iface.name]?.interfaces ?? []) + [type]
-                )
-            }
-        }
-
-        if let type = type as? GraphQLObjectType {
-            // Store implementations by objects.
-            for iface in try type.getInterfaces() {
-                implementations[iface.name] = InterfaceImplementations(
-                    objects: (implementations[iface.name]?.objects ?? []) + [type]
-                )
-            }
-        }
-    }
-
-    return implementations
 }
 
 func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
