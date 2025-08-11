@@ -20,7 +20,7 @@ class ValidationTestCase: XCTestCase {
     func assertValid(
         _ query: String,
         schema: GraphQLSchema = ValidationExampleSchema,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) throws {
         let errors = try validate(body: query, schema: schema)
@@ -37,7 +37,7 @@ class ValidationTestCase: XCTestCase {
         errorCount: Int,
         query: String,
         schema: GraphQLSchema = ValidationExampleSchema,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) throws -> [GraphQLError] {
         let errors = try validate(body: query, schema: schema)
@@ -57,7 +57,7 @@ class ValidationTestCase: XCTestCase {
         column: Int,
         path: String = "",
         message: String,
-        testFile: StaticString = #file,
+        testFile: StaticString = #filePath,
         testLine: UInt = #line
     ) throws {
         guard let error = error else {
@@ -94,7 +94,7 @@ class ValidationTestCase: XCTestCase {
         locations: [(line: Int, column: Int)],
         path: String = "",
         message: String,
-        testFile: StaticString = #file,
+        testFile: StaticString = #filePath,
         testLine: UInt = #line
     ) throws {
         guard let error = error else {
@@ -139,7 +139,7 @@ class SDLValidationTestCase: XCTestCase {
         _ sdlStr: String,
         schema: GraphQLSchema? = nil,
         _ errors: [GraphQLError],
-        testFile _: StaticString = #file,
+        testFile _: StaticString = #filePath,
         testLine _: UInt = #line
     ) throws {
         let doc = try parse(source: sdlStr)
