@@ -88,18 +88,27 @@ public func graphql(
     operationName: String? = nil,
     validationRules: [@Sendable (ValidationContext) -> Visitor] = specifiedRules
 ) async throws -> GraphQLResult {
+    // Validate schema
+    let schemaValidationErrors = try validateSchema(schema: schema)
+    guard schemaValidationErrors.isEmpty else {
+        return GraphQLResult(errors: schemaValidationErrors)
+    }
+
+    // Parse
     let source = Source(body: request, name: "GraphQL request")
     let documentAST = try parse(source: source)
+
+    // Validate
     let validationErrors = validate(
         schema: schema,
         ast: documentAST,
         rules: validationRules
     )
-
     guard validationErrors.isEmpty else {
         return GraphQLResult(errors: validationErrors)
     }
 
+    // Execute
     return try await execute(
         schema: schema,
         documentAST: documentAST,
