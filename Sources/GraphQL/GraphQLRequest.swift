@@ -1,7 +1,7 @@
 import Foundation
 
 /// A GraphQL request object, containing `query`, `operationName`, and `variables` fields
-public struct GraphQLRequest: Equatable, Codable {
+public struct GraphQLRequest: Equatable, Codable, Sendable {
     public var query: String
     public var operationName: String?
     public var variables: [String: Map]
