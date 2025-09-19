@@ -3,7 +3,7 @@ import Testing
 @testable import GraphQL
 
 @Suite struct StarWarsQueryTests {
-    @Test func testHeroNameQuery() async throws {
+    @Test func heroNameQuery() async throws {
         let query = """
         query HeroNameQuery {
             hero {
@@ -28,7 +28,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testHeroNameAndFriendsQuery() async throws {
+    @Test func heroNameAndFriendsQuery() async throws {
         let query = """
         query HeroNameAndFriendsQuery {
             hero {
@@ -63,7 +63,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testNestedQuery() async throws {
+    @Test func nestedQuery() async throws {
         let query = """
         query NestedQuery {
             hero {
@@ -125,7 +125,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testFetchLukeQuery() async throws {
+    @Test func fetchLukeQuery() async throws {
         let query =
             """
             query FetchLukeQuery {
@@ -150,7 +150,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testOptionalVariable() async throws {
+    @Test func optionalVariable() async throws {
         let query =
             """
             query FetchHeroByEpisodeQuery($episode: Episode) {
@@ -203,7 +203,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testFetchSomeIDQuery() async throws {
+    @Test func fetchSomeIDQuery() async throws {
         let query =
             """
             query FetchSomeIDQuery($someId: String!) {
@@ -273,7 +273,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testFetchLukeAliasedQuery() async throws {
+    @Test func fetchLukeAliasedQuery() async throws {
         let query =
             """
             query FetchLukeAliasedQuery {
@@ -298,7 +298,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testFetchLukeAndLeiaAliasedQuery() async throws {
+    @Test func fetchLukeAndLeiaAliasedQuery() async throws {
         let query =
             """
             query FetchLukeAndLeiaAliasedQuery {
@@ -329,7 +329,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testDuplicateFieldsQuery() async throws {
+    @Test func duplicateFieldsQuery() async throws {
         let query =
             """
             query DuplicateFieldsQuery {
@@ -364,7 +364,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testUseFragmentQuery() async throws {
+    @Test func useFragmentQuery() async throws {
         let query =
             """
             query UseFragmentQuery {
@@ -401,7 +401,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testCheckTypeOfR2Query() async throws {
+    @Test func checkTypeOfR2Query() async throws {
         let query =
             """
             query CheckTypeOfR2Query {
@@ -429,7 +429,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testCheckTypeOfLukeQuery() async throws {
+    @Test func checkTypeOfLukeQuery() async throws {
         let query =
             """
             query CheckTypeOfLukeQuery {
@@ -456,7 +456,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testSecretBackstoryQuery() async throws {
+    @Test func secretBackstoryQuery() async throws {
         let query =
             """
             query SecretBackstoryQuery {
@@ -490,7 +490,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testSecretBackstoryListQuery() async throws {
+    @Test func secretBackstoryListQuery() async throws {
         let query =
             """
             query SecretBackstoryListQuery {
@@ -550,7 +550,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testSecretBackstoryAliasQuery() async throws {
+    @Test func secretBackstoryAliasQuery() async throws {
         let query =
             """
             query SecretBackstoryAliasQuery {
@@ -584,7 +584,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testNonNullableFieldsQuery() async throws {
+    @Test func nonNullableFieldsQuery() async throws {
         let A = try GraphQLObjectType(
             name: "A",
             fields: [:]
@@ -665,7 +665,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testFieldOrderQuery() async throws {
+    @Test func fieldOrderQuery() async throws {
         var result = try await graphql(
             schema: starWarsSchema,
             request: """

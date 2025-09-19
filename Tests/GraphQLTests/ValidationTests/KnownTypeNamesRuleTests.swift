@@ -7,7 +7,7 @@ class KnownTypeNamesRuleTests: ValidationTestCase {
         rule = KnownTypeNamesRule
     }
 
-    @Test func testKnownTypeNamesAreValid() throws {
+    @Test func knownTypeNamesAreValid() throws {
         try assertValid(
             """
             query Foo(
@@ -27,7 +27,7 @@ class KnownTypeNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUnknownTypeNamesAreInvalid() throws {
+    @Test func unknownTypeNamesAreInvalid() throws {
         let errors = try assertInvalid(
             errorCount: 3,
             query:

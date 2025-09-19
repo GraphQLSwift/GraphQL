@@ -7,7 +7,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         rule = NoFragmentCyclesRule
     }
 
-    @Test func testSingleReferenceIsValid() throws {
+    @Test func singleReferenceIsValid() throws {
         try assertValid(
             """
             fragment fragA on Dog { ...fragB }
@@ -16,7 +16,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testSpreadingTwiceIsNotCircular() throws {
+    @Test func spreadingTwiceIsNotCircular() throws {
         try assertValid(
             """
             fragment fragA on Dog { ...fragB, ...fragB }
@@ -25,7 +25,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testSpreadingTwiceIndirectlyIsNotCircular() throws {
+    @Test func spreadingTwiceIndirectlyIsNotCircular() throws {
         try assertValid(
             """
             fragment fragA on Dog { ...fragB, ...fragC }
@@ -35,7 +35,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testDoubleSpreadWithinAbstractTypes() throws {
+    @Test func doubleSpreadWithinAbstractTypes() throws {
         try assertValid(
             """
             fragment nameFragment on Pet {
@@ -51,7 +51,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testDoesNotFalsePositiveOnUnknownFragment() throws {
+    @Test func doesNotFalsePositiveOnUnknownFragment() throws {
         try assertValid(
             """
             fragment nameFragment on Pet {
@@ -61,7 +61,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testSpreadingRecursivelyWithinFieldFails() throws {
+    @Test func spreadingRecursivelyWithinFieldFails() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -76,7 +76,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNoSpreadingItselfDirectly() throws {
+    @Test func noSpreadingItselfDirectly() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -91,7 +91,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNoSpreadingItselfDirectlyWithinInlineFragment() throws {
+    @Test func noSpreadingItselfDirectlyWithinInlineFragment() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -110,7 +110,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNoSpreadingItselfIndirectly() throws {
+    @Test func noSpreadingItselfIndirectly() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -129,7 +129,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNoSpreadingItselfIndirectlyReportsOppositeOrder() throws {
+    @Test func noSpreadingItselfIndirectlyReportsOppositeOrder() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -148,7 +148,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNoSpreadingItselfIndirectlyWithinInlineFragment() throws {
+    @Test func noSpreadingItselfIndirectlyWithinInlineFragment() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -175,7 +175,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNoSpreadingItselfDeeply() throws {
+    @Test func noSpreadingItselfDeeply() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -215,7 +215,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNoSpreadingItselfDeeplyTwoPaths() throws {
+    @Test func noSpreadingItselfDeeplyTwoPaths() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -244,7 +244,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNoSpreadingItselfDeeplyTwoPathsAltTraverseOrder() throws {
+    @Test func noSpreadingItselfDeeplyTwoPathsAltTraverseOrder() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -273,7 +273,7 @@ class NoFragmentCyclesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNoSpreadingItselfDeeplyAndImmediately() throws {
+    @Test func noSpreadingItselfDeeplyAndImmediately() throws {
         let errors = try assertInvalid(
             errorCount: 3,
             query: """

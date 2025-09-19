@@ -11,7 +11,7 @@ import Testing
         return try printSchema(schema: buildSchema(source: sdl))
     }
 
-    @Test func testCanUseBuiltSchemaForLimitedExecution() async throws {
+    @Test func canUseBuiltSchemaForLimitedExecution() async throws {
         let schema = try buildASTSchema(
             documentAST: parse(
                 source: """
@@ -36,7 +36,7 @@ import Testing
     }
 
     // Closures are invalid Map keys in Swift.
-//    @Test func testCanBuildASchemaDirectlyFromTheSource() throws {
+//    @Test func canBuildASchemaDirectlyFromTheSource() throws {
 //        let schema = try buildASTSchema(
 //            documentAST: try parse(
 //                source: """
@@ -65,7 +65,7 @@ import Testing
 //        )
 //    }
 
-    @Test func testIgnoresNonTypeSystemDefinitions() throws {
+    @Test func ignoresNonTypeSystemDefinitions() throws {
         let sdl = """
         type Query {
           str: String
@@ -79,7 +79,7 @@ import Testing
         #expect(throws: Never.self) { try buildSchema(source: sdl) }
     }
 
-    @Test func testMatchOrderOfDefaultTypesAndDirectives() throws {
+    @Test func matchOrderOfDefaultTypesAndDirectives() throws {
         let schema = try GraphQLSchema()
         let sdlSchema = try buildASTSchema(documentAST: .init(definitions: []))
 
@@ -90,7 +90,7 @@ import Testing
         )
     }
 
-    @Test func testEmptyType() throws {
+    @Test func emptyType() throws {
         let sdl = """
         type EmptyType
         """
@@ -98,7 +98,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testSimpleType() throws {
+    @Test func simpleType() throws {
         let sdl = """
         type Query {
           str: String
@@ -140,7 +140,7 @@ import Testing
         )
     }
 
-    @Test func testIncludeStandardTypeOnlyIfItIsUsed() throws {
+    @Test func includeStandardTypeOnlyIfItIsUsed() throws {
         let schema = try buildSchema(source: "type Query")
 
         // String and Boolean are always included through introspection types
@@ -149,7 +149,7 @@ import Testing
         #expect(schema.getType(name: "ID") == nil)
     }
 
-    @Test func testWithDirectives() throws {
+    @Test func withDirectives() throws {
         let sdl = """
         directive @foo(arg: Int) on FIELD
 
@@ -159,7 +159,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testSupportsDescriptions() throws {
+    @Test func supportsDescriptions() throws {
         let sdl = #"""
         """Do you agree that this is the most creative schema ever?"""
         schema {
@@ -209,7 +209,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testMaintainsIncludeSkipAndSpecifiedBy() throws {
+    @Test func maintainsIncludeSkipAndSpecifiedBy() throws {
         let schema = try buildSchema(source: "type Query")
 
         #expect(schema.directives.count == 5)
@@ -240,7 +240,7 @@ import Testing
         )
     }
 
-    @Test func testOverridingDirectivesExcludesSpecified() throws {
+    @Test func overridingDirectivesExcludesSpecified() throws {
         let schema = try buildSchema(source: """
         directive @skip on FIELD
         directive @include on FIELD
@@ -277,7 +277,7 @@ import Testing
         )
     }
 
-    @Test func testAddingDirectivesMaintainsIncludeSkipDeprecatedSpecifiedByAndOneOf() throws {
+    @Test func addingDirectivesMaintainsIncludeSkipDeprecatedSpecifiedByAndOneOf() throws {
         let schema = try buildSchema(source: """
         directive @foo(arg: Int) on FIELD
         """)
@@ -290,7 +290,7 @@ import Testing
         #expect(schema.getDirective(name: GraphQLOneOfDirective.name) != nil)
     }
 
-    @Test func testTypeModifiers() throws {
+    @Test func typeModifiers() throws {
         let sdl = """
         type Query {
           nonNullStr: String!
@@ -303,7 +303,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testRecursiveType() throws {
+    @Test func recursiveType() throws {
         let sdl = """
         type Query {
           str: String
@@ -313,7 +313,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testTwoTypesCircular() throws {
+    @Test func twoTypesCircular() throws {
         let sdl = """
         type TypeOne {
           str: String
@@ -328,7 +328,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testSingleArgumentField() throws {
+    @Test func singleArgumentField() throws {
         let sdl = """
         type Query {
           str(int: Int): String
@@ -341,7 +341,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testSimpleTypeWithMultipleArguments() throws {
+    @Test func simpleTypeWithMultipleArguments() throws {
         let sdl = """
         type Query {
           str(int: Int, bool: Boolean): String
@@ -350,7 +350,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testEmptyInterface() throws {
+    @Test func emptyInterface() throws {
         let sdl = """
         interface EmptyInterface
         """
@@ -362,7 +362,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testSimpleTypeWithInterface() throws {
+    @Test func simpleTypeWithInterface() throws {
         let sdl = """
         type Query implements WorldInterface {
           str: String
@@ -375,7 +375,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testSimpleInterfaceHierarchy() throws {
+    @Test func simpleInterfaceHierarchy() throws {
         let sdl = """
         interface Child implements Parent {
           str: String
@@ -392,14 +392,14 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testEmptyEnum() throws {
+    @Test func emptyEnum() throws {
         let sdl = """
         enum EmptyEnum
         """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testSimpleOutputEnum() throws {
+    @Test func simpleOutputEnum() throws {
         let sdl = """
         enum Hello {
           WORLD
@@ -412,7 +412,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testSimpleInputEnum() throws {
+    @Test func simpleInputEnum() throws {
         let sdl = """
         enum Hello {
           WORLD
@@ -425,7 +425,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testMultipleValueEnum() throws {
+    @Test func multipleValueEnum() throws {
         let sdl = """
         enum Hello {
           WO
@@ -439,14 +439,14 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testEmptyUnion() throws {
+    @Test func emptyUnion() throws {
         let sdl = """
         union EmptyUnion
         """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testSimpleUnion() throws {
+    @Test func simpleUnion() throws {
         let sdl = """
         union Hello = World
 
@@ -461,7 +461,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testMultipleUnion() throws {
+    @Test func multipleUnion() throws {
         let sdl = """
         union Hello = WorldOne | WorldTwo
 
@@ -480,7 +480,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testCanBuildRecursiveUnion() throws {
+    @Test func canBuildRecursiveUnion() throws {
         #expect(
             throws: (any Error).self,
             "Union type Hello can only include Object types, it cannot include Hello"
@@ -495,7 +495,7 @@ import Testing
         }
     }
 
-    @Test func testCustomScalar() throws {
+    @Test func customScalar() throws {
         let sdl = """
         scalar CustomScalar
 
@@ -506,14 +506,14 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testEmptyInputObject() throws {
+    @Test func emptyInputObject() throws {
         let sdl = """
         input EmptyInputObject
         """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testSimpleInputObject() throws {
+    @Test func simpleInputObject() throws {
         let sdl = """
         input Input {
           int: Int
@@ -526,7 +526,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testSimpleArgumentFieldWithDefault() throws {
+    @Test func simpleArgumentFieldWithDefault() throws {
         let sdl = """
         type Query {
           str(int: Int = 2): String
@@ -535,7 +535,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testCustomScalarArgumentFieldWithDefault() throws {
+    @Test func customScalarArgumentFieldWithDefault() throws {
         let sdl = """
         scalar CustomScalar
 
@@ -546,7 +546,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testSimpleTypeWithMutation() throws {
+    @Test func simpleTypeWithMutation() throws {
         let sdl = """
         schema {
           query: HelloScalars
@@ -566,7 +566,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testSimpleTypeWithSubscription() throws {
+    @Test func simpleTypeWithSubscription() throws {
         let sdl = """
         schema {
           query: HelloScalars
@@ -586,7 +586,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testUnreferencedTypeImplementingReferencedInterface() throws {
+    @Test func unreferencedTypeImplementingReferencedInterface() throws {
         let sdl = """
         type Concrete implements Interface {
           key: String
@@ -603,7 +603,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testUnreferencedInterfaceImplementingReferencedInterface() throws {
+    @Test func unreferencedInterfaceImplementingReferencedInterface() throws {
         let sdl = """
         interface Child implements Parent {
           key: String
@@ -620,7 +620,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testUnreferencedTypeImplementingReferencedUnion() throws {
+    @Test func unreferencedTypeImplementingReferencedUnion() throws {
         let sdl = """
         type Concrete {
           key: String
@@ -635,7 +635,7 @@ import Testing
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    @Test func testSupportsDeprecated() throws {
+    @Test func supportsDeprecated() throws {
         let sdl = """
         enum MyEnum {
           VALUE
@@ -688,7 +688,7 @@ import Testing
         #expect(rootFields["field4"]?.args[0].deprecationReason == "Why not?")
     }
 
-    @Test func testSupportsSpecifiedBy() throws {
+    @Test func supportsSpecifiedBy() throws {
         let sdl = """
         scalar Foo @specifiedBy(url: "https://example.com/foo_spec")
 
@@ -704,7 +704,7 @@ import Testing
         #expect(fooScalar.specifiedByURL == "https://example.com/foo_spec")
     }
 
-    @Test func testCorrectlyExtendScalarType() throws {
+    @Test func correctlyExtendScalarType() throws {
         let schema = try buildSchema(source: """
         scalar SomeScalar
         extend scalar SomeScalar @foo
@@ -728,7 +728,7 @@ import Testing
         )
     }
 
-    @Test func testCorrectlyExtendObjectType() throws {
+    @Test func correctlyExtendObjectType() throws {
         let schema = try buildSchema(source: """
         type SomeObject implements Foo {
           first: String
@@ -779,7 +779,7 @@ import Testing
         )
     }
 
-    @Test func testCorrectlyExtendInterfaceType() throws {
+    @Test func correctlyExtendInterfaceType() throws {
         let schema = try buildSchema(source: """
         interface SomeInterface {
           first: String
@@ -828,7 +828,7 @@ import Testing
         )
     }
 
-    @Test func testCorrectlyExtendUnionType() throws {
+    @Test func correctlyExtendUnionType() throws {
         let schema = try buildSchema(source: """
         union SomeUnion = FirstType
         extend union SomeUnion = SecondType
@@ -857,7 +857,7 @@ import Testing
         )
     }
 
-    @Test func testCorrectlyExtendEnumType() throws {
+    @Test func correctlyExtendEnumType() throws {
         let schema = try buildSchema(source: """
         enum SomeEnum {
           FIRST
@@ -904,7 +904,7 @@ import Testing
         )
     }
 
-    @Test func testCorrectlyExtendInputObjectType() throws {
+    @Test func correctlyExtendInputObjectType() throws {
         let schema = try buildSchema(source: """
         input SomeInput {
           first: String
@@ -951,7 +951,7 @@ import Testing
         )
     }
 
-    @Test func testCorrectlyAssignASTNodes() throws {
+    @Test func correctlyAssignASTNodes() throws {
         let sdl = """
         schema {
           query: Query
@@ -1053,7 +1053,7 @@ import Testing
         )
     }
 
-    @Test func testRootOperationTypesWithCustomNames() throws {
+    @Test func rootOperationTypesWithCustomNames() throws {
         let schema = try buildSchema(source: """
         schema {
           query: SomeQuery
@@ -1069,7 +1069,7 @@ import Testing
         #expect(schema.subscriptionType?.name == "SomeSubscription")
     }
 
-    @Test func testDefaultRootOperationTypeNames() throws {
+    @Test func defaultRootOperationTypeNames() throws {
         let schema = try buildSchema(source: """
         type Query
         type Mutation
@@ -1080,13 +1080,13 @@ import Testing
         #expect(schema.subscriptionType?.name == "Subscription")
     }
 
-    @Test func testCanBuildInvalidSchema() throws {
+    @Test func canBuildInvalidSchema() throws {
         let schema = try buildSchema(source: "type Mutation")
         let errors = try validateSchema(schema: schema)
         #expect(errors.count > 0)
     }
 
-    @Test func testDoNotOverrideStandardTypes() throws {
+    @Test func doNotOverrideStandardTypes() throws {
         let schema = try buildSchema(source: """
         scalar ID
 
@@ -1102,7 +1102,7 @@ import Testing
         )
     }
 
-    @Test func testAllowsToReferenceIntrospectionTypes() throws {
+    @Test func allowsToReferenceIntrospectionTypes() throws {
         let schema = try buildSchema(source: """
         type Query {
           introspectionField: __EnumValue
@@ -1121,7 +1121,7 @@ import Testing
         )
     }
 
-    @Test func testRejectsInvalidSDL() throws {
+    @Test func rejectsInvalidSDL() throws {
         let sdl = """
         type Query {
           foo: String @unknown
@@ -1135,7 +1135,7 @@ import Testing
         }
     }
 
-    @Test func testAllowsToDisableSDLValidation() throws {
+    @Test func allowsToDisableSDLValidation() throws {
         let sdl = """
         type Query {
           foo: String @unknown
@@ -1145,7 +1145,7 @@ import Testing
         _ = try buildSchema(source: sdl, assumeValidSDL: true)
     }
 
-    @Test func testThrowsOnUnknownTypes() throws {
+    @Test func throwsOnUnknownTypes() throws {
         let sdl = """
         type Query {
           unknown: UnknownType
@@ -1159,7 +1159,7 @@ import Testing
         }
     }
 
-    @Test func testCorrectlyProcessesViralSchema() throws {
+    @Test func correctlyProcessesViralSchema() throws {
         let schema = try buildSchema(source: """
         schema {
           query: Query

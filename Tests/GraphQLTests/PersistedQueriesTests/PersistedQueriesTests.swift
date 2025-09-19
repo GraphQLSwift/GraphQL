@@ -14,7 +14,7 @@ import Testing
 //        )
 //    )
 //
-//    @Test func testLookupWithUnknownId() throws {
+//    @Test func lookupWithUnknownId() throws {
 //        let result = try lookup("unknown_id")
 //        switch result {
 //        case .unknownId(let id):
@@ -25,7 +25,7 @@ import Testing
 //        }
 //    }
 //
-//    @Test func testLookupWithParseError() throws {
+//    @Test func lookupWithParseError() throws {
 //        let result = try lookup("parse_error")
 //        switch result {
 //        case .parseError(let error):
@@ -39,7 +39,7 @@ import Testing
 //        }
 //    }
 //
-//    @Test func testLookupWithValidationErrors() throws {
+//    @Test func lookupWithValidationErrors() throws {
 //        let result = try lookup("validation_errors")
 //        switch result {
 //        case .validateErrors(let schema, let errors):
@@ -55,7 +55,7 @@ import Testing
 //        }
 //    }
 //
-//    @Test func testLookupWithResult() throws {
+//    @Test func lookupWithResult() throws {
 //        let result = try lookup("result")
 //        switch result {
 //        case .result(let schema, _):
@@ -66,7 +66,7 @@ import Testing
 //        }
 //    }
 //
-//    @Test func testGraphQLWithUnknownId() throws {
+//    @Test func graphQLWithUnknownId() throws {
 //        do {
 //            _ = try graphql(queryRetrieval: self, queryId: "unknown_id")
 //        } catch let error as GraphQLError {
@@ -74,7 +74,7 @@ import Testing
 //        }
 //    }
 //
-//    @Test func testGraphQLWithWithParseError() throws {
+//    @Test func graphQLWithWithParseError() throws {
 //        do {
 //            _ = try graphql(queryRetrieval: self, queryId: "parse_error")
 //        } catch let error as GraphQLError {
@@ -85,7 +85,7 @@ import Testing
 //        }
 //    }
 //
-//    @Test func testGraphQLWithWithValidationErrors() throws {
+//    @Test func graphQLWithWithValidationErrors() throws {
 //        let expected: Map = [
 //            "errors": [
 //                [
@@ -98,7 +98,7 @@ import Testing
 //        #expect(result == expected)
 //    }
 //
-//    @Test func testGraphQLWithWithResult() throws {
+//    @Test func graphQLWithWithResult() throws {
 //        let expected: Map = [
 //            "data": [
 //                "hello": "world"

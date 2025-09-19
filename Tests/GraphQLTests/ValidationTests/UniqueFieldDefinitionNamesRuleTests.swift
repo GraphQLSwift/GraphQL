@@ -7,7 +7,7 @@ class UniqueFieldDefinitionNamesRuleTests: SDLValidationTestCase {
         rule = UniqueFieldDefinitionNamesRule
     }
 
-    @Test func testNoFields() throws {
+    @Test func noFields() throws {
         try assertValidationErrors(
             """
             type SomeObject
@@ -18,7 +18,7 @@ class UniqueFieldDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testOneField() throws {
+    @Test func oneField() throws {
         try assertValidationErrors(
             """
             type SomeObject {
@@ -37,7 +37,7 @@ class UniqueFieldDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testMultipleFields() throws {
+    @Test func multipleFields() throws {
         try assertValidationErrors(
             """
             type SomeObject {
@@ -59,7 +59,7 @@ class UniqueFieldDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDuplicateFieldsInsideTheSameTypeDefinition() throws {
+    @Test func duplicateFieldsInsideTheSameTypeDefinition() throws {
         try assertValidationErrors(
             """
             type SomeObject {
@@ -106,7 +106,7 @@ class UniqueFieldDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testExtendTypeWithNewField() throws {
+    @Test func extendTypeWithNewField() throws {
         try assertValidationErrors(
             """
             type SomeObject {
@@ -143,7 +143,7 @@ class UniqueFieldDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testExtendTypeWithDuplicateField() throws {
+    @Test func extendTypeWithDuplicateField() throws {
         try assertValidationErrors(
             """
             extend type SomeObject {
@@ -193,7 +193,7 @@ class UniqueFieldDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDuplicateFieldInsideExtension() throws {
+    @Test func duplicateFieldInsideExtension() throws {
         try assertValidationErrors(
             """
             type SomeObject
@@ -243,7 +243,7 @@ class UniqueFieldDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDuplicateValueInsideDifferentExtension() throws {
+    @Test func duplicateValueInsideDifferentExtension() throws {
         try assertValidationErrors(
             """
             type SomeObject
@@ -296,7 +296,7 @@ class UniqueFieldDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testAddingNewFieldToTheTypeInsideExistingSchema() throws {
+    @Test func addingNewFieldToTheTypeInsideExistingSchema() throws {
         let schema = try buildSchema(source: """
         type SomeObject
         interface SomeInterface
@@ -318,7 +318,7 @@ class UniqueFieldDefinitionNamesRuleTests: SDLValidationTestCase {
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
-    @Test func testAddingConflictingFieldsToExistingSchemaTwice() throws {
+    @Test func addingConflictingFieldsToExistingSchemaTwice() throws {
         let schema = try buildSchema(source: """
         type SomeObject {
           foo: String
@@ -385,7 +385,7 @@ class UniqueFieldDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testAddingFieldsToExistingSchemaTwice() throws {
+    @Test func addingFieldsToExistingSchemaTwice() throws {
         let schema = try buildSchema(source: """
         type SomeObject
         interface SomeInterface

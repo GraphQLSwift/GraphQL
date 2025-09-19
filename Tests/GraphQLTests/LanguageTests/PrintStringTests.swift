@@ -2,40 +2,40 @@
 import Testing
 
 @Suite struct PrintStringTests {
-    @Test func testPrintsASimpleString() {
+    @Test func printsASimpleString() {
         #expect(printString("hello world") == "\"hello world\"")
     }
 
-    @Test func testEscapesQutoes() {
+    @Test func escapesQutoes() {
         #expect(printString("\"hello world\"") == "\"\\\"hello world\\\"\"")
     }
 
-    @Test func testDoesNotEscapeSingleQuote() {
+    @Test func doesNotEscapeSingleQuote() {
         #expect(printString("who's test") == "\"who's test\"")
     }
 
-    @Test func testEscapesBackslashes() {
+    @Test func escapesBackslashes() {
         #expect(printString("escape: \\") == "\"escape: \\\\\"")
     }
 
-    @Test func testEscapesWellKnownControlChars() {
+    @Test func escapesWellKnownControlChars() {
         #expect(printString("\n\r\t") == "\"\\n\\r\\t\"")
     }
 
-    @Test func testEscapesZeroByte() {
+    @Test func escapesZeroByte() {
         #expect(printString("\u{0000}") == "\"\\u0000\"")
     }
 
-    @Test func testDoesNotEscapeSpace() {
+    @Test func doesNotEscapeSpace() {
         #expect(printString(" ") == "\" \"")
     }
 
     // TODO: We only support UTF8
-    @Test func testDoesNotEscapeSupplementaryCharacter() {
+    @Test func doesNotEscapeSupplementaryCharacter() {
         #expect(printString("\u{1f600}") == "\"\u{1f600}\"")
     }
 
-    @Test func testEscapesAllControlChars() {
+    @Test func escapesAllControlChars() {
         #expect(
             printString(
                 "\u{0000}\u{0001}\u{0002}\u{0003}\u{0004}\u{0005}\u{0006}\u{0007}" +

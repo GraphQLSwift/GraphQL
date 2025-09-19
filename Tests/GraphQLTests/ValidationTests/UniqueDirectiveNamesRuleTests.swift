@@ -7,7 +7,7 @@ class UniqueDirectiveNamesRuleTests: SDLValidationTestCase {
         rule = UniqueDirectiveNamesRule
     }
 
-    @Test func testNoDirective() throws {
+    @Test func noDirective() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -16,7 +16,7 @@ class UniqueDirectiveNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testOneDirective() throws {
+    @Test func oneDirective() throws {
         try assertValidationErrors(
             """
             directive @foo on SCHEMA
@@ -25,7 +25,7 @@ class UniqueDirectiveNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testManyDirectives() throws {
+    @Test func manyDirectives() throws {
         try assertValidationErrors(
             """
             directive @foo on SCHEMA
@@ -36,7 +36,7 @@ class UniqueDirectiveNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDirectiveAndNonDirectiveDefinitionsNamedTheSame() throws {
+    @Test func directiveAndNonDirectiveDefinitionsNamedTheSame() throws {
         try assertValidationErrors(
             """
             query foo { __typename }
@@ -49,7 +49,7 @@ class UniqueDirectiveNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDirectivesNamedTheSame() throws {
+    @Test func directivesNamedTheSame() throws {
         try assertValidationErrors(
             """
             directive @foo on SCHEMA
@@ -68,12 +68,12 @@ class UniqueDirectiveNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testAddingNewDirectiveToExistingSchema() throws {
+    @Test func addingNewDirectiveToExistingSchema() throws {
         let schema = try buildSchema(source: "directive @foo on SCHEMA")
         try assertValidationErrors("directive @bar on SCHEMA", schema: schema, [])
     }
 
-    @Test func testAddingNewDirectiveWithStandardNameToExistingSchema() throws {
+    @Test func addingNewDirectiveWithStandardNameToExistingSchema() throws {
         let schema = try buildSchema(source: "type foo")
         try assertValidationErrors(
             "directive @skip on SCHEMA",
@@ -87,12 +87,12 @@ class UniqueDirectiveNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testAddingNewDirectiveToExistingSchemaWithSameNamedType() throws {
+    @Test func addingNewDirectiveToExistingSchemaWithSameNamedType() throws {
         let schema = try buildSchema(source: "type foo")
         try assertValidationErrors("directive @foo on SCHEMA", schema: schema, [])
     }
 
-    @Test func testAddingConflictingDirectiveToExistingSchema() throws {
+    @Test func addingConflictingDirectiveToExistingSchema() throws {
         let schema = try buildSchema(source: "directive @foo on SCHEMA")
         try assertValidationErrors(
             "directive @foo on SCHEMA",

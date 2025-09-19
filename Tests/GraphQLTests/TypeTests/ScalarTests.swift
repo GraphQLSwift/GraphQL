@@ -2,7 +2,7 @@
 import Testing
 
 @Suite struct ScalarTests {
-    @Test func testIntParseValue() throws {
+    @Test func intParseValue() throws {
         try #expect(GraphQLInt.parseValue(1) == 1)
         try #expect(GraphQLInt.parseValue(0) == 0)
         try #expect(GraphQLInt.parseValue(-1) == -1)
@@ -89,7 +89,7 @@ import Testing
         }
     }
 
-    @Test func testIntSerialize() throws {
+    @Test func intSerialize() throws {
         try #expect(GraphQLInt.serialize(1) == 1)
         try #expect(GraphQLInt.serialize("123") == 123)
         try #expect(GraphQLInt.serialize(0) == 0)
@@ -188,7 +188,7 @@ import Testing
         }
     }
 
-    @Test func testFloatParseValue() throws {
+    @Test func floatParseValue() throws {
         try #expect(GraphQLFloat.parseValue(1) == 1)
         try #expect(GraphQLFloat.parseValue(0) == 0)
         try #expect(GraphQLFloat.parseValue(-1) == -1)
@@ -264,7 +264,7 @@ import Testing
         }
     }
 
-    @Test func testFloatSerialize() throws {
+    @Test func floatSerialize() throws {
         try #expect(GraphQLFloat.serialize(1) == 1.0)
         try #expect(GraphQLFloat.serialize(0) == 0.0)
         try #expect(GraphQLFloat.serialize("123.5") == 123.5)
@@ -308,7 +308,7 @@ import Testing
         }
     }
 
-    @Test func testStringParseValue() throws {
+    @Test func stringParseValue() throws {
         try #expect(GraphQLString.parseValue("foo") == "foo")
 
         #expect(
@@ -355,7 +355,7 @@ import Testing
         }
     }
 
-    @Test func testStringSerialize() throws {
+    @Test func stringSerialize() throws {
         try #expect(GraphQLString.serialize("string") == "string")
         try #expect(GraphQLString.serialize(1) == "1")
         try #expect(GraphQLString.serialize(-1.1) == "-1.1")
@@ -393,7 +393,7 @@ import Testing
         }
     }
 
-    @Test func testBoolParseValue() throws {
+    @Test func boolParseValue() throws {
         try #expect(GraphQLBoolean.parseValue(true) == true)
         try #expect(GraphQLBoolean.parseValue(false) == false)
 
@@ -441,7 +441,7 @@ import Testing
         }
     }
 
-    @Test func testBoolSerialize() throws {
+    @Test func boolSerialize() throws {
         try #expect(GraphQLBoolean.serialize(1) == true)
         try #expect(GraphQLBoolean.serialize(0) == false)
         try #expect(GraphQLBoolean.serialize(true) == true)
@@ -479,7 +479,7 @@ import Testing
         }
     }
 
-    @Test func testIDParseValue() throws {
+    @Test func iDParseValue() throws {
         try #expect(GraphQLID.parseValue("") == "")
         try #expect(GraphQLID.parseValue("1") == "1")
         try #expect(GraphQLID.parseValue("foo") == "foo")
@@ -546,7 +546,7 @@ import Testing
         }
     }
 
-    @Test func testIDSerialize() throws {
+    @Test func iDSerialize() throws {
         try #expect(GraphQLID.serialize("string") == "string")
         try #expect(GraphQLID.serialize("false") == "false")
         try #expect(GraphQLID.serialize("") == "")

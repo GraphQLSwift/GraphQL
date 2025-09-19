@@ -11,7 +11,7 @@ func validationErrors(query: String) throws -> [GraphQLError] {
 }
 
 @Suite struct StarWarsValidationTests {
-    @Test func testNestedQueryWithFragment() throws {
+    @Test func nestedQueryWithFragment() throws {
         let query = "query NestedQueryWithFragment {" +
             "    hero {" +
             "        ...NameAndAppearances" +
@@ -31,7 +31,7 @@ func validationErrors(query: String) throws -> [GraphQLError] {
         #expect(try validationErrors(query: query).isEmpty)
     }
 
-    @Test func testHeroSpaceshipQuery() throws {
+    @Test func heroSpaceshipQuery() throws {
         let query = "query HeroSpaceshipQuery {" +
             "    hero {" +
             "        favoriteSpaceship" +
@@ -45,7 +45,7 @@ func validationErrors(query: String) throws -> [GraphQLError] {
         #expect(try !validationErrors(query: query).isEmpty)
     }
 
-    @Test func testHeroNoFieldsQuery() throws {
+    @Test func heroNoFieldsQuery() throws {
         let query = "query HeroNoFieldsQuery {" +
             "    hero" +
             "}"
@@ -53,7 +53,7 @@ func validationErrors(query: String) throws -> [GraphQLError] {
         #expect(try !validationErrors(query: query).isEmpty)
     }
 
-    @Test func testHeroFieldsOnScalarQuery() throws {
+    @Test func heroFieldsOnScalarQuery() throws {
         let query = "query HeroFieldsOnScalarQuery {" +
             "    hero {" +
             "        name {" +
@@ -65,7 +65,7 @@ func validationErrors(query: String) throws -> [GraphQLError] {
         #expect(try !validationErrors(query: query).isEmpty)
     }
 
-    @Test func testDroidFieldOnCharacter() throws {
+    @Test func droidFieldOnCharacter() throws {
         let query = "query DroidFieldOnCharacter {" +
             "    hero {" +
             "        name" +
@@ -76,7 +76,7 @@ func validationErrors(query: String) throws -> [GraphQLError] {
         #expect(try !validationErrors(query: query).isEmpty)
     }
 
-    @Test func testDroidFieldInFragment() throws {
+    @Test func droidFieldInFragment() throws {
         let query = "query DroidFieldInFragment {" +
             "    hero {" +
             "        name" +
@@ -90,7 +90,7 @@ func validationErrors(query: String) throws -> [GraphQLError] {
         #expect(try validationErrors(query: query).isEmpty)
     }
 
-    @Test func testDroidFieldInInlineFragment() throws {
+    @Test func droidFieldInInlineFragment() throws {
         let query = "query DroidFieldInInlineFragment {" +
             "    hero {" +
             "        name" +

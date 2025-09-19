@@ -3,12 +3,12 @@ import Foundation
 import Testing
 
 @Suite struct VisitorTests {
-    @Test func testHandlesEmptyVisitor() throws {
+    @Test func handlesEmptyVisitor() throws {
         let ast = try parse(source: "{ a }", noLocation: true)
         visit(root: ast, visitor: .init())
     }
 
-    @Test func testValidatesPathArgument() throws {
+    @Test func validatesPathArgument() throws {
         var visited = [VisitedPath]()
         let ast = try parse(source: "{ a }", noLocation: true)
 
@@ -41,7 +41,7 @@ import Testing
         )
     }
 
-    @Test func testValidatesAncestorsArgument() throws {
+    @Test func validatesAncestorsArgument() throws {
         var visited = [NodeResult]()
         let ast = try parse(source: "{ a }", noLocation: true)
 
@@ -74,7 +74,7 @@ import Testing
         ))
     }
 
-    @Test func testAllowsEditingANodeBothOnEnterAndOnLeave() throws {
+    @Test func allowsEditingANodeBothOnEnterAndOnLeave() throws {
         let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
 
         var selectionSet: SelectionSet?
@@ -117,7 +117,7 @@ import Testing
         #expect(operationSelections.count == 3)
     }
 
-    @Test func testAllowsEditingTheRootNodeOnEnterAndOnLeave() throws {
+    @Test func allowsEditingTheRootNodeOnEnterAndOnLeave() throws {
         let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
 
         let editedASTNode = visit(root: ast, visitor: .init(
@@ -173,7 +173,7 @@ import Testing
         )
     }
 
-    @Test func testAllowsForEditingOnEnter() throws {
+    @Test func allowsForEditingOnEnter() throws {
         let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
 
         let editedASTNode = visit(root: ast, visitor: .init(
@@ -200,7 +200,7 @@ import Testing
         )
     }
 
-    @Test func testAllowsForEditingOnLeave() throws {
+    @Test func allowsForEditingOnLeave() throws {
         let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
 
         let editedASTNode = visit(root: ast, visitor: .init(
@@ -227,7 +227,7 @@ import Testing
         )
     }
 
-    @Test func testIgnoresSkipReturnedOnLeave() throws {
+    @Test func ignoresSkipReturnedOnLeave() throws {
         let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
 
         let editedASTNode = visit(root: ast, visitor: .init(
@@ -249,7 +249,7 @@ import Testing
         )
     }
 
-    @Test func testVisitsEditedNode() throws {
+    @Test func visitsEditedNode() throws {
         let addedField = Field(
             name: Name(value: "__typename")
         )
@@ -285,7 +285,7 @@ import Testing
         #expect(didVisitAddedField)
     }
 
-    @Test func testAllowsSkippingASubTree() throws {
+    @Test func allowsSkippingASubTree() throws {
         struct VisitedElement: Equatable {
             let direction: VisitDirection
             let kind: Kind
@@ -338,7 +338,7 @@ import Testing
         )
     }
 
-    @Test func testAllowsEarlyExitWhileVisiting() throws {
+    @Test func allowsEarlyExitWhileVisiting() throws {
         struct VisitedElement: Equatable {
             let direction: VisitDirection
             let kind: Kind
@@ -389,7 +389,7 @@ import Testing
         )
     }
 
-    @Test func testAllowsEarlyExitWhileLeaving() throws {
+    @Test func allowsEarlyExitWhileLeaving() throws {
         struct VisitedElement: Equatable {
             let direction: VisitDirection
             let kind: Kind
@@ -441,7 +441,7 @@ import Testing
         )
     }
 
-    @Test func testAllowsANamedFunctionsVisitorAPI() throws {
+    @Test func allowsANamedFunctionsVisitorAPI() throws {
         struct VisitedElement: Equatable {
             let direction: VisitDirection
             let kind: Kind
@@ -492,7 +492,7 @@ import Testing
         )
     }
 
-    @Test func testProperlyVisitsTheKitchenSinkQuery() throws {
+    @Test func properlyVisitsTheKitchenSinkQuery() throws {
         var visited = [VisitedKindAndParent]()
 
         guard

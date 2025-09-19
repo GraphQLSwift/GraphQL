@@ -4,7 +4,7 @@ import Testing
 @Suite struct OneOfTests {
     // MARK: OneOf Input Objects
 
-    @Test func testAcceptsAGoodDefaultValue() async throws {
+    @Test func acceptsAGoodDefaultValue() async throws {
         let query = """
         query ($input: TestInputObject! = {a: "abc"}) {
           test(input: $input) {
@@ -27,7 +27,7 @@ import Testing
         )
     }
 
-    @Test func testRejectsABadDefaultValue() async throws {
+    @Test func rejectsABadDefaultValue() async throws {
         let query = """
         query ($input: TestInputObject! = {a: "abc", b: 123}) {
           test(input: $input) {
@@ -47,7 +47,7 @@ import Testing
         )
     }
 
-    @Test func testAcceptsAGoodVariable() async throws {
+    @Test func acceptsAGoodVariable() async throws {
         let query = """
         query ($input: TestInputObject!) {
           test(input: $input) {
@@ -71,7 +71,7 @@ import Testing
         )
     }
 
-    @Test func testAcceptsAGoodVariableWithAnUndefinedKey() async throws {
+    @Test func acceptsAGoodVariableWithAnUndefinedKey() async throws {
         let query = """
         query ($input: TestInputObject!) {
           test(input: $input) {
@@ -95,7 +95,7 @@ import Testing
         )
     }
 
-    @Test func testRejectsAVariableWithMultipleNonNullKeys() async throws {
+    @Test func rejectsAVariableWithMultipleNonNullKeys() async throws {
         let query = """
         query ($input: TestInputObject!) {
           test(input: $input) {
@@ -118,7 +118,7 @@ import Testing
         )
     }
 
-    @Test func testRejectsAVariableWithMultipleNullableKeys() async throws {
+    @Test func rejectsAVariableWithMultipleNullableKeys() async throws {
         let query = """
         query ($input: TestInputObject!) {
           test(input: $input) {

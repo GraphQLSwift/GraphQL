@@ -7,7 +7,7 @@ class UniqueVariableNamesRuleTests: ValidationTestCase {
         rule = UniqueVariableNamesRule
     }
 
-    @Test func testUniqueVariableNames() throws {
+    @Test func uniqueVariableNames() throws {
         try assertValid(
             """
             query A($x: Int, $y: String) { __typename }
@@ -16,7 +16,7 @@ class UniqueVariableNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testDuplicateVariableNames() throws {
+    @Test func duplicateVariableNames() throws {
         let errors = try assertInvalid(
             errorCount: 3,
             query:

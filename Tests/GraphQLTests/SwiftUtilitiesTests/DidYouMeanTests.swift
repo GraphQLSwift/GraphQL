@@ -2,13 +2,13 @@
 import Testing
 
 @Suite struct DidYouMeanTests {
-    @Test func testEmptyList() {
+    @Test func emptyList() {
         #expect(
             didYouMean(suggestions: []) == ""
         )
     }
 
-    @Test func testSingleSuggestion() {
+    @Test func singleSuggestion() {
         #expect(
             didYouMean(
                 suggestions: ["A"]
@@ -16,7 +16,7 @@ import Testing
         )
     }
 
-    @Test func testTwoSuggestions() {
+    @Test func twoSuggestions() {
         #expect(
             didYouMean(
                 suggestions: ["A", "B"]
@@ -24,7 +24,7 @@ import Testing
         )
     }
 
-    @Test func testMultipleSuggestions() {
+    @Test func multipleSuggestions() {
         #expect(
             didYouMean(
                 suggestions: ["A", "B", "C"]
@@ -32,7 +32,7 @@ import Testing
         )
     }
 
-    @Test func testLimitsToFiveSuggestions() {
+    @Test func limitsToFiveSuggestions() {
         #expect(
             didYouMean(
                 suggestions: ["A", "B", "C", "D", "E", "F"]
@@ -40,7 +40,7 @@ import Testing
         )
     }
 
-    @Test func testAddsSubmessage() {
+    @Test func addsSubmessage() {
         #expect(
             didYouMean(
                 "the letter",

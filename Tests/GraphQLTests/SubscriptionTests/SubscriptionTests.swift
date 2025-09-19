@@ -8,7 +8,7 @@ import Testing
     // MARK: Test primary graphqlSubscribe function
 
     /// This test is not present in graphql-js, but just tests basic functionality.
-    @Test func testGraphqlSubscribe() async throws {
+    @Test func graphqlSubscribe() async throws {
         let db = EmailDb()
         let schema = try await db.defaultSchema()
         let query = """
@@ -26,7 +26,7 @@ import Testing
               }
         """
 
-        let subscriptionResult = try await graphqlSubscribe(
+        let subscriptionResult = try await GraphQL.graphqlSubscribe(
             schema: schema,
             request: query
         )
@@ -60,7 +60,7 @@ import Testing
     // MARK: Subscription Initialization Phase
 
     /// accepts multiple subscription fields defined in schema
-    @Test func testAcceptsMultipleSubscriptionFields() async throws {
+    @Test func acceptsMultipleSubscriptionFields() async throws {
         let db = EmailDb()
         let schema = try GraphQLSchema(
             query: EmailQueryType,
@@ -158,7 +158,7 @@ import Testing
     ///
     /// Note that due to implementation details in Swift, this will not resolve the "first" one,
     /// but rather a random one of the two
-    @Test func testInvalidMultiField() async throws {
+    @Test func invalidMultiField() async throws {
         let db = EmailDb()
 
         actor ResolveChecker {
@@ -241,7 +241,7 @@ import Testing
     // Not implemented because this is taken care of by Swift optional types
 
     /// 'resolves to an error for unknown subscription field'
-    @Test func testErrorUnknownSubscriptionField() async throws {
+    @Test func errorUnknownSubscriptionField() async throws {
         let db = EmailDb()
         do {
             _ = try await db.subscription(query: """
@@ -267,7 +267,7 @@ import Testing
     }
 
     /// 'should pass through unexpected errors thrown in subscribe'
-    @Test func testPassUnexpectedSubscribeErrors() async throws {
+    @Test func passUnexpectedSubscribeErrors() async throws {
         let db = EmailDb()
         do {
             _ = try await db.subscription(query: "")
@@ -276,7 +276,7 @@ import Testing
     }
 
     /// 'throws an error if subscribe does not return an iterator'
-    @Test func testErrorIfSubscribeIsntIterator() async throws {
+    @Test func errorIfSubscribeIsntIterator() async throws {
         let schema = try emailSchemaWithResolvers(
             resolve: { _, _, _, _ throws in
                 nil
@@ -312,7 +312,7 @@ import Testing
     }
 
     /// 'resolves to an error for subscription resolver errors'
-    @Test func testErrorForSubscriptionResolverErrors() async throws {
+    @Test func errorForSubscriptionResolverErrors() async throws {
         func verifyError(schema: GraphQLSchema) async throws {
             do {
                 _ = try await createSubscription(schema: schema, query: """
@@ -360,7 +360,7 @@ import Testing
     // Tests above cover this
 
     /// 'resolves to an error if variables were wrong type'
-    @Test func testErrorVariablesWrongType() async throws {
+    @Test func errorVariablesWrongType() async throws {
         let db = EmailDb()
         let query = """
             subscription ($priority: Int) {
@@ -400,7 +400,7 @@ import Testing
     // MARK: Subscription Publish Phase
 
     /// 'produces a payload for a single subscriber'
-    @Test func testSingleSubscriber() async throws {
+    @Test func singleSubscriber() async throws {
         let db = EmailDb()
         let stream = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
@@ -444,7 +444,7 @@ import Testing
     }
 
     /// 'produces a payload for multiple subscribe in same subscription'
-    @Test func testMultipleSubscribers() async throws {
+    @Test func multipleSubscribers() async throws {
         let db = EmailDb()
         let stream1 = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
@@ -507,7 +507,7 @@ import Testing
     }
 
     /// 'produces a payload per subscription event'
-    @Test func testPayloadPerEvent() async throws {
+    @Test func payloadPerEvent() async throws {
         let db = EmailDb()
         let stream = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
@@ -574,7 +574,7 @@ import Testing
 
     /// Tests that subscriptions use arguments correctly.
     /// This is not in the graphql-js tests.
-    @Test func testArguments() async throws {
+    @Test func arguments() async throws {
         let db = EmailDb()
         let stream = try await db.subscription(query: """
             subscription ($priority: Int = 5) {
@@ -655,7 +655,7 @@ import Testing
     }
 
     /// 'should not trigger when subscription is already done'
-    @Test func testNoTriggerAfterDone() async throws {
+    @Test func noTriggerAfterDone() async throws {
         let db = EmailDb()
         let stream = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
@@ -715,7 +715,7 @@ import Testing
     // Not necessary - Swift async stream handles throwing errors
 
     /// 'event order is correct for multiple publishes'
-    @Test func testOrderCorrectForMultiplePublishes() async throws {
+    @Test func orderCorrectForMultiplePublishes() async throws {
         let db = EmailDb()
         let stream = try await db.subscription(query: """
             subscription ($priority: Int = 0) {
@@ -768,7 +768,7 @@ import Testing
     }
 
     /// 'should handle error during execution of source event'
-    @Test func testErrorDuringSubscription() async throws {
+    @Test func errorDuringSubscription() async throws {
         let db = EmailDb()
 
         let schema = try emailSchemaWithResolvers(

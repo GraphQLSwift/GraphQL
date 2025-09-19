@@ -3,7 +3,7 @@ import Foundation
 import Testing
 
 @Suite struct ParserTests {
-    @Test func testErrorMessages() throws {
+    @Test func errorMessages() throws {
         var source: String
 
         var error = try #require(throws: GraphQLError.self) { try parse(source: "{") }
@@ -90,11 +90,11 @@ import Testing
         ))
     }
 
-    @Test func testVariableInlineValues() throws {
+    @Test func variableInlineValues() throws {
         _ = try parse(source: "{ field(complex: { a: { b: [ $var ] } }) }")
     }
 
-    @Test func testFieldWithArguments() throws {
+    @Test func fieldWithArguments() throws {
         let query = """
         {
           stringArgField(stringArg: "Hello World")
@@ -231,7 +231,7 @@ import Testing
         case couldNotFindKitchenSink
     }
 
-    @Test func testKitchenSink() throws {
+    @Test func kitchenSink() throws {
         guard
             let url = Bundle.module.url(forResource: "kitchen-sink", withExtension: "graphql"),
             let kitchenSink = try? String(contentsOf: url, encoding: .utf8)
@@ -243,7 +243,7 @@ import Testing
         _ = try parse(source: kitchenSink)
     }
 
-    @Test func testNonKeywordAsName() throws {
+    @Test func nonKeywordAsName() throws {
         let nonKeywords = [
             "on",
             "fragment",
@@ -273,7 +273,7 @@ import Testing
         }
     }
 
-    @Test func testAnonymousMutationOperation() throws {
+    @Test func anonymousMutationOperation() throws {
         _ = try parse(
             source: "mutation {" +
                 "  mutationField" +
@@ -281,7 +281,7 @@ import Testing
         )
     }
 
-    @Test func testAnonymousSubscriptionOperation() throws {
+    @Test func anonymousSubscriptionOperation() throws {
         _ = try parse(
             source: "subscription {" +
                 "  subscriptionField" +
@@ -289,7 +289,7 @@ import Testing
         )
     }
 
-    @Test func testNamedMutationOperation() throws {
+    @Test func namedMutationOperation() throws {
         _ = try parse(
             source: "mutation Foo {" +
                 "  mutationField" +
@@ -297,7 +297,7 @@ import Testing
         )
     }
 
-    @Test func testNamedSubscriptionOperation() throws {
+    @Test func namedSubscriptionOperation() throws {
         _ = try parse(
             source: "subscription Foo {" +
                 "  subscriptionField" +
@@ -305,7 +305,7 @@ import Testing
         )
     }
 
-    @Test func testCreateAST() throws {
+    @Test func createAST() throws {
         let query = "{" +
             "  node(id: 4) {" +
             "    id," +
@@ -343,25 +343,25 @@ import Testing
         #expect(try parse(source: query) == expected)
     }
 
-    @Test func testNoLocation() throws {
+    @Test func noLocation() throws {
         let result = try parse(source: "{ id }", noLocation: true)
         #expect(result.loc == nil)
     }
 
-    @Test func testLocationSource() throws {
+    @Test func locationSource() throws {
         let source = Source(body: "{ id }")
         let result = try parse(source: source)
         #expect(result.loc?.source == source)
     }
 
-    @Test func testLocationTokens() throws {
+    @Test func locationTokens() throws {
         let source = Source(body: "{ id }")
         let result = try parse(source: source)
         #expect(result.loc?.startToken.kind == .sof)
         #expect(result.loc?.endToken.kind == .eof)
     }
 
-    @Test func testParseValue() throws {
+    @Test func parseValue() throws {
         let source = "[123 \"abc\"]"
 
         let expected: Value = ListValue(
@@ -371,10 +371,10 @@ import Testing
             ]
         )
 
-        #expect(try parseValue(source: source) == expected)
+        #expect(try GraphQL.parseValue(source: source) == expected)
     }
 
-    @Test func testParseType() throws {
+    @Test func parseType() throws {
         var source: String
         var expected: Type
 
@@ -384,7 +384,7 @@ import Testing
             name: Name(value: "String")
         )
 
-        #expect(try parseType(source: source) == expected)
+        #expect(try GraphQL.parseType(source: source) == expected)
 
         source = "MyType"
 
@@ -392,7 +392,7 @@ import Testing
             name: Name(value: "MyType")
         )
 
-        #expect(try parseType(source: source) == expected)
+        #expect(try GraphQL.parseType(source: source) == expected)
 
         source = "[MyType]"
 
@@ -402,7 +402,7 @@ import Testing
             )
         )
 
-        #expect(try parseType(source: source) == expected)
+        #expect(try GraphQL.parseType(source: source) == expected)
 
         source = "MyType!"
 
@@ -412,7 +412,7 @@ import Testing
             )
         )
 
-        #expect(try parseType(source: source) == expected)
+        #expect(try GraphQL.parseType(source: source) == expected)
 
         source = "[MyType!]"
 
@@ -424,10 +424,10 @@ import Testing
             )
         )
 
-        #expect(try parseType(source: source) == expected)
+        #expect(try GraphQL.parseType(source: source) == expected)
     }
 
-    @Test func testParseDirective() throws {
+    @Test func parseDirective() throws {
         let source = #"""
         directive @restricted(
           """The reason for this restriction"""

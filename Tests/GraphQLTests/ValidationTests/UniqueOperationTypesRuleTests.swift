@@ -7,7 +7,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         rule = UniqueOperationTypesRule
     }
 
-    @Test func testNoSchemaDefinition() throws {
+    @Test func noSchemaDefinition() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -16,7 +16,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testSchemaDefinitionWithAllTypes() throws {
+    @Test func schemaDefinitionWithAllTypes() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -31,7 +31,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testSchemaDefinitionWithSingleExtension() throws {
+    @Test func schemaDefinitionWithSingleExtension() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -47,7 +47,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testSchemaDefinitionWithSeparateExtensions() throws {
+    @Test func schemaDefinitionWithSeparateExtensions() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -60,7 +60,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testExtendSchemaBeforeDefinition() throws {
+    @Test func extendSchemaBeforeDefinition() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -74,7 +74,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDuplicateOperationTypesInsideSingleSchemaDefinition() throws {
+    @Test func duplicateOperationTypesInsideSingleSchemaDefinition() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -115,7 +115,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDuplicateOperationTypesInsideSingleSchemaDefinitionTwice() throws {
+    @Test func duplicateOperationTypesInsideSingleSchemaDefinitionTwice() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -185,7 +185,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDuplicateOperationTypesInsideSecondSchemaExtension() throws {
+    @Test func duplicateOperationTypesInsideSecondSchemaExtension() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -231,7 +231,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDefineAndExtendSchemaInsideExtensionSDL() throws {
+    @Test func defineAndExtendSchemaInsideExtensionSDL() throws {
         let schema = try buildSchema(source: "type Foo")
         let sdl = """
         schema { query: Foo }
@@ -241,7 +241,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
-    @Test func testAddingNewOperationTypesToExistingSchema() throws {
+    @Test func addingNewOperationTypesToExistingSchema() throws {
         let schema = try buildSchema(source: "type Query")
         let sdl = """
         extend schema { mutation: Foo }
@@ -250,7 +250,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
-    @Test func testAddingConflictingOperationTypesToExistingSchema() throws {
+    @Test func addingConflictingOperationTypesToExistingSchema() throws {
         let schema = try buildSchema(source: """
         type Query
         type Mutation
@@ -285,7 +285,7 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testAddingConflictingOperationTypesToExistingSchemaTwice() throws {
+    @Test func addingConflictingOperationTypesToExistingSchemaTwice() throws {
         let schema = try buildSchema(source: """
         type Query
         type Mutation

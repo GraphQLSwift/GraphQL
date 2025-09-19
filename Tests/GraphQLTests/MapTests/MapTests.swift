@@ -2,7 +2,7 @@
 import Testing
 
 @Suite struct MapTests {
-    @Test func testThrowableConversion() throws {
+    @Test func throwableConversion() throws {
         #expect(try Map.number(5).intValue() == 5)
         #expect(try Map.number(3.14).doubleValue() == 3.14)
         #expect(try Map.bool(false).boolValue() == false)
@@ -10,7 +10,7 @@ import Testing
         #expect(try Map.string("Hello world").stringValue() == "Hello world")
     }
 
-    @Test func testOptionalConversion() {
+    @Test func optionalConversion() {
         #expect(Map.number(5).int == 5)
         #expect(Map.number(3.14).double == 3.14)
         #expect(Map.bool(false).bool == false)
@@ -18,7 +18,7 @@ import Testing
         #expect(Map.string("Hello world").string == "Hello world")
     }
 
-    @Test func testArrayConversion() throws {
+    @Test func arrayConversion() throws {
         let map = Map.array([.number(1), .number(4), .number(9)])
         #expect(map.array?.count == 3)
 
@@ -30,7 +30,7 @@ import Testing
         #expect(try array[2].intValue() == 9)
     }
 
-    @Test func testDictionaryConversion() throws {
+    @Test func dictionaryConversion() throws {
         let map = Map.dictionary(
             [
                 "first": .number(1),
@@ -53,7 +53,7 @@ import Testing
     }
 
     // Ensure that default decoding preserves undefined becoming nil
-    @Test func testNilAndUndefinedDecodeToNilByDefault() throws {
+    @Test func nilAndUndefinedDecodeToNilByDefault() throws {
         struct DecodableTest: Codable {
             let first: Int?
             let second: Int?
@@ -82,7 +82,7 @@ import Testing
     // This should match JSON in that values set to `null` should be 'contained' by the container,
     // but
     // values expected by the result that are undefined or not present should not be.
-    @Test func testNilAndUndefinedDecoding() throws {
+    @Test func nilAndUndefinedDecoding() throws {
         struct DecodableTest: Codable {
             let first: Int?
             let second: Int?
@@ -132,7 +132,7 @@ import Testing
     }
 
     // Ensure that map encoding includes defined nulls, but skips undefined values
-    @Test func testMapEncodingNilAndUndefined() throws {
+    @Test func mapEncodingNilAndUndefined() throws {
         let map = Map.dictionary(
             [
                 "first": .number(1),
@@ -151,7 +151,7 @@ import Testing
     }
 
     // Ensure that GraphQLJSONEncoder preserves map dictionary order in output
-    @Test func testMapEncodingOrderPreserved() throws {
+    @Test func mapEncodingOrderPreserved() throws {
         // Test top level
         #expect(
             try String(

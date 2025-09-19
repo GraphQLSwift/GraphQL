@@ -7,7 +7,7 @@ class UniqueEnumValueNamesRuleTests: SDLValidationTestCase {
         rule = UniqueEnumValueNamesRule
     }
 
-    @Test func testNoValues() throws {
+    @Test func noValues() throws {
         try assertValidationErrors(
             """
             enum SomeEnum
@@ -16,7 +16,7 @@ class UniqueEnumValueNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testOneValue() throws {
+    @Test func oneValue() throws {
         try assertValidationErrors(
             """
             enum SomeEnum {
@@ -27,7 +27,7 @@ class UniqueEnumValueNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testMultipleValues() throws {
+    @Test func multipleValues() throws {
         try assertValidationErrors(
             """
             enum SomeEnum {
@@ -39,7 +39,7 @@ class UniqueEnumValueNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDuplicateValuesInsideTheSameEnumDefinition() throws {
+    @Test func duplicateValuesInsideTheSameEnumDefinition() throws {
         try assertValidationErrors(
             """
             enum SomeEnum {
@@ -60,7 +60,7 @@ class UniqueEnumValueNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testExtendEnumWithNewValue() throws {
+    @Test func extendEnumWithNewValue() throws {
         try assertValidationErrors(
             """
             enum SomeEnum {
@@ -77,7 +77,7 @@ class UniqueEnumValueNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testExtendEnumWithDuplicateValue() throws {
+    @Test func extendEnumWithDuplicateValue() throws {
         try assertValidationErrors(
             """
             extend enum SomeEnum {
@@ -99,7 +99,7 @@ class UniqueEnumValueNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDuplicateValueInsideExtension() throws {
+    @Test func duplicateValueInsideExtension() throws {
         try assertValidationErrors(
             """
             enum SomeEnum
@@ -121,7 +121,7 @@ class UniqueEnumValueNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDuplicateValueInsideDifferentExtension() throws {
+    @Test func duplicateValueInsideDifferentExtension() throws {
         try assertValidationErrors(
             """
             enum SomeEnum
@@ -144,7 +144,7 @@ class UniqueEnumValueNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testAddingNewValueToTheTypeInsideExistingSchema() throws {
+    @Test func addingNewValueToTheTypeInsideExistingSchema() throws {
         let schema = try buildSchema(source: "enum SomeEnum")
         let sdl = """
         extend enum SomeEnum {
@@ -154,7 +154,7 @@ class UniqueEnumValueNamesRuleTests: SDLValidationTestCase {
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
-    @Test func testAddingConflictingValueToExistingSchemaTwice() throws {
+    @Test func addingConflictingValueToExistingSchemaTwice() throws {
         let schema = try buildSchema(source: """
         enum SomeEnum {
           FOO
@@ -188,7 +188,7 @@ class UniqueEnumValueNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testAddingEnumValuesToExistingSchemaTwice() throws {
+    @Test func addingEnumValuesToExistingSchemaTwice() throws {
         let schema = try buildSchema(source: "enum SomeEnum")
         let sdl = """
         extend enum SomeEnum {

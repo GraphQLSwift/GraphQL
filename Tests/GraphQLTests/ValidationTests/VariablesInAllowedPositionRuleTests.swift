@@ -7,7 +7,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         rule = VariablesInAllowedPositionRule
     }
 
-    @Test func testBooleanToBoolean() throws {
+    @Test func booleanToBoolean() throws {
         try assertValid(
             """
             query Query($booleanArg: Boolean)
@@ -20,7 +20,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testBooleanToBooleanWithinFragment() throws {
+    @Test func booleanToBooleanWithinFragment() throws {
         try assertValid(
             """
             fragment booleanArgFrag on ComplicatedArgs {
@@ -50,7 +50,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNonNullBooleanToBoolean() throws {
+    @Test func nonNullBooleanToBoolean() throws {
         try assertValid(
             """
             query Query($nonNullBooleanArg: Boolean!)
@@ -63,7 +63,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNonNullBooleanToBooleanWithinFragment() throws {
+    @Test func nonNullBooleanToBooleanWithinFragment() throws {
         try assertValid(
             """
             fragment booleanArgFrag on ComplicatedArgs {
@@ -80,7 +80,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testStringListToStringList() throws {
+    @Test func stringListToStringList() throws {
         try assertValid(
             """
             query Query($stringListVar: [String])
@@ -93,7 +93,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNonNullStringListToStringList() throws {
+    @Test func nonNullStringListToStringList() throws {
         try assertValid(
             """
             query Query($stringListVar: [String!])
@@ -106,7 +106,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testStringToStringListInItemPosition() throws {
+    @Test func stringToStringListInItemPosition() throws {
         try assertValid(
             """
             query Query($stringVar: String)
@@ -119,7 +119,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNonNullStringToStringListInItemPosition() throws {
+    @Test func nonNullStringToStringListInItemPosition() throws {
         try assertValid(
             """
             query Query($stringVar: String!)
@@ -132,7 +132,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testComplexInputToComplexInput() throws {
+    @Test func complexInputToComplexInput() throws {
         try assertValid(
             """
             query Query($complexVar: ComplexInput)
@@ -145,7 +145,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testComplexInputToComplexInputInFieldPosition() throws {
+    @Test func complexInputToComplexInputInFieldPosition() throws {
         try assertValid(
             """
             query Query($boolVar: Boolean = false)
@@ -158,7 +158,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNonNullBooleanToNonNullBooleanInDirective() throws {
+    @Test func nonNullBooleanToNonNullBooleanInDirective() throws {
         try assertValid(
             """
             query Query($boolVar: Boolean!)
@@ -169,7 +169,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testIntToIntNonNull() throws {
+    @Test func intToIntNonNull() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -191,7 +191,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testIntToIntNonNullWithinFragment() throws {
+    @Test func intToIntNonNullWithinFragment() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -217,7 +217,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testIntToIntNonNullWithinNestedFragment() throws {
+    @Test func intToIntNonNullWithinNestedFragment() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -247,7 +247,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testStringToBoolean() throws {
+    @Test func stringToBoolean() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -269,7 +269,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testStringToStringList() throws {
+    @Test func stringToStringList() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -291,7 +291,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testBooleanToNonNullBooleanInDirective() throws {
+    @Test func booleanToNonNullBooleanInDirective() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -311,7 +311,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testStringToNonNullBooleanInDirective() throws {
+    @Test func stringToNonNullBooleanInDirective() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -331,7 +331,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testStringListToStringListNonNull() throws {
+    @Test func stringListToStringListNonNull() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -353,7 +353,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testOptionalVariableWithDefaultValue() throws {
+    @Test func optionalVariableWithDefaultValue() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -375,7 +375,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testIntOptionalWithNonNullDefaultValue() throws {
+    @Test func intOptionalWithNonNullDefaultValue() throws {
         try assertValid("""
         query Query($intVar: Int = 1) {
           complicatedArgs {
@@ -385,7 +385,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         """)
     }
 
-    @Test func testOptionalVariableWithDefaultValueAndNonNullField() throws {
+    @Test func optionalVariableWithDefaultValueAndNonNullField() throws {
         try assertValid("""
         query Query($intVar: Int) {
           complicatedArgs {
@@ -395,7 +395,7 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         """)
     }
 
-    @Test func testBooleanWithDefaultValueInDirective() throws {
+    @Test func booleanWithDefaultValueInDirective() throws {
         try assertValid("""
         query Query($boolVar: Boolean = false) {
           dog @include(if: $boolVar)

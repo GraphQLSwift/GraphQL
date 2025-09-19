@@ -68,7 +68,7 @@ func namedTypeNode(_ name: String) -> NamedType {
 }
 
 @Suite struct SchemaParserTests {
-    @Test func testSimpleType() throws {
+    @Test func simpleType() throws {
         let source = "type Hello { world: String }"
 
         let expected = Document(
@@ -89,7 +89,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testParsesTypeWithDescriptionString() throws {
+    @Test func parsesTypeWithDescriptionString() throws {
         let doc = try parse(source: """
         "Description"
         type Hello {
@@ -102,7 +102,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(type.description?.value == "Description")
     }
 
-    @Test func testParsesTypeWithDescriptionMultiLineString() throws {
+    @Test func parsesTypeWithDescriptionMultiLineString() throws {
         let doc = try parse(source: #"""
         """
         Description
@@ -118,7 +118,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(type.description?.value == "Description")
     }
 
-    @Test func testParsesSchemaWithDescriptionMultiLineString() throws {
+    @Test func parsesSchemaWithDescriptionMultiLineString() throws {
         let doc = try parse(source: """
         "Description"
         schema {
@@ -131,13 +131,13 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(type.description?.value == "Description")
     }
 
-    @Test func testDescriptionFollowedBySomethingOtherThanTypeSystemDefinitionThrows() throws {
+    @Test func descriptionFollowedBySomethingOtherThanTypeSystemDefinitionThrows() throws {
         #expect(throws: (any Error).self) {
             try parse(source: #""Description" 1"#)
         }
     }
 
-    @Test func testSimpleExtension() throws {
+    @Test func simpleExtension() throws {
         let source = "extend type Hello { world: String }"
 
         let expected = Document(
@@ -160,7 +160,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testObjectExtensionWithoutFields() throws {
+    @Test func objectExtensionWithoutFields() throws {
         #expect(
             try parse(source: "extend type Hello implements Greeting") == Document(
                 definitions: [
@@ -177,7 +177,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         )
     }
 
-    @Test func testInterfaceExtensionWithoutFields() throws {
+    @Test func interfaceExtensionWithoutFields() throws {
         #expect(
             try parse(source: "extend interface Hello implements Greeting") == Document(
                 definitions: [
@@ -194,7 +194,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         )
     }
 
-    @Test func testObjectExtensionWithoutFieldsFollowedByExtension() throws {
+    @Test func objectExtensionWithoutFieldsFollowedByExtension() throws {
         #expect(
             try parse(source: """
             extend type Hello implements Greeting
@@ -223,7 +223,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         )
     }
 
-    @Test func testExtensionWithoutAnythingThrows() throws {
+    @Test func extensionWithoutAnythingThrows() throws {
         #expect(throws: (any Error).self) { try parse(source: "extend scalar Hello") }
         #expect(throws: (any Error).self) { try parse(source: "extend type Hello") }
         #expect(throws: (any Error).self) { try parse(source: "extend interface Hello") }
@@ -232,7 +232,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(throws: (any Error).self) { try parse(source: "extend input Hello") }
     }
 
-    @Test func testInterfaceExtensionWithoutFieldsFollowedByExtension() throws {
+    @Test func interfaceExtensionWithoutFieldsFollowedByExtension() throws {
         #expect(
             try parse(source: """
             extend interface Hello implements Greeting
@@ -261,7 +261,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         )
     }
 
-    @Test func testObjectExtensionDoNotIncludeDescriptions() throws {
+    @Test func objectExtensionDoNotIncludeDescriptions() throws {
         #expect(throws: (any Error).self) {
             try parse(source: """
             "Description"
@@ -280,7 +280,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         }
     }
 
-    @Test func testInterfaceExtensionDoNotIncludeDescriptions() throws {
+    @Test func interfaceExtensionDoNotIncludeDescriptions() throws {
         #expect(throws: (any Error).self) {
             try parse(source: """
             "Description"
@@ -299,7 +299,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         }
     }
 
-    @Test func testSchemaExtension() throws {
+    @Test func schemaExtension() throws {
         #expect(
             try parse(source: """
             extend schema {
@@ -323,7 +323,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         )
     }
 
-    @Test func testSchemaExtensionWithOnlyDirectives() throws {
+    @Test func schemaExtensionWithOnlyDirectives() throws {
         #expect(
             try parse(source: "extend schema @directive") == Document(
                 definitions: [
@@ -340,19 +340,19 @@ func namedTypeNode(_ name: String) -> NamedType {
         )
     }
 
-    @Test func testSchemaExtensionWithoutAnythingThrows() throws {
+    @Test func schemaExtensionWithoutAnythingThrows() throws {
         #expect(throws: (any Error).self) {
             try parse(source: "extend schema")
         }
     }
 
-    @Test func testSchemaExtensionWithInvalidOperationTypeThrows() throws {
+    @Test func schemaExtensionWithInvalidOperationTypeThrows() throws {
         #expect(throws: (any Error).self) {
             try parse(source: "extend schema { unknown: SomeType }")
         }
     }
 
-    @Test func testSimpleNonNullType() throws {
+    @Test func simpleNonNullType() throws {
         let source = "type Hello { world: String! }"
 
         let expected = Document(
@@ -375,7 +375,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleInterfaceInheritingInterface() throws {
+    @Test func simpleInterfaceInheritingInterface() throws {
         #expect(
             try parse(
                 source: "interface Hello implements World { field: String }"
@@ -396,7 +396,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         )
     }
 
-    @Test func testSimpleTypeInheritingInterface() throws {
+    @Test func simpleTypeInheritingInterface() throws {
         let source = "type Hello implements World { }"
 
         let expected = Document(
@@ -412,7 +412,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleTypeInheritingMultipleInterfaces() throws {
+    @Test func simpleTypeInheritingMultipleInterfaces() throws {
         let source = "type Hello implements Wo & rld { }"
 
         let expected = Document(
@@ -431,7 +431,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleInterfaceInheritingMultipleInterfaces() throws {
+    @Test func simpleInterfaceInheritingMultipleInterfaces() throws {
         #expect(
             try parse(
                 source: "interface Hello implements Wo & rld { field: String }"
@@ -455,7 +455,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         )
     }
 
-    @Test func testSimpleTypeInheritingMultipleInterfacesWithLeadingAmbersand() throws {
+    @Test func simpleTypeInheritingMultipleInterfacesWithLeadingAmbersand() throws {
         let source = "type Hello implements & Wo & rld { }"
 
         let expected = Document(
@@ -474,7 +474,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleInterfaceInheritingMultipleInterfacesWithLeadingAmbersand() throws {
+    @Test func simpleInterfaceInheritingMultipleInterfacesWithLeadingAmbersand() throws {
         #expect(
             try parse(
                 source: "interface Hello implements & Wo & rld { field: String }"
@@ -498,7 +498,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         )
     }
 
-    @Test func testSingleValueEnum() throws {
+    @Test func singleValueEnum() throws {
         let source = "enum Hello { WORLD }"
 
         let expected = Document(
@@ -516,7 +516,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testDoubleValueEnum() throws {
+    @Test func doubleValueEnum() throws {
         let source = "enum Hello { WO, RLD }"
 
         let expected = Document(
@@ -535,7 +535,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleInterface() throws {
+    @Test func simpleInterface() throws {
         let source = "interface Hello { world: String }"
 
         let expected = Document(
@@ -556,7 +556,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleFieldWithArg() throws {
+    @Test func simpleFieldWithArg() throws {
         let source = "type Hello { world(flag: Boolean): String }"
 
         let expected = Document(
@@ -583,7 +583,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleFieldWithArgDefaultValue() throws {
+    @Test func simpleFieldWithArgDefaultValue() throws {
         let source = "type Hello { world(flag: Boolean = true): String }"
 
         let expected = Document(
@@ -611,7 +611,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleFieldWithListArg() throws {
+    @Test func simpleFieldWithListArg() throws {
         let source = "type Hello { world(things: [String]): String }"
 
         let expected = Document(
@@ -638,7 +638,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleFieldWithTwoArgs() throws {
+    @Test func simpleFieldWithTwoArgs() throws {
         let source = "type Hello { world(argOne: Boolean, argTwo: Int): String }"
 
         let expected = Document(
@@ -669,7 +669,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleUnion() throws {
+    @Test func simpleUnion() throws {
         let source = "union Hello = World"
 
         let expected = Document(
@@ -687,7 +687,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testUnionTwoTypes() throws {
+    @Test func unionTwoTypes() throws {
         let source = "union Hello = Wo | Rld"
 
         let expected = Document(
@@ -706,7 +706,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testScalar() throws {
+    @Test func scalar() throws {
         let source = "scalar Hello"
 
         let expected = Document(
@@ -721,7 +721,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleInputObject() throws {
+    @Test func simpleInputObject() throws {
         let source = "input Hello { world: String }"
 
         let expected = Document(
@@ -742,12 +742,12 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleInputObjectWithArgs() throws {
+    @Test func simpleInputObjectWithArgs() throws {
         let source = "input Hello { world(foo: Int): String }"
         #expect(throws: (any Error).self) { try parse(source: source) }
     }
 
-    @Test func testSimpleSchema() throws {
+    @Test func simpleSchema() throws {
         let source = "schema { query: Hello }"
         let expected = SchemaDefinition(
             directives: [],
@@ -764,7 +764,7 @@ func namedTypeNode(_ name: String) -> NamedType {
 
     // Description tests
 
-    @Test func testTypeWithDescription() throws {
+    @Test func typeWithDescription() throws {
         let source = #""The Hello type" type Hello { world: String }"#
 
         let expected = ObjectTypeDefinition(
@@ -789,7 +789,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         )
     }
 
-    @Test func testTypeWitMultilinehDescription() throws {
+    @Test func typeWitMultilinehDescription() throws {
         let source = #"""
         """
         The Hello type.
@@ -822,7 +822,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testDirectiveDesciption() throws {
+    @Test func directiveDesciption() throws {
         let source = #""directive description" directive @Test(a: String = "hello") on FIELD"#
 
         let expected = Document(
@@ -852,7 +852,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testDirectiveMultilineDesciption() throws {
+    @Test func directiveMultilineDesciption() throws {
         let source = #"""
         """
         directive description
@@ -886,7 +886,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleSchemaWithDescription() throws {
+    @Test func simpleSchemaWithDescription() throws {
         let source = #""Hello Schema" schema { query: Hello } "#
 
         let expected = SchemaDefinition(
@@ -903,7 +903,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result.definitions[0] == expected)
     }
 
-    @Test func testScalarWithDescription() throws {
+    @Test func scalarWithDescription() throws {
         let source = #""Hello Scaler Test" scalar Hello"#
 
         let expected = Document(
@@ -919,7 +919,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleInterfaceWithDescription() throws {
+    @Test func simpleInterfaceWithDescription() throws {
         let source = #""Hello World Interface" interface Hello { world: String } "#
 
         let expected = Document(
@@ -941,7 +941,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleUnionWithDescription() throws {
+    @Test func simpleUnionWithDescription() throws {
         let source = #""Hello World Union!" union Hello = World "#
 
         let expected = Document(
@@ -960,7 +960,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSingleValueEnumDescription() throws {
+    @Test func singleValueEnumDescription() throws {
         let source = #""Hello World Enum..." enum Hello { WORLD } "#
 
         let expected = Document(
@@ -979,7 +979,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testSimpleInputObjectWithDescription() throws {
+    @Test func simpleInputObjectWithDescription() throws {
         let source = #""Hello Input Object" input Hello { world: String }"#
 
         let expected = Document(
@@ -1003,7 +1003,7 @@ func namedTypeNode(_ name: String) -> NamedType {
 
     // Test Fields and values with optional descriptions
 
-    @Test func testSingleValueEnumWithDescription() throws {
+    @Test func singleValueEnumWithDescription() throws {
         let source = """
         enum Hello {
             "world description"
@@ -1035,7 +1035,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testTypeFieldWithDescription() throws {
+    @Test func typeFieldWithDescription() throws {
         let source = #"type Hello { "The world field." world: String } "#
 
         let expected = Document(
@@ -1057,7 +1057,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testTypeFieldWithMultilineDescription() throws {
+    @Test func typeFieldWithMultilineDescription() throws {
         let source = #"""
         type Hello {
             """
@@ -1087,7 +1087,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected, "\(dump(result)) \n\n\(dump(expected))")
     }
 
-    @Test func testSimpleInputObjectFieldWithDescription() throws {
+    @Test func simpleInputObjectFieldWithDescription() throws {
         let source = #"input Hello { "World field" world: String }"#
 
         let expected = Document(
@@ -1109,7 +1109,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testUndefinedType() throws {
+    @Test func undefinedType() throws {
         let source = #"type UndefinedType"#
 
         let expected = Document(
@@ -1122,7 +1122,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testUndefinedInterfaceType() throws {
+    @Test func undefinedInterfaceType() throws {
         let source = #"interface UndefinedInterface"#
 
         let expected = Document(
@@ -1138,7 +1138,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testInterfaceExtensionType() throws {
+    @Test func interfaceExtensionType() throws {
         let source = #"extend interface Bar @onInterface"#
 
         let expected = Document(
@@ -1159,7 +1159,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testUnionPipe() throws {
+    @Test func unionPipe() throws {
         let source = #"union AnnotatedUnionTwo @onUnion = | A | B"#
 
         let expected = Document(
@@ -1181,7 +1181,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testExtendScalar() throws {
+    @Test func extendScalar() throws {
         let source = #"extend scalar CustomScalar @onScalar"#
 
         let expected = Document(
@@ -1201,7 +1201,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testUndefinedUnion() throws {
+    @Test func undefinedUnion() throws {
         let source = #"union UndefinedUnion"#
 
         let expected = Document(
@@ -1217,7 +1217,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testExtendUnion() throws {
+    @Test func extendUnion() throws {
         let source = #"extend union Feed = Photo | Video"#
 
         let expected = Document(
@@ -1238,7 +1238,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testUndefinedEnum() throws {
+    @Test func undefinedEnum() throws {
         let source = #"enum UndefinedEnum"#
 
         let expected = Document(
@@ -1254,7 +1254,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testEnumExtension() throws {
+    @Test func enumExtension() throws {
         let source = #"extend enum Site @onEnum"#
 
         let expected = Document(
@@ -1275,7 +1275,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testUndefinedInput() throws {
+    @Test func undefinedInput() throws {
         let source = #"input UndefinedInput"#
 
         let expected = Document(
@@ -1291,7 +1291,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testInputExtension() throws {
+    @Test func inputExtension() throws {
         let source = #"extend input InputType @include"#
 
         let expected = Document(
@@ -1312,7 +1312,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testDirectivePipe() throws {
+    @Test func directivePipe() throws {
         let source = """
         directive @include2 on
             | FIELD
@@ -1337,7 +1337,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testDirectiveRepeatable() throws {
+    @Test func directiveRepeatable() throws {
         let source = """
         directive @myRepeatableDir repeatable on
           | OBJECT
@@ -1361,7 +1361,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(result == expected)
     }
 
-    @Test func testKitchenSink() throws {
+    @Test func kitchenSink() throws {
         guard
             let url = Bundle.module.url(
                 forResource: "schema-kitchen-sink",
@@ -1376,7 +1376,7 @@ func namedTypeNode(_ name: String) -> NamedType {
         _ = try parse(source: kitchenSink)
     }
 
-    @Test func testSchemeExtension() throws {
+    @Test func schemeExtension() throws {
         // Based on Apollo Federation example schema: https://github.com/apollographql/apollo-federation-subgraph-compatibility/blob/main/COMPATIBILITY.md#products-schema-to-be-implemented-by-library-maintainers
         let source =
             """

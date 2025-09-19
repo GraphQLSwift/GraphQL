@@ -7,7 +7,7 @@ class VariablesAreInputTypesRuleTests: ValidationTestCase {
         rule = VariablesAreInputTypesRule
     }
 
-    @Test func testUnknownTypesAreIgnored() throws {
+    @Test func unknownTypesAreIgnored() throws {
         try assertValid(
             """
             query Foo($a: Unknown, $b: [[Unknown!]]!) {
@@ -17,7 +17,7 @@ class VariablesAreInputTypesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testInputTypesAreValid() throws {
+    @Test func inputTypesAreValid() throws {
         try assertValid(
             """
             query Foo($a: String, $b: [Boolean!]!, $c: ComplexInput) {
@@ -27,7 +27,7 @@ class VariablesAreInputTypesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testOutputTypesAreInvalid() throws {
+    @Test func outputTypesAreInvalid() throws {
         let errors = try assertInvalid(
             errorCount: 3,
             query:

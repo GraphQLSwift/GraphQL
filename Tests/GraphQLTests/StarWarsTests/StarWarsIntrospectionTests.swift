@@ -3,7 +3,7 @@ import Testing
 @testable import GraphQL
 
 @Suite struct StarWarsIntrospectionTests {
-    @Test func testIntrospectionTypeQuery() async throws {
+    @Test func introspectionTypeQuery() async throws {
         do {
             let query = "query IntrospectionTypeQuery {" +
                 "    __schema {" +
@@ -77,7 +77,7 @@ import Testing
         }
     }
 
-    @Test func testIntrospectionQueryTypeQuery() async throws {
+    @Test func introspectionQueryTypeQuery() async throws {
         let query = "query IntrospectionQueryTypeQuery {" +
             "    __schema {" +
             "        queryType {" +
@@ -103,7 +103,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testIntrospectionDroidTypeQuery() async throws {
+    @Test func introspectionDroidTypeQuery() async throws {
         let query = "query IntrospectionDroidTypeQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +
@@ -125,7 +125,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testIntrospectionDroidKindQuery() async throws {
+    @Test func introspectionDroidKindQuery() async throws {
         let query = "query IntrospectionDroidKindQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +
@@ -149,7 +149,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testIntrospectionCharacterKindQuery() async throws {
+    @Test func introspectionCharacterKindQuery() async throws {
         let query = "query IntrospectionCharacterKindQuery {" +
             "    __type(name: \"Character\") {" +
             "        name" +
@@ -173,7 +173,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testIntrospectionDroidFieldsQuery() async throws {
+    @Test func introspectionDroidFieldsQuery() async throws {
         let query = "query IntrospectionDroidFieldsQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +
@@ -246,7 +246,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testIntrospectionDroidNestedFieldsQuery() async throws {
+    @Test func introspectionDroidNestedFieldsQuery() async throws {
         let query = "query IntrospectionDroidNestedFieldsQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +
@@ -338,7 +338,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testIntrospectionFieldArgsQuery() async throws {
+    @Test func introspectionFieldArgsQuery() async throws {
         let query = "query IntrospectionFieldArgsQuery {" +
             "    __schema {" +
             "        queryType {" +
@@ -431,7 +431,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testIntrospectionDroidDescriptionQuery() async throws {
+    @Test func introspectionDroidDescriptionQuery() async throws {
         let query = "query IntrospectionDroidDescriptionQuery {" +
             "    __type(name: \"Droid\") {" +
             "        name" +

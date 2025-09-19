@@ -9,7 +9,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Valid values
 
-    @Test func testGoodIntValue() throws {
+    @Test func goodIntValue() throws {
         try assertValid(
             """
             {
@@ -21,7 +21,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testGoodNegativeIntValue() throws {
+    @Test func goodNegativeIntValue() throws {
         try assertValid(
             """
             {
@@ -33,7 +33,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testGoodBooleanValue() throws {
+    @Test func goodBooleanValue() throws {
         try assertValid(
             """
             {
@@ -45,7 +45,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testGoodStringValue() throws {
+    @Test func goodStringValue() throws {
         try assertValid(
             """
             {
@@ -57,7 +57,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testGoodFloatValue() throws {
+    @Test func goodFloatValue() throws {
         try assertValid(
             """
             {
@@ -69,7 +69,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testGoodNegativeFloatValue() throws {
+    @Test func goodNegativeFloatValue() throws {
         try assertValid(
             """
             {
@@ -81,7 +81,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testIntIntoFloat() throws {
+    @Test func intIntoFloat() throws {
         try assertValid(
             """
             {
@@ -93,7 +93,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testIntIntoID() throws {
+    @Test func intIntoID() throws {
         try assertValid(
             """
             {
@@ -105,7 +105,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testStringIntoID() throws {
+    @Test func stringIntoID() throws {
         try assertValid(
             """
             {
@@ -117,7 +117,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testGoodEnumValue() throws {
+    @Test func goodEnumValue() throws {
         try assertValid(
             """
             {
@@ -129,7 +129,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testEnumWithUndefinedValue() throws {
+    @Test func enumWithUndefinedValue() throws {
         try assertValid(
             """
             {
@@ -141,7 +141,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testEnumWithNullValue() throws {
+    @Test func enumWithNullValue() throws {
         try assertValid(
             """
             {
@@ -153,7 +153,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNullIntoNullableType() throws {
+    @Test func nullIntoNullableType() throws {
         try assertValid(
             """
             {
@@ -177,7 +177,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Invalid String Values
 
-    @Test func testIntIntoString() throws {
+    @Test func intIntoString() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -196,7 +196,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testFloatIntoString() throws {
+    @Test func floatIntoString() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -215,7 +215,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testBooleanIntoString() throws {
+    @Test func booleanIntoString() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -234,7 +234,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUnquotedStringIntoString() throws {
+    @Test func unquotedStringIntoString() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -253,7 +253,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testInvalidIntValues() throws {
+    @Test func invalidIntValues() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -273,7 +273,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
     }
 
     // Swift doesn't parse BigInt anyway
-//    @Test func testBigIntIntoInt() throws {
+//    @Test func bigIntIntoInt() throws {
 //        let errors = try assertInvalid(
 //            errorCount: 1,
 //            query:
@@ -292,7 +292,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 //        )
 //    }
 
-    @Test func testUnquotedStringIntoInt() throws {
+    @Test func unquotedStringIntoInt() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -311,7 +311,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testSimpleFloatIntoInt() throws {
+    @Test func simpleFloatIntoInt() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -330,7 +330,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testFloatIntoInt() throws {
+    @Test func floatIntoInt() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -351,7 +351,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Invalid Float Values
 
-    @Test func testStringIntoFloat() throws {
+    @Test func stringIntoFloat() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -370,7 +370,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testBooleanIntoFloat() throws {
+    @Test func booleanIntoFloat() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -389,7 +389,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUnquotedIntoFloat() throws {
+    @Test func unquotedIntoFloat() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -410,7 +410,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Invalid Boolean Value
 
-    @Test func testIntIntoBoolean() throws {
+    @Test func intIntoBoolean() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -429,7 +429,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testFloatIntoBoolean() throws {
+    @Test func floatIntoBoolean() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -448,7 +448,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testStringIntoBoolean() throws {
+    @Test func stringIntoBoolean() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -467,7 +467,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUnquotedIntoBoolean() throws {
+    @Test func unquotedIntoBoolean() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -488,7 +488,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Invalid ID Value
 
-    @Test func testFloatIntoID() throws {
+    @Test func floatIntoID() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -507,7 +507,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testBooleanIntoID() throws {
+    @Test func booleanIntoID() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -526,7 +526,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUnquotedIntoID() throws {
+    @Test func unquotedIntoID() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -547,7 +547,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Invalid Enum Value
 
-    @Test func testIntIntoEnum() throws {
+    @Test func intIntoEnum() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -566,7 +566,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testFloatIntoEnum() throws {
+    @Test func floatIntoEnum() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -585,7 +585,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testStringIntoEnum() throws {
+    @Test func stringIntoEnum() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -604,7 +604,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testBooleanIntoEnum() throws {
+    @Test func booleanIntoEnum() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -623,7 +623,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUnknownEnumValueIntoEnum() throws {
+    @Test func unknownEnumValueIntoEnum() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -642,7 +642,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testDifferentCaseEnumValueIntoEnum() throws {
+    @Test func differentCaseEnumValueIntoEnum() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -663,7 +663,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Valid List Value
 
-    @Test func testGoodListValue() throws {
+    @Test func goodListValue() throws {
         try assertValid(
             """
             {
@@ -675,7 +675,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testEmptyListValue() throws {
+    @Test func emptyListValue() throws {
         try assertValid(
             """
             {
@@ -687,7 +687,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNullValueIntoList() throws {
+    @Test func nullValueIntoList() throws {
         try assertValid(
             """
             {
@@ -699,7 +699,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testSingleValueIntoList() throws {
+    @Test func singleValueIntoList() throws {
         try assertValid(
             """
             {
@@ -713,7 +713,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Invalid List Value
 
-    @Test func testIncorrectItemType() throws {
+    @Test func incorrectItemType() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -732,7 +732,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testSingleValueOfIncorrectType() throws {
+    @Test func singleValueOfIncorrectType() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -753,7 +753,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Valid Non-Nullable Value
 
-    @Test func testArgOnOptionalArg() throws {
+    @Test func argOnOptionalArg() throws {
         try assertValid(
             """
             {
@@ -765,7 +765,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNoArgOnOptionalArg() throws {
+    @Test func noArgOnOptionalArg() throws {
         try assertValid(
             """
             {
@@ -777,7 +777,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testMultipleArgs() throws {
+    @Test func multipleArgs() throws {
         try assertValid(
             """
             {
@@ -789,7 +789,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testMultipleArgsReverseOrder() throws {
+    @Test func multipleArgsReverseOrder() throws {
         try assertValid(
             """
             {
@@ -801,7 +801,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNoArgsOnMultipleOptional() throws {
+    @Test func noArgsOnMultipleOptional() throws {
         try assertValid(
             """
             {
@@ -813,7 +813,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testOneArgOnMultipleOptional() throws {
+    @Test func oneArgOnMultipleOptional() throws {
         try assertValid(
             """
             {
@@ -825,7 +825,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testSecondArgOnMultipleOptional() throws {
+    @Test func secondArgOnMultipleOptional() throws {
         try assertValid(
             """
             {
@@ -837,7 +837,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testMultipleRequiredArgsOnMixedList() throws {
+    @Test func multipleRequiredArgsOnMixedList() throws {
         try assertValid(
             """
             {
@@ -849,7 +849,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testMultipleRequiredAndOneOptionalArgOnMixedList() throws {
+    @Test func multipleRequiredAndOneOptionalArgOnMixedList() throws {
         try assertValid(
             """
             {
@@ -861,7 +861,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testAllRequiredAndOptionalArgsOnMixedList() throws {
+    @Test func allRequiredAndOptionalArgsOnMixedList() throws {
         try assertValid(
             """
             {
@@ -875,7 +875,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Invalid Non-Nullable Value
 
-    @Test func testIncorrectValueType() throws {
+    @Test func incorrectValueType() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
@@ -899,7 +899,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testIncorrectValueAndMissingArgument() throws {
+    @Test func incorrectValueAndMissingArgument() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -918,7 +918,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNullValue() throws {
+    @Test func nullValue() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -939,7 +939,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Valid Input Object Value
 
-    @Test func testOptionalArgDespiteRequiredFieldInType() throws {
+    @Test func optionalArgDespiteRequiredFieldInType() throws {
         try assertValid(
             """
             {
@@ -951,7 +951,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testPartialObjectOnlyRequired() throws {
+    @Test func partialObjectOnlyRequired() throws {
         try assertValid(
             """
             {
@@ -963,7 +963,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testPartialObjectRequiredFieldCanBeFalsy() throws {
+    @Test func partialObjectRequiredFieldCanBeFalsy() throws {
         try assertValid(
             """
             {
@@ -975,7 +975,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testPartialObjectIncludingRequired() throws {
+    @Test func partialObjectIncludingRequired() throws {
         try assertValid(
             """
             {
@@ -987,7 +987,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testFullObject() throws {
+    @Test func fullObject() throws {
         try assertValid(
             """
             {
@@ -1005,7 +1005,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testFullObjectWithFieldsInDifferentOrder() throws {
+    @Test func fullObjectWithFieldsInDifferentOrder() throws {
         try assertValid(
             """
             {
@@ -1025,7 +1025,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Valid oneOf Object Value
 
-    @Test func testExactlyOneField() throws {
+    @Test func exactlyOneField() throws {
         try assertValid(
             """
             {
@@ -1037,7 +1037,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testExactlyOneNonNullableVariable() throws {
+    @Test func exactlyOneNonNullableVariable() throws {
         try assertValid(
             """
             query ($string: String!) {
@@ -1051,7 +1051,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Invalid input object value
 
-    @Test func testPartialObjectMissingRequired() throws {
+    @Test func partialObjectMissingRequired() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -1070,7 +1070,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testPartialObjectInvalidFieldType() throws {
+    @Test func partialObjectInvalidFieldType() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -1092,7 +1092,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testPartialObjectNullToNonNullField() throws {
+    @Test func partialObjectNullToNonNullField() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -1114,7 +1114,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testPartialObjectUnknownFieldArg() throws {
+    @Test func partialObjectUnknownFieldArg() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -1136,7 +1136,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testReportsOriginalErrorForCustomScalarWhichThrows() throws {
+    @Test func reportsOriginalErrorForCustomScalarWhichThrows() throws {
         let customScalar = try GraphQLScalarType(
             name: "Invalid",
             serialize: { _ in
@@ -1178,7 +1178,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testReportsOriginalErrorForCustomScalarThatReturnsUndefined() throws {
+    @Test func reportsOriginalErrorForCustomScalarThatReturnsUndefined() throws {
         let customScalar = try GraphQLScalarType(
             name: "CustomScalar",
             serialize: { _ in
@@ -1216,7 +1216,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testAllowsCustomScalarToAcceptComplexLiterals() throws {
+    @Test func allowsCustomScalarToAcceptComplexLiterals() throws {
         let customScalar = try GraphQLScalarType(
             name: "Any",
             serialize: { value in
@@ -1255,7 +1255,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Invalid oneOf input object value
 
-    @Test func testInvalidFieldType() throws {
+    @Test func invalidFieldType() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -1275,7 +1275,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testExactlyOneNullField() throws {
+    @Test func exactlyOneNullField() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -1295,7 +1295,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testExactlyOneNullableVariable() throws {
+    @Test func exactlyOneNullableVariable() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -1315,7 +1315,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testMoreThanOneField() throws {
+    @Test func moreThanOneField() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -1337,7 +1337,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Directive arguments
 
-    @Test func testWithDirectivesOfValidTypes() throws {
+    @Test func withDirectivesOfValidTypes() throws {
         try assertValid(
             """
             {
@@ -1352,7 +1352,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testWithDirectiveWithIncorrectTypes() throws {
+    @Test func withDirectiveWithIncorrectTypes() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
@@ -1380,7 +1380,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
 
     // MARK: Variable default values
 
-    @Test func testVariablesWithValidDefaultValues() throws {
+    @Test func variablesWithValidDefaultValues() throws {
         try assertValid(
             """
             query WithDefaultValues(
@@ -1395,7 +1395,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testVariablesWithValidDefaultNullValues() throws {
+    @Test func variablesWithValidDefaultNullValues() throws {
         try assertValid(
             """
             query WithDefaultValues(
@@ -1409,7 +1409,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testVariablesWithInvalidDefaultNullValues() throws {
+    @Test func variablesWithInvalidDefaultNullValues() throws {
         let errors = try assertInvalid(
             errorCount: 3,
             query:
@@ -1443,7 +1443,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testVariablesWithInvalidDefaultValues() throws {
+    @Test func variablesWithInvalidDefaultValues() throws {
         let errors = try assertInvalid(
             errorCount: 3,
             query:
@@ -1477,7 +1477,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testVariablesWithComplexInvalidDefaultValues() throws {
+    @Test func variablesWithComplexInvalidDefaultValues() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
@@ -1503,7 +1503,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testComplexVariableMissingRequiredField() throws {
+    @Test func complexVariableMissingRequiredField() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -1521,7 +1521,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testListVariablesWithInvalidItem() throws {
+    @Test func listVariablesWithInvalidItem() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:

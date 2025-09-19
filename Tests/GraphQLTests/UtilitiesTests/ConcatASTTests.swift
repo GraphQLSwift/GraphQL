@@ -2,7 +2,7 @@
 import Testing
 
 @Suite struct ConcatASTTests {
-    @Test func testConcatenatesTwoASTsTogether() throws {
+    @Test func concatenatesTwoASTsTogether() throws {
         let sourceA = Source(body: """
         { a, b, ...Frag }
         """)

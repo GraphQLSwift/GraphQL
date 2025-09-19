@@ -7,7 +7,7 @@ class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
         rule = ProvidedRequiredArgumentsOnDirectivesRule
     }
 
-    @Test func testMissingOptionalArgsOnDirectiveDefinedInsideSDL() throws {
+    @Test func missingOptionalArgsOnDirectiveDefinedInsideSDL() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -20,7 +20,7 @@ class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testMissingArgOnDirectiveDefinedInsideSDL() throws {
+    @Test func missingArgOnDirectiveDefinedInsideSDL() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -38,7 +38,7 @@ class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testMissingArgOnStandardDirective() throws {
+    @Test func missingArgOnStandardDirective() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -54,7 +54,7 @@ class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testMissingArgOnOveriddenStandardDirective() throws {
+    @Test func missingArgOnOveriddenStandardDirective() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -71,7 +71,7 @@ class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testMissingArgOnDirectiveDefinedInSchemaExtension() throws {
+    @Test func missingArgOnDirectiveDefinedInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         type Query {
           foo: String
@@ -94,7 +94,7 @@ class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testMissingArgOnDirectiveUsedInSchemaExtension() throws {
+    @Test func missingArgOnDirectiveUsedInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         directive @test(arg: String!) on OBJECT
 

@@ -7,7 +7,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         rule = PossibleTypeExtensionsRule
     }
 
-    @Test func testNoExtensions() throws {
+    @Test func noExtensions() throws {
         try assertValidationErrors(
             """
             scalar FooScalar
@@ -21,28 +21,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testOneExtensionPerType() throws {
-        try assertValidationErrors(
-            """
-            scalar FooScalar
-            type FooObject
-            interface FooInterface
-            union FooUnion
-            enum FooEnum
-            input FooInputObject
-
-            extend scalar FooScalar @dummy
-            extend type FooObject @dummy
-            extend interface FooInterface @dummy
-            extend union FooUnion @dummy
-            extend enum FooEnum @dummy
-            extend input FooInputObject @dummy
-            """,
-            []
-        )
-    }
-
-    @Test func testManyExtensionsPerType() throws {
+    @Test func oneExtensionPerType() throws {
         try assertValidationErrors(
             """
             scalar FooScalar
@@ -58,6 +37,27 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
             extend union FooUnion @dummy
             extend enum FooEnum @dummy
             extend input FooInputObject @dummy
+            """,
+            []
+        )
+    }
+
+    @Test func manyExtensionsPerType() throws {
+        try assertValidationErrors(
+            """
+            scalar FooScalar
+            type FooObject
+            interface FooInterface
+            union FooUnion
+            enum FooEnum
+            input FooInputObject
+
+            extend scalar FooScalar @dummy
+            extend type FooObject @dummy
+            extend interface FooInterface @dummy
+            extend union FooUnion @dummy
+            extend enum FooEnum @dummy
+            extend input FooInputObject @dummy
 
             extend scalar FooScalar @dummy
             extend type FooObject @dummy
@@ -70,7 +70,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testExtendingUnknownType() throws {
+    @Test func extendingUnknownType() throws {
         try assertValidationErrors(
             """
             type Known
@@ -111,7 +111,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDoesNotConsiderNonTypeDefinitions() throws {
+    @Test func doesNotConsiderNonTypeDefinitions() throws {
         try assertValidationErrors(
             """
             query Foo { __typename }
@@ -154,7 +154,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testExtendingWithDifferentKinds() throws {
+    @Test func extendingWithDifferentKinds() throws {
         try assertValidationErrors(
             """
             scalar FooScalar
@@ -218,7 +218,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testExtendingTypesWithinExistingSchema() throws {
+    @Test func extendingTypesWithinExistingSchema() throws {
         let schema = try buildSchema(source: """
         scalar FooScalar
         type FooObject
@@ -238,7 +238,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
-    @Test func testExtendingUnknownTypesWithinExistingSchema() throws {
+    @Test func extendingUnknownTypesWithinExistingSchema() throws {
         let schema = try buildSchema(source: "type Known")
         let sdl = """
         extend scalar Unknown @dummy
@@ -280,7 +280,7 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testExtendingTypesWithDifferentKindsWithinExistingSchema() throws {
+    @Test func extendingTypesWithDifferentKindsWithinExistingSchema() throws {
         let schema = try buildSchema(source: """
         scalar FooScalar
         type FooObject

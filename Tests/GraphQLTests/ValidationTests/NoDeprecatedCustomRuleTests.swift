@@ -16,7 +16,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         ])
     )
 
-    @Test func testIgnoresFieldsThatAreNotDeprecated() throws {
+    @Test func ignoresFieldsThatAreNotDeprecated() throws {
         try assertValid(
             """
             {
@@ -27,7 +27,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testIgnoresUnknownFields() throws {
+    @Test func ignoresUnknownFields() throws {
         try assertValid(
             """
             {
@@ -42,7 +42,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testReportsErrorWhenADeprecatedFieldIsSelected() throws {
+    @Test func reportsErrorWhenADeprecatedFieldIsSelected() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -79,7 +79,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         ])
     )
 
-    @Test func testIgnoresFieldArgumentsThatAreNotDeprecated() throws {
+    @Test func ignoresFieldArgumentsThatAreNotDeprecated() throws {
         try assertValid(
             """
             {
@@ -90,7 +90,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testIgnoresUnknownFieldArguments() throws {
+    @Test func ignoresUnknownFieldArguments() throws {
         try assertValid(
             """
             {
@@ -102,7 +102,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testReportsErrorWhenADeprecatedFieldArgumentIsUsed() throws {
+    @Test func reportsErrorWhenADeprecatedFieldArgumentIsUsed() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -142,7 +142,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         ]
     )
 
-    @Test func testIgnoresDirectiveArgumentsThatAreNotDeprecated() throws {
+    @Test func ignoresDirectiveArgumentsThatAreNotDeprecated() throws {
         try assertValid(
             """
             {
@@ -153,7 +153,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testIgnoresUnknownDirectiveArguments() throws {
+    @Test func ignoresUnknownDirectiveArguments() throws {
         try assertValid(
             """
             {
@@ -165,7 +165,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testReportsErrorWhenADeprecatedDirectiveArgumentIsUsed() throws {
+    @Test func reportsErrorWhenADeprecatedDirectiveArgumentIsUsed() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -215,7 +215,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         )
     }()
 
-    @Test func testIgnoresInputFieldsThatAreNotDeprecated() throws {
+    @Test func ignoresInputFieldsThatAreNotDeprecated() throws {
         try assertValid(
             """
             {
@@ -228,7 +228,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testIgnoresUnknownInputFields() throws {
+    @Test func ignoresUnknownInputFields() throws {
         try assertValid(
             """
             {
@@ -249,7 +249,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testReportsErrorWhenADeprecatedInputFieldIsUsed() throws {
+    @Test func reportsErrorWhenADeprecatedInputFieldIsUsed() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -295,7 +295,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         )
     }()
 
-    @Test func testIgnoresEnumValuesThatAreNotDeprecated() throws {
+    @Test func ignoresEnumValuesThatAreNotDeprecated() throws {
         try assertValid(
             """
             {
@@ -306,7 +306,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testIgnoresUnknownEnumValues() throws {
+    @Test func ignoresUnknownEnumValues() throws {
         try assertValid(
             """
             query (
@@ -326,7 +326,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testReportsErrorWhenADeprecatedEnumValueIsUsed() throws {
+    @Test func reportsErrorWhenADeprecatedEnumValueIsUsed() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """

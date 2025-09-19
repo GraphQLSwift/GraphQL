@@ -18,12 +18,12 @@ import Testing
         return extensionASTNodes.map(print).joined(separator: "\n\n")
     }
 
-    func astNode(_ astNode: Node?) throws -> String {
-        let astNode = try #require(astNode)
+    func astNode(_ astNodeOptional: Node?) throws -> String {
+        let astNode = try #require(astNodeOptional)
         return print(ast: astNode)
     }
 
-    @Test func testReturnsTheOriginalSchemaWhenThereAreNoTypeDefinitions() throws {
+    @Test func returnsTheOriginalSchemaWhenThereAreNoTypeDefinitions() throws {
         let schema = try buildSchema(source: "type Query")
         let extendedSchema = try extendSchema(
             schema: schema,
@@ -35,7 +35,7 @@ import Testing
         )
     }
 
-    @Test func testCanBeUsedForLimitedExecution() async throws {
+    @Test func canBeUsedForLimitedExecution() async throws {
         let schema = try buildSchema(source: "type Query")
         let extendAST = try parse(source: """
         extend type Query {
@@ -54,7 +54,7 @@ import Testing
         )
     }
 
-    @Test func testDoNotModifyBuiltInTypesAnDirectives() throws {
+    @Test func doNotModifyBuiltInTypesAnDirectives() throws {
         let schema = try buildSchema(source: """
         type Query {
           str: String
@@ -115,7 +115,7 @@ import Testing
         )
     }
 
-    @Test func testPreservesOriginalSchemaConfig() throws {
+    @Test func preservesOriginalSchemaConfig() throws {
         let description = "A schema description"
         let extensions: GraphQLSchemaExtensions = ["foo": "bar"]
         let schema = try GraphQLSchema(description: description, extensions: [extensions])
@@ -129,7 +129,7 @@ import Testing
         #expect(extendedSchema.extensions == [extensions])
     }
 
-    @Test func testExtendsObjectsByAddingNewFields() throws {
+    @Test func extendsObjectsByAddingNewFields() throws {
         let schema = try buildSchema(source: #"""
           type Query {
             someObject: SomeObject
@@ -177,7 +177,7 @@ import Testing
         )
     }
 
-    @Test func testExtendsScalarsByAddingNewDirectives() throws {
+    @Test func extendsScalarsByAddingNewDirectives() throws {
         let schema = try buildSchema(source: """
         type Query {
           someScalar(arg: SomeScalar): SomeScalar
@@ -205,7 +205,7 @@ import Testing
         #expect(extensionASTNodes(someScalar.extensionASTNodes) == extensionSDL)
     }
 
-    @Test func testExtendsScalarsByAddingSpecifiedByDirective() throws {
+    @Test func extendsScalarsByAddingSpecifiedByDirective() throws {
         let schema = try buildSchema(source: """
         type Query {
           foo: Foo
@@ -233,7 +233,7 @@ import Testing
         #expect(extensionASTNodes(foo.extensionASTNodes) == extensionSDL)
     }
 
-    @Test func testCorrectlyAssignASTNodesToNewAndExtendedTypes() throws {
+    @Test func correctlyAssignASTNodesToNewAndExtendedTypes() throws {
         let schema = try buildSchema(source: """
           type Query
 
@@ -445,7 +445,7 @@ import Testing
         try #expect(astNode(testDirective.argConfigMap()["arg"]?.astNode) == "arg: Int")
     }
 
-    @Test func testBuildsTypesWithDeprecatedFieldsValues() throws {
+    @Test func buildsTypesWithDeprecatedFieldsValues() throws {
         let schema = try GraphQLSchema()
         let extendAST = try parse(source: """
         type SomeObject {
@@ -474,7 +474,7 @@ import Testing
         )
     }
 
-    @Test func testExtendsObjectsWithDeprecatedFields() throws {
+    @Test func extendsObjectsWithDeprecatedFields() throws {
         let schema = try buildSchema(source: "type SomeObject")
         let extendAST = try parse(source: """
         extend type SomeObject {
@@ -493,7 +493,7 @@ import Testing
         )
     }
 
-    @Test func testExtendsEnumsWithDeprecatedValues() throws {
+    @Test func extendsEnumsWithDeprecatedValues() throws {
         let schema = try buildSchema(source: "enum SomeEnum")
         let extendAST = try parse(source: """
         extend enum SomeEnum {
@@ -509,7 +509,7 @@ import Testing
         )
     }
 
-    @Test func testAddsNewUnusedTypes() throws {
+    @Test func addsNewUnusedTypes() throws {
         let schema = try buildSchema(source: """
         type Query {
           dummy: String
@@ -550,7 +550,7 @@ import Testing
         )
     }
 
-    @Test func testExtendsObjectsByAddingNewFieldsWithArguments() throws {
+    @Test func extendsObjectsByAddingNewFieldsWithArguments() throws {
         let schema = try buildSchema(source: """
         type SomeObject
 
@@ -587,7 +587,7 @@ import Testing
         )
     }
 
-    @Test func testExtendsObjectsByAddingNewFieldsWithExistingTypes() throws {
+    @Test func extendsObjectsByAddingNewFieldsWithExistingTypes() throws {
         let schema = try buildSchema(source: """
         type Query {
           someObject: SomeObject
@@ -613,7 +613,7 @@ import Testing
         )
     }
 
-    @Test func testExtendsObjectsByAddingImplementedInterfaces() throws {
+    @Test func extendsObjectsByAddingImplementedInterfaces() throws {
         let schema = try buildSchema(source: """
         type Query {
           someObject: SomeObject
@@ -642,7 +642,7 @@ import Testing
         )
     }
 
-    @Test func testExtendsObjectsByIncludingNewTypes() throws {
+    @Test func extendsObjectsByIncludingNewTypes() throws {
         let schema = try buildSchema(source: """
         type Query {
           someObject: SomeObject
@@ -700,7 +700,7 @@ import Testing
         )
     }
 
-    @Test func testExtendsObjectsByAddingImplementedNewInterfaces() throws {
+    @Test func extendsObjectsByAddingImplementedNewInterfaces() throws {
         let schema = try buildSchema(source: """
         type Query {
           someObject: SomeObject
@@ -740,7 +740,7 @@ import Testing
         )
     }
 
-    @Test func testExtendsDifferentTypesMultipleTimes() throws {
+    @Test func extendsDifferentTypesMultipleTimes() throws {
         let schema = try buildSchema(source: """
         type Query {
           someScalar: SomeScalar
@@ -863,7 +863,7 @@ import Testing
         )
     }
 
-    @Test func testExtendsInterfacesByAddingNewFields() throws {
+    @Test func extendsInterfacesByAddingNewFields() throws {
         let schema = try buildSchema(source: """
         interface SomeInterface {
           oldField: String
@@ -917,7 +917,7 @@ import Testing
         )
     }
 
-    @Test func testExtendsInterfacesByAddingNewImplementedInterfaces() throws {
+    @Test func extendsInterfacesByAddingNewImplementedInterfaces() throws {
         let schema = try buildSchema(source: """
         interface SomeInterface {
           oldField: String
@@ -970,7 +970,7 @@ import Testing
         )
     }
 
-    @Test func testAllowsExtensionOfInterfaceWithMissingObjectFields() throws {
+    @Test func allowsExtensionOfInterfaceWithMissingObjectFields() throws {
         let schema = try buildSchema(source: """
         type Query {
           someInterface: SomeInterface
@@ -1002,7 +1002,7 @@ import Testing
         )
     }
 
-    @Test func testExtendsInterfacesMultipleTimes() throws {
+    @Test func extendsInterfacesMultipleTimes() throws {
         let schema = try buildSchema(source: """
         type Query {
           someInterface: SomeInterface
@@ -1035,7 +1035,7 @@ import Testing
         )
     }
 
-    @Test func testMayExtendMutationsAndSubscriptions() throws {
+    @Test func mayExtendMutationsAndSubscriptions() throws {
         let mutationSchema = try buildSchema(source: """
         type Query {
           queryField: String
@@ -1086,7 +1086,7 @@ import Testing
         )
     }
 
-    @Test func testMayExtendDirectivesWithNewDirective() throws {
+    @Test func mayExtendDirectivesWithNewDirective() throws {
         let schema = try buildSchema(source: """
         type Query {
           foo: String
@@ -1108,7 +1108,7 @@ import Testing
         )
     }
 
-    @Test func testRejectsInvalidSDL() throws {
+    @Test func rejectsInvalidSDL() throws {
         let schema = try GraphQLSchema()
         let extendAST = try parse(source: "extend schema @unknown")
 
@@ -1120,7 +1120,7 @@ import Testing
         }
     }
 
-    @Test func testAllowsToDisableSDLValidation() throws {
+    @Test func allowsToDisableSDLValidation() throws {
         let schema = try GraphQLSchema()
         let extendAST = try parse(source: "extend schema @unknown")
 
@@ -1128,7 +1128,7 @@ import Testing
         _ = try extendSchema(schema: schema, documentAST: extendAST, assumeValidSDL: true)
     }
 
-    @Test func testThrowsOnUnknownTypes() throws {
+    @Test func throwsOnUnknownTypes() throws {
         let schema = try GraphQLSchema()
         let extendAST = try parse(source: """
         type Query {
@@ -1144,7 +1144,7 @@ import Testing
         }
     }
 
-    @Test func testDoesNotAllowReplacingADefaultDirective() throws {
+    @Test func doesNotAllowReplacingADefaultDirective() throws {
         let schema = try GraphQLSchema()
         let extendAST = try parse(source: """
         directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD
@@ -1158,7 +1158,7 @@ import Testing
         }
     }
 
-    @Test func testDoesNotAllowReplacingAnExistingEnumValue() throws {
+    @Test func doesNotAllowReplacingAnExistingEnumValue() throws {
         let schema = try buildSchema(source: """
         enum SomeEnum {
           ONE
@@ -1180,7 +1180,7 @@ import Testing
 
     // MARK: can add additional root operation types
 
-    @Test func testDoesNotAutomaticallyIncludeCommonRootTypeNames() throws {
+    @Test func doesNotAutomaticallyIncludeCommonRootTypeNames() throws {
         let schema = try GraphQLSchema()
         let extendedSchema = try extendSchema(
             schema: schema,
@@ -1191,7 +1191,7 @@ import Testing
         #expect(extendedSchema.mutationType == nil)
     }
 
-    @Test func testAddsSchemaDefinitionMissingInTheOriginalSchema() throws {
+    @Test func addsSchemaDefinitionMissingInTheOriginalSchema() throws {
         let schema = try buildSchema(source: """
         directive @foo on SCHEMA
         type Foo
@@ -1213,7 +1213,7 @@ import Testing
         try #expect(astNode(extendedSchema.astNode) == extensionSDL)
     }
 
-    @Test func testAddsNewRootTypesViaSchemaExtension() throws {
+    @Test func addsNewRootTypesViaSchemaExtension() throws {
         let schema = try buildSchema(source: """
         type Query
         type MutationRoot
@@ -1233,7 +1233,7 @@ import Testing
         #expect(extensionASTNodes(extendedSchema.extensionASTNodes) == extensionSDL)
     }
 
-    @Test func testAddsDirectiveViaSchemaExtension() throws {
+    @Test func addsDirectiveViaSchemaExtension() throws {
         let schema = try buildSchema(source: """
         type Query
 
@@ -1250,7 +1250,7 @@ import Testing
         #expect(extensionASTNodes(extendedSchema.extensionASTNodes) == extensionSDL)
     }
 
-    @Test func testAddsMultipleNewRootTypesViaSchemaExtension() throws {
+    @Test func addsMultipleNewRootTypesViaSchemaExtension() throws {
         let schema = try buildSchema(source: "type Query")
         let extendAST = try parse(source: """
         extend schema {
@@ -1270,7 +1270,7 @@ import Testing
         #expect(subscriptionType?.name == "Subscription")
     }
 
-    @Test func testAppliesMultipleSchemaExtensions() throws {
+    @Test func appliesMultipleSchemaExtensions() throws {
         let schema = try buildSchema(source: "type Query")
         let extendAST = try parse(source: """
         extend schema {
@@ -1292,7 +1292,7 @@ import Testing
         #expect(subscriptionType?.name == "Subscription")
     }
 
-    @Test func testSchemaExtensionASTAreAvailableFromSchemaObject() throws {
+    @Test func schemaExtensionASTAreAvailableFromSchemaObject() throws {
         let schema = try buildSchema(source: """
         type Query
 

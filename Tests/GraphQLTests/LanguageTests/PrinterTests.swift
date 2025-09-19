@@ -3,12 +3,12 @@ import Foundation
 import Testing
 
 @Suite struct PrinterTests {
-    @Test func testPrintMinimalAST() {
+    @Test func printMinimalAST() {
         let ast = Name(value: "foo")
         #expect(print(ast: ast) == "foo")
     }
 
-    @Test func testCorrectlyPrintNonQueryOperationsWithoutNameForQuery() throws {
+    @Test func correctlyPrintNonQueryOperationsWithoutNameForQuery() throws {
         let document = try parse(source: "query { id, name }")
         let expected =
             """
@@ -20,7 +20,7 @@ import Testing
         #expect(print(ast: document) == expected)
     }
 
-    @Test func testCorrectlyPrintNonQueryOperationsWithoutNameForMutation() throws {
+    @Test func correctlyPrintNonQueryOperationsWithoutNameForMutation() throws {
         let document = try parse(source: "mutation { id, name }")
         let expected =
             """
@@ -32,7 +32,7 @@ import Testing
         #expect(print(ast: document) == expected)
     }
 
-    @Test func testCorrectlyPrintNonQueryOperationsWithoutNameForQueryWithArtifacts() throws {
+    @Test func correctlyPrintNonQueryOperationsWithoutNameForQueryWithArtifacts() throws {
         let document = try parse(source: "query ($foo: TestType) @testDirective { id, name }")
         let expected =
             """
@@ -44,7 +44,7 @@ import Testing
         #expect(print(ast: document) == expected)
     }
 
-    @Test func testCorrectlyPrintNonQueryOperationsWithoutNameForMutationWithArtifacts() throws {
+    @Test func correctlyPrintNonQueryOperationsWithoutNameForMutationWithArtifacts() throws {
         let document = try parse(source: "mutation ($foo: TestType) @testDirective { id, name }")
         let expected =
             """
@@ -58,7 +58,7 @@ import Testing
 
     // Variable Directives are currently not support by this library
     // TODO: Add support for variable directives
-//    @Test func testPrintsQueryWithVariableDirectives() throws {
+//    @Test func printsQueryWithVariableDirectives() throws {
 //        let document = try parse(source: "query ($foo: TestType = { a: 123 } @testDirective(if:
 //        true) @test) { id }")
 //        let expected =
@@ -70,7 +70,7 @@ import Testing
 //        #expect(print(ast: document) == expected)
 //    }
 
-    @Test func testKeepsArgumentsOnOneLineIfLineIsShort() throws {
+    @Test func keepsArgumentsOnOneLineIfLineIsShort() throws {
         let document = try parse(source: "{trip(wheelchair:false arriveBy:false){dateTime}}")
         let expected =
             """
@@ -83,7 +83,7 @@ import Testing
         #expect(print(ast: document) == expected)
     }
 
-    @Test func testPutsArgumentsOnMultipleLinesIfLineIsLong() throws {
+    @Test func putsArgumentsOnMultipleLinesIfLineIsLong() throws {
         let document =
             try parse(
                 source: "{trip(wheelchair:false arriveBy:false includePlannedCancellations:true transitDistanceReluctance:2000){dateTime}}"
@@ -104,7 +104,7 @@ import Testing
         #expect(print(ast: document) == expected)
     }
 
-    @Test func testPutsLargeObjectValuesOnMultipleLinesIfLineIsLong() throws {
+    @Test func putsLargeObjectValuesOnMultipleLinesIfLineIsLong() throws {
         let document =
             try parse(
                 source: "{trip(obj:{wheelchair:false,smallObj:{a: 1},largeObj:{wheelchair:false,smallObj:{a: 1},arriveBy:false,includePlannedCancellations:true,transitDistanceReluctance:2000,anotherLongFieldName:\"Lots and lots and lots and lots of text\"},arriveBy:false,includePlannedCancellations:true,transitDistanceReluctance:2000,anotherLongFieldName:\"Lots and lots and lots and lots of text\"}){dateTime}}"
@@ -137,7 +137,7 @@ import Testing
         #expect(print(ast: document) == expected)
     }
 
-    @Test func testPutsLargeListValuesOnMultipleLinesIfLineIsLong() throws {
+    @Test func putsLargeListValuesOnMultipleLinesIfLineIsLong() throws {
         let document =
             try parse(
                 source: "{trip(list:[[\"small array\", \"small\", \"small\"], [\"Lots and lots and lots and lots of text\", \"Lots and lots and lots and lots of text\", \"Lots and lots and lots and lots of text\"]]){dateTime}}"
@@ -162,7 +162,7 @@ import Testing
         #expect(print(ast: document) == expected)
     }
 
-    @Test func testPrintsKitchenSinkWithoutAlteringAST() throws {
+    @Test func printsKitchenSinkWithoutAlteringAST() throws {
         guard
             let url = Bundle.module.url(forResource: "kitchen-sink", withExtension: "graphql"),
             let kitchenSink = try? String(contentsOf: url, encoding: .utf8)

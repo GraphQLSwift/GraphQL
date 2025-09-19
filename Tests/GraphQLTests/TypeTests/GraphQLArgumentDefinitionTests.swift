@@ -2,7 +2,7 @@
 import Testing
 
 @Suite struct GraphQLArgumentDefinitionTests {
-    @Test func testArgumentWithNullableTypeIsNotARequiredArgument() {
+    @Test func argumentWithNullableTypeIsNotARequiredArgument() {
         let argument = GraphQLArgumentDefinition(
             name: "nullableString",
             type: GraphQLString
@@ -11,7 +11,7 @@ import Testing
         #expect(!isRequiredArgument(argument))
     }
 
-    @Test func testArgumentWithNonNullTypeIsNotARequiredArgumentWhenItHasADefaultValue() {
+    @Test func argumentWithNonNullTypeIsNotARequiredArgumentWhenItHasADefaultValue() {
         let argument = GraphQLArgumentDefinition(
             name: "nonNullString",
             type: GraphQLNonNull(GraphQLString),
@@ -21,7 +21,7 @@ import Testing
         #expect(!isRequiredArgument(argument))
     }
 
-    @Test func testArgumentWithNonNullArgumentIsARequiredArgumentWhenItDoesNotHaveADefaultValue() {
+    @Test func argumentWithNonNullArgumentIsARequiredArgumentWhenItDoesNotHaveADefaultValue() {
         let argument = GraphQLArgumentDefinition(
             name: "nonNullString",
             type: GraphQLNonNull(GraphQLString),

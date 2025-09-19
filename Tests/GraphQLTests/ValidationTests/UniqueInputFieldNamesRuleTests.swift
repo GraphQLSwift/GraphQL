@@ -7,7 +7,7 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         rule = UniqueInputFieldNamesRule
     }
 
-    @Test func testInputObjectWithFields() throws {
+    @Test func inputObjectWithFields() throws {
         try assertValid(
             """
             {
@@ -17,7 +17,7 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testSameInputObjectWithinTwoArgs() throws {
+    @Test func sameInputObjectWithinTwoArgs() throws {
         try assertValid(
             """
             {
@@ -27,7 +27,7 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testMultipleInputObjectFields() throws {
+    @Test func multipleInputObjectFields() throws {
         try assertValid(
             """
             {
@@ -37,7 +37,7 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testAllowsForNestedInputObjectsWithSimilarFields() throws {
+    @Test func allowsForNestedInputObjectsWithSimilarFields() throws {
         try assertValid(
             """
             {
@@ -55,7 +55,7 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testDuplicateInputObjectFields() throws {
+    @Test func duplicateInputObjectFields() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -75,7 +75,7 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testManyDuplicateInputObjectFields() throws {
+    @Test func manyDuplicateInputObjectFields() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
@@ -103,7 +103,7 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNestedDuplicateInputObjectFields() throws {
+    @Test func nestedDuplicateInputObjectFields() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:

@@ -7,7 +7,7 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
         rule = LoneSchemaDefinitionRule
     }
 
-    @Test func testNoSchema() throws {
+    @Test func noSchema() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -18,7 +18,7 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testOneSchemaDefinition() throws {
+    @Test func oneSchemaDefinition() throws {
         try assertValidationErrors(
             """
             schema {
@@ -33,7 +33,7 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testMultipleSchemaDefinitions() throws {
+    @Test func multipleSchemaDefinitions() throws {
         try assertValidationErrors(
             """
             schema {
@@ -65,7 +65,7 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDefineSchemaInSchemaExtension() throws {
+    @Test func defineSchemaInSchemaExtension() throws {
         let schema = try buildSchema(source: """
           type Foo {
             foo: String
@@ -83,7 +83,7 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testRedefineSchemaInSchemaExtension() throws {
+    @Test func redefineSchemaInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         schema {
           query: Foo
@@ -110,7 +110,7 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testRedefineImplicitSchemaInSchemaExtension() throws {
+    @Test func redefineImplicitSchemaInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         type Query {
           fooField: Foo
@@ -137,7 +137,7 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testExtendSchemaInSchemaExtension() throws {
+    @Test func extendSchemaInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         type Query {
           fooField: Foo

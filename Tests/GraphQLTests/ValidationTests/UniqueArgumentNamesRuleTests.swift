@@ -7,7 +7,7 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         rule = UniqueArgumentNamesRule
     }
 
-    @Test func testNoArgumentsOnField() throws {
+    @Test func noArgumentsOnField() throws {
         try assertValid(
             """
             {
@@ -17,7 +17,7 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testNoArgumentsOnDirective() throws {
+    @Test func noArgumentsOnDirective() throws {
         try assertValid(
             """
             {
@@ -27,7 +27,7 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testArgumentOnField() throws {
+    @Test func argumentOnField() throws {
         try assertValid(
             """
             {
@@ -37,7 +37,7 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testArgumentOnDirective() throws {
+    @Test func argumentOnDirective() throws {
         try assertValid(
             """
             {
@@ -47,7 +47,7 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testSameArgumentOnTwoFields() throws {
+    @Test func sameArgumentOnTwoFields() throws {
         try assertValid(
             """
             {
@@ -58,7 +58,7 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testSameArgumentOnFieldAndDirective() throws {
+    @Test func sameArgumentOnFieldAndDirective() throws {
         try assertValid(
             """
             {
@@ -68,7 +68,7 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testSameArgumentOnTwoDirectives() throws {
+    @Test func sameArgumentOnTwoDirectives() throws {
         try assertValid(
             """
             {
@@ -78,7 +78,7 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testMultipleFieldArguments() throws {
+    @Test func multipleFieldArguments() throws {
         try assertValid(
             """
             {
@@ -88,7 +88,7 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testMultipleDirectiveArguments() throws {
+    @Test func multipleDirectiveArguments() throws {
         try assertValid(
             """
             {
@@ -98,7 +98,7 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testDuplicateFieldArguments() throws {
+    @Test func duplicateFieldArguments() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -118,7 +118,7 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testManyDuplicateFieldArguments() throws {
+    @Test func manyDuplicateFieldArguments() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -139,7 +139,7 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testDuplicateDirectiveArguments() throws {
+    @Test func duplicateDirectiveArguments() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -159,7 +159,7 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testManyDuplicateDirectiveArguments() throws {
+    @Test func manyDuplicateDirectiveArguments() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:

@@ -7,7 +7,7 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         rule = NoUnusedVariablesRule
     }
 
-    @Test func testUsesAllVariables() throws {
+    @Test func usesAllVariables() throws {
         try assertValid(
             """
             query ($a: String, $b: String, $c: String) {
@@ -17,7 +17,7 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUsesAllVariablesDeeply() throws {
+    @Test func usesAllVariablesDeeply() throws {
         try assertValid(
             """
             query Foo($a: String, $b: String, $c: String) {
@@ -31,7 +31,7 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUsesAllVariablesDeeplyInInlineFragments() throws {
+    @Test func usesAllVariablesDeeplyInInlineFragments() throws {
         try assertValid(
             """
             query Foo($a: String, $b: String, $c: String) {
@@ -49,7 +49,7 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUsesAllVariablesInFragments() throws {
+    @Test func usesAllVariablesInFragments() throws {
         try assertValid(
             """
             query Foo($a: String, $b: String, $c: String) {
@@ -72,7 +72,7 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testVariableUsedByFragmentInMultipleOperations() throws {
+    @Test func variableUsedByFragmentInMultipleOperations() throws {
         try assertValid(
             """
             query Foo($a: String) {
@@ -91,7 +91,7 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testVariableUsedByRecursiveFragment() throws {
+    @Test func variableUsedByRecursiveFragment() throws {
         try assertValid(
             """
             query Foo($a: String) {
@@ -106,7 +106,7 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testVariableNotUsed() throws {
+    @Test func variableNotUsed() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -122,7 +122,7 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testMultipleVariablesNotUsed() throws {
+    @Test func multipleVariablesNotUsed() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -143,7 +143,7 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testVariableNotUsedInFragments() throws {
+    @Test func variableNotUsedInFragments() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -172,7 +172,7 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testMultipleVariablesNotUsedInFragments() throws {
+    @Test func multipleVariablesNotUsedInFragments() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -206,7 +206,7 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testVariableNotUsedByUnreferencedFragment() throws {
+    @Test func variableNotUsedByUnreferencedFragment() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -228,7 +228,7 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testVariableNotUsedByFragmentUsedByOtherOperation() throws {
+    @Test func variableNotUsedByFragmentUsedByOtherOperation() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -258,7 +258,7 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testVariableUsedInsideObject() throws {
+    @Test func variableUsedInsideObject() throws {
         try assertValid(
             """
             query Foo($a: String) {
@@ -268,7 +268,7 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testVariableUnusedInsideObject() throws {
+    @Test func variableUnusedInsideObject() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """

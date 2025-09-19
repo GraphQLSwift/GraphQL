@@ -2,7 +2,7 @@
 import Testing
 
 @Suite struct IntrospectionTests {
-    @Test func testDefaultValues() async throws {
+    @Test func defaultValues() async throws {
         let numEnum = try GraphQLEnumType(
             name: "Enum",
             values: [

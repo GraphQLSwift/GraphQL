@@ -2,7 +2,7 @@
 import Testing
 
 @Suite struct FederationTests {
-    @Test func testFederationSampleSchema() throws {
+    @Test func federationSampleSchema() throws {
         // Confirm that the Apollo test schema can be parsed as expected https://github.com/apollographql/apollo-federation-subgraph-compatibility/blob/main/COMPATIBILITY.md
         let source =
             """

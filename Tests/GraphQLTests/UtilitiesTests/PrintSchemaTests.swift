@@ -20,7 +20,7 @@ func buildSingleFieldSchema(
 }
 
 @Suite struct TypeSystemPrinterTests {
-    @Test func testPrintsStringField() throws {
+    @Test func printsStringField() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(type: GraphQLString))
         try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
@@ -29,7 +29,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsStringListField() throws {
+    @Test func printsStringListField() throws {
         let schema =
             try buildSingleFieldSchema(fieldConfig: GraphQLField(type: GraphQLList(GraphQLString)))
         try #expect(expectPrintedSchema(schema: schema) == """
@@ -39,7 +39,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsStringNonNullField() throws {
+    @Test func printsStringNonNullField() throws {
         let schema =
             try buildSingleFieldSchema(
                 fieldConfig: GraphQLField(type: GraphQLNonNull(GraphQLString))
@@ -51,7 +51,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsStringNonNullListField() throws {
+    @Test func printsStringNonNullListField() throws {
         let schema =
             try buildSingleFieldSchema(
                 fieldConfig: GraphQLField(type: GraphQLNonNull(GraphQLList(GraphQLString)))
@@ -63,7 +63,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsStringListNonNullsField() throws {
+    @Test func printsStringListNonNullsField() throws {
         let schema =
             try buildSingleFieldSchema(
                 fieldConfig: GraphQLField(type: GraphQLList(GraphQLNonNull(GraphQLString)))
@@ -75,7 +75,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsStringNonNullListNonNullsField() throws {
+    @Test func printsStringNonNullListNonNullsField() throws {
         let schema =
             try buildSingleFieldSchema(
                 fieldConfig: GraphQLField(
@@ -89,7 +89,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsObjectField() throws {
+    @Test func printsObjectField() throws {
         let FooType = try GraphQLObjectType(
             name: "Foo",
             fields: ["str": GraphQLField(type: GraphQLString)]
@@ -102,7 +102,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsStringFieldWithIntArg() throws {
+    @Test func printsStringFieldWithIntArg() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: ["argOne": GraphQLArgument(type: GraphQLInt)]
@@ -114,7 +114,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsStringFieldWithIntArgWithDefault() throws {
+    @Test func printsStringFieldWithIntArgWithDefault() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: ["argOne": GraphQLArgument(type: GraphQLInt, defaultValue: 2)]
@@ -126,7 +126,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsStringFieldWithStringArgWithDefault() throws {
+    @Test func printsStringFieldWithStringArgWithDefault() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: ["argOne": GraphQLArgument(type: GraphQLString, defaultValue: "test default")]
@@ -138,7 +138,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsStringFieldWithIntArgWithDefaultNull() throws {
+    @Test func printsStringFieldWithIntArgWithDefaultNull() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: ["argOne": GraphQLArgument(type: GraphQLInt, defaultValue: .null)]
@@ -150,7 +150,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsStringFieldWithNonNullIntArg() throws {
+    @Test func printsStringFieldWithNonNullIntArg() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: ["argOne": GraphQLArgument(type: GraphQLNonNull(GraphQLInt))]
@@ -162,7 +162,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsStringFieldWithMultipleArgs() throws {
+    @Test func printsStringFieldWithMultipleArgs() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: [
@@ -177,7 +177,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsStringFieldWithMultipleArgsFirstIsDefault() throws {
+    @Test func printsStringFieldWithMultipleArgsFirstIsDefault() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: [
@@ -193,7 +193,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsStringFieldWithMultipleArgsSecondIsDefault() throws {
+    @Test func printsStringFieldWithMultipleArgsSecondIsDefault() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: [
@@ -209,7 +209,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsStringFieldWithMultipleArgsLastIsDefault() throws {
+    @Test func printsStringFieldWithMultipleArgsLastIsDefault() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: [
@@ -225,7 +225,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsSchemaWithDescription() throws {
+    @Test func printsSchemaWithDescription() throws {
         let schema = try GraphQLSchema(
             description: "Schema description.",
             query: GraphQLObjectType(name: "Query", fields: [:])
@@ -240,7 +240,7 @@ func buildSingleFieldSchema(
         """#)
     }
 
-    @Test func testOmitsSchemaOfCommonNames() throws {
+    @Test func omitsSchemaOfCommonNames() throws {
         let schema = try GraphQLSchema(
             query: GraphQLObjectType(name: "Query", fields: [:]),
             mutation: GraphQLObjectType(name: "Mutation", fields: [:]),
@@ -255,7 +255,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsCustomQueryRootTypes() throws {
+    @Test func printsCustomQueryRootTypes() throws {
         let schema = try GraphQLSchema(
             query: GraphQLObjectType(name: "CustomType", fields: [:])
         )
@@ -268,7 +268,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsCustomMutationRootTypes() throws {
+    @Test func printsCustomMutationRootTypes() throws {
         let schema = try GraphQLSchema(
             mutation: GraphQLObjectType(name: "CustomType", fields: [:])
         )
@@ -281,7 +281,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsCustomSubscriptionRootTypes() throws {
+    @Test func printsCustomSubscriptionRootTypes() throws {
         let schema = try GraphQLSchema(
             subscription: GraphQLObjectType(name: "CustomType", fields: [:])
         )
@@ -294,7 +294,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintInterface() throws {
+    @Test func printInterface() throws {
         let FooType = try GraphQLInterfaceType(
             name: "Foo",
             fields: ["str": GraphQLField(type: GraphQLString)]
@@ -318,7 +318,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintMultipleInterface() throws {
+    @Test func printMultipleInterface() throws {
         let FooType = try GraphQLInterfaceType(
             name: "Foo",
             fields: ["str": GraphQLField(type: GraphQLString)]
@@ -355,7 +355,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintHierarchicalInterface() throws {
+    @Test func printHierarchicalInterface() throws {
         let FooType = try GraphQLInterfaceType(
             name: "Foo",
             fields: ["str": GraphQLField(type: GraphQLString)]
@@ -408,7 +408,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintUnions() throws {
+    @Test func printUnions() throws {
         let FooType = try GraphQLObjectType(
             name: "Foo",
             fields: ["bool": GraphQLField(type: GraphQLBoolean)]
@@ -445,7 +445,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintInputType() throws {
+    @Test func printInputType() throws {
         let InputType = try GraphQLInputObjectType(
             name: "InputType",
             fields: ["int": InputObjectField(type: GraphQLInt)]
@@ -459,7 +459,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintInputTypewithOneOfDirective() throws {
+    @Test func printInputTypewithOneOfDirective() throws {
         let InputType = try GraphQLInputObjectType(
             name: "InputType",
             fields: ["int": InputObjectField(type: GraphQLInt)],
@@ -474,7 +474,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testCustomScalar() throws {
+    @Test func customScalar() throws {
         let OddType = try GraphQLScalarType(name: "Odd")
 
         let schema = try GraphQLSchema(types: [OddType])
@@ -483,7 +483,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testCustomScalarWithSpecifiedByURL() throws {
+    @Test func customScalarWithSpecifiedByURL() throws {
         let FooType = try GraphQLScalarType(
             name: "Foo",
             specifiedByURL: "https://example.com/foo_spec"
@@ -495,7 +495,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testEnum() throws {
+    @Test func `enum`() throws {
         let RGBType = try GraphQLEnumType(
             name: "RGB",
             values: [
@@ -515,7 +515,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsEmptyTypes() throws {
+    @Test func printsEmptyTypes() throws {
         let schema = try GraphQLSchema(
             types: [
                 GraphQLEnumType(name: "SomeEnum", values: [:]),
@@ -538,7 +538,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testPrintsCustomDirectives() throws {
+    @Test func printsCustomDirectives() throws {
         let SimpleDirective = try GraphQLDirective(
             name: "simpleDirective",
             locations: [DirectiveLocation.field]
@@ -563,7 +563,7 @@ func buildSingleFieldSchema(
         """#)
     }
 
-    @Test func testPrintsAnEmptyDescriptions() throws {
+    @Test func printsAnEmptyDescriptions() throws {
         let args: OrderedDictionary<String, GraphQLArgument> = [
             "someArg": GraphQLArgument(type: GraphQLString, description: ""),
             "anotherArg": GraphQLArgument(type: GraphQLString, description: ""),
@@ -693,7 +693,7 @@ func buildSingleFieldSchema(
         """#)
     }
 
-    @Test func testPrintsADescriptionWithOnlyWhitespace() throws {
+    @Test func printsADescriptionWithOnlyWhitespace() throws {
         let schema = try buildSingleFieldSchema(
             fieldConfig: GraphQLField(
                 type: GraphQLString,
@@ -708,7 +708,7 @@ func buildSingleFieldSchema(
         """)
     }
 
-    @Test func testOneLinePrintsAShortDescription() throws {
+    @Test func oneLinePrintsAShortDescription() throws {
         let schema = try buildSingleFieldSchema(
             fieldConfig: GraphQLField(
                 type: GraphQLString,
@@ -723,9 +723,9 @@ func buildSingleFieldSchema(
         """#)
     }
 
-    @Test func testPrintIntrospectionSchema() throws {
+    @Test func printIntrospectionSchema() throws {
         let schema = try GraphQLSchema()
-        #expect(printIntrospectionSchema(schema: schema) == #"""
+        #expect(GraphQL.printIntrospectionSchema(schema: schema) == #"""
         """
         Directs the executor to include this field or fragment only when the \`if\` argument is true.
         """
@@ -957,7 +957,7 @@ func buildSingleFieldSchema(
         """#)
     }
 
-    @Test func testPrintsViralSchemaCorrectly() throws {
+    @Test func printsViralSchemaCorrectly() throws {
         let Mutation = try GraphQLObjectType(
             name: "Mutation",
             fields: [

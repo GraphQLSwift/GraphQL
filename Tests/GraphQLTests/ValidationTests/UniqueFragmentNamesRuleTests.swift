@@ -7,7 +7,7 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         rule = UniqueFragmentNamesRule
     }
 
-    @Test func testNoFragments() throws {
+    @Test func noFragments() throws {
         try assertValid(
             """
             {
@@ -17,7 +17,7 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testOneFragment() throws {
+    @Test func oneFragment() throws {
         try assertValid(
             """
             {
@@ -31,7 +31,7 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testManyFragments() throws {
+    @Test func manyFragments() throws {
         try assertValid(
             """
             {
@@ -52,7 +52,7 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testInlineFragmentsAreAlwaysUnique() throws {
+    @Test func inlineFragmentsAreAlwaysUnique() throws {
         try assertValid(
             """
             {
@@ -67,7 +67,7 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testFragmentAndOperationNamedTheSame() throws {
+    @Test func fragmentAndOperationNamedTheSame() throws {
         try assertValid(
             """
             query Foo {
@@ -80,7 +80,7 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testFragmentsNamedTheSame() throws {
+    @Test func fragmentsNamedTheSame() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -106,7 +106,7 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testFragmentsNamedTheSameWithoutBeingReferenced() throws {
+    @Test func fragmentsNamedTheSameWithoutBeingReferenced() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:

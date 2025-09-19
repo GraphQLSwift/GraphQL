@@ -7,7 +7,7 @@ class UniqueTypeNamesRuleTests: SDLValidationTestCase {
         rule = UniqueTypeNamesRule
     }
 
-    @Test func testNoTypes() throws {
+    @Test func noTypes() throws {
         try assertValidationErrors(
             """
             directive @test on SCHEMA
@@ -16,7 +16,7 @@ class UniqueTypeNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testOneType() throws {
+    @Test func oneType() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -25,7 +25,7 @@ class UniqueTypeNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testManyTypes() throws {
+    @Test func manyTypes() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -36,7 +36,7 @@ class UniqueTypeNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testTypeAndNonTypeDefinitionsNamedTheSame() throws {
+    @Test func typeAndNonTypeDefinitionsNamedTheSame() throws {
         try assertValidationErrors(
             """
             query Foo { __typename }
@@ -49,7 +49,7 @@ class UniqueTypeNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testTypesNamedTheSame() throws {
+    @Test func typesNamedTheSame() throws {
         try assertValidationErrors(
             """
             type Foo
@@ -108,17 +108,17 @@ class UniqueTypeNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testAddingNewTypeToExistingSchema() throws {
+    @Test func addingNewTypeToExistingSchema() throws {
         let schema = try buildSchema(source: "type Foo")
         try assertValidationErrors("type Bar", schema: schema, [])
     }
 
-    @Test func testAddingNewTypeToExistingSchemaWithSameNamedDirective() throws {
+    @Test func addingNewTypeToExistingSchemaWithSameNamedDirective() throws {
         let schema = try buildSchema(source: "directive @Foo on SCHEMA")
         try assertValidationErrors("type Foo", schema: schema, [])
     }
 
-    @Test func testAddingConflictingTypesToExistingSchema() throws {
+    @Test func addingConflictingTypesToExistingSchema() throws {
         let schema = try buildSchema(source: "type Foo")
         let sdl = """
         scalar Foo

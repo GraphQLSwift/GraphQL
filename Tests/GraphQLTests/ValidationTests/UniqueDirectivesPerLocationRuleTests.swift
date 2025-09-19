@@ -7,7 +7,7 @@ class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
         rule = UniqueDirectivesPerLocationRule
     }
 
-    @Test func testNoDirectives() throws {
+    @Test func noDirectives() throws {
         try assertValid(
             """
             fragment Test on Type {
@@ -18,7 +18,7 @@ class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUniqueDirectivesInDifferentLocations() throws {
+    @Test func uniqueDirectivesInDifferentLocations() throws {
         try assertValid(
             """
             fragment Test on Type @directiveA {
@@ -29,7 +29,7 @@ class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUniqueDirectivesInSameLocation() throws {
+    @Test func uniqueDirectivesInSameLocation() throws {
         try assertValid(
             """
             fragment Test on Type @directiveA @directiveB {
@@ -40,7 +40,7 @@ class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testSameDirectivesInDifferentLocations() throws {
+    @Test func sameDirectivesInDifferentLocations() throws {
         try assertValid(
             """
             fragment Test on Type @directiveA {
@@ -51,7 +51,7 @@ class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testSameDirectivesInSimilarLocations() throws {
+    @Test func sameDirectivesInSimilarLocations() throws {
         try assertValid(
             """
             fragment Test on Type {
@@ -63,7 +63,7 @@ class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testRepeatableDirectivesInSameLocation() throws {
+    @Test func repeatableDirectivesInSameLocation() throws {
         try assertValid(
             """
             fragment Test on Type @repeatable @repeatable {
@@ -74,7 +74,7 @@ class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUnknownDirectivesMustBeIgnored() throws {
+    @Test func unknownDirectivesMustBeIgnored() throws {
         try assertValid(
             """
             type Test @unknown @unknown {
@@ -89,7 +89,7 @@ class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testDuplicateDirectivesInOneLocation() throws {
+    @Test func duplicateDirectivesInOneLocation() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -110,7 +110,7 @@ class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testManyDuplicateDirectivesInOneLocation() throws {
+    @Test func manyDuplicateDirectivesInOneLocation() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
@@ -139,7 +139,7 @@ class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testDifferentDuplicateDirectivesInOneLocation() throws {
+    @Test func differentDuplicateDirectivesInOneLocation() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query:

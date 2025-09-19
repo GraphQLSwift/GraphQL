@@ -7,12 +7,12 @@ func lexOne(_ string: String) throws -> Token {
 }
 
 @Suite struct LexerTests {
-    @Test func testInvalidCharacter() throws {
+    @Test func invalidCharacter() throws {
         #expect(throws: (any Error).self) { try lexOne("\u{0007}") }
 //        'Syntax Error GraphQL (1:1) Invalid character "\\u0007"'
     }
 
-    @Test func testBOMHeader() throws {
+    @Test func bOMHeader() throws {
         let token = try lexOne("\u{FEFF} foo")
 
         let expected = Token(
@@ -27,7 +27,7 @@ func lexOne(_ string: String) throws -> Token {
         #expect(token == expected)
     }
 
-    @Test func testRecordsLineAndColumn() throws {
+    @Test func recordsLineAndColumn() throws {
         let token = try lexOne("\n \r\n \r  foo\n")
 
         let expected = Token(
@@ -42,13 +42,13 @@ func lexOne(_ string: String) throws -> Token {
         #expect(token == expected)
     }
 
-    @Test func testTokenDescription() throws {
+    @Test func tokenDescription() throws {
         let token = try lexOne("foo")
         let expected = "Token(kind: Name, value: foo, line: 1, column: 1)"
         #expect(token.description == expected)
     }
 
-    @Test func testSkipsWhitespace() throws {
+    @Test func skipsWhitespace() throws {
         let token = try lexOne("""
 
 
@@ -69,7 +69,7 @@ func lexOne(_ string: String) throws -> Token {
         #expect(token == expected)
     }
 
-    @Test func testSkipsComments() throws {
+    @Test func skipsComments() throws {
         let token = try lexOne("""
             #comment\r
             foo#comment
@@ -87,7 +87,7 @@ func lexOne(_ string: String) throws -> Token {
         #expect(token == expected)
     }
 
-    @Test func testSkipsCommas() throws {
+    @Test func skipsCommas() throws {
         let token = try lexOne(",,,foo,,,")
 
         let expected = Token(
@@ -102,7 +102,7 @@ func lexOne(_ string: String) throws -> Token {
         #expect(token == expected)
     }
 
-    @Test func testErrorsRespectWhitespaces() throws {
+    @Test func errorsRespectWhitespaces() throws {
         #expect(throws: (any Error).self) { try lexOne("""
 
 
@@ -118,7 +118,7 @@ func lexOne(_ string: String) throws -> Token {
 //      '4: \n'
     }
 
-    @Test func testStrings() throws {
+    @Test func strings() throws {
         var token: Token
         var expected: Token
 
@@ -214,7 +214,7 @@ func lexOne(_ string: String) throws -> Token {
         #expect(token == expected)
     }
 
-    @Test func testStringErrors() throws {
+    @Test func stringErrors() throws {
         #expect(throws: (any Error).self) { try lexOne("\"") }
         // "Syntax Error GraphQL (1:2) Unterminated string"
 
@@ -261,7 +261,7 @@ func lexOne(_ string: String) throws -> Token {
         // "Syntax Error GraphQL (1:7) Invalid character escape sequence: \\uXXXF."
     }
 
-    @Test func testNumbers() throws {
+    @Test func numbers() throws {
         var token: Token
         var expected: Token
 
@@ -474,7 +474,7 @@ func lexOne(_ string: String) throws -> Token {
         #expect(token == expected)
     }
 
-    @Test func testNumberErrors() throws {
+    @Test func numberErrors() throws {
         #expect(throws: (any Error).self) { try lexOne("00") }
 //        'Syntax Error GraphQL (1:2) Invalid number, ' +
 //        'unexpected digit after 0: "0".'
@@ -506,7 +506,7 @@ func lexOne(_ string: String) throws -> Token {
 //        'expected digit but got: "A".'
     }
 
-    @Test func testSymbols() throws {
+    @Test func symbols() throws {
         var token: Token
         var expected: Token
 
@@ -680,7 +680,7 @@ func lexOne(_ string: String) throws -> Token {
         #expect(token == expected)
     }
 
-    @Test func testUnknownCharacterErrors() throws {
+    @Test func unknownCharacterErrors() throws {
         #expect(throws: (any Error).self) { try lexOne("..") }
         // "Syntax Error GraphQL (1:1) Unexpected character ".""
 
@@ -694,7 +694,7 @@ func lexOne(_ string: String) throws -> Token {
         // "Syntax Error GraphQL (1:1) Unexpected character "\\u200B""
     }
 
-    @Test func testDashInName() throws {
+    @Test func dashInName() throws {
         let q = "a-b"
         let lexer = createLexer(source: Source(body: q))
         let firstToken = try lexer.advance()
@@ -714,7 +714,7 @@ func lexOne(_ string: String) throws -> Token {
         // "Syntax Error GraphQL (1:3) Invalid number, expected digit but got: "b"."
     }
 
-    @Test func testDoubleLinkedList() throws {
+    @Test func doubleLinkedList() throws {
         let q = """
         {
             #comment
@@ -767,7 +767,7 @@ func lexOne(_ string: String) throws -> Token {
     // Tests for Blockstring support
     //
 
-    @Test func testBlockStringIndentAndBlankLine() throws {
+    @Test func blockStringIndentAndBlankLine() throws {
         let rawString =
             """
 
@@ -792,7 +792,7 @@ func lexOne(_ string: String) throws -> Token {
         """)
     }
 
-    @Test func testBlockStringDoubleIndentAndBlankLine() throws {
+    @Test func blockStringDoubleIndentAndBlankLine() throws {
         let rawString =
             """
 
@@ -823,7 +823,7 @@ func lexOne(_ string: String) throws -> Token {
         )
     }
 
-    @Test func testBlockStringIndentAndBlankLineFirstLineNotIndent() throws {
+    @Test func blockStringIndentAndBlankLineFirstLineNotIndent() throws {
         let rawString = """
 
 
@@ -847,7 +847,7 @@ func lexOne(_ string: String) throws -> Token {
         """)
     }
 
-    @Test func testBlockStringIndentBlankLineFirstLineNotIndentWeird() throws {
+    @Test func blockStringIndentBlankLineFirstLineNotIndentWeird() throws {
         let rawString = """
 
 
@@ -869,7 +869,7 @@ func lexOne(_ string: String) throws -> Token {
         """)
     }
 
-    @Test func testBlockStringIndentMultilineWithSingleSpaceIndent() throws {
+    @Test func blockStringIndentMultilineWithSingleSpaceIndent() throws {
         let rawString = """
          Multi-line string
          With Inner \"foo\"
@@ -884,7 +884,7 @@ func lexOne(_ string: String) throws -> Token {
         """)
     }
 
-    @Test func testBlockStringIndentMultilineWithSingleSpaceIndentExtraLines() throws {
+    @Test func blockStringIndentMultilineWithSingleSpaceIndentExtraLines() throws {
         let rawString = """
 
          Multi-line string
@@ -902,7 +902,7 @@ func lexOne(_ string: String) throws -> Token {
 
     // Lexer tests for Blockstring token parsing
 
-    @Test func testBlockStrings() throws {
+    @Test func blockStrings() throws {
         let token = try lexOne(#" """ Multi-line string\n With Inner "foo" \nshould be Valid """ "#)
         let expected = Token(
             kind: .blockstring,
@@ -927,7 +927,7 @@ func lexOne(_ string: String) throws -> Token {
         )
     }
 
-    @Test func testBlockStringSingleSpaceIndent() throws {
+    @Test func blockStringSingleSpaceIndent() throws {
         let token = try lexOne(#"""
         """
          Multi-line string
@@ -962,7 +962,7 @@ func lexOne(_ string: String) throws -> Token {
         )
     }
 
-    @Test func testBlockStringUnescapedReturns() throws {
+    @Test func blockStringUnescapedReturns() throws {
         let token = try lexOne(#"""
         """
          Multi-line string
@@ -987,7 +987,7 @@ func lexOne(_ string: String) throws -> Token {
         #expect(token == expected)
     }
 
-    @Test func testBlockStringUnescapedReturnsIndentTest() throws {
+    @Test func blockStringUnescapedReturnsIndentTest() throws {
         let token = try lexOne(#"""
         """
         Multi-line string {
@@ -1014,7 +1014,7 @@ func lexOne(_ string: String) throws -> Token {
         #expect(token == expected)
     }
 
-    @Test func testIndentedBlockStringWithIndents() throws {
+    @Test func indentedBlockStringWithIndents() throws {
         let sourceStr =
             #"""
                 """
@@ -1048,19 +1048,19 @@ func lexOne(_ string: String) throws -> Token {
 
     // Test empty strings & multi-line string lexer token parsing
 
-    @Test func testEmptyQuote() throws {
+    @Test func emptyQuote() throws {
         let token = try lexOne(#" "" "#)
         let expected = Token(kind: .string, start: 1, end: 3, line: 1, column: 2, value: "")
         #expect(token == expected)
     }
 
-    @Test func testEmptySimpleBlockString() throws {
+    @Test func emptySimpleBlockString() throws {
         let token = try lexOne(#" """""" "#)
         let expected = Token(kind: .blockstring, start: 1, end: 7, line: 1, column: 2, value: "")
         #expect(token == expected)
     }
 
-    @Test func testEmptyTrimmedCharactersBlockString() throws {
+    @Test func emptyTrimmedCharactersBlockString() throws {
         let token = try lexOne(#"""
         """
         """
@@ -1069,7 +1069,7 @@ func lexOne(_ string: String) throws -> Token {
         #expect(token == expected)
     }
 
-    @Test func testEscapedTripleQuoteInBlockString() throws {
+    @Test func escapedTripleQuoteInBlockString() throws {
         let token = try lexOne(#"""
         """
         \"""

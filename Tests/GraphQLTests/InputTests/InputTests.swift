@@ -2,7 +2,7 @@
 import Testing
 
 @Suite struct InputTests {
-    @Test func testArgsNonNullNoDefault() async throws {
+    @Test func argsNonNullNoDefault() async throws {
         struct Echo: Codable {
             let field1: String
         }
@@ -157,7 +157,7 @@ import Testing
         )
     }
 
-    @Test func testArgsNullNoDefault() async throws {
+    @Test func argsNullNoDefault() async throws {
         struct Echo: Codable {
             let field1: String?
         }
@@ -328,7 +328,7 @@ import Testing
         )
     }
 
-    @Test func testArgsNonNullDefault() async throws {
+    @Test func argsNonNullDefault() async throws {
         struct Echo: Codable {
             let field1: String
         }
@@ -510,7 +510,7 @@ import Testing
         )
     }
 
-    @Test func testArgsNullDefault() async throws {
+    @Test func argsNullDefault() async throws {
         struct Echo: Codable {
             let field1: String?
         }
@@ -705,7 +705,7 @@ import Testing
     }
 
     // Test that input objects parse as expected from non-null literals
-    @Test func testInputNoNull() async throws {
+    @Test func inputNoNull() async throws {
         struct Echo: Codable {
             let field1: String?
             let field2: String?
@@ -833,7 +833,7 @@ import Testing
     }
 
     // Test that inputs parse as expected when null literals are present
-    @Test func testInputParsingDefinedNull() async throws {
+    @Test func inputParsingDefinedNull() async throws {
         struct Echo: Codable {
             let field1: String?
             let field2: String?
@@ -961,7 +961,7 @@ import Testing
     }
 
     // Test that input objects parse as expected when there are missing fields with no default
-    @Test func testInputParsingUndefined() async throws {
+    @Test func inputParsingUndefined() async throws {
         struct Echo: Codable {
             let field1: String?
             let field2: String?
@@ -1088,7 +1088,7 @@ import Testing
     }
 
     // Test that input objects parse as expected when there are missing fields with defaults
-    @Test func testInputParsingUndefinedWithDefault() async throws {
+    @Test func inputParsingUndefinedWithDefault() async throws {
         struct Echo: Codable {
             let field1: String?
             let field2: String?

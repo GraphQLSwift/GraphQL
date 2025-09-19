@@ -2,7 +2,7 @@
 import Testing
 
 @Suite struct GraphQLSchemaTests {
-    @Test func testAssertObjectImplementsInterfacePassesWhenObjectFieldHasRequiredArgumentsFromInterface(
+    @Test func assertObjectImplementsInterfacePassesWhenObjectFieldHasRequiredArgumentsFromInterface(
     ) throws {
         let interface = try GraphQLInterfaceType(
             name: "Interface",
@@ -55,7 +55,7 @@ import Testing
         _ = try GraphQLSchema(query: object, types: [interface, object])
     }
 
-    @Test func testAssertObjectImplementsInterfacePassesWhenObjectFieldHasRequiredArgumentMissingInInterfaceButHasDefaultValue(
+    @Test func assertObjectImplementsInterfacePassesWhenObjectFieldHasRequiredArgumentMissingInInterfaceButHasDefaultValue(
     ) throws {
         let interface = try GraphQLInterfaceType(
             name: "Interface",
@@ -89,7 +89,7 @@ import Testing
         _ = try GraphQLSchema(query: object, types: [interface, object])
     }
 
-    @Test func testAssertObjectImplementsInterfacePassesWhenObjectFieldHasNullableArgumentMissingInInterface(
+    @Test func assertObjectImplementsInterfacePassesWhenObjectFieldHasNullableArgumentMissingInInterface(
     ) throws {
         let interface = try GraphQLInterfaceType(
             name: "Interface",
@@ -118,7 +118,7 @@ import Testing
         _ = try GraphQLSchema(query: object, types: [interface, object])
     }
 
-    @Test func testAssertSchemaCircularReference() throws {
+    @Test func assertSchemaCircularReference() throws {
         let object1 = try GraphQLObjectType(
             name: "Object1"
         )

@@ -7,7 +7,7 @@ class ExecutableDefinitionsRuleTests: ValidationTestCase {
         rule = ExecutableDefinitionsRule
     }
 
-    @Test func testWithOnlyOperation() throws {
+    @Test func withOnlyOperation() throws {
         try assertValid(
             """
             query Foo {
@@ -19,7 +19,7 @@ class ExecutableDefinitionsRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testWithOperationAndFragment() throws {
+    @Test func withOperationAndFragment() throws {
         try assertValid(
             """
             query Foo {
@@ -36,7 +36,7 @@ class ExecutableDefinitionsRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testWithTypeDefinition() throws {
+    @Test func withTypeDefinition() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -68,7 +68,7 @@ class ExecutableDefinitionsRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testWithSchemaDefinition() throws {
+    @Test func withSchemaDefinition() throws {
         let errors = try assertInvalid(
             errorCount: 3,
             query: """

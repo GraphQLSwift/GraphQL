@@ -3,14 +3,14 @@ import Foundation
 import Testing
 
 @Suite struct SchemaPrinterTests {
-    @Test func testPrintsMinimalAST() {
+    @Test func printsMinimalAST() {
         let ast = ScalarTypeDefinition(
             name: .init(value: "foo")
         )
         #expect(print(ast: ast) == "scalar foo")
     }
 
-    @Test func testPrintsKitchenSinkWithoutAlteringAST() throws {
+    @Test func printsKitchenSinkWithoutAlteringAST() throws {
         guard
             let url = Bundle.module.url(
                 forResource: "schema-kitchen-sink",

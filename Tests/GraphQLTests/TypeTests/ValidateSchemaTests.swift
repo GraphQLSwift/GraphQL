@@ -75,7 +75,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
 @Suite struct ValidateSchemaTests {
     // MARK: Type System: A Schema must have Object root types
 
-    @Test func testAcceptsASchemaWhoseQueryTypeIsAnObjectType() throws {
+    @Test func acceptsASchemaWhoseQueryTypeIsAnObjectType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: String
@@ -95,7 +95,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schemaWithDef) == [])
     }
 
-    @Test func testAcceptsASchemaWhoseQueryAndMutationTypesAreObjectTypes() throws {
+    @Test func acceptsASchemaWhoseQueryAndMutationTypesAreObjectTypes() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: String
@@ -124,7 +124,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schemaWithDef) == [])
     }
 
-    @Test func testAcceptsASchemaWhoseQueryAndSubscriptionTypesAreObjectTypes() throws {
+    @Test func acceptsASchemaWhoseQueryAndSubscriptionTypesAreObjectTypes() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: String
@@ -153,7 +153,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schemaWithDef) == [])
     }
 
-    @Test func testRejectsASchemaWithoutAQueryType() throws {
+    @Test func rejectsASchemaWithoutAQueryType() throws {
         let schema = try buildSchema(source: """
           type Mutation {
             test: String
@@ -180,7 +180,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsASchemaWhoseQueryRootTypeIsNotAnObjectType() throws {
+    @Test func rejectsASchemaWhoseQueryRootTypeIsNotAnObjectType() throws {
         #expect(
             throws: (any Error).self,
             "Query root type must be Object type, it cannot be Query."
@@ -208,7 +208,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         }
     }
 
-    @Test func testRejectsASchemaWhoseMutationTypeIsAnInputType() throws {
+    @Test func rejectsASchemaWhoseMutationTypeIsAnInputType() throws {
         #expect(
             throws: (any Error).self,
             "Mutation root type must be Object type if provided, it cannot be Mutation."
@@ -245,7 +245,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         }
     }
 
-    @Test func testRejectsASchemaWhoseSubscriptionTypeIsAnInputType() throws {
+    @Test func rejectsASchemaWhoseSubscriptionTypeIsAnInputType() throws {
         #expect(
             throws: (any Error).self,
             "Subscription root type must be Object type if provided, it cannot be Subscription."
@@ -282,7 +282,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         }
     }
 
-    @Test func testRejectsASchemaExtendedWithInvalidRootTypes() throws {
+    @Test func rejectsASchemaExtendedWithInvalidRootTypes() throws {
         let schema = try buildSchema(source: """
           input SomeInputObject {
             test: String
@@ -338,7 +338,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         }
     }
 
-    @Test func testRejectsASchemaWhoseDirectivesHaveEmptyLocations() throws {
+    @Test func rejectsASchemaWhoseDirectivesHaveEmptyLocations() throws {
         let badDirective = try GraphQLDirective(
             name: "BadDirective",
             locations: [],
@@ -355,7 +355,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
 
     // MARK: Type System: Root types must all be different if provided
 
-    @Test func testAcceptsASchemaWithDifferentRootTypes() throws {
+    @Test func acceptsASchemaWithDifferentRootTypes() throws {
         let schema = try buildSchema(source: """
           type SomeObject1 {
             field: String
@@ -378,7 +378,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testRejectsASchemaWhereTheSameTypeIsUsedForMultipleRootTypes() throws {
+    @Test func rejectsASchemaWhereTheSameTypeIsUsedForMultipleRootTypes() throws {
         let schema = try buildSchema(source: """
           type SomeObject {
             field: String
@@ -407,7 +407,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsASchemaWhereTheSameTypeIsUsedForAllRootTypes() throws {
+    @Test func rejectsASchemaWhereTheSameTypeIsUsedForAllRootTypes() throws {
         let schema = try buildSchema(source: """
           type SomeObject {
             field: String
@@ -435,7 +435,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
 
     // MARK: Type System: Objects must have fields
 
-    @Test func testAcceptsAnObjectTypeWithFieldsObject() throws {
+    @Test func acceptsAnObjectTypeWithFieldsObject() throws {
         let schema = try buildSchema(source: """
           type Query {
             field: SomeObject
@@ -448,7 +448,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testRejectsAnObjectTypeWithMissingFields() throws {
+    @Test func rejectsAnObjectTypeWithMissingFields() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: IncompleteObject
@@ -487,7 +487,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnObjectTypeWithIncorrectlyNamedFields() throws {
+    @Test func rejectsAnObjectTypeWithIncorrectlyNamedFields() throws {
         let schema = try schemaWithFieldType(
             type:
             GraphQLObjectType(
@@ -506,7 +506,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
 
     // MARK: Type System: Fields args must be properly named
 
-    @Test func testAcceptsFieldArgsWithValidNames() throws {
+    @Test func acceptsFieldArgsWithValidNames() throws {
         let schema = try schemaWithFieldType(
             type:
             GraphQLObjectType(
@@ -524,7 +524,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testRejectsFieldArgWithInvalidNames() throws {
+    @Test func rejectsFieldArgWithInvalidNames() throws {
         let schema = try schemaWithFieldType(
             type:
             GraphQLObjectType(
@@ -549,7 +549,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
 
     // MARK: Type System: Union types must be valid
 
-    @Test func testAcceptsAUnionTypeWithMemberTypes() throws {
+    @Test func acceptsAUnionTypeWithMemberTypes() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: GoodUnion
@@ -570,7 +570,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testRejectsAUnionTypeWithEmptyTypes() throws {
+    @Test func rejectsAUnionTypeWithEmptyTypes() throws {
         var schema = try buildSchema(source: """
           type Query {
             test: BadUnion
@@ -599,7 +599,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAUnionTypeWithDuplicatedMemberType() throws {
+    @Test func rejectsAUnionTypeWithDuplicatedMemberType() throws {
         var schema = try buildSchema(source: """
           type Query {
             test: BadUnion
@@ -654,7 +654,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
 
     // MARK: Type System: Input Objects must have fields
 
-    @Test func testAcceptsAnInputObjectTypeWithFields() throws {
+    @Test func acceptsAnInputObjectTypeWithFields() throws {
         let schema = try buildSchema(source: """
           type Query {
             field(arg: SomeInputObject): String
@@ -667,7 +667,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testRejectsAnInputObjectTypeWithMissingFields() throws {
+    @Test func rejectsAnInputObjectTypeWithMissingFields() throws {
         var schema = try buildSchema(source: """
           type Query {
             field(arg: SomeInputObject): String
@@ -697,7 +697,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testAcceptsAnInputObjectWithBreakableCircularReference() throws {
+    @Test func acceptsAnInputObjectWithBreakableCircularReference() throws {
         let schema = try buildSchema(source: """
           type Query {
             field(arg: SomeInputObject): String
@@ -719,7 +719,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testRejectsAnInputObjectWithNonBreakableCircularReference() throws {
+    @Test func rejectsAnInputObjectWithNonBreakableCircularReference() throws {
         let schema = try buildSchema(source: """
           type Query {
             field(arg: SomeInputObject): String
@@ -738,7 +738,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsInputObjectsWithNonbreakableCircularReferenceSpreadAcrossThem() throws {
+    @Test func rejectsInputObjectsWithNonbreakableCircularReferenceSpreadAcrossThem() throws {
         let schema = try buildSchema(source: """
           type Query {
             field(arg: SomeInputObject): String
@@ -770,7 +770,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsInputObjectsWithMultipleNonbreakableCircularReference() throws {
+    @Test func rejectsInputObjectsWithMultipleNonbreakableCircularReference() throws {
         let schema = try buildSchema(source: """
           type Query {
             field(arg: SomeInputObject): String
@@ -815,7 +815,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnInputObjectTypeWithIncorrectlyTypedFields() throws {
+    @Test func rejectsAnInputObjectTypeWithIncorrectlyTypedFields() throws {
         #expect(
             throws: (any Error).self,
             "The type of SomeInputObject.badObject must be Input Type but got: SomeObject."
@@ -840,7 +840,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         }
     }
 
-    @Test func testRejectsAnInputObjectTypeWithRequiredArgumentThatIsDeprecated() throws {
+    @Test func rejectsAnInputObjectTypeWithRequiredArgumentThatIsDeprecated() throws {
         let schema = try buildSchema(source: """
           type Query {
             field(arg: SomeInputObject): String
@@ -866,7 +866,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
 
     // MARK: Type System: Enum types must be well defined
 
-    @Test func testRejectsAnEnumTypeWithoutValues() throws {
+    @Test func rejectsAnEnumTypeWithoutValues() throws {
         var schema = try buildSchema(source: """
           type Query {
             field: SomeEnum
@@ -895,7 +895,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnEnumTypeWithIncorrectlyNamedValues() throws {
+    @Test func rejectsAnEnumTypeWithIncorrectlyNamedValues() throws {
         let schema = try schemaWithFieldType(
             type:
             GraphQLEnumType(
@@ -936,7 +936,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         )
     }
 
-    @Test func testRejectsWithRelevantLocationsForANonoutputTypeAsAnObjectFieldType() throws {
+    @Test func rejectsWithRelevantLocationsForANonoutputTypeAsAnObjectFieldType() throws {
         #expect(
             throws: (any Error).self,
             "The type of Query.field must be Output Type but got: [SomeInputObject]."
@@ -955,7 +955,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
 
     // MARK: Type System: Objects can only implement unique interfaces
 
-    @Test func testRejectsAnObjectImplementingANoninterfaceType() throws {
+    @Test func rejectsAnObjectImplementingANoninterfaceType() throws {
         #expect(
             throws: (any Error).self,
             "Type BadObject must only implement Interface types, it cannot implement SomeInputObject."
@@ -976,7 +976,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         }
     }
 
-    @Test func testRejectsAnObjectImplementingTheSameInterfaceTwice() throws {
+    @Test func rejectsAnObjectImplementingTheSameInterfaceTwice() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1001,7 +1001,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnObjectImplementingTheSameInterfaceTwiceDueToExtension() throws {
+    @Test func rejectsAnObjectImplementingTheSameInterfaceTwiceDueToExtension() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1032,7 +1032,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
 
     // MARK: Type System: Interface extensions should be valid
 
-    @Test func testRejectsAnObjectImplementingTheExtendedInterfaceDueToMissingField() throws {
+    @Test func rejectsAnObjectImplementingTheExtendedInterfaceDueToMissingField() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1071,7 +1071,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnObjectImplementingTheExtendedInterfaceDueToMissingFieldArgs() throws {
+    @Test func rejectsAnObjectImplementingTheExtendedInterfaceDueToMissingFieldArgs() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1109,8 +1109,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test
-    func testRejectsObjectsImplementingTheExtendedInterfaceDueToMismatchingInterfaceType() throws {
+    @Test func rejectsObjectsImplementingTheExtendedInterfaceDueToMismatchingInterfaceType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1188,14 +1187,14 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         )
     }
 
-    @Test func testAcceptsAnOutputTypeAsAnInterfaceFieldType() throws {
+    @Test func acceptsAnOutputTypeAsAnInterfaceFieldType() throws {
         for type in outputTypes {
             let schema = try schemaWithInterfaceField(fieldConfig: .init(type: type))
             try #expect(validateSchema(schema: schema) == [])
         }
     }
 
-    @Test func testRejectsANonoutputTypeAsAnInterfaceFieldTypeWithLocations() throws {
+    @Test func rejectsANonoutputTypeAsAnInterfaceFieldTypeWithLocations() throws {
         #expect(
             throws: (any Error).self,
             "The type of SomeInterface.field must be Output Type but got: SomeInputObject."
@@ -1220,7 +1219,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         }
     }
 
-    @Test func testAcceptsAnInterfaceNotImplementedByAtLeastOneObject() throws {
+    @Test func acceptsAnInterfaceNotImplementedByAtLeastOneObject() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: SomeInterface
@@ -1267,14 +1266,14 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         )
     }
 
-    @Test func testAcceptsAnInputTypeAsAFieldArgType() throws {
+    @Test func acceptsAnInputTypeAsAFieldArgType() throws {
         for type in inputTypes {
             let schema = try schemaWithArg(argConfig: .init(type: type))
             try #expect(validateSchema(schema: schema) == [])
         }
     }
 
-    @Test func testRejectsARequiredArgumentThatIsDeprecated() throws {
+    @Test func rejectsARequiredArgumentThatIsDeprecated() throws {
         let schema = try buildSchema(source: """
           directive @BadDirective(
             badArg: String! @deprecated
@@ -1309,7 +1308,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsANoninputTypeAsAFieldArgWithLocations() throws {
+    @Test func rejectsANoninputTypeAsAFieldArgWithLocations() throws {
         #expect(
             throws: (any Error).self,
             "The type of Query.test(arg:) must be Input Type but got: SomeObject."
@@ -1353,14 +1352,14 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         )
     }
 
-    @Test func testAcceptsAnInputTypeAsAnInputFieldType() throws {
+    @Test func acceptsAnInputTypeAsAnInputFieldType() throws {
         for type in inputTypes {
             let schema = try schemaWithInputField(inputFieldConfig: .init(type: type))
             try #expect(validateSchema(schema: schema) == [])
         }
     }
 
-    @Test func testRejectsANoninputTypeAsAnInputObjectFieldWithLocations() throws {
+    @Test func rejectsANoninputTypeAsAnInputObjectFieldWithLocations() throws {
         #expect(
             throws: (any Error).self,
             "The type of SomeInputObject.foo must be Input Type but got: SomeObject."
@@ -1383,7 +1382,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
 
     // MARK: Type System: OneOf Input Object fields must be nullable
 
-    @Test func testRejectsNonnullableFields() throws {
+    @Test func rejectsNonnullableFields() throws {
         let schema = try buildSchema(source: """
           type Query {
             test(arg: SomeInputObject): String
@@ -1402,7 +1401,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsFieldsWithDefaultValues() throws {
+    @Test func rejectsFieldsWithDefaultValues() throws {
         let schema = try buildSchema(source: """
           type Query {
             test(arg: SomeInputObject): String
@@ -1423,7 +1422,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
 
     // MARK: Objects must adhere to Interface they implement
 
-    @Test func testAcceptsAnObjectWhichImplementsAnInterface() throws {
+    @Test func acceptsAnObjectWhichImplementsAnInterface() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1440,7 +1439,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testAcceptsAnObjectWhichImplementsAnInterfaceAlongWithMoreFields() throws {
+    @Test func acceptsAnObjectWhichImplementsAnInterfaceAlongWithMoreFields() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1458,7 +1457,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testAcceptsAnObjectWhichImplementsAnInterfaceFieldAlongWithAdditionalOptionalArguments(
+    @Test func acceptsAnObjectWhichImplementsAnInterfaceFieldAlongWithAdditionalOptionalArguments(
     ) throws {
         let schema = try buildSchema(source: """
           type Query {
@@ -1476,7 +1475,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testRejectsAnObjectMissingAnInterfaceField() throws {
+    @Test func rejectsAnObjectMissingAnInterfaceField() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1502,7 +1501,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnObjectWithAnIncorrectlyTypedInterfaceField() throws {
+    @Test func rejectsAnObjectWithAnIncorrectlyTypedInterfaceField() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1528,7 +1527,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnObjectWithADifferentlyTypedInterfaceField() throws {
+    @Test func rejectsAnObjectWithADifferentlyTypedInterfaceField() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1557,7 +1556,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testAcceptsAnObjectWithASubtypedInterfaceField_Interface() throws {
+    @Test func acceptsAnObjectWithASubtypedInterfaceField_Interface() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1574,7 +1573,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testAcceptsAnObjectWithASubtypedInterfaceField_Union() throws {
+    @Test func acceptsAnObjectWithASubtypedInterfaceField_Union() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1597,7 +1596,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testRejectsAnObjectMissingAnInterfaceArgument() throws {
+    @Test func rejectsAnObjectMissingAnInterfaceArgument() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1623,7 +1622,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnObjectWithAnIncorrectlyTypedInterfaceArgument() throws {
+    @Test func rejectsAnObjectWithAnIncorrectlyTypedInterfaceArgument() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1649,7 +1648,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnObjectWithBothAnIncorrectlyTypedFieldAndArgument() throws {
+    @Test func rejectsAnObjectWithBothAnIncorrectlyTypedFieldAndArgument() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1683,7 +1682,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnObjectWhichImplementsAnInterfaceFieldAlongWithAdditionalRequiredArguments(
+    @Test func rejectsAnObjectWhichImplementsAnInterfaceFieldAlongWithAdditionalRequiredArguments(
     ) throws {
         let schema = try buildSchema(source: """
           type Query {
@@ -1715,7 +1714,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testAcceptsAnObjectWithAnEquivalentlyWrappedInterfaceFieldType() throws {
+    @Test func acceptsAnObjectWithAnEquivalentlyWrappedInterfaceFieldType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1732,7 +1731,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testRejectsAnObjectWithANonlistInterfaceFieldListType() throws {
+    @Test func rejectsAnObjectWithANonlistInterfaceFieldListType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1758,7 +1757,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnObjectWithAListInterfaceFieldNonlistType() throws {
+    @Test func rejectsAnObjectWithAListInterfaceFieldNonlistType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1784,7 +1783,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testAcceptsAnObjectWithASubsetNonnullInterfaceFieldType() throws {
+    @Test func acceptsAnObjectWithASubsetNonnullInterfaceFieldType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1801,7 +1800,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testRejectsAnObjectWithASupersetNullableInterfaceFieldType() throws {
+    @Test func rejectsAnObjectWithASupersetNullableInterfaceFieldType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1827,7 +1826,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnObjectMissingATransitiveInterface_Object() throws {
+    @Test func rejectsAnObjectMissingATransitiveInterface_Object() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: AnotherObject
@@ -1859,7 +1858,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
 
     // MARK: Interfaces must adhere to Interface they implement
 
-    @Test func testAcceptsAnInterfaceWhichImplementsAnInterface() throws {
+    @Test func acceptsAnInterfaceWhichImplementsAnInterface() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -1876,7 +1875,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testAcceptsAnInterfaceWhichImplementsAnInterfaceAlongWithMoreFields() throws {
+    @Test func acceptsAnInterfaceWhichImplementsAnInterfaceAlongWithMoreFields() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -1894,7 +1893,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testAcceptsAnInterfaceWhichImplementsAnInterfaceFieldAlongWithAdditionalOptionalArguments(
+    @Test func acceptsAnInterfaceWhichImplementsAnInterfaceFieldAlongWithAdditionalOptionalArguments(
     ) throws {
         let schema = try buildSchema(source: """
           type Query {
@@ -1912,7 +1911,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testRejectsAnInterfaceMissingAnInterfaceField() throws {
+    @Test func rejectsAnInterfaceMissingAnInterfaceField() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -1938,7 +1937,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnInterfaceWithAnIncorrectlyTypedInterfaceField() throws {
+    @Test func rejectsAnInterfaceWithAnIncorrectlyTypedInterfaceField() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -1964,7 +1963,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnInterfaceWithADifferentlyTypedInterfaceField() throws {
+    @Test func rejectsAnInterfaceWithADifferentlyTypedInterfaceField() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -1993,7 +1992,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testAcceptsAnInterfaceWithASubtypedInterfaceField_Interface() throws {
+    @Test func acceptsAnInterfaceWithASubtypedInterfaceField_Interface() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2010,7 +2009,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testAcceptsAnInterfaceWithASubtypedInterfaceField_Union() throws {
+    @Test func acceptsAnInterfaceWithASubtypedInterfaceField_Union() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2033,7 +2032,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testRejectsAnInterfaceImplementingANoninterfaceType() throws {
+    @Test func rejectsAnInterfaceImplementingANoninterfaceType() throws {
         #expect(
             throws: (any Error).self,
             "Type BadInterface must only implement Interface types, it cannot implement SomeInputObject."
@@ -2054,7 +2053,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         }
     }
 
-    @Test func testRejectsAnInterfaceMissingAnInterfaceArgument() throws {
+    @Test func rejectsAnInterfaceMissingAnInterfaceArgument() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2080,7 +2079,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnInterfaceWithAnIncorrectlyTypedInterfaceArgument() throws {
+    @Test func rejectsAnInterfaceWithAnIncorrectlyTypedInterfaceArgument() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2106,7 +2105,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnInterfaceWithBothAnIncorrectlyTypedFieldAndArgument() throws {
+    @Test func rejectsAnInterfaceWithBothAnIncorrectlyTypedFieldAndArgument() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2140,7 +2139,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnInterfaceWhichImplementsAnInterfaceFieldAlongWithAdditionalRequiredArguments(
+    @Test func rejectsAnInterfaceWhichImplementsAnInterfaceFieldAlongWithAdditionalRequiredArguments(
     ) throws {
         let schema = try buildSchema(source: """
           type Query {
@@ -2172,7 +2171,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testAcceptsAnInterfaceWithAnEquivalentlyWrappedInterfaceFieldType() throws {
+    @Test func acceptsAnInterfaceWithAnEquivalentlyWrappedInterfaceFieldType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2189,7 +2188,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testRejectsAnInterfaceWithANonlistInterfaceFieldListType() throws {
+    @Test func rejectsAnInterfaceWithANonlistInterfaceFieldListType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2215,7 +2214,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnInterfaceWithAListInterfaceFieldNonlistType() throws {
+    @Test func rejectsAnInterfaceWithAListInterfaceFieldNonlistType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2241,7 +2240,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testAcceptsAnInterfaceWithASubsetNonnullInterfaceFieldType() throws {
+    @Test func acceptsAnInterfaceWithASubsetNonnullInterfaceFieldType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2258,7 +2257,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         try #expect(validateSchema(schema: schema) == [])
     }
 
-    @Test func testRejectsAnInterfaceWithASupersetNullableInterfaceFieldType() throws {
+    @Test func rejectsAnInterfaceWithASupersetNullableInterfaceFieldType() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2284,7 +2283,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsAnObjectMissingATransitiveInterface_Interface() throws {
+    @Test func rejectsAnObjectMissingATransitiveInterface_Interface() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: ChildInterface
@@ -2314,7 +2313,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsASelfReferenceInterface() throws {
+    @Test func rejectsASelfReferenceInterface() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: FooInterface
@@ -2333,7 +2332,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         ])
     }
 
-    @Test func testRejectsACircularInterfaceImplementation() throws {
+    @Test func rejectsACircularInterfaceImplementation() throws {
         let schema = try buildSchema(source: """
           type Query {
             test: FooInterface
@@ -2370,7 +2369,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
 
     // MARK: assertValidSchema
 
-    @Test func testDoesNotThrowOnValidSchemas() throws {
+    @Test func doesNotThrowOnValidSchemas() throws {
         let schema = try buildSchema(source: """
           type Query {
             foo: String
@@ -2379,7 +2378,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
         #expect(throws: Never.self) { try assertValidSchema(schema: schema) }
     }
 
-    @Test func testCombinesMultipleErrors() throws {
+    @Test func combinesMultipleErrors() throws {
         let schema = try buildSchema(source: "type SomeType")
         #expect(
             throws: (any Error).self,

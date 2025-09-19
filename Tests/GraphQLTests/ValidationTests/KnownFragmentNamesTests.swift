@@ -7,7 +7,7 @@ class KnownFragmentNamesTests: ValidationTestCase {
         rule = KnownFragmentNamesRule
     }
 
-    @Test func testKnownFragmentNamesAreValid() throws {
+    @Test func knownFragmentNamesAreValid() throws {
         try assertValid(
             """
             {
@@ -35,7 +35,7 @@ class KnownFragmentNamesTests: ValidationTestCase {
         )
     }
 
-    @Test func testUnknownFragmentNamesAreInvalid() throws {
+    @Test func unknownFragmentNamesAreInvalid() throws {
         let errors = try assertInvalid(
             errorCount: 3,
             query:

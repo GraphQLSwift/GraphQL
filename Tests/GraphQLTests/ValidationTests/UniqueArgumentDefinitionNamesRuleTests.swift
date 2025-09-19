@@ -7,7 +7,7 @@ class UniqueArgumentDefinitionNamesRuleTests: SDLValidationTestCase {
         rule = UniqueArgumentDefinitionNamesRule
     }
 
-    @Test func testNoArgs() throws {
+    @Test func noArgs() throws {
         try assertValidationErrors(
             """
             type SomeObject {
@@ -24,7 +24,7 @@ class UniqueArgumentDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testOneArgument() throws {
+    @Test func oneArgument() throws {
         try assertValidationErrors(
             """
             type SomeObject {
@@ -49,7 +49,7 @@ class UniqueArgumentDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testMultipleArguments() throws {
+    @Test func multipleArguments() throws {
         try assertValidationErrors(
             """
             type SomeObject {
@@ -89,7 +89,7 @@ class UniqueArgumentDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    @Test func testDuplicatingArguments() throws {
+    @Test func duplicatingArguments() throws {
         try assertValidationErrors(
             """
             type SomeObject {

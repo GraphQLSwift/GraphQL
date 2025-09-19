@@ -7,19 +7,19 @@ class KnownArgumentNamesTests: ValidationTestCase {
         rule = KnownArgumentNamesRule
     }
 
-    @Test func testValidWithObjectWithoutArguments() throws {
+    @Test func validWithObjectWithoutArguments() throws {
         try assertValid(
             "fragment objectFieldSelection on Dog { __typename name }"
         )
     }
 
-    @Test func testValidWithCorrectArgumentNames() throws {
+    @Test func validWithCorrectArgumentNames() throws {
         try assertValid(
             "fragment objectFieldSelection on Dog { __typename isHousetrained(atOtherHomes: true) }"
         )
     }
 
-    @Test func testInvalidWithSlightlyMisspelledArgument() throws {
+    @Test func invalidWithSlightlyMisspelledArgument() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: "fragment objectFieldSelection on Dog { __typename isHousetrained(atOtherHomees: true) }"
@@ -31,7 +31,7 @@ class KnownArgumentNamesTests: ValidationTestCase {
         )
     }
 
-    @Test func testInvalidWithUnrelatedArgument() throws {
+    @Test func invalidWithUnrelatedArgument() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: "fragment objectFieldSelection on Dog { __typename name(uppercased: true) }"

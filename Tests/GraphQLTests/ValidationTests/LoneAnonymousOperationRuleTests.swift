@@ -7,7 +7,7 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         rule = LoneAnonymousOperationRule
     }
 
-    @Test func testNoOperations() throws {
+    @Test func noOperations() throws {
         try assertValid(
             """
             fragment fragA on Type {
@@ -17,7 +17,7 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testOneAnonOperation() throws {
+    @Test func oneAnonOperation() throws {
         try assertValid(
             """
             {
@@ -27,7 +27,7 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testMultipleNamedOperations() throws {
+    @Test func multipleNamedOperations() throws {
         try assertValid(
             """
             query Foo {
@@ -41,7 +41,7 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testAnonOperationWithFragment() throws {
+    @Test func anonOperationWithFragment() throws {
         try assertValid(
             """
             {
@@ -54,7 +54,7 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testMultipleAnonOperations() throws {
+    @Test func multipleAnonOperations() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
@@ -79,7 +79,7 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testAnonOperationWithAMutation() throws {
+    @Test func anonOperationWithAMutation() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -99,7 +99,7 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testAnonOperationWithASubscription() throws {
+    @Test func anonOperationWithASubscription() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:

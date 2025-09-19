@@ -7,7 +7,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         rule = PossibleFragmentSpreadsRule
     }
 
-    @Test func testUsesAllVariables() throws {
+    @Test func usesAllVariables() throws {
         try assertValid(
             """
             query ($a: String, $b: String, $c: String) {
@@ -17,7 +17,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testOfTheSameObject() throws {
+    @Test func ofTheSameObject() throws {
         try assertValid(
             """
             fragment objectWithinObject on Dog {
@@ -30,7 +30,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testOfTheSameObjectWithInlineFragment() throws {
+    @Test func ofTheSameObjectWithInlineFragment() throws {
         try assertValid(
             """
             fragment objectWithinObjectAnon on Dog {
@@ -42,7 +42,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testObjectIntoAnImplementedInterface() throws {
+    @Test func objectIntoAnImplementedInterface() throws {
         try assertValid(
             """
             fragment objectWithinInterface on Pet {
@@ -55,7 +55,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testObjectIntoContainingUnion() throws {
+    @Test func objectIntoContainingUnion() throws {
         try assertValid(
             """
             fragment objectWithinUnion on CatOrDog {
@@ -68,7 +68,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUnionIntoContainedObject() throws {
+    @Test func unionIntoContainedObject() throws {
         try assertValid(
             """
             fragment unionWithinObject on Dog {
@@ -81,7 +81,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUnionIntoOverlappingInterface() throws {
+    @Test func unionIntoOverlappingInterface() throws {
         try assertValid(
             """
             fragment unionWithinInterface on Pet {
@@ -94,7 +94,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUnionIntoOverlappingUnion() throws {
+    @Test func unionIntoOverlappingUnion() throws {
         try assertValid(
             """
             fragment unionWithinUnion on DogOrHuman {
@@ -107,7 +107,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testInterfaceIntoImplementedObject() throws {
+    @Test func interfaceIntoImplementedObject() throws {
         try assertValid(
             """
             fragment interfaceWithinObject on Dog {
@@ -120,7 +120,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-//    @Test func testInterfaceIntoOverlappingInterface() throws {
+//    @Test func interfaceIntoOverlappingInterface() throws {
 //        try assertValid(
 //            """
 //            fragment interfaceWithinInterface on Pet {
@@ -133,7 +133,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
 //        )
 //    }
 //
-//    @Test func testInterfaceIntoOverlappingInterfaceInInlineFragment() throws {
+//    @Test func interfaceIntoOverlappingInterfaceInInlineFragment() throws {
 //        try assertValid(
 //            """
 //            fragment interfaceWithinInterface on Pet {
@@ -145,7 +145,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
 //        )
 //    }
 
-    @Test func testInterfaceIntoOverlappingUnion() throws {
+    @Test func interfaceIntoOverlappingUnion() throws {
         try assertValid(
             """
             fragment interfaceWithinUnion on CatOrDog {
@@ -158,7 +158,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testIgnoresIncorrectTypeCaughtByFragmentsOnCompositeTypesRule() throws {
+    @Test func ignoresIncorrectTypeCaughtByFragmentsOnCompositeTypesRule() throws {
         try assertValid(
             """
             fragment petFragment on Pet {
@@ -171,7 +171,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testIgnoresUnknownFragmentsCaughtByKnownFragmentNamesRule() throws {
+    @Test func ignoresUnknownFragmentsCaughtByKnownFragmentNamesRule() throws {
         try assertValid(
             """
             fragment petFragment on Pet {
@@ -181,7 +181,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testDifferentObjectIntoObject() throws {
+    @Test func differentObjectIntoObject() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -200,7 +200,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testDifferentObjectIntoObjectInInlineFragment() throws {
+    @Test func differentObjectIntoObjectInInlineFragment() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -216,7 +216,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testObjectIntoNotImplementingInterface() throws {
+    @Test func objectIntoNotImplementingInterface() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -237,7 +237,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testObjectIntoNotContainingUnion() throws {
+    @Test func objectIntoNotContainingUnion() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -258,7 +258,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUnionIntoNotContainedObject() throws {
+    @Test func unionIntoNotContainedObject() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -277,7 +277,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUnionIntoNonOverlappingInterface() throws {
+    @Test func unionIntoNonOverlappingInterface() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -296,7 +296,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testUnionIntoNonOverlappingUnion() throws {
+    @Test func unionIntoNonOverlappingUnion() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -315,7 +315,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testInterfaceIntoNonImplementingObject() throws {
+    @Test func interfaceIntoNonImplementingObject() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -334,7 +334,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testInterfaceIntNonOverlappingInterface() throws {
+    @Test func interfaceIntNonOverlappingInterface() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -353,7 +353,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testInterfaceIntoNonOverlappingInterfaceInInlineFragment() throws {
+    @Test func interfaceIntoNonOverlappingInterfaceInInlineFragment() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -369,7 +369,7 @@ class PossibleFragmentSpreadsRuleRuleTests: ValidationTestCase {
         )
     }
 
-    @Test func testInterfaceIntoNonOverlappingUnion() throws {
+    @Test func interfaceIntoNonOverlappingUnion() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """

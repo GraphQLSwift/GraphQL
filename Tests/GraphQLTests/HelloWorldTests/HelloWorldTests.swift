@@ -16,7 +16,7 @@ import Testing
         )
     )
 
-    @Test func testHello() async throws {
+    @Test func hello() async throws {
         let query = "{ hello }"
         let expected = GraphQLResult(data: ["hello": "world"])
 
@@ -28,7 +28,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testBoyhowdy() async throws {
+    @Test func boyhowdy() async throws {
         let query = "{ boyhowdy }"
 
         let expected = GraphQLResult(
@@ -48,7 +48,7 @@ import Testing
         #expect(result == expected)
     }
 
-    @Test func testHelloAsync() async throws {
+    @Test func helloAsync() async throws {
         let query = "{ hello }"
         let expected = GraphQLResult(data: ["hello": "world"])
 
