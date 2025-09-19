@@ -53,7 +53,7 @@ public final class ExecutionContext: @unchecked Sendable {
         }
         set {
             // Writes occur sequentially.
-            return errorsQueue.async(flags: .barrier) {
+            return errorsQueue.sync(flags: .barrier) {
                 self._errors = newValue
             }
         }
