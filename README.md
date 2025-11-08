@@ -58,8 +58,8 @@ The result of this query is a `GraphQLResult` that encodes to the following JSON
 ### Subscription
 
 This package supports GraphQL subscription. To create a subscription field in a GraphQL schema, use the `subscribe`
-resolver that returns any type that conforms to `AsyncSequence`. You must also provide a `resolver`, which defines how
-to process each event as it occurs and must return the field result type. Here is an example:
+resolver that returns any type that conforms to `AsyncSequence`, with a `Sendable` element type. You must also provide
+a `resolver`, which defines how to process each event as it occurs and must return the field result type. Here is an example:
 
 ```swift
 let schema = try GraphQLSchema(
