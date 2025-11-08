@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = ProvidedRequiredArgumentsRule
     }
 
-    func testIgnoresUnknownArguments() throws {
+    @Test func ignoresUnknownArguments() throws {
         try assertValid(
             """
             {
@@ -20,7 +21,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
 
     // MARK: Valid non-nullable value
 
-    func testArgOnOptionalArg() throws {
+    @Test func argOnOptionalArg() throws {
         try assertValid(
             """
             {
@@ -32,7 +33,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testNoArgOnOptionalArg() throws {
+    @Test func noArgOnOptionalArg() throws {
         try assertValid(
             """
             {
@@ -44,7 +45,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testNoArgOnNonNullFieldWithDefault() throws {
+    @Test func noArgOnNonNullFieldWithDefault() throws {
         try assertValid(
             """
             {
@@ -56,7 +57,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleArgs() throws {
+    @Test func multipleArgs() throws {
         try assertValid(
             """
             {
@@ -68,7 +69,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleArgsInReverseOrder() throws {
+    @Test func multipleArgsInReverseOrder() throws {
         try assertValid(
             """
             {
@@ -80,7 +81,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testNoArgsOnMultipleOptional() throws {
+    @Test func noArgsOnMultipleOptional() throws {
         try assertValid(
             """
             {
@@ -92,7 +93,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testOneArgOnMultipleOptional() throws {
+    @Test func oneArgOnMultipleOptional() throws {
         try assertValid(
             """
             {
@@ -104,7 +105,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testSecondArgOnMultipleOptional() throws {
+    @Test func secondArgOnMultipleOptional() throws {
         try assertValid(
             """
             {
@@ -116,7 +117,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleRequiredArgsOnMixedList() throws {
+    @Test func multipleRequiredArgsOnMixedList() throws {
         try assertValid(
             """
             {
@@ -128,7 +129,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleRequiredAndOneOptionalArgOnMixedList() throws {
+    @Test func multipleRequiredAndOneOptionalArgOnMixedList() throws {
         try assertValid(
             """
             {
@@ -140,7 +141,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testAllRequiredAndOptionalArgsOnMixedList() throws {
+    @Test func allRequiredAndOptionalArgsOnMixedList() throws {
         try assertValid(
             """
             {
@@ -154,7 +155,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
 
     // MARK: Invalid non-nullable value
 
-    func testMissingOneNonNullableArgument() throws {
+    @Test func missingOneNonNullableArgument() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -175,7 +176,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testMissingMultipleNonNullableArguments() throws {
+    @Test func missingMultipleNonNullableArguments() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -203,7 +204,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testIncorrectValueAndMissingArgument() throws {
+    @Test func incorrectValueAndMissingArgument() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -226,7 +227,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
 
     // MARK: Directive arguments
 
-    func testIgnoresUnknonwnDirectives() throws {
+    @Test func ignoresUnknonwnDirectives() throws {
         try assertValid(
             """
             {
@@ -236,7 +237,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testWithDirectivesOfValidTypes() throws {
+    @Test func withDirectivesOfValidTypes() throws {
         try assertValid(
             """
             {
@@ -251,7 +252,7 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testWithDirectiveWithMissingTypes() throws {
+    @Test func withDirectiveWithMissingTypes() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """

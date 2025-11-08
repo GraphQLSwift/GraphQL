@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class NoUnusedFragmentsRuleTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = NoUnusedFragmentsRule
     }
 
-    func testAllFragmentNamesAreUsed() throws {
+    @Test func allFragmentNamesAreUsed() throws {
         try assertValid(
             """
             {
@@ -31,7 +32,7 @@ class NoUnusedFragmentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testAllFragmentNamesAreUsedByMultipleOperations() throws {
+    @Test func allFragmentNamesAreUsedByMultipleOperations() throws {
         try assertValid(
             """
             query Foo {
@@ -58,7 +59,7 @@ class NoUnusedFragmentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testContainsUnknownFragments() throws {
+    @Test func containsUnknownFragments() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -102,7 +103,7 @@ class NoUnusedFragmentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testContainsUnknownFragmentsWithRefCycle() throws {
+    @Test func containsUnknownFragmentsWithRefCycle() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -148,7 +149,7 @@ class NoUnusedFragmentsRuleTests: ValidationTestCase {
         )
     }
 
-    func testContainsUnknownAndUndefFragments() throws {
+    @Test func containsUnknownAndUndefFragments() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """

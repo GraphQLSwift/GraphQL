@@ -49,7 +49,7 @@ public final class GraphQLSchema: @unchecked Sendable {
         }
         set {
             // Writes occur sequentially.
-            return validationErrorQueue.async(flags: .barrier) {
+            return validationErrorQueue.sync(flags: .barrier) {
                 self._validationErrors = newValue
             }
         }
@@ -77,7 +77,7 @@ public final class GraphQLSchema: @unchecked Sendable {
         }
         set {
             // Writes occur sequentially.
-            return subTypeMapQueue.async(flags: .barrier) {
+            return subTypeMapQueue.sync(flags: .barrier) {
                 self._subTypeMap = newValue
             }
         }

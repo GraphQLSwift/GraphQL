@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class UniqueInputFieldNamesRuleTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = UniqueInputFieldNamesRule
     }
 
-    func testInputObjectWithFields() throws {
+    @Test func inputObjectWithFields() throws {
         try assertValid(
             """
             {
@@ -16,7 +17,7 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testSameInputObjectWithinTwoArgs() throws {
+    @Test func sameInputObjectWithinTwoArgs() throws {
         try assertValid(
             """
             {
@@ -26,7 +27,7 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleInputObjectFields() throws {
+    @Test func multipleInputObjectFields() throws {
         try assertValid(
             """
             {
@@ -36,7 +37,7 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testAllowsForNestedInputObjectsWithSimilarFields() throws {
+    @Test func allowsForNestedInputObjectsWithSimilarFields() throws {
         try assertValid(
             """
             {
@@ -54,7 +55,7 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testDuplicateInputObjectFields() throws {
+    @Test func duplicateInputObjectFields() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -74,7 +75,7 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testManyDuplicateInputObjectFields() throws {
+    @Test func manyDuplicateInputObjectFields() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
@@ -102,7 +103,7 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testNestedDuplicateInputObjectFields() throws {
+    @Test func nestedDuplicateInputObjectFields() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:

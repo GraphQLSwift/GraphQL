@@ -1,13 +1,14 @@
+import Foundation
 @testable import GraphQL
-import XCTest
+import Testing
 
-class PrinterTests: XCTestCase {
-    func testPrintMinimalAST() {
+@Suite struct PrinterTests {
+    @Test func printMinimalAST() {
         let ast = Name(value: "foo")
-        XCTAssertEqual(print(ast: ast), "foo")
+        #expect(print(ast: ast) == "foo")
     }
 
-    func testCorrectlyPrintNonQueryOperationsWithoutNameForQuery() throws {
+    @Test func correctlyPrintNonQueryOperationsWithoutNameForQuery() throws {
         let document = try parse(source: "query { id, name }")
         let expected =
             """
@@ -16,10 +17,10 @@ class PrinterTests: XCTestCase {
               name
             }
             """
-        XCTAssertEqual(print(ast: document), expected)
+        #expect(print(ast: document) == expected)
     }
 
-    func testCorrectlyPrintNonQueryOperationsWithoutNameForMutation() throws {
+    @Test func correctlyPrintNonQueryOperationsWithoutNameForMutation() throws {
         let document = try parse(source: "mutation { id, name }")
         let expected =
             """
@@ -28,10 +29,10 @@ class PrinterTests: XCTestCase {
               name
             }
             """
-        XCTAssertEqual(print(ast: document), expected)
+        #expect(print(ast: document) == expected)
     }
 
-    func testCorrectlyPrintNonQueryOperationsWithoutNameForQueryWithArtifacts() throws {
+    @Test func correctlyPrintNonQueryOperationsWithoutNameForQueryWithArtifacts() throws {
         let document = try parse(source: "query ($foo: TestType) @testDirective { id, name }")
         let expected =
             """
@@ -40,10 +41,10 @@ class PrinterTests: XCTestCase {
               name
             }
             """
-        XCTAssertEqual(print(ast: document), expected)
+        #expect(print(ast: document) == expected)
     }
 
-    func testCorrectlyPrintNonQueryOperationsWithoutNameForMutationWithArtifacts() throws {
+    @Test func correctlyPrintNonQueryOperationsWithoutNameForMutationWithArtifacts() throws {
         let document = try parse(source: "mutation ($foo: TestType) @testDirective { id, name }")
         let expected =
             """
@@ -52,12 +53,12 @@ class PrinterTests: XCTestCase {
               name
             }
             """
-        XCTAssertEqual(print(ast: document), expected)
+        #expect(print(ast: document) == expected)
     }
 
     // Variable Directives are currently not support by this library
     // TODO: Add support for variable directives
-//    func testPrintsQueryWithVariableDirectives() throws {
+//    @Test func printsQueryWithVariableDirectives() throws {
 //        let document = try parse(source: "query ($foo: TestType = { a: 123 } @testDirective(if:
 //        true) @test) { id }")
 //        let expected =
@@ -66,10 +67,10 @@ class PrinterTests: XCTestCase {
 //          id
 //        }
 //        """
-//        XCTAssertEqual(print(ast: document), expected)
+//        #expect(print(ast: document) == expected)
 //    }
 
-    func testKeepsArgumentsOnOneLineIfLineIsShort() throws {
+    @Test func keepsArgumentsOnOneLineIfLineIsShort() throws {
         let document = try parse(source: "{trip(wheelchair:false arriveBy:false){dateTime}}")
         let expected =
             """
@@ -79,10 +80,10 @@ class PrinterTests: XCTestCase {
               }
             }
             """
-        XCTAssertEqual(print(ast: document), expected)
+        #expect(print(ast: document) == expected)
     }
 
-    func testPutsArgumentsOnMultipleLinesIfLineIsLong() throws {
+    @Test func putsArgumentsOnMultipleLinesIfLineIsLong() throws {
         let document =
             try parse(
                 source: "{trip(wheelchair:false arriveBy:false includePlannedCancellations:true transitDistanceReluctance:2000){dateTime}}"
@@ -100,10 +101,10 @@ class PrinterTests: XCTestCase {
               }
             }
             """
-        XCTAssertEqual(print(ast: document), expected)
+        #expect(print(ast: document) == expected)
     }
 
-    func testPutsLargeObjectValuesOnMultipleLinesIfLineIsLong() throws {
+    @Test func putsLargeObjectValuesOnMultipleLinesIfLineIsLong() throws {
         let document =
             try parse(
                 source: "{trip(obj:{wheelchair:false,smallObj:{a: 1},largeObj:{wheelchair:false,smallObj:{a: 1},arriveBy:false,includePlannedCancellations:true,transitDistanceReluctance:2000,anotherLongFieldName:\"Lots and lots and lots and lots of text\"},arriveBy:false,includePlannedCancellations:true,transitDistanceReluctance:2000,anotherLongFieldName:\"Lots and lots and lots and lots of text\"}){dateTime}}"
@@ -133,10 +134,10 @@ class PrinterTests: XCTestCase {
               }
             }
             """
-        XCTAssertEqual(print(ast: document), expected)
+        #expect(print(ast: document) == expected)
     }
 
-    func testPutsLargeListValuesOnMultipleLinesIfLineIsLong() throws {
+    @Test func putsLargeListValuesOnMultipleLinesIfLineIsLong() throws {
         let document =
             try parse(
                 source: "{trip(list:[[\"small array\", \"small\", \"small\"], [\"Lots and lots and lots and lots of text\", \"Lots and lots and lots and lots of text\", \"Lots and lots and lots and lots of text\"]]){dateTime}}"
@@ -158,15 +159,15 @@ class PrinterTests: XCTestCase {
               }
             }
             """
-        XCTAssertEqual(print(ast: document), expected)
+        #expect(print(ast: document) == expected)
     }
 
-    func testPrintsKitchenSinkWithoutAlteringAST() throws {
+    @Test func printsKitchenSinkWithoutAlteringAST() throws {
         guard
             let url = Bundle.module.url(forResource: "kitchen-sink", withExtension: "graphql"),
             let kitchenSink = try? String(contentsOf: url, encoding: .utf8)
         else {
-            XCTFail("Could not load kitchen sink")
+            Issue.record("Could not load kitchen sink")
             return
         }
 
@@ -174,7 +175,7 @@ class PrinterTests: XCTestCase {
         let printed = print(ast: document)
         let parsedPrinted = try parse(source: printed)
 
-        XCTAssertEqual(document, parsedPrinted)
+        #expect(document == parsedPrinted)
 
         let expected =
             """
@@ -230,6 +231,6 @@ class PrinterTests: XCTestCase {
             }
             """
 
-        XCTAssertEqual(printed, expected)
+        #expect(printed == expected)
     }
 }

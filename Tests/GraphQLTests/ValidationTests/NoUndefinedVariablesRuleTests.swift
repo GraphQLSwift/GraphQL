@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class NoUndefinedVariablesRuleTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = NoUndefinedVariablesRule
     }
 
-    func testAllVariablesDefined() throws {
+    @Test func allVariablesDefined() throws {
         try assertValid(
             """
             query Foo($a: String, $b: String, $c: String) {
@@ -16,7 +17,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testAllVariablesDeeplyDefined() throws {
+    @Test func allVariablesDeeplyDefined() throws {
         try assertValid(
             """
             query Foo($a: String, $b: String, $c: String) {
@@ -30,7 +31,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testAllVariablesDeeplyInInlineFragmentsDefined() throws {
+    @Test func allVariablesDeeplyInInlineFragmentsDefined() throws {
         try assertValid(
             """
             query Foo($a: String, $b: String, $c: String) {
@@ -48,7 +49,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testAllVariablesInFragmentsDeeplyDefined() throws {
+    @Test func allVariablesInFragmentsDeeplyDefined() throws {
         try assertValid(
             """
             query Foo($a: String, $b: String, $c: String) {
@@ -71,7 +72,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testVariableWithinSingleFragmentDefinedInMultipleOperations() throws {
+    @Test func variableWithinSingleFragmentDefinedInMultipleOperations() throws {
         try assertValid(
             """
             query Foo($a: String) {
@@ -87,7 +88,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testVariableWithinFragmentsDefinedInOperations() throws {
+    @Test func variableWithinFragmentsDefinedInOperations() throws {
         try assertValid(
             """
             query Foo($a: String) {
@@ -106,7 +107,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testVariableWithinRecursiveFragmentDefined() throws {
+    @Test func variableWithinRecursiveFragmentDefined() throws {
         try assertValid(
             """
             query Foo($a: String) {
@@ -121,7 +122,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testVariableNotDefined() throws {
+    @Test func variableNotDefined() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -140,7 +141,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testVariableNotDefinedByUnNamedQuery() throws {
+    @Test func variableNotDefinedByUnNamedQuery() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -159,7 +160,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleVariablesNotDefined() throws {
+    @Test func multipleVariablesNotDefined() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -186,7 +187,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testVariableInFragmentNotDefinedByUnNamedQuery() throws {
+    @Test func variableInFragmentNotDefinedByUnNamedQuery() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -208,7 +209,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testVariableInFragmentNotDefinedByOperation() throws {
+    @Test func variableInFragmentNotDefinedByOperation() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
@@ -240,7 +241,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleVariablesInFragmentsNotDefined() throws {
+    @Test func multipleVariablesInFragmentsNotDefined() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -280,7 +281,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testSingleVariableInFragmentNotDefinedByMultipleOperations() throws {
+    @Test func singleVariableInFragmentNotDefinedByMultipleOperations() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -313,7 +314,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testSingleVariableInFragmentUsedByOtherOperation() throws {
+    @Test func singleVariableInFragmentUsedByOtherOperation() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -349,7 +350,7 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleUndefinedVariablesProduceMultipleErrors() throws {
+    @Test func multipleUndefinedVariablesProduceMultipleErrors() throws {
         let errors = try assertInvalid(
             errorCount: 6,
             query: """

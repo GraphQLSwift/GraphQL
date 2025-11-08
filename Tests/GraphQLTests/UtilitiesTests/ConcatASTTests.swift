@@ -1,8 +1,8 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
-class ConcatASTTests: XCTestCase {
-    func testConcatenatesTwoASTsTogether() throws {
+@Suite struct ConcatASTTests {
+    @Test func concatenatesTwoASTsTogether() throws {
         let sourceA = Source(body: """
         { a, b, ...Frag }
         """)
@@ -17,9 +17,8 @@ class ConcatASTTests: XCTestCase {
         let astB = try parse(source: sourceB)
         let astC = concatAST(documents: [astA, astB])
 
-        XCTAssertEqual(
-            print(ast: astC),
-            """
+        #expect(
+            print(ast: astC) == """
             {
               a
               b

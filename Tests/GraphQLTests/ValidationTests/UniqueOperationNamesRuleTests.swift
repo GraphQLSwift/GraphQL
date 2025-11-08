@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class UniqueOperationNamesRuleTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = UniqueOperationNamesRule
     }
 
-    func testNoOperations() throws {
+    @Test func noOperations() throws {
         try assertValid(
             """
             fragment fragA on Type {
@@ -16,7 +17,7 @@ class UniqueOperationNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testOneAnonOperation() throws {
+    @Test func oneAnonOperation() throws {
         try assertValid(
             """
             {
@@ -26,7 +27,7 @@ class UniqueOperationNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testOneNamedOperation() throws {
+    @Test func oneNamedOperation() throws {
         try assertValid(
             """
             query Foo {
@@ -36,7 +37,7 @@ class UniqueOperationNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleOperations() throws {
+    @Test func multipleOperations() throws {
         try assertValid(
             """
             query Foo {
@@ -50,7 +51,7 @@ class UniqueOperationNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleOperationsOfDifferentTypes() throws {
+    @Test func multipleOperationsOfDifferentTypes() throws {
         try assertValid(
             """
             query Foo {
@@ -68,7 +69,7 @@ class UniqueOperationNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testFragmentAndOperationNamedTheSame() throws {
+    @Test func fragmentAndOperationNamedTheSame() throws {
         try assertValid(
             """
             query Foo {
@@ -81,7 +82,7 @@ class UniqueOperationNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleOperationsOfSameName() throws {
+    @Test func multipleOperationsOfSameName() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -104,7 +105,7 @@ class UniqueOperationNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleOperationsOfDifferentTypesMutation() throws {
+    @Test func multipleOperationsOfDifferentTypesMutation() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -127,7 +128,7 @@ class UniqueOperationNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testMultipleOperationsOfDifferentTypesSubscription() throws {
+    @Test func multipleOperationsOfDifferentTypesSubscription() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:

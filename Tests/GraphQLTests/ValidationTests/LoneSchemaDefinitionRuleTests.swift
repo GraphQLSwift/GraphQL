@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = LoneSchemaDefinitionRule
     }
 
-    func testNoSchema() throws {
+    @Test func noSchema() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -17,7 +18,7 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testOneSchemaDefinition() throws {
+    @Test func oneSchemaDefinition() throws {
         try assertValidationErrors(
             """
             schema {
@@ -32,7 +33,7 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testMultipleSchemaDefinitions() throws {
+    @Test func multipleSchemaDefinitions() throws {
         try assertValidationErrors(
             """
             schema {
@@ -64,7 +65,7 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testDefineSchemaInSchemaExtension() throws {
+    @Test func defineSchemaInSchemaExtension() throws {
         let schema = try buildSchema(source: """
           type Foo {
             foo: String
@@ -82,7 +83,7 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testRedefineSchemaInSchemaExtension() throws {
+    @Test func redefineSchemaInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         schema {
           query: Foo
@@ -109,7 +110,7 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testRedefineImplicitSchemaInSchemaExtension() throws {
+    @Test func redefineImplicitSchemaInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         type Query {
           fooField: Foo
@@ -136,7 +137,7 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testExtendSchemaInSchemaExtension() throws {
+    @Test func extendSchemaInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         type Query {
           fooField: Foo

@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class KnownTypeNamesRuleTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = KnownTypeNamesRule
     }
 
-    func testKnownTypeNamesAreValid() throws {
+    @Test func knownTypeNamesAreValid() throws {
         try assertValid(
             """
             query Foo(
@@ -26,7 +27,7 @@ class KnownTypeNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testUnknownTypeNamesAreInvalid() throws {
+    @Test func unknownTypeNamesAreInvalid() throws {
         let errors = try assertInvalid(
             errorCount: 3,
             query:

@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class KnownFragmentNamesTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = KnownFragmentNamesRule
     }
 
-    func testKnownFragmentNamesAreValid() throws {
+    @Test func knownFragmentNamesAreValid() throws {
         try assertValid(
             """
             {
@@ -34,7 +35,7 @@ class KnownFragmentNamesTests: ValidationTestCase {
         )
     }
 
-    func testUnknownFragmentNamesAreInvalid() throws {
+    @Test func unknownFragmentNamesAreInvalid() throws {
         let errors = try assertInvalid(
             errorCount: 3,
             query:

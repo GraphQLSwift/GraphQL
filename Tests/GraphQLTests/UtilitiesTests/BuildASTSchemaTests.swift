@@ -1,7 +1,7 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
-class BuildASTSchemaTests: XCTestCase {
+@Suite struct BuildASTSchemaTests {
     /**
      * This function does a full cycle of going from a string with the contents of
      * the SDL, parsed in a schema AST, materializing that schema AST into an
@@ -11,7 +11,7 @@ class BuildASTSchemaTests: XCTestCase {
         return try printSchema(schema: buildSchema(source: sdl))
     }
 
-    func testCanUseBuiltSchemaForLimitedExecution() async throws {
+    @Test func canUseBuiltSchemaForLimitedExecution() async throws {
         let schema = try buildASTSchema(
             documentAST: parse(
                 source: """
@@ -28,16 +28,15 @@ class BuildASTSchemaTests: XCTestCase {
             rootValue: ["str": 123]
         )
 
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "str": "123",
             ])
         )
     }
 
     // Closures are invalid Map keys in Swift.
-//    func testCanBuildASchemaDirectlyFromTheSource() throws {
+//    @Test func canBuildASchemaDirectlyFromTheSource() throws {
 //        let schema = try buildASTSchema(
 //            documentAST: try parse(
 //                source: """
@@ -58,15 +57,15 @@ class BuildASTSchemaTests: XCTestCase {
 //            ]
 //        )
 //
-//        XCTAssertEqual(
-//            result,
+//        #expect(
+//            result ==
 //            GraphQLResult(data: [
 //                "add": 89
 //            ])
 //        )
 //    }
 
-    func testIgnoresNonTypeSystemDefinitions() throws {
+    @Test func ignoresNonTypeSystemDefinitions() throws {
         let sdl = """
         type Query {
           str: String
@@ -77,29 +76,29 @@ class BuildASTSchemaTests: XCTestCase {
         }
         """
 
-        XCTAssertNoThrow(try buildSchema(source: sdl))
+        #expect(throws: Never.self) { try buildSchema(source: sdl) }
     }
 
-    func testMatchOrderOfDefaultTypesAndDirectives() throws {
+    @Test func matchOrderOfDefaultTypesAndDirectives() throws {
         let schema = try GraphQLSchema()
         let sdlSchema = try buildASTSchema(documentAST: .init(definitions: []))
 
-        XCTAssertEqual(sdlSchema.directives.map { $0.name }, schema.directives.map { $0.name })
-        XCTAssertEqual(
-            sdlSchema.typeMap.mapValues { $0.name },
-            schema.typeMap.mapValues { $0.name }
+        #expect(sdlSchema.directives.map { $0.name } == schema.directives.map { $0.name })
+        #expect(
+            sdlSchema.typeMap.mapValues { $0.name } ==
+                schema.typeMap.mapValues { $0.name }
         )
     }
 
-    func testEmptyType() throws {
+    @Test func emptyType() throws {
         let sdl = """
         type EmptyType
         """
 
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testSimpleType() throws {
+    @Test func simpleType() throws {
         let sdl = """
         type Query {
           str: String
@@ -110,52 +109,57 @@ class BuildASTSchemaTests: XCTestCase {
         }
         """
 
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
 
         let schema = try buildSchema(source: sdl)
         // Built-ins are used
-        XCTAssertIdentical(
-            schema.getType(name: "Int") as? GraphQLScalarType,
-            GraphQLInt
+        #expect(
+            schema.getType(
+                name: "Int"
+            ) as? GraphQLScalarType === GraphQLInt
         )
-        XCTAssertEqual(
-            schema.getType(name: "Float") as? GraphQLScalarType,
-            GraphQLFloat
+        #expect(
+            schema.getType(
+                name: "Float"
+            ) as? GraphQLScalarType == GraphQLFloat
         )
-        XCTAssertEqual(
-            schema.getType(name: "String") as? GraphQLScalarType,
-            GraphQLString
+        #expect(
+            schema.getType(
+                name: "String"
+            ) as? GraphQLScalarType == GraphQLString
         )
-        XCTAssertEqual(
-            schema.getType(name: "Boolean") as? GraphQLScalarType,
-            GraphQLBoolean
+        #expect(
+            schema.getType(
+                name: "Boolean"
+            ) as? GraphQLScalarType == GraphQLBoolean
         )
-        XCTAssertEqual(
-            schema.getType(name: "ID") as? GraphQLScalarType,
-            GraphQLID
+        #expect(
+            schema.getType(
+                name: "ID"
+            ) as? GraphQLScalarType == GraphQLID
         )
     }
 
-    func testIncludeStandardTypeOnlyIfItIsUsed() throws {
+    @Test func includeStandardTypeOnlyIfItIsUsed() throws {
         let schema = try buildSchema(source: "type Query")
 
         // String and Boolean are always included through introspection types
-        XCTAssertNil(schema.getType(name: "Int"))
-        XCTAssertNil(schema.getType(name: "Float"))
-        XCTAssertNil(schema.getType(name: "ID"))
+        #expect(schema.getType(name: "Int") == nil)
+        #expect(schema.getType(name: "Float") == nil)
+        #expect(schema.getType(name: "ID") == nil)
     }
 
-    func testWithDirectives() throws {
+    @Test func withDirectives() throws {
         let sdl = """
         directive @foo(arg: Int) on FIELD
 
         directive @repeatableFoo(arg: Int) repeatable on FIELD
         """
 
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testSupportsDescriptions() throws {
+    @Test func supportsDescriptions() throws {
         let sdl = #"""
         """Do you agree that this is the most creative schema ever?"""
         schema {
@@ -202,36 +206,41 @@ class BuildASTSchemaTests: XCTestCase {
         }
         """#
 
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testMaintainsIncludeSkipAndSpecifiedBy() throws {
+    @Test func maintainsIncludeSkipAndSpecifiedBy() throws {
         let schema = try buildSchema(source: "type Query")
 
-        XCTAssertEqual(schema.directives.count, 5)
-        XCTAssertIdentical(
-            schema.getDirective(name: GraphQLSkipDirective.name),
-            GraphQLSkipDirective
+        #expect(schema.directives.count == 5)
+        #expect(
+            schema.getDirective(
+                name: GraphQLSkipDirective.name
+            ) === GraphQLSkipDirective
         )
-        XCTAssertIdentical(
-            schema.getDirective(name: GraphQLIncludeDirective.name),
-            GraphQLIncludeDirective
+        #expect(
+            schema.getDirective(
+                name: GraphQLIncludeDirective.name
+            ) === GraphQLIncludeDirective
         )
-        XCTAssertIdentical(
-            schema.getDirective(name: GraphQLDeprecatedDirective.name),
-            GraphQLDeprecatedDirective
+        #expect(
+            schema.getDirective(
+                name: GraphQLDeprecatedDirective.name
+            ) === GraphQLDeprecatedDirective
         )
-        XCTAssertIdentical(
-            schema.getDirective(name: GraphQLSpecifiedByDirective.name),
-            GraphQLSpecifiedByDirective
+        #expect(
+            schema.getDirective(
+                name: GraphQLSpecifiedByDirective.name
+            ) === GraphQLSpecifiedByDirective
         )
-        XCTAssertIdentical(
-            schema.getDirective(name: GraphQLOneOfDirective.name),
-            GraphQLOneOfDirective
+        #expect(
+            schema.getDirective(
+                name: GraphQLOneOfDirective.name
+            ) === GraphQLOneOfDirective
         )
     }
 
-    func testOverridingDirectivesExcludesSpecified() throws {
+    @Test func overridingDirectivesExcludesSpecified() throws {
         let schema = try buildSchema(source: """
         directive @skip on FIELD
         directive @include on FIELD
@@ -240,43 +249,48 @@ class BuildASTSchemaTests: XCTestCase {
         directive @oneOf on OBJECT
         """)
 
-        XCTAssertEqual(schema.directives.count, 5)
-        XCTAssertNotIdentical(
-            schema.getDirective(name: GraphQLSkipDirective.name),
-            GraphQLSkipDirective
+        #expect(schema.directives.count == 5)
+        #expect(
+            schema.getDirective(
+                name: GraphQLSkipDirective.name
+            ) !== GraphQLSkipDirective
         )
-        XCTAssertNotIdentical(
-            schema.getDirective(name: GraphQLIncludeDirective.name),
-            GraphQLIncludeDirective
+        #expect(
+            schema.getDirective(
+                name: GraphQLIncludeDirective.name
+            ) !== GraphQLIncludeDirective
         )
-        XCTAssertNotIdentical(
-            schema.getDirective(name: GraphQLDeprecatedDirective.name),
-            GraphQLDeprecatedDirective
+        #expect(
+            schema.getDirective(
+                name: GraphQLDeprecatedDirective.name
+            ) !== GraphQLDeprecatedDirective
         )
-        XCTAssertNotIdentical(
-            schema.getDirective(name: GraphQLSpecifiedByDirective.name),
-            GraphQLSpecifiedByDirective
+        #expect(
+            schema.getDirective(
+                name: GraphQLSpecifiedByDirective.name
+            ) !== GraphQLSpecifiedByDirective
         )
-        XCTAssertNotIdentical(
-            schema.getDirective(name: GraphQLOneOfDirective.name),
-            GraphQLOneOfDirective
+        #expect(
+            schema.getDirective(
+                name: GraphQLOneOfDirective.name
+            ) !== GraphQLOneOfDirective
         )
     }
 
-    func testAddingDirectivesMaintainsIncludeSkipDeprecatedSpecifiedByAndOneOf() throws {
+    @Test func addingDirectivesMaintainsIncludeSkipDeprecatedSpecifiedByAndOneOf() throws {
         let schema = try buildSchema(source: """
         directive @foo(arg: Int) on FIELD
         """)
 
-        XCTAssertEqual(schema.directives.count, 6)
-        XCTAssertNotNil(schema.getDirective(name: GraphQLSkipDirective.name))
-        XCTAssertNotNil(schema.getDirective(name: GraphQLIncludeDirective.name))
-        XCTAssertNotNil(schema.getDirective(name: GraphQLDeprecatedDirective.name))
-        XCTAssertNotNil(schema.getDirective(name: GraphQLSpecifiedByDirective.name))
-        XCTAssertNotNil(schema.getDirective(name: GraphQLOneOfDirective.name))
+        #expect(schema.directives.count == 6)
+        #expect(schema.getDirective(name: GraphQLSkipDirective.name) != nil)
+        #expect(schema.getDirective(name: GraphQLIncludeDirective.name) != nil)
+        #expect(schema.getDirective(name: GraphQLDeprecatedDirective.name) != nil)
+        #expect(schema.getDirective(name: GraphQLSpecifiedByDirective.name) != nil)
+        #expect(schema.getDirective(name: GraphQLOneOfDirective.name) != nil)
     }
 
-    func testTypeModifiers() throws {
+    @Test func typeModifiers() throws {
         let sdl = """
         type Query {
           nonNullStr: String!
@@ -286,20 +300,20 @@ class BuildASTSchemaTests: XCTestCase {
           nonNullListOfNonNullStrings: [String!]!
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testRecursiveType() throws {
+    @Test func recursiveType() throws {
         let sdl = """
         type Query {
           str: String
           recurse: Query
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testTwoTypesCircular() throws {
+    @Test func twoTypesCircular() throws {
         let sdl = """
         type TypeOne {
           str: String
@@ -311,10 +325,10 @@ class BuildASTSchemaTests: XCTestCase {
           typeOne: TypeOne
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testSingleArgumentField() throws {
+    @Test func singleArgumentField() throws {
         let sdl = """
         type Query {
           str(int: Int): String
@@ -324,31 +338,31 @@ class BuildASTSchemaTests: XCTestCase {
           strToStr(bool: String): String
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testSimpleTypeWithMultipleArguments() throws {
+    @Test func simpleTypeWithMultipleArguments() throws {
         let sdl = """
         type Query {
           str(int: Int, bool: Boolean): String
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testEmptyInterface() throws {
+    @Test func emptyInterface() throws {
         let sdl = """
         interface EmptyInterface
         """
-        let definition = try XCTUnwrap(
+        let definition = try #require(
             parse(source: sdl)
                 .definitions[0] as? InterfaceTypeDefinition
         )
-        XCTAssertEqual(definition.interfaces, [])
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        #expect(definition.interfaces == [])
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testSimpleTypeWithInterface() throws {
+    @Test func simpleTypeWithInterface() throws {
         let sdl = """
         type Query implements WorldInterface {
           str: String
@@ -358,10 +372,10 @@ class BuildASTSchemaTests: XCTestCase {
           str: String
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testSimpleInterfaceHierarchy() throws {
+    @Test func simpleInterfaceHierarchy() throws {
         let sdl = """
         interface Child implements Parent {
           str: String
@@ -375,17 +389,17 @@ class BuildASTSchemaTests: XCTestCase {
           str: String
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testEmptyEnum() throws {
+    @Test func emptyEnum() throws {
         let sdl = """
         enum EmptyEnum
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testSimpleOutputEnum() throws {
+    @Test func simpleOutputEnum() throws {
         let sdl = """
         enum Hello {
           WORLD
@@ -395,10 +409,10 @@ class BuildASTSchemaTests: XCTestCase {
           hello: Hello
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testSimpleInputEnum() throws {
+    @Test func simpleInputEnum() throws {
         let sdl = """
         enum Hello {
           WORLD
@@ -408,10 +422,10 @@ class BuildASTSchemaTests: XCTestCase {
           str(hello: Hello): String
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testMultipleValueEnum() throws {
+    @Test func multipleValueEnum() throws {
         let sdl = """
         enum Hello {
           WO
@@ -422,17 +436,17 @@ class BuildASTSchemaTests: XCTestCase {
           hello: Hello
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testEmptyUnion() throws {
+    @Test func emptyUnion() throws {
         let sdl = """
         union EmptyUnion
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testSimpleUnion() throws {
+    @Test func simpleUnion() throws {
         let sdl = """
         union Hello = World
 
@@ -444,10 +458,10 @@ class BuildASTSchemaTests: XCTestCase {
           str: String
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testMultipleUnion() throws {
+    @Test func multipleUnion() throws {
         let sdl = """
         union Hello = WorldOne | WorldTwo
 
@@ -463,23 +477,25 @@ class BuildASTSchemaTests: XCTestCase {
           str: String
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testCanBuildRecursiveUnion() throws {
-        XCTAssertThrowsError(
+    @Test func canBuildRecursiveUnion() throws {
+        #expect(
+            throws: (any Error).self,
+            "Union type Hello can only include Object types, it cannot include Hello"
+        ) {
             try buildSchema(source: """
             union Hello = Hello
 
             type Query {
               hello: Hello
             }
-            """),
-            "Union type Hello can only include Object types, it cannot include Hello"
-        )
+            """)
+        }
     }
 
-    func testCustomScalar() throws {
+    @Test func customScalar() throws {
         let sdl = """
         scalar CustomScalar
 
@@ -487,17 +503,17 @@ class BuildASTSchemaTests: XCTestCase {
           customScalar: CustomScalar
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testEmptyInputObject() throws {
+    @Test func emptyInputObject() throws {
         let sdl = """
         input EmptyInputObject
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testSimpleInputObject() throws {
+    @Test func simpleInputObject() throws {
         let sdl = """
         input Input {
           int: Int
@@ -507,19 +523,19 @@ class BuildASTSchemaTests: XCTestCase {
           field(in: Input): String
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testSimpleArgumentFieldWithDefault() throws {
+    @Test func simpleArgumentFieldWithDefault() throws {
         let sdl = """
         type Query {
           str(int: Int = 2): String
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testCustomScalarArgumentFieldWithDefault() throws {
+    @Test func customScalarArgumentFieldWithDefault() throws {
         let sdl = """
         scalar CustomScalar
 
@@ -527,10 +543,10 @@ class BuildASTSchemaTests: XCTestCase {
           str(int: CustomScalar = 2): String
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testSimpleTypeWithMutation() throws {
+    @Test func simpleTypeWithMutation() throws {
         let sdl = """
         schema {
           query: HelloScalars
@@ -547,10 +563,10 @@ class BuildASTSchemaTests: XCTestCase {
           addHelloScalars(str: String, int: Int, bool: Boolean): HelloScalars
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testSimpleTypeWithSubscription() throws {
+    @Test func simpleTypeWithSubscription() throws {
         let sdl = """
         schema {
           query: HelloScalars
@@ -567,10 +583,10 @@ class BuildASTSchemaTests: XCTestCase {
           subscribeHelloScalars(str: String, int: Int, bool: Boolean): HelloScalars
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testUnreferencedTypeImplementingReferencedInterface() throws {
+    @Test func unreferencedTypeImplementingReferencedInterface() throws {
         let sdl = """
         type Concrete implements Interface {
           key: String
@@ -584,10 +600,10 @@ class BuildASTSchemaTests: XCTestCase {
           interface: Interface
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testUnreferencedInterfaceImplementingReferencedInterface() throws {
+    @Test func unreferencedInterfaceImplementingReferencedInterface() throws {
         let sdl = """
         interface Child implements Parent {
           key: String
@@ -601,10 +617,10 @@ class BuildASTSchemaTests: XCTestCase {
           interfaceField: Parent
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testUnreferencedTypeImplementingReferencedUnion() throws {
+    @Test func unreferencedTypeImplementingReferencedUnion() throws {
         let sdl = """
         type Concrete {
           key: String
@@ -616,10 +632,10 @@ class BuildASTSchemaTests: XCTestCase {
 
         union Union = Concrete
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
-    func testSupportsDeprecated() throws {
+    @Test func supportsDeprecated() throws {
         let sdl = """
         enum MyEnum {
           VALUE
@@ -642,37 +658,37 @@ class BuildASTSchemaTests: XCTestCase {
           field5(arg: MyInput): String
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
 
         let schema = try buildSchema(source: sdl)
 
-        let myEnum = try XCTUnwrap(schema.getType(name: "MyEnum") as? GraphQLEnumType)
+        let myEnum = try #require(schema.getType(name: "MyEnum") as? GraphQLEnumType)
 
-        let value = try XCTUnwrap(myEnum.nameLookup["VALUE"])
-        XCTAssertNil(value.deprecationReason)
+        let value = try #require(myEnum.nameLookup["VALUE"])
+        #expect(value.deprecationReason == nil)
 
-        let oldValue = try XCTUnwrap(myEnum.nameLookup["OLD_VALUE"])
-        XCTAssertEqual(oldValue.deprecationReason, "No longer supported")
+        let oldValue = try #require(myEnum.nameLookup["OLD_VALUE"])
+        #expect(oldValue.deprecationReason == "No longer supported")
 
-        let otherValue = try XCTUnwrap(myEnum.nameLookup["OTHER_VALUE"])
-        XCTAssertEqual(otherValue.deprecationReason, "Terrible reasons")
+        let otherValue = try #require(myEnum.nameLookup["OTHER_VALUE"])
+        #expect(otherValue.deprecationReason == "Terrible reasons")
 
-        let rootFields = try XCTUnwrap(schema.getType(name: "Query") as? GraphQLObjectType)
+        let rootFields = try #require(schema.getType(name: "Query") as? GraphQLObjectType)
             .getFields()
-        XCTAssertEqual(rootFields["field1"]?.deprecationReason, "No longer supported")
-        XCTAssertEqual(rootFields["field2"]?.deprecationReason, "Because I said so")
+        #expect(rootFields["field1"]?.deprecationReason == "No longer supported")
+        #expect(rootFields["field2"]?.deprecationReason == "Because I said so")
 
-        let inputFields = try XCTUnwrap(
+        let inputFields = try #require(
             schema.getType(name: "MyInput") as? GraphQLInputObjectType
         ).getFields()
-        XCTAssertNil(inputFields["newInput"]?.deprecationReason)
-        XCTAssertEqual(inputFields["oldInput"]?.deprecationReason, "No longer supported")
-        XCTAssertEqual(inputFields["otherInput"]?.deprecationReason, "Use newInput")
-        XCTAssertEqual(rootFields["field3"]?.args[0].deprecationReason, "No longer supported")
-        XCTAssertEqual(rootFields["field4"]?.args[0].deprecationReason, "Why not?")
+        #expect(inputFields["newInput"]?.deprecationReason == nil)
+        #expect(inputFields["oldInput"]?.deprecationReason == "No longer supported")
+        #expect(inputFields["otherInput"]?.deprecationReason == "Use newInput")
+        #expect(rootFields["field3"]?.args[0].deprecationReason == "No longer supported")
+        #expect(rootFields["field4"]?.args[0].deprecationReason == "Why not?")
     }
 
-    func testSupportsSpecifiedBy() throws {
+    @Test func supportsSpecifiedBy() throws {
         let sdl = """
         scalar Foo @specifiedBy(url: "https://example.com/foo_spec")
 
@@ -680,15 +696,15 @@ class BuildASTSchemaTests: XCTestCase {
           foo: Foo @deprecated
         }
         """
-        try XCTAssertEqual(cycleSDL(sdl: sdl), sdl)
+        try #expect(cycleSDL(sdl: sdl) == sdl)
 
         let schema = try buildSchema(source: sdl)
 
-        let fooScalar = try XCTUnwrap(schema.getType(name: "Foo") as? GraphQLScalarType)
-        XCTAssertEqual(fooScalar.specifiedByURL, "https://example.com/foo_spec")
+        let fooScalar = try #require(schema.getType(name: "Foo") as? GraphQLScalarType)
+        #expect(fooScalar.specifiedByURL == "https://example.com/foo_spec")
     }
 
-    func testCorrectlyExtendScalarType() throws {
+    @Test func correctlyExtendScalarType() throws {
         let schema = try buildSchema(source: """
         scalar SomeScalar
         extend scalar SomeScalar @foo
@@ -697,24 +713,22 @@ class BuildASTSchemaTests: XCTestCase {
         directive @foo on SCALAR
         directive @bar on SCALAR
         """)
-        let someScalar = try XCTUnwrap(schema.getType(name: "SomeScalar") as? GraphQLScalarType)
-        XCTAssertEqual(
-            printType(type: someScalar),
-            """
+        let someScalar = try #require(schema.getType(name: "SomeScalar") as? GraphQLScalarType)
+        #expect(
+            printType(type: someScalar) == """
             scalar SomeScalar
             """
         )
-        try XCTAssertEqual(print(ast: XCTUnwrap(someScalar.astNode)), "scalar SomeScalar")
-        XCTAssertEqual(
-            someScalar.extensionASTNodes.map { print(ast: $0) },
-            [
+        try #expect(print(ast: #require(someScalar.astNode)) == "scalar SomeScalar")
+        #expect(
+            someScalar.extensionASTNodes.map { print(ast: $0) } == [
                 "extend scalar SomeScalar @foo",
                 "extend scalar SomeScalar @bar",
             ]
         )
     }
 
-    func testCorrectlyExtendObjectType() throws {
+    @Test func correctlyExtendObjectType() throws {
         let schema = try buildSchema(source: """
         type SomeObject implements Foo {
           first: String
@@ -732,10 +746,9 @@ class BuildASTSchemaTests: XCTestCase {
         interface Bar
         interface Baz
         """)
-        let someObject = try XCTUnwrap(schema.getType(name: "SomeObject") as? GraphQLObjectType)
-        XCTAssertEqual(
-            printType(type: someObject),
-            """
+        let someObject = try #require(schema.getType(name: "SomeObject") as? GraphQLObjectType)
+        #expect(
+            printType(type: someObject) == """
             type SomeObject implements Foo & Bar & Baz {
               first: String
               second: Int
@@ -743,17 +756,15 @@ class BuildASTSchemaTests: XCTestCase {
             }
             """
         )
-        try XCTAssertEqual(
-            print(ast: XCTUnwrap(someObject.astNode)),
-            """
+        try #expect(
+            print(ast: #require(someObject.astNode)) == """
             type SomeObject implements Foo {
               first: String
             }
             """
         )
-        XCTAssertEqual(
-            someObject.extensionASTNodes.map { print(ast: $0) },
-            [
+        #expect(
+            someObject.extensionASTNodes.map { print(ast: $0) } == [
                 """
                 extend type SomeObject implements Bar {
                   second: Int
@@ -768,7 +779,7 @@ class BuildASTSchemaTests: XCTestCase {
         )
     }
 
-    func testCorrectlyExtendInterfaceType() throws {
+    @Test func correctlyExtendInterfaceType() throws {
         let schema = try buildSchema(source: """
         interface SomeInterface {
           first: String
@@ -782,12 +793,11 @@ class BuildASTSchemaTests: XCTestCase {
           third: Float
         }
         """)
-        let someInterface = try XCTUnwrap(
+        let someInterface = try #require(
             schema.getType(name: "SomeInterface") as? GraphQLInterfaceType
         )
-        XCTAssertEqual(
-            printType(type: someInterface),
-            """
+        #expect(
+            printType(type: someInterface) == """
             interface SomeInterface {
               first: String
               second: Int
@@ -795,17 +805,15 @@ class BuildASTSchemaTests: XCTestCase {
             }
             """
         )
-        try XCTAssertEqual(
-            print(ast: XCTUnwrap(someInterface.astNode)),
-            """
+        try #expect(
+            print(ast: #require(someInterface.astNode)) == """
             interface SomeInterface {
               first: String
             }
             """
         )
-        XCTAssertEqual(
-            someInterface.extensionASTNodes.map { print(ast: $0) },
-            [
+        #expect(
+            someInterface.extensionASTNodes.map { print(ast: $0) } == [
                 """
                 extend interface SomeInterface {
                   second: Int
@@ -820,7 +828,7 @@ class BuildASTSchemaTests: XCTestCase {
         )
     }
 
-    func testCorrectlyExtendUnionType() throws {
+    @Test func correctlyExtendUnionType() throws {
         let schema = try buildSchema(source: """
         union SomeUnion = FirstType
         extend union SomeUnion = SecondType
@@ -830,27 +838,26 @@ class BuildASTSchemaTests: XCTestCase {
         type SecondType
         type ThirdType
         """)
-        let someUnion = try XCTUnwrap(schema.getType(name: "SomeUnion") as? GraphQLUnionType)
-        XCTAssertEqual(
-            printType(type: someUnion),
-            """
+        let someUnion = try #require(schema.getType(name: "SomeUnion") as? GraphQLUnionType)
+        #expect(
+            printType(type: someUnion) == """
             union SomeUnion = FirstType | SecondType | ThirdType
             """
         )
-        try XCTAssertEqual(
-            print(ast: XCTUnwrap(someUnion.astNode)),
-            "union SomeUnion = FirstType"
+        try #expect(
+            print(
+                ast: #require(someUnion.astNode)
+            ) == "union SomeUnion = FirstType"
         )
-        XCTAssertEqual(
-            someUnion.extensionASTNodes.map { print(ast: $0) },
-            [
+        #expect(
+            someUnion.extensionASTNodes.map { print(ast: $0) } == [
                 "extend union SomeUnion = SecondType",
                 "extend union SomeUnion = ThirdType",
             ]
         )
     }
 
-    func testCorrectlyExtendEnumType() throws {
+    @Test func correctlyExtendEnumType() throws {
         let schema = try buildSchema(source: """
         enum SomeEnum {
           FIRST
@@ -864,10 +871,9 @@ class BuildASTSchemaTests: XCTestCase {
           THIRD
         }
         """)
-        let someEnum = try XCTUnwrap(schema.getType(name: "SomeEnum") as? GraphQLEnumType)
-        XCTAssertEqual(
-            printType(type: someEnum),
-            """
+        let someEnum = try #require(schema.getType(name: "SomeEnum") as? GraphQLEnumType)
+        #expect(
+            printType(type: someEnum) == """
             enum SomeEnum {
               FIRST
               SECOND
@@ -875,17 +881,15 @@ class BuildASTSchemaTests: XCTestCase {
             }
             """
         )
-        try XCTAssertEqual(
-            print(ast: XCTUnwrap(someEnum.astNode)),
-            """
+        try #expect(
+            print(ast: #require(someEnum.astNode)) == """
             enum SomeEnum {
               FIRST
             }
             """
         )
-        XCTAssertEqual(
-            someEnum.extensionASTNodes.map { print(ast: $0) },
-            [
+        #expect(
+            someEnum.extensionASTNodes.map { print(ast: $0) } == [
                 """
                 extend enum SomeEnum {
                   SECOND
@@ -900,7 +904,7 @@ class BuildASTSchemaTests: XCTestCase {
         )
     }
 
-    func testCorrectlyExtendInputObjectType() throws {
+    @Test func correctlyExtendInputObjectType() throws {
         let schema = try buildSchema(source: """
         input SomeInput {
           first: String
@@ -914,10 +918,9 @@ class BuildASTSchemaTests: XCTestCase {
           third: Float
         }
         """)
-        let someInput = try XCTUnwrap(schema.getType(name: "SomeInput") as? GraphQLInputObjectType)
-        XCTAssertEqual(
-            printType(type: someInput),
-            """
+        let someInput = try #require(schema.getType(name: "SomeInput") as? GraphQLInputObjectType)
+        #expect(
+            printType(type: someInput) == """
             input SomeInput {
               first: String
               second: Int
@@ -925,17 +928,15 @@ class BuildASTSchemaTests: XCTestCase {
             }
             """
         )
-        try XCTAssertEqual(
-            print(ast: XCTUnwrap(someInput.astNode)),
-            """
+        try #expect(
+            print(ast: #require(someInput.astNode)) == """
             input SomeInput {
               first: String
             }
             """
         )
-        XCTAssertEqual(
-            someInput.extensionASTNodes.map { print(ast: $0) },
-            [
+        #expect(
+            someInput.extensionASTNodes.map { print(ast: $0) } == [
                 """
                 extend input SomeInput {
                   second: Int
@@ -950,7 +951,7 @@ class BuildASTSchemaTests: XCTestCase {
         )
     }
 
-    func testCorrectlyAssignASTNodes() throws {
+    @Test func correctlyAssignASTNodes() throws {
         let sdl = """
         schema {
           query: Query
@@ -985,19 +986,19 @@ class BuildASTSchemaTests: XCTestCase {
         let ast = try parse(source: sdl, noLocation: true)
 
         let schema = try buildASTSchema(documentAST: ast)
-        let query = try XCTUnwrap(schema.getType(name: "Query") as? GraphQLObjectType)
-        let testInput = try XCTUnwrap(schema.getType(name: "TestInput") as? GraphQLInputObjectType)
-        let testEnum = try XCTUnwrap(schema.getType(name: "TestEnum") as? GraphQLEnumType)
-        XCTAssertNotNil(schema.getType(name: "TestUnion") as? GraphQLUnionType)
-        let testInterface = try XCTUnwrap(
+        let query = try #require(schema.getType(name: "Query") as? GraphQLObjectType)
+        let testInput = try #require(schema.getType(name: "TestInput") as? GraphQLInputObjectType)
+        let testEnum = try #require(schema.getType(name: "TestEnum") as? GraphQLEnumType)
+        #expect(schema.getType(name: "TestUnion") as? GraphQLUnionType != nil)
+        let testInterface = try #require(
             schema.getType(name: "TestInterface") as? GraphQLInterfaceType
         )
-        let testType = try XCTUnwrap(schema.getType(name: "TestType") as? GraphQLObjectType)
-        XCTAssertNotNil(schema.getType(name: "TestScalar") as? GraphQLScalarType)
-        let testDirective = try XCTUnwrap(schema.getDirective(name: "test"))
+        let testType = try #require(schema.getType(name: "TestType") as? GraphQLObjectType)
+        #expect(schema.getType(name: "TestScalar") as? GraphQLScalarType != nil)
+        let testDirective = try #require(schema.getDirective(name: "test"))
 
         // No `Equatable` conformance
-//        XCTAssertEqual(
+//        #expect(
 //            [
 //              schema.astNode,
 //              query.astNode,
@@ -1008,44 +1009,51 @@ class BuildASTSchemaTests: XCTestCase {
 //              testType.astNode,
 //              testScalar.astNode,
 //              testDirective.astNode,
-//            ],
+//            ] ==
 //            ast.definitions
 //        )
 
-        let testField = try XCTUnwrap(query.getFields()["testField"])
-        try XCTAssertEqual(
-            print(ast: XCTUnwrap(testField.astNode)),
-            "testField(testArg: TestInput): TestUnion"
+        let testField = try #require(query.getFields()["testField"])
+        try #expect(
+            print(
+                ast: #require(testField.astNode)
+            ) == "testField(testArg: TestInput): TestUnion"
         )
-        try XCTAssertEqual(
-            print(ast: XCTUnwrap(testField.args[0].astNode)),
-            "testArg: TestInput"
+        try #expect(
+            print(
+                ast: #require(testField.args[0].astNode)
+            ) == "testArg: TestInput"
         )
-        try XCTAssertEqual(
-            print(ast: XCTUnwrap(testInput.getFields()["testInputField"]?.astNode)),
-            "testInputField: TestEnum"
-        )
-
-        try XCTAssertEqual(
-            print(ast: XCTUnwrap(testEnum.nameLookup["TEST_VALUE"]?.astNode)),
-            "TEST_VALUE"
+        try #expect(
+            print(
+                ast: #require(testInput.getFields()["testInputField"]?.astNode)
+            ) == "testInputField: TestEnum"
         )
 
-        try XCTAssertEqual(
-            print(ast: XCTUnwrap(testInterface.getFields()["interfaceField"]?.astNode)),
-            "interfaceField: String"
+        try #expect(
+            print(
+                ast: #require(testEnum.nameLookup["TEST_VALUE"]?.astNode)
+            ) == "TEST_VALUE"
         )
-        try XCTAssertEqual(
-            print(ast: XCTUnwrap(testType.getFields()["interfaceField"]?.astNode)),
-            "interfaceField: String"
+
+        try #expect(
+            print(
+                ast: #require(testInterface.getFields()["interfaceField"]?.astNode)
+            ) == "interfaceField: String"
         )
-        try XCTAssertEqual(
-            print(ast: XCTUnwrap(testDirective.args[0].astNode)),
-            "arg: TestScalar"
+        try #expect(
+            print(
+                ast: #require(testType.getFields()["interfaceField"]?.astNode)
+            ) == "interfaceField: String"
+        )
+        try #expect(
+            print(
+                ast: #require(testDirective.args[0].astNode)
+            ) == "arg: TestScalar"
         )
     }
 
-    func testRootOperationTypesWithCustomNames() throws {
+    @Test func rootOperationTypesWithCustomNames() throws {
         let schema = try buildSchema(source: """
         schema {
           query: SomeQuery
@@ -1056,76 +1064,78 @@ class BuildASTSchemaTests: XCTestCase {
         type SomeMutation
         type SomeSubscription
         """)
-        XCTAssertEqual(schema.queryType?.name, "SomeQuery")
-        XCTAssertEqual(schema.mutationType?.name, "SomeMutation")
-        XCTAssertEqual(schema.subscriptionType?.name, "SomeSubscription")
+        #expect(schema.queryType?.name == "SomeQuery")
+        #expect(schema.mutationType?.name == "SomeMutation")
+        #expect(schema.subscriptionType?.name == "SomeSubscription")
     }
 
-    func testDefaultRootOperationTypeNames() throws {
+    @Test func defaultRootOperationTypeNames() throws {
         let schema = try buildSchema(source: """
         type Query
         type Mutation
         type Subscription
         """)
-        XCTAssertEqual(schema.queryType?.name, "Query")
-        XCTAssertEqual(schema.mutationType?.name, "Mutation")
-        XCTAssertEqual(schema.subscriptionType?.name, "Subscription")
+        #expect(schema.queryType?.name == "Query")
+        #expect(schema.mutationType?.name == "Mutation")
+        #expect(schema.subscriptionType?.name == "Subscription")
     }
 
-    func testCanBuildInvalidSchema() throws {
+    @Test func canBuildInvalidSchema() throws {
         let schema = try buildSchema(source: "type Mutation")
         let errors = try validateSchema(schema: schema)
-        XCTAssertGreaterThan(errors.count, 0)
+        #expect(errors.count > 0)
     }
 
-    func testDoNotOverrideStandardTypes() throws {
+    @Test func doNotOverrideStandardTypes() throws {
         let schema = try buildSchema(source: """
         scalar ID
 
         scalar __Schema
         """)
-        XCTAssertIdentical(
-            schema.getType(name: "ID") as? GraphQLScalarType,
-            GraphQLID
+        #expect(
+            schema.getType(name: "ID") as? GraphQLScalarType ===
+                GraphQLID
         )
-        XCTAssertIdentical(
-            schema.getType(name: "__Schema") as? GraphQLObjectType,
-            __Schema
+        #expect(
+            schema.getType(name: "__Schema") as? GraphQLObjectType ===
+                __Schema
         )
     }
 
-    func testAllowsToReferenceIntrospectionTypes() throws {
+    @Test func allowsToReferenceIntrospectionTypes() throws {
         let schema = try buildSchema(source: """
         type Query {
           introspectionField: __EnumValue
         }
         """)
-        let queryType = try XCTUnwrap(schema.getType(name: "Query") as? GraphQLObjectType)
-        try XCTAssert(
+        let queryType = try #require(schema.getType(name: "Query") as? GraphQLObjectType)
+        try #expect(
             queryType.getFields().contains { key, field in
                 key == "introspectionField" &&
                     (field.type as? GraphQLObjectType) === __EnumValue
             }
         )
-        XCTAssertIdentical(
-            schema.getType(name: "__EnumValue") as? GraphQLObjectType,
-            __EnumValue
+        #expect(
+            schema.getType(name: "__EnumValue") as? GraphQLObjectType ===
+                __EnumValue
         )
     }
 
-    func testRejectsInvalidSDL() throws {
+    @Test func rejectsInvalidSDL() throws {
         let sdl = """
         type Query {
           foo: String @unknown
         }
         """
-        XCTAssertThrowsError(
-            try buildSchema(source: sdl),
-            "Unknown directive \"@unknown\"."
-        )
+        #expect(
+            throws: (any Error).self,
+            "Unknown directive: \"@unknown\"."
+        ) {
+            try buildSchema(source: sdl)
+        }
     }
 
-    func testAllowsToDisableSDLValidation() throws {
+    @Test func allowsToDisableSDLValidation() throws {
         let sdl = """
         type Query {
           foo: String @unknown
@@ -1135,19 +1145,21 @@ class BuildASTSchemaTests: XCTestCase {
         _ = try buildSchema(source: sdl, assumeValidSDL: true)
     }
 
-    func testThrowsOnUnknownTypes() throws {
+    @Test func throwsOnUnknownTypes() throws {
         let sdl = """
         type Query {
           unknown: UnknownType
         }
         """
-        XCTAssertThrowsError(
-            try buildSchema(source: sdl),
+        #expect(
+            throws: (any Error).self,
             "Unknown type: \"@UnknownType\"."
-        )
+        ) {
+            try buildSchema(source: sdl)
+        }
     }
 
-    func testCorrectlyProcessesViralSchema() throws {
+    @Test func correctlyProcessesViralSchema() throws {
         let schema = try buildSchema(source: """
         schema {
           query: Query
@@ -1167,11 +1179,11 @@ class BuildASTSchemaTests: XCTestCase {
           geneSequence: String!
         }
         """)
-        XCTAssertEqual(schema.queryType?.name, "Query")
-        XCTAssertEqual(schema.getType(name: "Virus")?.name, "Virus")
-        XCTAssertEqual(schema.getType(name: "Mutation")?.name, "Mutation")
+        #expect(schema.queryType?.name == "Query")
+        #expect(schema.getType(name: "Virus")?.name == "Virus")
+        #expect(schema.getType(name: "Mutation")?.name == "Mutation")
         // Though the viral schema has a 'Mutation' type, it is not used for the
         // 'mutation' operation.
-        XCTAssertNil(schema.mutationType)
+        #expect(schema.mutationType == nil)
     }
 }

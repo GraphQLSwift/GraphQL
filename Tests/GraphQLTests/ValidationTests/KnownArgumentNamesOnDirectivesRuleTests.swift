@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class KnownArgumentNamesOnDirectivesRuleTests: SDLValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = KnownArgumentNamesOnDirectivesRule
     }
 
-    func testKnownArgOnDirectiveDefinedInsideSDL() throws {
+    @Test func knownArgOnDirectiveDefinedInsideSDL() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -19,7 +20,7 @@ class KnownArgumentNamesOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testUnknownArgOnDirectiveDefinedInsideSDL() throws {
+    @Test func unknownArgOnDirectiveDefinedInsideSDL() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -37,7 +38,7 @@ class KnownArgumentNamesOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testMisspelledArgNameIsReportedOnDirectiveDefinedInsideSDL() throws {
+    @Test func misspelledArgNameIsReportedOnDirectiveDefinedInsideSDL() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -55,7 +56,7 @@ class KnownArgumentNamesOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testUnknownArgOnStandardDirective() throws {
+    @Test func unknownArgOnStandardDirective() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -71,7 +72,7 @@ class KnownArgumentNamesOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testUnknownArgOnOverriddenStandardDirective() throws {
+    @Test func unknownArgOnOverriddenStandardDirective() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -88,7 +89,7 @@ class KnownArgumentNamesOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testUnknownArgOnDirectiveDefinedInSchemaExtension() throws {
+    @Test func unknownArgOnDirectiveDefinedInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         type Query {
           foo: String
@@ -111,7 +112,7 @@ class KnownArgumentNamesOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testUnknownArgOnDirectiveUsedInSchemaExtension() throws {
+    @Test func unknownArgOnDirectiveUsedInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         directive @test(arg: String) on OBJECT
 

@@ -1,13 +1,14 @@
+import Foundation
 @testable import GraphQL
-import XCTest
+import Testing
 
-class VisitorTests: XCTestCase {
-    func testHandlesEmptyVisitor() throws {
+@Suite struct VisitorTests {
+    @Test func handlesEmptyVisitor() throws {
         let ast = try parse(source: "{ a }", noLocation: true)
-        XCTAssertNoThrow(visit(root: ast, visitor: .init()))
+        visit(root: ast, visitor: .init())
     }
 
-    func testValidatesPathArgument() throws {
+    @Test func validatesPathArgument() throws {
         var visited = [VisitedPath]()
         let ast = try parse(source: "{ a }", noLocation: true)
 
@@ -24,9 +25,8 @@ class VisitorTests: XCTestCase {
             }
         ))
 
-        XCTAssertEqual(
-            visited,
-            [
+        #expect(
+            visited == [
                 .init(.enter, []),
                 .init(.enter, ["definitions", 0]),
                 .init(.enter, ["definitions", 0, "selectionSet"]),
@@ -41,7 +41,7 @@ class VisitorTests: XCTestCase {
         )
     }
 
-    func testValidatesAncestorsArgument() throws {
+    @Test func validatesAncestorsArgument() throws {
         var visited = [NodeResult]()
         let ast = try parse(source: "{ a }", noLocation: true)
 
@@ -53,14 +53,14 @@ class VisitorTests: XCTestCase {
                 visited.append(.node(node))
 
                 let expectedAncestors = visited[0 ... max(visited.count - 2, 0)]
-                XCTAssert(zip(ancestors, expectedAncestors).allSatisfy { lhs, rhs in
+                #expect(zip(ancestors, expectedAncestors).allSatisfy { lhs, rhs in
                     nodeResultsEqual(lhs, rhs)
                 }, "actual: \(ancestors), expected: \(expectedAncestors)")
                 return .continue
             },
             leave: { _, _, parent, _, ancestors in
                 let expectedAncestors = visited[0 ... max(visited.count - 2, 0)]
-                XCTAssert(zip(ancestors, expectedAncestors).allSatisfy { lhs, rhs in
+                #expect(zip(ancestors, expectedAncestors).allSatisfy { lhs, rhs in
                     nodeResultsEqual(lhs, rhs)
                 }, "actual: \(ancestors), expected: \(expectedAncestors)")
 
@@ -74,10 +74,10 @@ class VisitorTests: XCTestCase {
         ))
     }
 
-    func testAllowsEditingANodeBothOnEnterAndOnLeave() throws {
+    @Test func allowsEditingANodeBothOnEnterAndOnLeave() throws {
         let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
 
-        var selectionSet: SelectionSet? = nil
+        var selectionSet: SelectionSet?
 
         let editedASTNode = visit(root: ast, visitor: .init(
             enter: { node, key, parent, path, ancestors in
@@ -109,15 +109,15 @@ class VisitorTests: XCTestCase {
             }
         ))
 
-        let editedAST = try XCTUnwrap(editedASTNode as? Document)
-        let operations = try XCTUnwrap(editedAST.definitions as? [OperationDefinition])
-        XCTAssertEqual(operations.count, 1)
-        XCTAssertEqual(operations.first?.name?.value, "enter.leave")
-        let operationSelections = try XCTUnwrap(operations.first?.selectionSet.selections)
-        XCTAssertEqual(operationSelections.count, 3)
+        let editedAST = try #require(editedASTNode as? Document)
+        let operations = try #require(editedAST.definitions as? [OperationDefinition])
+        #expect(operations.count == 1)
+        #expect(operations.first?.name?.value == "enter.leave")
+        let operationSelections = try #require(operations.first?.selectionSet.selections)
+        #expect(operationSelections.count == 3)
     }
 
-    func testAllowsEditingTheRootNodeOnEnterAndOnLeave() throws {
+    @Test func allowsEditingTheRootNodeOnEnterAndOnLeave() throws {
         let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
 
         let editedASTNode = visit(root: ast, visitor: .init(
@@ -159,19 +159,21 @@ class VisitorTests: XCTestCase {
             }
         ))
 
-        let editedAST = try XCTUnwrap(editedASTNode as? Document)
-        XCTAssertEqual(editedAST.definitions.count, 3)
-        try XCTAssertEqual(
-            XCTUnwrap(editedAST.definitions[1] as? DirectiveDefinition).name.value,
-            "enter"
+        let editedAST = try #require(editedASTNode as? Document)
+        #expect(editedAST.definitions.count == 3)
+        try #expect(
+            #require(
+                editedAST.definitions[1] as? DirectiveDefinition
+            ).name.value == "enter"
         )
-        try XCTAssertEqual(
-            XCTUnwrap(editedAST.definitions[2] as? DirectiveDefinition).name.value,
-            "leave"
+        try #expect(
+            #require(
+                editedAST.definitions[2] as? DirectiveDefinition
+            ).name.value == "leave"
         )
     }
 
-    func testAllowsForEditingOnEnter() throws {
+    @Test func allowsForEditingOnEnter() throws {
         let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
 
         let editedASTNode = visit(root: ast, visitor: .init(
@@ -186,21 +188,19 @@ class VisitorTests: XCTestCase {
             }
         ))
 
-        let editedAST = try XCTUnwrap(editedASTNode as? Document)
-        let operation = try XCTUnwrap(editedAST.definitions[0] as? OperationDefinition)
-        XCTAssertEqual(
-            operation.selectionSet.selections.count,
-            2 // "b" is ignored
+        let editedAST = try #require(editedASTNode as? Document)
+        let operation = try #require(editedAST.definitions[0] as? OperationDefinition)
+        #expect(
+            operation.selectionSet.selections.count == 2 // "b" is ignored
         )
 
-        let cField = try XCTUnwrap(operation.selectionSet.selections[1] as? Field)
-        XCTAssertEqual(
-            cField.selectionSet?.selections.count,
-            2 // "b" is ignored
+        let cField = try #require(operation.selectionSet.selections[1] as? Field)
+        #expect(
+            cField.selectionSet?.selections.count == 2 // "b" is ignored
         )
     }
 
-    func testAllowsForEditingOnLeave() throws {
+    @Test func allowsForEditingOnLeave() throws {
         let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
 
         let editedASTNode = visit(root: ast, visitor: .init(
@@ -215,21 +215,19 @@ class VisitorTests: XCTestCase {
             }
         ))
 
-        let editedAST = try XCTUnwrap(editedASTNode as? Document)
-        let operation = try XCTUnwrap(editedAST.definitions[0] as? OperationDefinition)
-        XCTAssertEqual(
-            operation.selectionSet.selections.count,
-            2 // "b" is removed
+        let editedAST = try #require(editedASTNode as? Document)
+        let operation = try #require(editedAST.definitions[0] as? OperationDefinition)
+        #expect(
+            operation.selectionSet.selections.count == 2 // "b" is removed
         )
 
-        let cField = try XCTUnwrap(operation.selectionSet.selections[1] as? Field)
-        XCTAssertEqual(
-            cField.selectionSet?.selections.count,
-            2 // "b" is removed
+        let cField = try #require(operation.selectionSet.selections[1] as? Field)
+        #expect(
+            cField.selectionSet?.selections.count == 2 // "b" is removed
         )
     }
 
-    func testIgnoresSkipReturnedOnLeave() throws {
+    @Test func ignoresSkipReturnedOnLeave() throws {
         let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
 
         let editedASTNode = visit(root: ast, visitor: .init(
@@ -238,21 +236,20 @@ class VisitorTests: XCTestCase {
             }
         ))
 
-        let editedAST = try XCTUnwrap(editedASTNode as? Document)
-        let operation = try XCTUnwrap(editedAST.definitions[0] as? OperationDefinition)
-        XCTAssertEqual(
-            operation.selectionSet.selections.count,
-            3 // "b" remains
+        let editedAST = try #require(editedASTNode as? Document)
+        let operation = try #require(editedAST.definitions[0] as? OperationDefinition)
+        #expect(
+            operation.selectionSet.selections.count ==
+                3 // "b" remains
         )
 
-        let cField = try XCTUnwrap(operation.selectionSet.selections[2] as? Field)
-        XCTAssertEqual(
-            cField.selectionSet?.selections.count,
-            3 // "b" remains
+        let cField = try #require(operation.selectionSet.selections[2] as? Field)
+        #expect(
+            cField.selectionSet?.selections.count == 3 // "b" remains
         )
     }
 
-    func testVisitsEditedNode() throws {
+    @Test func visitsEditedNode() throws {
         let addedField = Field(
             name: Name(value: "__typename")
         )
@@ -285,10 +282,10 @@ class VisitorTests: XCTestCase {
             }
         ))
 
-        XCTAssert(didVisitAddedField)
+        #expect(didVisitAddedField)
     }
 
-    func testAllowsSkippingASubTree() throws {
+    @Test func allowsSkippingASubTree() throws {
         struct VisitedElement: Equatable {
             let direction: VisitDirection
             let kind: Kind
@@ -320,9 +317,8 @@ class VisitorTests: XCTestCase {
             }
         ))
 
-        XCTAssertEqual(
-            visited,
-            [
+        #expect(
+            visited == [
                 .init(.enter, .document, nil),
                 .init(.enter, .operationDefinition, nil),
                 .init(.enter, .selectionSet, nil),
@@ -342,7 +338,7 @@ class VisitorTests: XCTestCase {
         )
     }
 
-    func testAllowsEarlyExitWhileVisiting() throws {
+    @Test func allowsEarlyExitWhileVisiting() throws {
         struct VisitedElement: Equatable {
             let direction: VisitDirection
             let kind: Kind
@@ -374,9 +370,8 @@ class VisitorTests: XCTestCase {
             }
         ))
 
-        XCTAssertEqual(
-            visited,
-            [
+        #expect(
+            visited == [
                 .init(.enter, .document, nil),
                 .init(.enter, .operationDefinition, nil),
                 .init(.enter, .selectionSet, nil),
@@ -394,7 +389,7 @@ class VisitorTests: XCTestCase {
         )
     }
 
-    func testAllowsEarlyExitWhileLeaving() throws {
+    @Test func allowsEarlyExitWhileLeaving() throws {
         struct VisitedElement: Equatable {
             let direction: VisitDirection
             let kind: Kind
@@ -426,9 +421,8 @@ class VisitorTests: XCTestCase {
             }
         ))
 
-        XCTAssertEqual(
-            visited,
-            [
+        #expect(
+            visited == [
                 .init(.enter, .document, nil),
                 .init(.enter, .operationDefinition, nil),
                 .init(.enter, .selectionSet, nil),
@@ -447,7 +441,7 @@ class VisitorTests: XCTestCase {
         )
     }
 
-    func testAllowsANamedFunctionsVisitorAPI() throws {
+    @Test func allowsANamedFunctionsVisitorAPI() throws {
         struct VisitedElement: Equatable {
             let direction: VisitDirection
             let kind: Kind
@@ -484,9 +478,8 @@ class VisitorTests: XCTestCase {
             }
         ))
 
-        XCTAssertEqual(
-            visited,
-            [
+        #expect(
+            visited == [
                 .init(.enter, .selectionSet, nil),
                 .init(.enter, .name, "a"),
                 .init(.enter, .name, "b"),
@@ -499,14 +492,14 @@ class VisitorTests: XCTestCase {
         )
     }
 
-    func testProperlyVisitsTheKitchenSinkQuery() throws {
+    @Test func properlyVisitsTheKitchenSinkQuery() throws {
         var visited = [VisitedKindAndParent]()
 
         guard
             let url = Bundle.module.url(forResource: "kitchen-sink", withExtension: "graphql"),
             let kitchenSink = try? String(contentsOf: url, encoding: .utf8)
         else {
-            XCTFail("Could not load kitchen sink")
+            Issue.record("Could not load kitchen sink")
             return
         }
         let ast = try parse(source: kitchenSink)
@@ -531,9 +524,8 @@ class VisitorTests: XCTestCase {
             }
         ))
 
-        XCTAssertEqual(
-            visited,
-            [
+        #expect(
+            visited == [
                 .init(.enter, .document, nil, nil),
                 .init(.enter, .operationDefinition, 0, nil),
                 .init(.enter, .name, "name", .operationDefinition),
@@ -907,39 +899,39 @@ func checkVisitorFnArgs(
     guard let key = key else {
         if !isEdited {
             guard let node = node as? Document else {
-                XCTFail()
+                Issue.record()
                 return
             }
-            XCTAssertEqual(node, ast)
+            #expect(node == ast)
         }
-        XCTAssertNil(parent)
-        XCTAssert(path.isEmpty)
-        XCTAssert(ancestors.isEmpty)
+        #expect(parent == nil)
+        #expect(path.isEmpty)
+        #expect(ancestors.isEmpty)
         return
     }
-    XCTAssertEqual(path.last?.indexPathValue, key.indexPathValue)
-    XCTAssertEqual(ancestors.count, path.count - 1)
+    #expect(path.last?.indexPathValue == key.indexPathValue)
+    #expect(ancestors.count == path.count - 1)
 
     if !isEdited {
         var currentNode = NodeResult.node(ast)
         for (index, ancestor) in ancestors.enumerated() {
-            XCTAssert(nodeResultsEqual(ancestor, currentNode))
+            #expect(nodeResultsEqual(ancestor, currentNode))
             guard let nextNode = currentNode.get(key: path[index]) else {
-                XCTFail()
+                Issue.record()
                 return
             }
             currentNode = nextNode
         }
         guard let parent = parent else {
-            XCTFail()
+            Issue.record()
             return
         }
-        XCTAssert(nodeResultsEqual(parent, currentNode))
+        #expect(nodeResultsEqual(parent, currentNode))
         guard let parentNode = parent.get(key: key) else {
-            XCTFail()
+            Issue.record()
             return
         }
-        XCTAssert(nodeResultsEqual(parentNode, .node(node)))
+        #expect(nodeResultsEqual(parentNode, .node(node)))
     }
 }
 

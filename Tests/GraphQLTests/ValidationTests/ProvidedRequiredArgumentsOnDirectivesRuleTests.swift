@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = ProvidedRequiredArgumentsOnDirectivesRule
     }
 
-    func testMissingOptionalArgsOnDirectiveDefinedInsideSDL() throws {
+    @Test func missingOptionalArgsOnDirectiveDefinedInsideSDL() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -19,7 +20,7 @@ class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testMissingArgOnDirectiveDefinedInsideSDL() throws {
+    @Test func missingArgOnDirectiveDefinedInsideSDL() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -37,7 +38,7 @@ class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testMissingArgOnStandardDirective() throws {
+    @Test func missingArgOnStandardDirective() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -53,7 +54,7 @@ class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testMissingArgOnOveriddenStandardDirective() throws {
+    @Test func missingArgOnOveriddenStandardDirective() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -70,7 +71,7 @@ class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testMissingArgOnDirectiveDefinedInSchemaExtension() throws {
+    @Test func missingArgOnDirectiveDefinedInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         type Query {
           foo: String
@@ -93,7 +94,7 @@ class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testMissingArgOnDirectiveUsedInSchemaExtension() throws {
+    @Test func missingArgOnDirectiveUsedInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         directive @test(arg: String!) on OBJECT
 

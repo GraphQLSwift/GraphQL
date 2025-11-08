@@ -1,11 +1,11 @@
 @testable import GraphQL
 import OrderedCollections
-import XCTest
+import Testing
 
 func expectPrintedSchema(schema: GraphQLSchema) throws -> String {
     let schemaText = printSchema(schema: schema)
     // keep printSchema and buildSchema in sync
-    XCTAssertEqual(try printSchema(schema: buildSchema(source: schemaText)), schemaText)
+    #expect(try printSchema(schema: buildSchema(source: schemaText)) == schemaText)
     return schemaText
 }
 
@@ -19,150 +19,150 @@ func buildSingleFieldSchema(
     return try GraphQLSchema(query: Query)
 }
 
-class TypeSystemPrinterTests: XCTestCase {
-    func testPrintsStringField() throws {
+@Suite struct TypeSystemPrinterTests {
+    @Test func printsStringField() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(type: GraphQLString))
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField: String
         }
         """)
     }
 
-    func testPrintsStringListField() throws {
+    @Test func printsStringListField() throws {
         let schema =
             try buildSingleFieldSchema(fieldConfig: GraphQLField(type: GraphQLList(GraphQLString)))
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField: [String]
         }
         """)
     }
 
-    func testPrintsStringNonNullField() throws {
+    @Test func printsStringNonNullField() throws {
         let schema =
             try buildSingleFieldSchema(
                 fieldConfig: GraphQLField(type: GraphQLNonNull(GraphQLString))
             )
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField: String!
         }
         """)
     }
 
-    func testPrintsStringNonNullListField() throws {
+    @Test func printsStringNonNullListField() throws {
         let schema =
             try buildSingleFieldSchema(
                 fieldConfig: GraphQLField(type: GraphQLNonNull(GraphQLList(GraphQLString)))
             )
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField: [String]!
         }
         """)
     }
 
-    func testPrintsStringListNonNullsField() throws {
+    @Test func printsStringListNonNullsField() throws {
         let schema =
             try buildSingleFieldSchema(
                 fieldConfig: GraphQLField(type: GraphQLList(GraphQLNonNull(GraphQLString)))
             )
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField: [String!]
         }
         """)
     }
 
-    func testPrintsStringNonNullListNonNullsField() throws {
+    @Test func printsStringNonNullListNonNullsField() throws {
         let schema =
             try buildSingleFieldSchema(
                 fieldConfig: GraphQLField(
                     type: GraphQLNonNull(GraphQLList(GraphQLNonNull(GraphQLString)))
                 )
             )
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField: [String!]!
         }
         """)
     }
 
-    func testPrintsObjectField() throws {
+    @Test func printsObjectField() throws {
         let FooType = try GraphQLObjectType(
             name: "Foo",
             fields: ["str": GraphQLField(type: GraphQLString)]
         )
         let schema = try GraphQLSchema(types: [FooType])
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Foo {
           str: String
         }
         """)
     }
 
-    func testPrintsStringFieldWithIntArg() throws {
+    @Test func printsStringFieldWithIntArg() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: ["argOne": GraphQLArgument(type: GraphQLInt)]
         ))
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField(argOne: Int): String
         }
         """)
     }
 
-    func testPrintsStringFieldWithIntArgWithDefault() throws {
+    @Test func printsStringFieldWithIntArgWithDefault() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: ["argOne": GraphQLArgument(type: GraphQLInt, defaultValue: 2)]
         ))
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField(argOne: Int = 2): String
         }
         """)
     }
 
-    func testPrintsStringFieldWithStringArgWithDefault() throws {
+    @Test func printsStringFieldWithStringArgWithDefault() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: ["argOne": GraphQLArgument(type: GraphQLString, defaultValue: "test default")]
         ))
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField(argOne: String = "test default"): String
         }
         """)
     }
 
-    func testPrintsStringFieldWithIntArgWithDefaultNull() throws {
+    @Test func printsStringFieldWithIntArgWithDefaultNull() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: ["argOne": GraphQLArgument(type: GraphQLInt, defaultValue: .null)]
         ))
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField(argOne: Int = null): String
         }
         """)
     }
 
-    func testPrintsStringFieldWithNonNullIntArg() throws {
+    @Test func printsStringFieldWithNonNullIntArg() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: ["argOne": GraphQLArgument(type: GraphQLNonNull(GraphQLInt))]
         ))
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField(argOne: Int!): String
         }
         """)
     }
 
-    func testPrintsStringFieldWithMultipleArgs() throws {
+    @Test func printsStringFieldWithMultipleArgs() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: [
@@ -170,14 +170,14 @@ class TypeSystemPrinterTests: XCTestCase {
                 "argTwo": GraphQLArgument(type: GraphQLString),
             ]
         ))
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField(argOne: Int, argTwo: String): String
         }
         """)
     }
 
-    func testPrintsStringFieldWithMultipleArgsFirstIsDefault() throws {
+    @Test func printsStringFieldWithMultipleArgsFirstIsDefault() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: [
@@ -186,14 +186,14 @@ class TypeSystemPrinterTests: XCTestCase {
                 "argThree": GraphQLArgument(type: GraphQLBoolean),
             ]
         ))
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField(argOne: Int = 1, argTwo: String, argThree: Boolean): String
         }
         """)
     }
 
-    func testPrintsStringFieldWithMultipleArgsSecondIsDefault() throws {
+    @Test func printsStringFieldWithMultipleArgsSecondIsDefault() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: [
@@ -202,14 +202,14 @@ class TypeSystemPrinterTests: XCTestCase {
                 "argThree": GraphQLArgument(type: GraphQLBoolean),
             ]
         ))
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField(argOne: Int, argTwo: String = "foo", argThree: Boolean): String
         }
         """)
     }
 
-    func testPrintsStringFieldWithMultipleArgsLastIsDefault() throws {
+    @Test func printsStringFieldWithMultipleArgsLastIsDefault() throws {
         let schema = try buildSingleFieldSchema(fieldConfig: GraphQLField(
             type: GraphQLString,
             args: [
@@ -218,19 +218,19 @@ class TypeSystemPrinterTests: XCTestCase {
                 "argThree": GraphQLArgument(type: GraphQLBoolean, defaultValue: .bool(false)),
             ]
         ))
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           singleField(argOne: Int, argTwo: String, argThree: Boolean = false): String
         }
         """)
     }
 
-    func testPrintsSchemaWithDescription() throws {
+    @Test func printsSchemaWithDescription() throws {
         let schema = try GraphQLSchema(
             description: "Schema description.",
             query: GraphQLObjectType(name: "Query", fields: [:])
         )
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), #"""
+        try #expect(expectPrintedSchema(schema: schema) == #"""
         """Schema description."""
         schema {
           query: Query
@@ -240,13 +240,13 @@ class TypeSystemPrinterTests: XCTestCase {
         """#)
     }
 
-    func testOmitsSchemaOfCommonNames() throws {
+    @Test func omitsSchemaOfCommonNames() throws {
         let schema = try GraphQLSchema(
             query: GraphQLObjectType(name: "Query", fields: [:]),
             mutation: GraphQLObjectType(name: "Mutation", fields: [:]),
             subscription: GraphQLObjectType(name: "Subscription", fields: [:])
         )
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query
 
         type Mutation
@@ -255,11 +255,11 @@ class TypeSystemPrinterTests: XCTestCase {
         """)
     }
 
-    func testPrintsCustomQueryRootTypes() throws {
+    @Test func printsCustomQueryRootTypes() throws {
         let schema = try GraphQLSchema(
             query: GraphQLObjectType(name: "CustomType", fields: [:])
         )
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         schema {
           query: CustomType
         }
@@ -268,11 +268,11 @@ class TypeSystemPrinterTests: XCTestCase {
         """)
     }
 
-    func testPrintsCustomMutationRootTypes() throws {
+    @Test func printsCustomMutationRootTypes() throws {
         let schema = try GraphQLSchema(
             mutation: GraphQLObjectType(name: "CustomType", fields: [:])
         )
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         schema {
           mutation: CustomType
         }
@@ -281,11 +281,11 @@ class TypeSystemPrinterTests: XCTestCase {
         """)
     }
 
-    func testPrintsCustomSubscriptionRootTypes() throws {
+    @Test func printsCustomSubscriptionRootTypes() throws {
         let schema = try GraphQLSchema(
             subscription: GraphQLObjectType(name: "CustomType", fields: [:])
         )
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         schema {
           subscription: CustomType
         }
@@ -294,7 +294,7 @@ class TypeSystemPrinterTests: XCTestCase {
         """)
     }
 
-    func testPrintInterface() throws {
+    @Test func printInterface() throws {
         let FooType = try GraphQLInterfaceType(
             name: "Foo",
             fields: ["str": GraphQLField(type: GraphQLString)]
@@ -307,7 +307,7 @@ class TypeSystemPrinterTests: XCTestCase {
         )
 
         let schema = try GraphQLSchema(types: [BarType])
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Bar implements Foo {
           str: String
         }
@@ -318,7 +318,7 @@ class TypeSystemPrinterTests: XCTestCase {
         """)
     }
 
-    func testPrintMultipleInterface() throws {
+    @Test func printMultipleInterface() throws {
         let FooType = try GraphQLInterfaceType(
             name: "Foo",
             fields: ["str": GraphQLField(type: GraphQLString)]
@@ -339,7 +339,7 @@ class TypeSystemPrinterTests: XCTestCase {
         )
 
         let schema = try GraphQLSchema(types: [BarType])
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Bar implements Foo & Baz {
           str: String
           int: Int
@@ -355,7 +355,7 @@ class TypeSystemPrinterTests: XCTestCase {
         """)
     }
 
-    func testPrintHierarchicalInterface() throws {
+    @Test func printHierarchicalInterface() throws {
         let FooType = try GraphQLInterfaceType(
             name: "Foo",
             fields: ["str": GraphQLField(type: GraphQLString)]
@@ -387,7 +387,7 @@ class TypeSystemPrinterTests: XCTestCase {
         )
 
         let schema = try GraphQLSchema(query: Query, types: [BarType])
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Bar implements Foo & Baz {
           str: String
           int: Int
@@ -408,7 +408,7 @@ class TypeSystemPrinterTests: XCTestCase {
         """)
     }
 
-    func testPrintUnions() throws {
+    @Test func printUnions() throws {
         let FooType = try GraphQLObjectType(
             name: "Foo",
             fields: ["bool": GraphQLField(type: GraphQLBoolean)]
@@ -430,7 +430,7 @@ class TypeSystemPrinterTests: XCTestCase {
         )
 
         let schema = try GraphQLSchema(types: [SingleUnion, MultipleUnion])
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         union SingleUnion = Foo
 
         type Foo {
@@ -445,21 +445,21 @@ class TypeSystemPrinterTests: XCTestCase {
         """)
     }
 
-    func testPrintInputType() throws {
+    @Test func printInputType() throws {
         let InputType = try GraphQLInputObjectType(
             name: "InputType",
             fields: ["int": InputObjectField(type: GraphQLInt)]
         )
 
         let schema = try GraphQLSchema(types: [InputType])
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         input InputType {
           int: Int
         }
         """)
     }
 
-    func testPrintInputTypewithOneOfDirective() throws {
+    @Test func printInputTypewithOneOfDirective() throws {
         let InputType = try GraphQLInputObjectType(
             name: "InputType",
             fields: ["int": InputObjectField(type: GraphQLInt)],
@@ -467,35 +467,35 @@ class TypeSystemPrinterTests: XCTestCase {
         )
 
         let schema = try GraphQLSchema(types: [InputType])
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         input InputType @oneOf {
           int: Int
         }
         """)
     }
 
-    func testCustomScalar() throws {
+    @Test func customScalar() throws {
         let OddType = try GraphQLScalarType(name: "Odd")
 
         let schema = try GraphQLSchema(types: [OddType])
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         scalar Odd
         """)
     }
 
-    func testCustomScalarWithSpecifiedByURL() throws {
+    @Test func customScalarWithSpecifiedByURL() throws {
         let FooType = try GraphQLScalarType(
             name: "Foo",
             specifiedByURL: "https://example.com/foo_spec"
         )
 
         let schema = try GraphQLSchema(types: [FooType])
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         scalar Foo @specifiedBy(url: "https://example.com/foo_spec")
         """)
     }
 
-    func testEnum() throws {
+    @Test func `enum`() throws {
         let RGBType = try GraphQLEnumType(
             name: "RGB",
             values: [
@@ -506,7 +506,7 @@ class TypeSystemPrinterTests: XCTestCase {
         )
 
         let schema = try GraphQLSchema(types: [RGBType])
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         enum RGB {
           RED
           GREEN
@@ -515,7 +515,7 @@ class TypeSystemPrinterTests: XCTestCase {
         """)
     }
 
-    func testPrintsEmptyTypes() throws {
+    @Test func printsEmptyTypes() throws {
         let schema = try GraphQLSchema(
             types: [
                 GraphQLEnumType(name: "SomeEnum", values: [:]),
@@ -525,7 +525,7 @@ class TypeSystemPrinterTests: XCTestCase {
                 GraphQLUnionType(name: "SomeUnion", types: []),
             ]
         )
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         enum SomeEnum
 
         input SomeInputObject
@@ -538,7 +538,7 @@ class TypeSystemPrinterTests: XCTestCase {
         """)
     }
 
-    func testPrintsCustomDirectives() throws {
+    @Test func printsCustomDirectives() throws {
         let SimpleDirective = try GraphQLDirective(
             name: "simpleDirective",
             locations: [DirectiveLocation.field]
@@ -555,7 +555,7 @@ class TypeSystemPrinterTests: XCTestCase {
         )
 
         let schema = try GraphQLSchema(directives: [SimpleDirective, ComplexDirective])
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), #"""
+        try #expect(expectPrintedSchema(schema: schema) == #"""
         directive @simpleDirective on FIELD
 
         """Complex Directive"""
@@ -563,7 +563,7 @@ class TypeSystemPrinterTests: XCTestCase {
         """#)
     }
 
-    func testPrintsAnEmptyDescriptions() throws {
+    @Test func printsAnEmptyDescriptions() throws {
         let args: OrderedDictionary<String, GraphQLArgument> = [
             "someArg": GraphQLArgument(type: GraphQLString, description: ""),
             "anotherArg": GraphQLArgument(type: GraphQLString, description: ""),
@@ -619,7 +619,7 @@ class TypeSystemPrinterTests: XCTestCase {
             types: [scalarType, interfaceType, unionType, enumType],
             directives: [someDirective]
         )
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), #"""
+        try #expect(expectPrintedSchema(schema: schema) == #"""
         """"""
         schema {
           query: Query
@@ -693,14 +693,14 @@ class TypeSystemPrinterTests: XCTestCase {
         """#)
     }
 
-    func testPrintsADescriptionWithOnlyWhitespace() throws {
+    @Test func printsADescriptionWithOnlyWhitespace() throws {
         let schema = try buildSingleFieldSchema(
             fieldConfig: GraphQLField(
                 type: GraphQLString,
                 description: " "
             )
         )
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), """
+        try #expect(expectPrintedSchema(schema: schema) == """
         type Query {
           " "
           singleField: String
@@ -708,14 +708,14 @@ class TypeSystemPrinterTests: XCTestCase {
         """)
     }
 
-    func testOneLinePrintsAShortDescription() throws {
+    @Test func oneLinePrintsAShortDescription() throws {
         let schema = try buildSingleFieldSchema(
             fieldConfig: GraphQLField(
                 type: GraphQLString,
                 description: "This field is awesome"
             )
         )
-        try XCTAssertEqual(expectPrintedSchema(schema: schema), #"""
+        try #expect(expectPrintedSchema(schema: schema) == #"""
         type Query {
           """This field is awesome"""
           singleField: String
@@ -723,9 +723,9 @@ class TypeSystemPrinterTests: XCTestCase {
         """#)
     }
 
-    func testPrintIntrospectionSchema() throws {
+    @Test func printIntrospectionSchema() throws {
         let schema = try GraphQLSchema()
-        XCTAssertEqual(printIntrospectionSchema(schema: schema), #"""
+        #expect(GraphQL.printIntrospectionSchema(schema: schema) == #"""
         """
         Directs the executor to include this field or fragment only when the \`if\` argument is true.
         """
@@ -957,7 +957,7 @@ class TypeSystemPrinterTests: XCTestCase {
         """#)
     }
 
-    func testPrintsViralSchemaCorrectly() throws {
+    @Test func printsViralSchemaCorrectly() throws {
         let Mutation = try GraphQLObjectType(
             name: "Mutation",
             fields: [
@@ -984,9 +984,8 @@ class TypeSystemPrinterTests: XCTestCase {
         )
 
         let viralSchema = try GraphQLSchema(query: Query)
-        XCTAssertEqual(
-            printSchema(schema: viralSchema),
-            """
+        #expect(
+            printSchema(schema: viralSchema) == """
             schema {
               query: Query
             }

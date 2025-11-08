@@ -1,8 +1,8 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
-class GraphQLSchemaTests: XCTestCase {
-    func testAssertObjectImplementsInterfacePassesWhenObjectFieldHasRequiredArgumentsFromInterface(
+@Suite struct GraphQLSchemaTests {
+    @Test func assertObjectImplementsInterfacePassesWhenObjectFieldHasRequiredArgumentsFromInterface(
     ) throws {
         let interface = try GraphQLInterfaceType(
             name: "Interface",
@@ -55,7 +55,7 @@ class GraphQLSchemaTests: XCTestCase {
         _ = try GraphQLSchema(query: object, types: [interface, object])
     }
 
-    func testAssertObjectImplementsInterfacePassesWhenObjectFieldHasRequiredArgumentMissingInInterfaceButHasDefaultValue(
+    @Test func assertObjectImplementsInterfacePassesWhenObjectFieldHasRequiredArgumentMissingInInterfaceButHasDefaultValue(
     ) throws {
         let interface = try GraphQLInterfaceType(
             name: "Interface",
@@ -89,7 +89,7 @@ class GraphQLSchemaTests: XCTestCase {
         _ = try GraphQLSchema(query: object, types: [interface, object])
     }
 
-    func testAssertObjectImplementsInterfacePassesWhenObjectFieldHasNullableArgumentMissingInInterface(
+    @Test func assertObjectImplementsInterfacePassesWhenObjectFieldHasNullableArgumentMissingInInterface(
     ) throws {
         let interface = try GraphQLInterfaceType(
             name: "Interface",
@@ -118,7 +118,7 @@ class GraphQLSchemaTests: XCTestCase {
         _ = try GraphQLSchema(query: object, types: [interface, object])
     }
 
-    func testAssertSchemaCircularReference() throws {
+    @Test func assertSchemaCircularReference() throws {
         let object1 = try GraphQLObjectType(
             name: "Object1"
         )
@@ -153,8 +153,8 @@ class GraphQLSchemaTests: XCTestCase {
             ]
         )
 
-        XCTAssertNoThrow(
+        #expect(throws: Never.self) {
             try GraphQLSchema(query: query, types: [object1, object2])
-        )
+        }
     }
 }

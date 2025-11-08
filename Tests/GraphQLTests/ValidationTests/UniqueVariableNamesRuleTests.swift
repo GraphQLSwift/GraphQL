@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class UniqueVariableNamesRuleTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = UniqueVariableNamesRule
     }
 
-    func testUniqueVariableNames() throws {
+    @Test func uniqueVariableNames() throws {
         try assertValid(
             """
             query A($x: Int, $y: String) { __typename }
@@ -15,7 +16,7 @@ class UniqueVariableNamesRuleTests: ValidationTestCase {
         )
     }
 
-    func testDuplicateVariableNames() throws {
+    @Test func duplicateVariableNames() throws {
         let errors = try assertInvalid(
             errorCount: 3,
             query:

@@ -1,60 +1,61 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class FieldsOnCorrectTypeTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = FieldsOnCorrectTypeRule
     }
 
-    func testValidWithObjectFieldSelection() throws {
+    @Test func validWithObjectFieldSelection() throws {
         try assertValid(
             "fragment objectFieldSelection on Dog { __typename name }"
         )
     }
 
-    func testValidWithAliasedObjectFieldSelection() throws {
+    @Test func validWithAliasedObjectFieldSelection() throws {
         try assertValid(
             "fragment aliasedObjectFieldSelection on Dog { tn : __typename otherName : name }"
         )
     }
 
-    func testValidWithInterfaceFieldSelection() throws {
+    @Test func validWithInterfaceFieldSelection() throws {
         try assertValid(
             "fragment interfaceFieldSelection on Pet { __typename name }"
         )
     }
 
-    func testValidWithAliasedInterfaceFieldSelection() throws {
+    @Test func validWithAliasedInterfaceFieldSelection() throws {
         try assertValid(
             "fragment aliasedInterfaceFieldSelection on Pet { otherName : name }"
         )
     }
 
-    func testValidWithLyingAliasSelection() throws {
+    @Test func validWithLyingAliasSelection() throws {
         try assertValid(
             "fragment lyingAliasSelection on Dog { name : nickname }"
         )
     }
 
-    func testValidWithInlineFragment() throws {
+    @Test func validWithInlineFragment() throws {
         try assertValid(
             "fragment inlineFragment on Pet { ... on Dog { name } ... { name } }"
         )
     }
 
-    func testValidWhenMetaFieldSelectionOnUnion() throws {
+    @Test func validWhenMetaFieldSelectionOnUnion() throws {
         try assertValid(
             "fragment metaFieldSelectionOnUnion on CatOrDog { __typename }"
         )
     }
 
-    func testValidWithIgnoresFieldsOnUnknownType() throws {
+    @Test func validWithIgnoresFieldsOnUnknownType() throws {
         try assertValid(
             "fragment ignoresFieldsOnUnknownType on UnknownType { unknownField }"
         )
     }
 
-    func testInvalidWhenTypeKnownAgain() throws {
+    @Test func invalidWhenTypeKnownAgain() throws {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
@@ -79,7 +80,7 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
         )
     }
 
-    func testInvalidWhenFieldNotDefined() throws {
+    @Test func invalidWhenFieldNotDefined() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: "fragment fieldNotDefined on Dog { meowVolume }"
@@ -91,7 +92,7 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
         )
     }
 
-    func testInvalidWhenDeepFieldNotDefined() throws {
+    @Test func invalidWhenDeepFieldNotDefined() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: "fragment deepFieldNotDefined on Dog { unknown_field { deeper_unknown_field }}"
@@ -103,7 +104,7 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
         )
     }
 
-    func testInvalidWhenSubFieldNotDefined() throws {
+    @Test func invalidWhenSubFieldNotDefined() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: "fragment subFieldNotDefined on Human { pets { unknown_field } }"
@@ -115,7 +116,7 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
         )
     }
 
-    func testInvalidWhenFieldNotDefinedOnInlineFragment() throws {
+    @Test func invalidWhenFieldNotDefinedOnInlineFragment() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: "fragment fieldNotDefinedOnInlineFragment on Pet { ... on Dog { meowVolume } }"
@@ -127,7 +128,7 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
         )
     }
 
-    func testInvalidWhenAliasedFieldTargetNotDefined() throws {
+    @Test func invalidWhenAliasedFieldTargetNotDefined() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: "fragment aliasedFieldTargetNotDefined on Dog { volume : mooVolume }"
@@ -139,7 +140,7 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
         )
     }
 
-    func testInvalidWhenAliasedLyingFieldTargetNotDefined() throws {
+    @Test func invalidWhenAliasedLyingFieldTargetNotDefined() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: "fragment aliasedLyingFieldTargetNotDefined on Dog { barkVolume : kawVolume }"
@@ -151,7 +152,7 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
         )
     }
 
-    func testInvalidWhenNotDefinedOnInterface() throws {
+    @Test func invalidWhenNotDefinedOnInterface() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: "fragment notDefinedOnInterface on Pet { tailLength }"
@@ -163,7 +164,7 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
         )
     }
 
-    func testInvalidWhenDefinedOnImplementorsButNotInterface() throws {
+    @Test func invalidWhenDefinedOnImplementorsButNotInterface() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query: "fragment definedOnImplementorsButNotInterface on Pet { nickname }"
@@ -175,7 +176,7 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
         )
     }
 
-//    func testInvalidWhenDirectFieldSelectionOnUnion() throws {
+//    @Test func invalidWhenDirectFieldSelectionOnUnion() throws {
 //        let errors = try assertInvalid(
 //            errorCount: 1,
 //            query: """
@@ -191,7 +192,7 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
 //        )
 //    }
 //
-//    func testInvalidWhenDefinedOnImplementorsQueriedOnUnion() throws {
+//    @Test func invalidWhenDefinedOnImplementorsQueriedOnUnion() throws {
 //        let errors = try assertInvalid(
 //            errorCount: 1,
 //            query: """

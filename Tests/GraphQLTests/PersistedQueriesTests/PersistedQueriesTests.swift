@@ -1,7 +1,7 @@
 import GraphQL
-import XCTest
+import Testing
 
-class PersistedQueriesTests: XCTestCase {
+@Suite struct PersistedQueriesTests {
 //    let schema = try! GraphQLSchema(
 //        query: GraphQLObjectType(
 //            name: "RootQueryType",
@@ -14,78 +14,78 @@ class PersistedQueriesTests: XCTestCase {
 //        )
 //    )
 //
-//    func testLookupWithUnknownId() throws {
+//    @Test func lookupWithUnknownId() throws {
 //        let result = try lookup("unknown_id")
 //        switch result {
 //        case .unknownId(let id):
-//            XCTAssertEqual(id, "unknown_id")
+//            #expect(id == "unknown_id")
 //            return
 //        default:
-//            XCTFail("Expected unknownId result, got \(result)")
+//            Issue.record("Expected unknownId result, got \(result)")
 //        }
 //    }
 //
-//    func testLookupWithParseError() throws {
+//    @Test func lookupWithParseError() throws {
 //        let result = try lookup("parse_error")
 //        switch result {
 //        case .parseError(let error):
-//            XCTAssertEqual(String(error.message.prefix(57)), "Syntax Error parse_error (1:4)
+//            #expect(String(error.message.prefix(57)) == "Syntax Error parse_error (1:4)
 //            Expected Name, found <EOF>")
-//            XCTAssertEqual(error.locations.first?.line, 1)
-//            XCTAssertEqual(error.locations.first?.column, 4)
+//            #expect(error.locations.first?.line == 1)
+//            #expect(error.locations.first?.column == 4)
 //            return
 //        default:
-//            XCTFail("Expected parseError result, got \(result)")
+//            Issue.record("Expected parseError result, got \(result)")
 //        }
 //    }
 //
-//    func testLookupWithValidationErrors() throws {
+//    @Test func lookupWithValidationErrors() throws {
 //        let result = try lookup("validation_errors")
 //        switch result {
 //        case .validateErrors(let schema, let errors):
-//            XCTAssertTrue(schema === self.schema)
-//            XCTAssertEqual(errors.count, 1)
-//            XCTAssertEqual(errors.first?.message, "Cannot query field \"boyhowdy\" on type
+//            #expect(schema === self.schema)
+//            #expect(errors.count == 1)
+//            #expect(errors.first?.message == "Cannot query field \"boyhowdy\" on type
 //            \"RootQueryType\".")
-//            XCTAssertEqual(errors.first?.locations.first?.line, 1)
-//            XCTAssertEqual(errors.first?.locations.first?.column, 3)
+//            #expect(errors.first?.locations.first?.line == 1)
+//            #expect(errors.first?.locations.first?.column == 3)
 //            return
 //        default:
-//            XCTFail("Expected validateErrors result, got \(result)")
+//            Issue.record("Expected validateErrors result, got \(result)")
 //        }
 //    }
 //
-//    func testLookupWithResult() throws {
+//    @Test func lookupWithResult() throws {
 //        let result = try lookup("result")
 //        switch result {
 //        case .result(let schema, _):
-//            XCTAssertTrue(schema === self.schema)
+//            #expect(schema === self.schema)
 //            return
 //        default:
-//            XCTFail("Expected result result, got \(result)")
+//            Issue.record("Expected result result, got \(result)")
 //        }
 //    }
 //
-//    func testGraphQLWithUnknownId() throws {
+//    @Test func graphQLWithUnknownId() throws {
 //        do {
 //            _ = try graphql(queryRetrieval: self, queryId: "unknown_id")
 //        } catch let error as GraphQLError {
-//            XCTAssertEqual(error.message, "Unknown query id")
+//            #expect(error.message == "Unknown query id")
 //        }
 //    }
 //
-//    func testGraphQLWithWithParseError() throws {
+//    @Test func graphQLWithWithParseError() throws {
 //        do {
 //            _ = try graphql(queryRetrieval: self, queryId: "parse_error")
 //        } catch let error as GraphQLError {
-//            XCTAssertEqual(String(error.message.prefix(57)), "Syntax Error parse_error (1:4)
+//            #expect(String(error.message.prefix(57)) == "Syntax Error parse_error (1:4)
 //            Expected Name, found <EOF>")
-//            XCTAssertEqual(error.locations.first?.line, 1)
-//            XCTAssertEqual(error.locations.first?.column, 4)
+//            #expect(error.locations.first?.line == 1)
+//            #expect(error.locations.first?.column == 4)
 //        }
 //    }
 //
-//    func testGraphQLWithWithValidationErrors() throws {
+//    @Test func graphQLWithWithValidationErrors() throws {
 //        let expected: Map = [
 //            "errors": [
 //                [
@@ -95,17 +95,17 @@ class PersistedQueriesTests: XCTestCase {
 //            ]
 //        ]
 //        let result = try graphql(queryRetrieval: self, queryId: "validation_errors")
-//        XCTAssertEqual(result, expected)
+//        #expect(result == expected)
 //    }
 //
-//    func testGraphQLWithWithResult() throws {
+//    @Test func graphQLWithWithResult() throws {
 //        let expected: Map = [
 //            "data": [
 //                "hello": "world"
 //            ]
 //        ]
 //        let result = try graphql(queryRetrieval: self, queryId: "result")
-//        XCTAssertEqual(result, expected)
+//        #expect(result == expected)
 //    }
 //
     // }

@@ -1,424 +1,587 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
-class ScalarTests: XCTestCase {
-    func testIntParseValue() {
-        try XCTAssertEqual(GraphQLInt.parseValue(1), 1)
-        try XCTAssertEqual(GraphQLInt.parseValue(0), 0)
-        try XCTAssertEqual(GraphQLInt.parseValue(-1), -1)
+@Suite struct ScalarTests {
+    @Test func intParseValue() throws {
+        try #expect(GraphQLInt.parseValue(1) == 1)
+        try #expect(GraphQLInt.parseValue(0) == 0)
+        try #expect(GraphQLInt.parseValue(-1) == -1)
 
-        try XCTAssertThrowsError(
-            GraphQLInt.parseValue(9_876_504_321),
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non 32-bit signed integer value: 9876504321"
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.parseValue(-9_876_504_321),
+        ) {
+            try GraphQLInt.parseValue(9_876_504_321)
+        }
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non 32-bit signed integer value: -9876504321"
-        )
+        ) {
+            try GraphQLInt.parseValue(-9_876_504_321)
+        }
         // TODO: Avoid rounding these
-//        try XCTAssertThrowsError(
-//            GraphQLInt.parseValue(0.1),
+//        #expect(
+//            throws: (any Error).self,
 //            "Int cannot represent non-integer value: 0.1"
-//        )
-        try XCTAssertThrowsError(
-            GraphQLInt.parseValue(.double(Double.nan)),
+//        ) {
+//            try GraphQLInt.parseValue(0.1)
+//        }
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non-integer value: NaN"
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.parseValue(.double(Double.infinity)),
+        ) {
+            try GraphQLInt.parseValue(.double(Double.nan))
+        }
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non-integer value: Infinity"
-        )
+        ) {
+            try GraphQLInt.parseValue(.double(Double.infinity))
+        }
 
-        try XCTAssertThrowsError(
-            GraphQLInt.parseValue(.undefined),
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non-integer value: undefined"
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.parseValue(.null),
+        ) {
+            try GraphQLInt.parseValue(.undefined)
+        }
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non-integer value: null"
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.parseValue(""),
+        ) {
+            try GraphQLInt.parseValue(.null)
+        }
+        #expect(
+            throws: (any Error).self,
             #"Int cannot represent non-integer value: """#
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.parseValue("123"),
+        ) {
+            try GraphQLInt.parseValue("")
+        }
+        #expect(
+            throws: (any Error).self,
             #"Int cannot represent non-integer value: "123""#
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.parseValue(false),
+        ) {
+            try GraphQLInt.parseValue("123")
+        }
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non-integer value: false"
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.parseValue(true),
+        ) {
+            try GraphQLInt.parseValue(false)
+        }
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non-integer value: true"
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.parseValue([1]),
+        ) {
+            try GraphQLInt.parseValue(true)
+        }
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non-integer value: [1]"
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.parseValue(["value": 1]),
+        ) {
+            try GraphQLInt.parseValue([1])
+        }
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non-integer value: { value: 1 }"
-        )
+        ) {
+            try GraphQLInt.parseValue(["value": 1])
+        }
     }
 
-    func testIntSerialize() {
-        try XCTAssertEqual(GraphQLInt.serialize(1), 1)
-        try XCTAssertEqual(GraphQLInt.serialize("123"), 123)
-        try XCTAssertEqual(GraphQLInt.serialize(0), 0)
-        try XCTAssertEqual(GraphQLInt.serialize(-1), -1)
-        try XCTAssertEqual(GraphQLInt.serialize(1e5), 100_000)
-        try XCTAssertEqual(GraphQLInt.serialize(false), 0)
-        try XCTAssertEqual(GraphQLInt.serialize(true), 1)
+    @Test func intSerialize() throws {
+        try #expect(GraphQLInt.serialize(1) == 1)
+        try #expect(GraphQLInt.serialize("123") == 123)
+        try #expect(GraphQLInt.serialize(0) == 0)
+        try #expect(GraphQLInt.serialize(-1) == -1)
+        try #expect(GraphQLInt.serialize(1e5) == 100_000)
+        try #expect(GraphQLInt.serialize(false) == 0)
+        try #expect(GraphQLInt.serialize(true) == 1)
 
         // The GraphQL specification does not allow serializing non-integer values
         // as Int to avoid accidental data loss.
         // TODO: Avoid rounding these
-//        try XCTAssertThrowsError(
-//            GraphQLInt.serialize(0.1),
+//        #expect(
+//            throws: (any Error).self,
 //            "Int cannot represent non-integer value: 0.1"
-//        )
-//        try XCTAssertThrowsError(
-//            GraphQLInt.serialize(1.1),
+//        ) {
+//            try GraphQLInt.serialize(0.1)
+//        }
+//        #expect(
+//            throws: (any Error).self,
 //            "Int cannot represent non-integer value: 1.1"
-//        )
-//        try XCTAssertThrowsError(
-//            GraphQLInt.serialize(-1.1),
+//        ) {
+//            try GraphQLInt.serialize(1.1)
+//        }
+//        #expect(
+//            throws: (any Error).self,
 //            "Int cannot represent non-integer value: -1.1"
-//        )
-        try XCTAssertThrowsError(
-            GraphQLInt.serialize("-1.1"),
+//        ) {
+//            try GraphQLInt.serialize(-1.1)
+//        }
+        #expect(
+            throws: (any Error).self,
             #"Int cannot represent non-integer value: "-1.1""#
-        )
+        ) {
+            try GraphQLInt.serialize("-1.1")
+        }
 
         // Maybe a safe JavaScript int, but bigger than 2^32, so not
         // representable as a GraphQL Int
-        try XCTAssertThrowsError(
-            GraphQLInt.serialize(9_876_504_321),
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non 32-bit signed integer value: 9876504321"
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.serialize(-9_876_504_321),
+        ) {
+            try GraphQLInt.serialize(9_876_504_321)
+        }
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non 32-bit signed integer value: -9876504321"
-        )
+        ) {
+            try GraphQLInt.serialize(-9_876_504_321)
+        }
 
         // Too big to represent as an Int in JavaScript or GraphQL
-        try XCTAssertThrowsError(
-            GraphQLInt.serialize(1e100),
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non 32-bit signed integer value: 1e+100"
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.serialize(-1e100),
+        ) {
+            try GraphQLInt.serialize(1e100)
+        }
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non 32-bit signed integer value: -1e+100"
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.serialize("one"),
+        ) {
+            try GraphQLInt.serialize(-1e100)
+        }
+        #expect(
+            throws: (any Error).self,
             #"Int cannot represent non-integer value: "one""#
-        )
+        ) {
+            try GraphQLInt.serialize("one")
+        }
 
         // Doesn"t represent number
-        try XCTAssertThrowsError(
-            GraphQLInt.serialize(""),
+        #expect(
+            throws: (any Error).self,
             #"Int cannot represent non-integer value: """#
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.serialize(Double.nan),
+        ) {
+            try GraphQLInt.serialize("")
+        }
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non-integer value: NaN"
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.serialize(Double.infinity),
+        ) {
+            try GraphQLInt.serialize(Double.nan)
+        }
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non-integer value: Infinity"
-        )
-        try XCTAssertThrowsError(
-            GraphQLInt.serialize([5]),
+        ) {
+            try GraphQLInt.serialize(Double.infinity)
+        }
+        #expect(
+            throws: (any Error).self,
             "Int cannot represent non-integer value: [5]"
-        )
+        ) {
+            try GraphQLInt.serialize([5])
+        }
     }
 
-    func testFloatParseValue() throws {
-        try XCTAssertEqual(GraphQLFloat.parseValue(1), 1)
-        try XCTAssertEqual(GraphQLFloat.parseValue(0), 0)
-        try XCTAssertEqual(GraphQLFloat.parseValue(-1), -1)
-        try XCTAssertEqual(GraphQLFloat.parseValue(0.1), 0.1)
-        try XCTAssertEqual(GraphQLFloat.parseValue(.double(Double.pi)), .double(Double.pi))
+    @Test func floatParseValue() throws {
+        try #expect(GraphQLFloat.parseValue(1) == 1)
+        try #expect(GraphQLFloat.parseValue(0) == 0)
+        try #expect(GraphQLFloat.parseValue(-1) == -1)
+        try #expect(GraphQLFloat.parseValue(0.1) == 0.1)
+        try #expect(GraphQLFloat.parseValue(.double(Double.pi)) == .double(Double.pi))
 
-        try XCTAssertThrowsError(
-            GraphQLFloat.parseValue(.double(Double.nan)),
+        #expect(
+            throws: (any Error).self,
             "Float cannot represent non numeric value: NaN"
-        )
-        try XCTAssertThrowsError(
-            GraphQLFloat.parseValue(.double(Double.infinity)),
+        ) {
+            try GraphQLFloat.parseValue(.double(Double.nan))
+        }
+        #expect(
+            throws: (any Error).self,
             "Float cannot represent non numeric value: Infinity"
-        )
+        ) {
+            try GraphQLFloat.parseValue(.double(Double.infinity))
+        }
 
-        try XCTAssertThrowsError(
-            GraphQLFloat.parseValue(.undefined),
+        #expect(
+            throws: (any Error).self,
             "Float cannot represent non numeric value: undefined"
-        )
-        try XCTAssertThrowsError(
-            GraphQLFloat.parseValue(.null),
+        ) {
+            try GraphQLFloat.parseValue(.undefined)
+        }
+        #expect(
+            throws: (any Error).self,
             "Float cannot represent non numeric value: null"
-        )
-        try XCTAssertThrowsError(
-            GraphQLFloat.parseValue(""),
+        ) {
+            try GraphQLFloat.parseValue(.null)
+        }
+        #expect(
+            throws: (any Error).self,
             #"Float cannot represent non numeric value: """#
-        )
-        try XCTAssertThrowsError(
-            GraphQLFloat.parseValue("123"),
+        ) {
+            try GraphQLFloat.parseValue("")
+        }
+        #expect(
+            throws: (any Error).self,
             #"Float cannot represent non numeric value: "123""#
-        )
-        try XCTAssertThrowsError(
-            GraphQLFloat.parseValue("123.5"),
+        ) {
+            try GraphQLFloat.parseValue("123")
+        }
+        #expect(
+            throws: (any Error).self,
             #"Float cannot represent non numeric value: "123.5""#
-        )
-        try XCTAssertThrowsError(
-            GraphQLFloat.parseValue(false),
+        ) {
+            try GraphQLFloat.parseValue("123.5")
+        }
+        #expect(
+            throws: (any Error).self,
             "Float cannot represent non numeric value: false"
-        )
-        try XCTAssertThrowsError(
-            GraphQLFloat.parseValue(true),
+        ) {
+            try GraphQLFloat.parseValue(false)
+        }
+        #expect(
+            throws: (any Error).self,
             "Float cannot represent non numeric value: true"
-        )
-        try XCTAssertThrowsError(
-            GraphQLFloat.parseValue([0.1]),
+        ) {
+            try GraphQLFloat.parseValue(true)
+        }
+        #expect(
+            throws: (any Error).self,
             "Float cannot represent non numeric value: [0.1]"
-        )
-        try XCTAssertThrowsError(
-            GraphQLFloat.parseValue(["value": 0.1]),
+        ) {
+            try GraphQLFloat.parseValue([0.1])
+        }
+        #expect(
+            throws: (any Error).self,
             "Float cannot represent non numeric value: { value: 0.1 }"
-        )
+        ) {
+            try GraphQLFloat.parseValue(["value": 0.1])
+        }
     }
 
-    func testFloatSerialize() throws {
-        try XCTAssertEqual(GraphQLFloat.serialize(1), 1.0)
-        try XCTAssertEqual(GraphQLFloat.serialize(0), 0.0)
-        try XCTAssertEqual(GraphQLFloat.serialize("123.5"), 123.5)
-        try XCTAssertEqual(GraphQLFloat.serialize(-1), -1.0)
-        try XCTAssertEqual(GraphQLFloat.serialize(0.1), 0.1)
-        try XCTAssertEqual(GraphQLFloat.serialize(1.1), 1.1)
-        try XCTAssertEqual(GraphQLFloat.serialize(-1.1), -1.1)
-        try XCTAssertEqual(GraphQLFloat.serialize("-1.1"), -1.1)
-        try XCTAssertEqual(GraphQLFloat.serialize(false), 0.0)
-        try XCTAssertEqual(GraphQLFloat.serialize(true), 1.0)
+    @Test func floatSerialize() throws {
+        try #expect(GraphQLFloat.serialize(1) == 1.0)
+        try #expect(GraphQLFloat.serialize(0) == 0.0)
+        try #expect(GraphQLFloat.serialize("123.5") == 123.5)
+        try #expect(GraphQLFloat.serialize(-1) == -1.0)
+        try #expect(GraphQLFloat.serialize(0.1) == 0.1)
+        try #expect(GraphQLFloat.serialize(1.1) == 1.1)
+        try #expect(GraphQLFloat.serialize(-1.1) == -1.1)
+        try #expect(GraphQLFloat.serialize("-1.1") == -1.1)
+        try #expect(GraphQLFloat.serialize(false) == 0.0)
+        try #expect(GraphQLFloat.serialize(true) == 1.0)
 
-        try XCTAssertThrowsError(
-            GraphQLFloat.serialize(Double.nan),
+        #expect(
+            throws: (any Error).self,
             "Float cannot represent non numeric value: NaN"
-        )
-        try XCTAssertThrowsError(
-            GraphQLFloat.serialize(Double.infinity),
-            "Float cannot represent non numeric value: Infinity"
-        )
-        try XCTAssertThrowsError(
-            GraphQLFloat.serialize("one"),
+        ) {
+            try GraphQLFloat.serialize(Double.nan)
+        }
+        #expect(
+            throws: (any Error).self,
+            "Float cannot represent non numeric value: Inf"
+        ) {
+            try GraphQLFloat.serialize(Double.infinity)
+        }
+        #expect(
+            throws: (any Error).self,
             #"Float cannot represent non numeric value: "one""#
-        )
-        try XCTAssertThrowsError(
-            GraphQLFloat.serialize(""),
+        ) {
+            try GraphQLFloat.serialize("one")
+        }
+        #expect(
+            throws: (any Error).self,
             #"Float cannot represent non numeric value: """#
-        )
-        try XCTAssertThrowsError(
-            GraphQLFloat.serialize([5]),
+        ) {
+            try GraphQLFloat.serialize("")
+        }
+        #expect(
+            throws: (any Error).self,
             "Float cannot represent non numeric value: [5]"
-        )
+        ) {
+            try GraphQLFloat.serialize([5])
+        }
     }
 
-    func testStringParseValue() throws {
-        try XCTAssertEqual(GraphQLString.parseValue("foo"), "foo")
+    @Test func stringParseValue() throws {
+        try #expect(GraphQLString.parseValue("foo") == "foo")
 
-        try XCTAssertThrowsError(
-            GraphQLString.parseValue(.undefined),
+        #expect(
+            throws: (any Error).self,
             "String cannot represent a non string value: undefined"
-        )
-        try XCTAssertThrowsError(
-            GraphQLString.parseValue(.null),
+        ) {
+            try GraphQLString.parseValue(.undefined)
+        }
+        #expect(
+            throws: (any Error).self,
             "String cannot represent a non string value: null"
-        )
-        try XCTAssertThrowsError(
-            GraphQLString.parseValue(1),
+        ) {
+            try GraphQLString.parseValue(.null)
+        }
+        #expect(
+            throws: (any Error).self,
             "String cannot represent a non string value: 1"
-        )
-        try XCTAssertThrowsError(
-            GraphQLString.parseValue(.double(Double.nan)),
+        ) {
+            try GraphQLString.parseValue(1)
+        }
+        #expect(
+            throws: (any Error).self,
             "String cannot represent a non string value: NaN"
-        )
-        try XCTAssertThrowsError(
-            GraphQLString.parseValue(false),
+        ) {
+            try GraphQLString.parseValue(.double(Double.nan))
+        }
+        #expect(
+            throws: (any Error).self,
             "String cannot represent a non string value: false"
-        )
-        try XCTAssertThrowsError(
-            GraphQLString.parseValue(["foo"]),
+        ) {
+            try GraphQLString.parseValue(false)
+        }
+        #expect(
+            throws: (any Error).self,
             #"String cannot represent a non string value: ["foo"]"#
-        )
-        try XCTAssertThrowsError(
-            GraphQLString.parseValue(["value": "foo"]),
+        ) {
+            try GraphQLString.parseValue(["foo"])
+        }
+        #expect(
+            throws: (any Error).self,
             #"String cannot represent a non string value: { value: "foo" }"#
-        )
+        ) {
+            try GraphQLString.parseValue(["value": "foo"])
+        }
     }
 
-    func testStringSerialize() throws {
-        try XCTAssertEqual(GraphQLString.serialize("string"), "string")
-        try XCTAssertEqual(GraphQLString.serialize(1), "1")
-        try XCTAssertEqual(GraphQLString.serialize(-1.1), "-1.1")
-        try XCTAssertEqual(GraphQLString.serialize(true), "true")
-        try XCTAssertEqual(GraphQLString.serialize(false), "false")
+    @Test func stringSerialize() throws {
+        try #expect(GraphQLString.serialize("string") == "string")
+        try #expect(GraphQLString.serialize(1) == "1")
+        try #expect(GraphQLString.serialize(-1.1) == "-1.1")
+        try #expect(GraphQLString.serialize(true) == "true")
+        try #expect(GraphQLString.serialize(false) == "false")
 
-        try XCTAssertThrowsError(
-            GraphQLString.serialize(Double.nan),
+        #expect(
+            throws: (any Error).self,
             "String cannot represent value: NaN"
-        )
+        ) {
+            try GraphQLString.serialize(Double.nan)
+        }
 
-        try XCTAssertThrowsError(
-            GraphQLString.serialize([1]),
+        #expect(
+            throws: (any Error).self,
             "String cannot represent value: [1]"
-        )
+        ) {
+            try GraphQLString.serialize([1])
+        }
 
         let badObjValue: Map = [:]
-        try XCTAssertThrowsError(
-            GraphQLString.serialize(badObjValue),
+        #expect(
+            throws: (any Error).self,
             "String cannot represent value: {}"
-        )
+        ) {
+            try GraphQLString.serialize(badObjValue)
+        }
 
         let badValueOfObjValue: Map = ["valueOf": "valueOf string"]
-        try XCTAssertThrowsError(
-            GraphQLString.serialize(badValueOfObjValue),
+        #expect(
+            throws: (any Error).self,
             #"String cannot represent value: { valueOf: "valueOf string" }"#
-        )
+        ) {
+            try GraphQLString.serialize(badValueOfObjValue)
+        }
     }
 
-    func testBoolParseValue() throws {
-        try XCTAssertEqual(GraphQLBoolean.parseValue(true), true)
-        try XCTAssertEqual(GraphQLBoolean.parseValue(false), false)
+    @Test func boolParseValue() throws {
+        try #expect(GraphQLBoolean.parseValue(true) == true)
+        try #expect(GraphQLBoolean.parseValue(false) == false)
 
-        try XCTAssertThrowsError(
-            GraphQLBoolean.parseValue(.undefined),
+        #expect(
+            throws: (any Error).self,
             "Boolean cannot represent a non boolean value: undefined"
-        )
-        try XCTAssertThrowsError(
-            GraphQLBoolean.parseValue(.null),
+        ) {
+            try GraphQLBoolean.parseValue(.undefined)
+        }
+        #expect(
+            throws: (any Error).self,
             "Boolean cannot represent a non boolean value: null"
-        )
+        ) {
+            try GraphQLBoolean.parseValue(.null)
+        }
         // NOTE: We deviate from graphql-js and allow numeric conversions here because
         // the MapCoder's round-trip conversion to NSObject for Bool converts to 0/1 numbers.
-        try XCTAssertNoThrow(GraphQLBoolean.parseValue(0))
-        try XCTAssertNoThrow(GraphQLBoolean.parseValue(1))
-        try XCTAssertNoThrow(GraphQLBoolean.parseValue(.double(Double.nan)))
+        #expect(throws: Never.self) { try GraphQLBoolean.parseValue(0) }
+        #expect(throws: Never.self) { try GraphQLBoolean.parseValue(1) }
+        #expect(throws: Never.self) { try GraphQLBoolean.parseValue(.double(Double.nan)) }
 
-        try XCTAssertThrowsError(
-            GraphQLBoolean.parseValue(""),
+        #expect(
+            throws: (any Error).self,
             #"Boolean cannot represent a non boolean value: """#
-        )
-        try XCTAssertThrowsError(
-            GraphQLBoolean.parseValue("false"),
+        ) {
+            try GraphQLBoolean.parseValue("")
+        }
+        #expect(
+            throws: (any Error).self,
             #"Boolean cannot represent a non boolean value: "false""#
-        )
-        try XCTAssertThrowsError(
-            GraphQLBoolean.parseValue([false]),
+        ) {
+            try GraphQLBoolean.parseValue("false")
+        }
+        #expect(
+            throws: (any Error).self,
             "Boolean cannot represent a non boolean value: [false]"
-        )
-        try XCTAssertThrowsError(
-            GraphQLBoolean.parseValue(["value": false]),
+        ) {
+            try GraphQLBoolean.parseValue([false])
+        }
+        #expect(
+            throws: (any Error).self,
             "Boolean cannot represent a non boolean value: { value: false }"
-        )
+        ) {
+            try GraphQLBoolean.parseValue(["value": false])
+        }
     }
 
-    func testBoolSerialize() throws {
-        try XCTAssertEqual(GraphQLBoolean.serialize(1), true)
-        try XCTAssertEqual(GraphQLBoolean.serialize(0), false)
-        try XCTAssertEqual(GraphQLBoolean.serialize(true), true)
-        try XCTAssertEqual(GraphQLBoolean.serialize(false), false)
+    @Test func boolSerialize() throws {
+        try #expect(GraphQLBoolean.serialize(1) == true)
+        try #expect(GraphQLBoolean.serialize(0) == false)
+        try #expect(GraphQLBoolean.serialize(true) == true)
+        try #expect(GraphQLBoolean.serialize(false) == false)
 
-        try XCTAssertThrowsError(
-            GraphQLBoolean.serialize(Double.nan),
+        #expect(
+            throws: (any Error).self,
             "Boolean cannot represent a non boolean value: NaN"
-        )
-        try XCTAssertThrowsError(
-            GraphQLBoolean.serialize(""),
+        ) {
+            try GraphQLBoolean.serialize(Double.nan)
+        }
+        #expect(
+            throws: (any Error).self,
             #"Boolean cannot represent a non boolean value: """#
-        )
-        try XCTAssertThrowsError(
-            GraphQLBoolean.serialize("true"),
+        ) {
+            try GraphQLBoolean.serialize("")
+        }
+        #expect(
+            throws: (any Error).self,
             #"Boolean cannot represent a non boolean value: "true""#
-        )
-        try XCTAssertThrowsError(
-            GraphQLBoolean.serialize([false]),
+        ) {
+            try GraphQLBoolean.serialize("true")
+        }
+        #expect(
+            throws: (any Error).self,
             "Boolean cannot represent a non boolean value: [false]"
-        )
-        try XCTAssertThrowsError(
-            GraphQLBoolean.serialize {},
+        ) {
+            try GraphQLBoolean.serialize([false])
+        }
+        #expect(
+            throws: (any Error).self,
             "Boolean cannot represent a non boolean value: {}"
-        )
+        ) {
+            try GraphQLBoolean.serialize {}
+        }
     }
 
-    func testIDParseValue() throws {
-        try XCTAssertEqual(GraphQLID.parseValue(""), "")
-        try XCTAssertEqual(GraphQLID.parseValue("1"), "1")
-        try XCTAssertEqual(GraphQLID.parseValue("foo"), "foo")
-        try XCTAssertEqual(GraphQLID.parseValue(1), "1")
-        try XCTAssertEqual(GraphQLID.parseValue(0), "0")
-        try XCTAssertEqual(GraphQLID.parseValue(-1), "-1")
+    @Test func iDParseValue() throws {
+        try #expect(GraphQLID.parseValue("") == "")
+        try #expect(GraphQLID.parseValue("1") == "1")
+        try #expect(GraphQLID.parseValue("foo") == "foo")
+        try #expect(GraphQLID.parseValue(1) == "1")
+        try #expect(GraphQLID.parseValue(0) == "0")
+        try #expect(GraphQLID.parseValue(-1) == "-1")
 
         // Maximum and minimum safe numbers in JS
-        try XCTAssertEqual(GraphQLID.parseValue(9_007_199_254_740_991), "9007199254740991")
-        try XCTAssertEqual(GraphQLID.parseValue(-9_007_199_254_740_991), "-9007199254740991")
+        try #expect(GraphQLID.parseValue(9_007_199_254_740_991) == "9007199254740991")
+        try #expect(GraphQLID.parseValue(-9_007_199_254_740_991) == "-9007199254740991")
 
-        try XCTAssertThrowsError(
-            GraphQLID.parseValue(.undefined),
+        #expect(
+            throws: (any Error).self,
             "ID cannot represent value: undefined"
-        )
-        try XCTAssertThrowsError(
-            GraphQLID.parseValue(.null),
+        ) {
+            try GraphQLID.parseValue(.undefined)
+        }
+
+        #expect(
+            throws: (any Error).self,
             "ID cannot represent value: null"
-        )
-        try XCTAssertThrowsError(GraphQLID.parseValue(0.1), "ID cannot represent value: 0.1")
-        try XCTAssertThrowsError(
-            GraphQLID.parseValue(.double(Double.nan)),
+        ) {
+            try GraphQLID.parseValue(.null)
+        }
+
+        #expect(
+            throws: (any Error).self,
+            "ID cannot represent value: 0.1"
+        ) { try GraphQLID.parseValue(0.1) }
+
+        #expect(
+            throws: (any Error).self,
             "ID cannot represent value: NaN"
-        )
-        try XCTAssertThrowsError(
-            GraphQLID.parseValue(.double(Double.infinity)),
+        ) {
+            try GraphQLID.parseValue(.double(Double.nan))
+        }
+
+        #expect(
+            throws: (any Error).self,
             "ID cannot represent value: Inf"
-        )
-        try XCTAssertThrowsError(
-            GraphQLID.parseValue(false),
+        ) {
+            try GraphQLID.parseValue(.double(Double.infinity))
+        }
+
+        #expect(
+            throws: (any Error).self,
             "ID cannot represent value: false"
-        )
-        try XCTAssertThrowsError(
-            GraphQLID.parseValue(["1"]),
+        ) {
+            try GraphQLID.parseValue(false)
+        }
+
+        #expect(
+            throws: (any Error).self,
             #"ID cannot represent value: ["1"]"#
-        )
-        try XCTAssertThrowsError(
-            GraphQLID.parseValue(["value": "1"]),
-            #"ID cannot represent value: { value: "1" }"#
-        )
+        ) {
+            try GraphQLID.parseValue(["1"])
+        }
+
+        #expect(
+            throws: (any Error).self,
+            #"ID cannot represent value: { "value": "1" }"#
+        ) {
+            try GraphQLID.parseValue(["value": "1"])
+        }
     }
 
-    func testIDSerialize() throws {
-        try XCTAssertEqual(GraphQLID.serialize("string"), "string")
-        try XCTAssertEqual(GraphQLID.serialize("false"), "false")
-        try XCTAssertEqual(GraphQLID.serialize(""), "")
-        try XCTAssertEqual(GraphQLID.serialize(123), "123")
-        try XCTAssertEqual(GraphQLID.serialize(0), "0")
-        try XCTAssertEqual(GraphQLID.serialize(-1), "-1")
+    @Test func iDSerialize() throws {
+        try #expect(GraphQLID.serialize("string") == "string")
+        try #expect(GraphQLID.serialize("false") == "false")
+        try #expect(GraphQLID.serialize("") == "")
+        try #expect(GraphQLID.serialize(123) == "123")
+        try #expect(GraphQLID.serialize(0) == "0")
+        try #expect(GraphQLID.serialize(-1) == "-1")
 
         let badObjValue: Map = [
             "_id": false,
         ]
-        try XCTAssertThrowsError(
-            GraphQLID.serialize(badObjValue),
+        #expect(
+            throws: (any Error).self,
             "ID cannot represent value: { _id: false, valueOf: [function valueOf] }"
-        )
+        ) {
+            try GraphQLID.serialize(badObjValue)
+        }
 
-        try XCTAssertThrowsError(GraphQLID.serialize(true), "ID cannot represent value: true")
+        #expect(
+            throws: (any Error).self,
+            "ID cannot represent value: true"
+        ) { try GraphQLID.serialize(true) }
 
-        try XCTAssertThrowsError(GraphQLID.serialize(3.14), "ID cannot represent value: 3.14")
+        #expect(
+            throws: (any Error).self,
+            "ID cannot represent value: 3.14"
+        ) { try GraphQLID.serialize(3.14) }
 
-        try XCTAssertThrowsError(GraphQLID.serialize {}, "ID cannot represent value: {}")
+        #expect(
+            throws: (any Error).self,
+            "ID cannot represent value: {}"
+        ) { try GraphQLID.serialize {} }
 
-        try XCTAssertThrowsError(
-            GraphQLID.serialize(["abc"]),
+        #expect(
+            throws: (any Error).self,
             #"ID cannot represent value: ["abc"]"#
-        )
+        ) { try GraphQLID.serialize(["abc"]) }
     }
 }

@@ -1,10 +1,10 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
-class OneOfTests: XCTestCase {
+@Suite struct OneOfTests {
     // MARK: OneOf Input Objects
 
-    func testAcceptsAGoodDefaultValue() async throws {
+    @Test func acceptsAGoodDefaultValue() async throws {
         let query = """
         query ($input: TestInputObject! = {a: "abc"}) {
           test(input: $input) {
@@ -17,9 +17,8 @@ class OneOfTests: XCTestCase {
             schema: getSchema(),
             request: query
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "test": [
                     "a": "abc",
                     "b": .null,
@@ -28,7 +27,7 @@ class OneOfTests: XCTestCase {
         )
     }
 
-    func testRejectsABadDefaultValue() async throws {
+    @Test func rejectsABadDefaultValue() async throws {
         let query = """
         query ($input: TestInputObject! = {a: "abc", b: 123}) {
           test(input: $input) {
@@ -41,14 +40,14 @@ class OneOfTests: XCTestCase {
             schema: getSchema(),
             request: query
         )
-        XCTAssertEqual(result.errors.count, 1)
-        XCTAssertEqual(
-            result.errors[0].message,
-            "OneOf Input Object \"TestInputObject\" must specify exactly one key."
+        #expect(result.errors.count == 1)
+        #expect(
+            result.errors[0].message ==
+                "OneOf Input Object \"TestInputObject\" must specify exactly one key."
         )
     }
 
-    func testAcceptsAGoodVariable() async throws {
+    @Test func acceptsAGoodVariable() async throws {
         let query = """
         query ($input: TestInputObject!) {
           test(input: $input) {
@@ -62,9 +61,8 @@ class OneOfTests: XCTestCase {
             request: query,
             variableValues: ["input": ["a": "abc"]]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "test": [
                     "a": "abc",
                     "b": .null,
@@ -73,7 +71,7 @@ class OneOfTests: XCTestCase {
         )
     }
 
-    func testAcceptsAGoodVariableWithAnUndefinedKey() async throws {
+    @Test func acceptsAGoodVariableWithAnUndefinedKey() async throws {
         let query = """
         query ($input: TestInputObject!) {
           test(input: $input) {
@@ -87,9 +85,8 @@ class OneOfTests: XCTestCase {
             request: query,
             variableValues: ["input": ["a": "abc", "b": .undefined]]
         )
-        XCTAssertEqual(
-            result,
-            GraphQLResult(data: [
+        #expect(
+            result == GraphQLResult(data: [
                 "test": [
                     "a": "abc",
                     "b": .null,
@@ -98,7 +95,7 @@ class OneOfTests: XCTestCase {
         )
     }
 
-    func testRejectsAVariableWithMultipleNonNullKeys() async throws {
+    @Test func rejectsAVariableWithMultipleNonNullKeys() async throws {
         let query = """
         query ($input: TestInputObject!) {
           test(input: $input) {
@@ -112,17 +109,16 @@ class OneOfTests: XCTestCase {
             request: query,
             variableValues: ["input": ["a": "abc", "b": 123]]
         )
-        XCTAssertEqual(result.errors.count, 1)
-        XCTAssertEqual(
-            result.errors[0].message,
-            """
+        #expect(result.errors.count == 1)
+        #expect(
+            result.errors[0].message == """
             Variable "$input" got invalid value "{"a":"abc","b":123}".
             Exactly one key must be specified for OneOf type "TestInputObject".
             """
         )
     }
 
-    func testRejectsAVariableWithMultipleNullableKeys() async throws {
+    @Test func rejectsAVariableWithMultipleNullableKeys() async throws {
         let query = """
         query ($input: TestInputObject!) {
           test(input: $input) {
@@ -136,10 +132,9 @@ class OneOfTests: XCTestCase {
             request: query,
             variableValues: ["input": ["a": "abc", "b": .null]]
         )
-        XCTAssertEqual(result.errors.count, 1)
-        XCTAssertEqual(
-            result.errors[0].message,
-            """
+        #expect(result.errors.count == 1)
+        #expect(
+            result.errors[0].message == """
             Variable "$input" got invalid value "{"a":"abc","b":null}".
             Exactly one key must be specified for OneOf type "TestInputObject".
             """

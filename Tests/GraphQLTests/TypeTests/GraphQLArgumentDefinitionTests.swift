@@ -1,33 +1,33 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
-class GraphQLArgumentDefinitionTests: XCTestCase {
-    func testArgumentWithNullableTypeIsNotARequiredArgument() {
+@Suite struct GraphQLArgumentDefinitionTests {
+    @Test func argumentWithNullableTypeIsNotARequiredArgument() {
         let argument = GraphQLArgumentDefinition(
             name: "nullableString",
             type: GraphQLString
         )
 
-        XCTAssertFalse(isRequiredArgument(argument))
+        #expect(!isRequiredArgument(argument))
     }
 
-    func testArgumentWithNonNullTypeIsNotARequiredArgumentWhenItHasADefaultValue() {
+    @Test func argumentWithNonNullTypeIsNotARequiredArgumentWhenItHasADefaultValue() {
         let argument = GraphQLArgumentDefinition(
             name: "nonNullString",
             type: GraphQLNonNull(GraphQLString),
             defaultValue: .string("Some string")
         )
 
-        XCTAssertFalse(isRequiredArgument(argument))
+        #expect(!isRequiredArgument(argument))
     }
 
-    func testArgumentWithNonNullArgumentIsARequiredArgumentWhenItDoesNotHaveADefaultValue() {
+    @Test func argumentWithNonNullArgumentIsARequiredArgumentWhenItDoesNotHaveADefaultValue() {
         let argument = GraphQLArgumentDefinition(
             name: "nonNullString",
             type: GraphQLNonNull(GraphQLString),
             defaultValue: nil
         )
 
-        XCTAssertTrue(isRequiredArgument(argument))
+        #expect(isRequiredArgument(argument))
     }
 }

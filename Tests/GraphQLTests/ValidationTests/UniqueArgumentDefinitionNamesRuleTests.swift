@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class UniqueArgumentDefinitionNamesRuleTests: SDLValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = UniqueArgumentDefinitionNamesRule
     }
 
-    func testNoArgs() throws {
+    @Test func noArgs() throws {
         try assertValidationErrors(
             """
             type SomeObject {
@@ -23,7 +24,7 @@ class UniqueArgumentDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testOneArgument() throws {
+    @Test func oneArgument() throws {
         try assertValidationErrors(
             """
             type SomeObject {
@@ -48,7 +49,7 @@ class UniqueArgumentDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testMultipleArguments() throws {
+    @Test func multipleArguments() throws {
         try assertValidationErrors(
             """
             type SomeObject {
@@ -88,7 +89,7 @@ class UniqueArgumentDefinitionNamesRuleTests: SDLValidationTestCase {
         )
     }
 
-    func testDuplicatingArguments() throws {
+    @Test func duplicatingArguments() throws {
         try assertValidationErrors(
             """
             type SomeObject {

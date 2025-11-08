@@ -1,12 +1,13 @@
 @testable import GraphQL
-import XCTest
+import Testing
 
 class KnownDirectivesRuleTests: ValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = KnownDirectivesRule
     }
 
-    func testWithNoDirectives() throws {
+    @Test func withNoDirectives() throws {
         try assertValid(
             """
             query Foo {
@@ -22,7 +23,7 @@ class KnownDirectivesRuleTests: ValidationTestCase {
         )
     }
 
-    func testWithStandardDirectives() throws {
+    @Test func withStandardDirectives() throws {
         try assertValid(
             """
             {
@@ -40,7 +41,7 @@ class KnownDirectivesRuleTests: ValidationTestCase {
         )
     }
 
-    func testWithUnknownDirective() throws {
+    @Test func withUnknownDirective() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
@@ -61,7 +62,7 @@ class KnownDirectivesRuleTests: ValidationTestCase {
         )
     }
 
-    func testWithManyUnknownDirectives() throws {
+    @Test func withManyUnknownDirectives() throws {
         let errors = try assertInvalid(
             errorCount: 3,
             query:
@@ -96,7 +97,7 @@ class KnownDirectivesRuleTests: ValidationTestCase {
         )
     }
 
-    func testWithWellPlacedDirectives() throws {
+    @Test func withWellPlacedDirectives() throws {
         try assertValid(
             """
             query ($var: Boolean @onVariableDefinition) @onQuery {
@@ -124,7 +125,7 @@ class KnownDirectivesRuleTests: ValidationTestCase {
         )
     }
 
-    func testWithMisplacedDirectives() throws {
+    @Test func withMisplacedDirectives() throws {
         let errors = try assertInvalid(
             errorCount: 12,
             query:
@@ -249,11 +250,12 @@ class KnownDirectivesRuleTests: ValidationTestCase {
 }
 
 class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
-    override func setUp() {
+    override init() {
+        super.init()
         rule = KnownDirectivesRule
     }
 
-    func testWithDirectiveDefinedInsideSDL() throws {
+    @Test func withDirectiveDefinedInsideSDL() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -266,7 +268,7 @@ class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
         )
     }
 
-    func testWithStandardDirective() throws {
+    @Test func withStandardDirective() throws {
         try assertValidationErrors(
             """
             type Query {
@@ -277,7 +279,7 @@ class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
         )
     }
 
-    func testWithOverriddenStandardDirective() throws {
+    @Test func withOverriddenStandardDirective() throws {
         try assertValidationErrors(
             """
             schema @deprecated {
@@ -289,7 +291,7 @@ class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
         )
     }
 
-    func testWithDirectiveDefinedInSchemaExtension() throws {
+    @Test func withDirectiveDefinedInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         type Query {
           foo: String
@@ -303,7 +305,7 @@ class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
-    func testWithDirectiveUsedInSchemaExtension() throws {
+    @Test func withDirectiveUsedInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         directive @test on OBJECT
 
@@ -317,7 +319,7 @@ class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
-    func testWithUnknownDirectiveInSchemaExtension() throws {
+    @Test func withUnknownDirectiveInSchemaExtension() throws {
         let schema = try buildSchema(source: """
         type Query {
           foo: String
@@ -338,7 +340,7 @@ class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
         )
     }
 
-    func testWithWellPlacedDirectives() throws {
+    @Test func withWellPlacedDirectives() throws {
         try assertValidationErrors(
             """
             type MyObj implements MyInterface @onObject {
@@ -387,7 +389,7 @@ class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
         )
     }
 
-    func testWithMisplacedDirectives() throws {
+    @Test func withMisplacedDirectives() throws {
         try assertValidationErrors(
             """
             type MyObj implements MyInterface @onInterface {
