@@ -6,7 +6,7 @@ import Testing
     @Test func errorMessages() throws {
         var source: String
 
-        var error = try #require(throws: GraphQLError.self) { try parse(source: "{") }
+        var error = try expectGraphQLError { try parse(source: "{") }
         #expect(
             error.message == """
             Syntax Error GraphQL (1:2) Expected Name, found <EOF>
@@ -20,31 +20,31 @@ import Testing
         #expect(error.locations[0].line == 1)
         #expect(error.locations[0].column == 2)
 
-        error = try #require(throws: GraphQLError.self) {
+        error = try expectGraphQLError {
             try parse(source: "{ ...MissingOn }\nfragment MissingOn Type\n")
         }
         #expect(error.message.contains(
             "Syntax Error GraphQL (2:20) Expected \"on\", found Name \"Type\""
         ))
 
-        error = try #require(throws: GraphQLError.self) { try parse(source: "{ field: {} }") }
+        error = try expectGraphQLError { try parse(source: "{ field: {} }") }
         #expect(error.message.contains(
             "Syntax Error GraphQL (1:10) Expected Name, found {"
         ))
 
-        error = try #require(throws: GraphQLError.self) {
+        error = try expectGraphQLError {
             try parse(source: "notanoperation Foo { field }")
         }
         #expect(error.message.contains(
             "Syntax Error GraphQL (1:1) Unexpected Name \"notanoperation\""
         ))
 
-        error = try #require(throws: GraphQLError.self) { try parse(source: "...") }
+        error = try expectGraphQLError { try parse(source: "...") }
         #expect(error.message.contains(
             "Syntax Error GraphQL (1:1) Unexpected ..."
         ))
 
-        error = try #require(throws: GraphQLError.self) {
+        error = try expectGraphQLError {
             try parse(source: Source(
                 body: "query",
                 name: "MyQuery.graphql"
@@ -56,24 +56,24 @@ import Testing
 
         source = "query Foo($x: Complex = { a: { b: [ $var ] } }) { field }"
 
-        error = try #require(throws: GraphQLError.self) { try parse(source: source) }
+        error = try expectGraphQLError { try parse(source: source) }
         #expect(error.message.contains(
             "Syntax Error GraphQL (1:37) Unexpected $"
         ))
 
-        error = try #require(throws: GraphQLError.self) {
+        error = try expectGraphQLError {
             try parse(source: "fragment on on on { on }")
         }
         #expect(error.message.contains(
             "Syntax Error GraphQL (1:10) Unexpected Name \"on\""
         ))
 
-        error = try #require(throws: GraphQLError.self) { try parse(source: "{ ...on }") }
+        error = try expectGraphQLError { try parse(source: "{ ...on }") }
         #expect(error.message.contains(
             "Syntax Error GraphQL (1:9) Expected Name, found }"
         ))
 
-        error = try #require(throws: GraphQLError.self) {
+        error = try expectGraphQLError {
             try parse(
                 source: "type WithImplementsButNoTypes implements {}"
             )
@@ -82,7 +82,7 @@ import Testing
             "Syntax Error GraphQL (1:42) Expected Name, found {"
         ))
 
-        error = try #require(throws: GraphQLError.self) {
+        error = try expectGraphQLError {
             try parse(source: "type WithImplementsWithTrailingAmp implements AInterface & {}")
         }
         #expect(error.message.contains(
@@ -459,4 +459,26 @@ import Testing
         let document = try parse(source: source)
         #expect(document == expected)
     }
+}
+
+// This function exists because `error = #require(throwing: GraphQLError) { ... }` doesn't work
+// until Swift 6.1. Once we drop 6.0 support, we can change all calls of this to
+// `error = #require(throwing: GraphQLError) { ... }`
+private func expectGraphQLError<T>(_ test: () throws -> T) throws -> GraphQLError {
+    do {
+        _ = try test()
+        Issue.record("Parsing error expected")
+        throw ExpectGraphQLError.noErrorThrown
+    } catch {
+        guard let error = error as? GraphQLError else {
+            Issue.record("Unexpected error \(error)")
+            throw ExpectGraphQLError.incorrectErrorType(error)
+        }
+        return error
+    }
+}
+
+enum ExpectGraphQLError: Error {
+    case noErrorThrown
+    case incorrectErrorType(Error)
 }
