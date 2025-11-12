@@ -866,9 +866,9 @@ func completeListValue(
                 )
                 return (index, result)
             }
-            for try await result in group {
-                results[result.0] = result.1
-            }
+        }
+        for try await result in group {
+            results[result.0] = result.1
         }
         return results.compactMap { $0 }
     }
