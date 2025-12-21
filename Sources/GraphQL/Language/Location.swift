@@ -18,20 +18,17 @@ func getLocation(source: Source, position: Int) -> SourceLocation {
     var line = 1
     var column = position + 1
 
-    do {
-        let regex = try NSRegularExpression(pattern: "\r\n|[\n\r]", options: [])
-        let matches = regex.matches(
-            in: source.body,
-            options: [],
-            range: NSRange(0 ..< source.body.utf16.count)
-        )
-        for match in matches where match.range.location < position {
-            line += 1
-            column = position + 1 - (match.range.location + match.range.length)
-        }
-    } catch {
-        // Leave line and position unset if regex fails
+    let matches = newLineRegex.matches(
+        in: source.body,
+        options: [],
+        range: NSRange(0 ..< source.body.utf16.count)
+    )
+    for match in matches where match.range.location < position {
+        line += 1
+        column = position + 1 - (match.range.location + match.range.length)
     }
 
     return SourceLocation(line: line, column: column)
 }
+
+let newLineRegex = try! NSRegularExpression(pattern: "\r\n|[\n\r]", options: [])
