@@ -18,20 +18,34 @@ func PossibleTypeExtensionsRule(
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let node = node as? ScalarExtensionDefinition {
+            switch node.kind {
+            case .scalarExtensionDefinition:
+                let node = node as! ScalarExtensionDefinition
                 checkExtension(node: node)
-            } else if let node = node as? TypeExtensionDefinition {
+                return .continue
+            case .typeExtensionDefinition:
+                let node = node as! TypeExtensionDefinition
                 checkExtension(node: node)
-            } else if let node = node as? InterfaceExtensionDefinition {
+                return .continue
+            case .interfaceExtensionDefinition:
+                let node = node as! InterfaceExtensionDefinition
                 checkExtension(node: node)
-            } else if let node = node as? UnionExtensionDefinition {
+                return .continue
+            case .unionExtensionDefinition:
+                let node = node as! UnionExtensionDefinition
                 checkExtension(node: node)
-            } else if let node = node as? EnumExtensionDefinition {
+                return .continue
+            case .enumExtensionDefinition:
+                let node = node as! EnumExtensionDefinition
                 checkExtension(node: node)
-            } else if let node = node as? InputObjectExtensionDefinition {
+                return .continue
+            case .inputObjectExtensionDefinition:
+                let node = node as! InputObjectExtensionDefinition
                 checkExtension(node: node)
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 

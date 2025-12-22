@@ -12,7 +12,9 @@
 public func NoSchemaIntrospectionCustomRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let node = node as? Field {
+            switch node.kind {
+            case .field:
+                let node = node as! Field
                 if
                     let type = getNamedType(type: context.type),
                     isIntrospectionType(type: type)
@@ -24,8 +26,10 @@ public func NoSchemaIntrospectionCustomRule(context: ValidationContext) -> Visit
                         )
                     )
                 }
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }

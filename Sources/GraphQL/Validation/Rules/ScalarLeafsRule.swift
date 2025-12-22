@@ -17,7 +17,9 @@ func requiredSubselectionMessage(fieldName: String, type: GraphQLType) -> String
 func ScalarLeafsRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let node = node as? Field {
+            switch node.kind {
+            case .field:
+                let node = node as! Field
                 if let type = context.type {
                     if isLeafType(type: getNamedType(type: type)) {
                         if let selectionSet = node.selectionSet {
@@ -41,9 +43,10 @@ func ScalarLeafsRule(context: ValidationContext) -> Visitor {
                         context.report(error: error)
                     }
                 }
+                return .continue
+            default:
+                return .continue
             }
-
-            return .continue
         }
     )
 }

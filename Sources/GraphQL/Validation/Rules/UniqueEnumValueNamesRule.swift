@@ -13,12 +13,18 @@ func UniqueEnumValueNamesRule(
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let definition = node as? EnumTypeDefinition {
+            switch node.kind {
+            case .enumTypeDefinition:
+                let definition = node as! EnumTypeDefinition
                 checkValueUniqueness(node: definition)
-            } else if let definition = node as? EnumExtensionDefinition {
+                return .continue
+            case .enumExtensionDefinition:
+                let definition = node as! EnumExtensionDefinition
                 checkValueUniqueness(node: definition.definition)
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 

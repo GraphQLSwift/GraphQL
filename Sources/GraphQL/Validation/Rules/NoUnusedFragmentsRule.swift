@@ -13,22 +13,25 @@ func NoUnusedFragmentsRule(context: ValidationContext) -> Visitor {
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let operation = node as? OperationDefinition {
+            switch node.kind {
+            case .operationDefinition:
+                let operation = node as! OperationDefinition
                 for fragment in context.getRecursivelyReferencedFragments(operation: operation) {
                     fragmentNameUsed.insert(fragment.name.value)
                 }
                 return .continue
-            }
-
-            if let fragment = node as? FragmentDefinition {
+            case .fragmentDefinition:
+                let fragment = node as! FragmentDefinition
                 fragmentDefs.append(fragment)
                 return .continue
+            default:
+                return .continue
             }
-            return .continue
         },
         leave: { node, _, _, _, _ -> VisitResult in
             // Use Document as proxy for the end of the visitation
-            if node is Document {
+            switch node.kind {
+            case .document:
                 for fragmentDef in fragmentDefs {
                     let fragName = fragmentDef.name.value
                     if !fragmentNameUsed.contains(fragName) {
@@ -40,8 +43,10 @@ func NoUnusedFragmentsRule(context: ValidationContext) -> Visitor {
                         )
                     }
                 }
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }

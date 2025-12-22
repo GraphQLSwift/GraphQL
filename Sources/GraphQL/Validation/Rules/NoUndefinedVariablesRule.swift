@@ -10,7 +10,9 @@
 func NoUndefinedVariablesRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let operation = node as? OperationDefinition {
+            switch node.kind {
+            case .operationDefinition:
+                let operation = node as! OperationDefinition
                 let variableNameDefined = Set<String>(
                     operation.variableDefinitions.map { $0.variable.name.value }
                 )
@@ -35,8 +37,10 @@ func NoUndefinedVariablesRule(context: ValidationContext) -> Visitor {
                         )
                     }
                 }
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }

@@ -38,16 +38,24 @@ func UniqueDirectivesPerLocationRule(context: SDLorNormalValidationContext) -> V
                 let directives = directiveNodes as? [Directive]
             {
                 var seenDirectives = [String: Directive]()
-                if node.kind == .schemaDefinition || node.kind == .schemaExtensionDefinition {
+                switch node.kind {
+                case .schemaDefinition, .schemaExtensionDefinition:
                     seenDirectives = schemaDirectives
-                } else if let node = node as? TypeDefinition {
+                case .enumTypeDefinition, .unionTypeDefinition, .objectTypeDefinition,
+                     .scalarTypeDefinition, .interfaceTypeDefinition, .operationTypeDefinition,
+                     .inputObjectTypeDefinition:
+                    let node = node as! TypeDefinition
                     let typeName = node.name.value
                     seenDirectives = typeDirectivesMap[typeName] ?? [:]
                     typeDirectivesMap[typeName] = seenDirectives
-                } else if let node = node as? TypeExtensionDefinition {
+                case .typeExtensionDefinition:
+                    let node = node as! TypeExtensionDefinition
                     let typeName = node.definition.name.value
                     seenDirectives = typeDirectivesMap[typeName] ?? [:]
                     typeDirectivesMap[typeName] = seenDirectives
+                default:
+                    // Do nothing
+                    break
                 }
 
                 for directive in directives {

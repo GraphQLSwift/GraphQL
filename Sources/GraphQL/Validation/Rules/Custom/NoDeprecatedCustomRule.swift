@@ -12,7 +12,9 @@
 public func NoDeprecatedCustomRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let node = node as? Field {
+            switch node.kind {
+            case .field:
+                let node = node as! Field
                 if
                     let fieldDef = context.fieldDef,
                     let deprecationReason = fieldDef.deprecationReason,
@@ -25,8 +27,9 @@ public func NoDeprecatedCustomRule(context: ValidationContext) -> Visitor {
                         )
                     )
                 }
-            }
-            if let node = node as? Argument {
+                return .continue
+            case .argument:
+                let node = node as! Argument
                 if
                     let argDef = context.argument,
                     let deprecationReason = argDef.deprecationReason
@@ -50,8 +53,9 @@ public func NoDeprecatedCustomRule(context: ValidationContext) -> Visitor {
                         )
                     }
                 }
-            }
-            if let node = node as? ObjectField {
+                return .continue
+            case .objectField:
+                let node = node as! ObjectField
                 if
                     let inputObjectDef = context.parentInputType as? GraphQLInputObjectType,
                     let inputFieldDef = try? inputObjectDef.getFields()[node.name.value],
@@ -64,8 +68,9 @@ public func NoDeprecatedCustomRule(context: ValidationContext) -> Visitor {
                         )
                     )
                 }
-            }
-            if let node = node as? EnumValue {
+                return .continue
+            case .enumValue:
+                let node = node as! EnumValue
                 if
                     let enumValueDef = context.typeInfo.enumValue,
                     let deprecationReason = enumValueDef.deprecationReason,
@@ -78,8 +83,10 @@ public func NoDeprecatedCustomRule(context: ValidationContext) -> Visitor {
                         )
                     )
                 }
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }

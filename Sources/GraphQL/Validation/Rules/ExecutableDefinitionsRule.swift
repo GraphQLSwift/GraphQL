@@ -28,7 +28,9 @@ func ExecutableDefinitionsRule(context: ValidationContext) -> Visitor {
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let node = node as? Document {
+            switch node.kind {
+            case .document:
+                let node = node as! Document
                 for definition in node.definitions {
                     if !isExecutable(definition) {
                         var defName = "schema"
@@ -45,8 +47,10 @@ func ExecutableDefinitionsRule(context: ValidationContext) -> Visitor {
                         )
                     }
                 }
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }

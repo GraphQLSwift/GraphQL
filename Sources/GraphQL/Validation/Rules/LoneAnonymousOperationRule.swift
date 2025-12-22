@@ -11,11 +11,13 @@ func LoneAnonymousOperationRule(context: ValidationContext) -> Visitor {
     var operationCount = 0
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let document = node as? Document {
+            switch node.kind {
+            case .document:
+                let document = node as! Document
                 operationCount = document.definitions.filter { $0 is OperationDefinition }.count
                 return .continue
-            }
-            if let operation = node as? OperationDefinition {
+            case .operationDefinition:
+                let operation = node as! OperationDefinition
                 if operation.name == nil, operationCount > 1 {
                     context.report(
                         error: GraphQLError(
@@ -25,8 +27,9 @@ func LoneAnonymousOperationRule(context: ValidationContext) -> Visitor {
                     )
                 }
                 return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }

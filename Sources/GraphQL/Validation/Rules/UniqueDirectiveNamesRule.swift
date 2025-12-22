@@ -12,7 +12,9 @@ func UniqueDirectiveNamesRule(
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let node = node as? DirectiveDefinition {
+            switch node.kind {
+            case .directiveDefinition:
+                let node = node as! DirectiveDefinition
                 let directiveName = node.name.value
                 if schema?.getDirective(name: directiveName) != nil {
                     context.report(
@@ -33,8 +35,10 @@ func UniqueDirectiveNamesRule(
                 } else {
                     knownDirectiveNames[directiveName] = node.name
                 }
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }

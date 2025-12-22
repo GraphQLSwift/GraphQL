@@ -28,7 +28,9 @@ func KnownTypeNamesRule(context: SDLorNormalValidationContext) -> Visitor {
 
     return Visitor(
         enter: { node, _, parent, _, ancestors in
-            if let type = node as? NamedType {
+            switch node.kind {
+            case .namedType:
+                let type = node as! NamedType
                 let typeName = type.name.value
                 if !typeNames.contains(typeName) {
                     let definitionNode = ancestors.count > 2 ? ancestors[2] : parent
@@ -52,8 +54,10 @@ func KnownTypeNamesRule(context: SDLorNormalValidationContext) -> Visitor {
                         )
                     )
                 }
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }

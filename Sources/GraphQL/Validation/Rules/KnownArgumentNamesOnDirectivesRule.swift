@@ -11,7 +11,8 @@ func KnownArgumentNamesOnDirectivesRule(
 
     let astDefinitions = context.ast.definitions
     for def in astDefinitions {
-        if let def = def as? DirectiveDefinition {
+        if def.kind == .directiveDefinition {
+            let def = def as! DirectiveDefinition
             let argsNodes = def.arguments
             directiveArgs[def.name.value] = argsNodes.map(\.name.value)
         }
@@ -19,7 +20,9 @@ func KnownArgumentNamesOnDirectivesRule(
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let directiveNode = node as? Directive {
+            switch node.kind {
+            case .directive:
+                let directiveNode = node as! Directive
                 let directiveName = directiveNode.name.value
                 let knownArgs = directiveArgs[directiveName]
 
@@ -38,8 +41,10 @@ func KnownArgumentNamesOnDirectivesRule(
                         }
                     }
                 }
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }

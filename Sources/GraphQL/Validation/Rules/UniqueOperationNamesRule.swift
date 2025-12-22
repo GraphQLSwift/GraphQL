@@ -10,7 +10,9 @@ func UniqueOperationNamesRule(context: ValidationContext) -> Visitor {
     var knownOperationNames = [String: Name]()
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let operation = node as? OperationDefinition {
+            switch node.kind {
+            case .operationDefinition:
+                let operation = node as! OperationDefinition
                 if let operationName = operation.name {
                     if let knownOperationName = knownOperationNames[operationName.value] {
                         context.report(
@@ -23,8 +25,10 @@ func UniqueOperationNamesRule(context: ValidationContext) -> Visitor {
                         knownOperationNames[operationName.value] = operationName
                     }
                 }
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }
