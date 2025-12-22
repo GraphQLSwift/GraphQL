@@ -351,7 +351,7 @@ extension GraphQLObjectType: Hashable {
 }
 
 func defineFieldMap(name: String, fields: GraphQLFieldMap) throws -> GraphQLFieldDefinitionMap {
-    var fieldMap = GraphQLFieldDefinitionMap()
+    var fieldMap = GraphQLFieldDefinitionMap(minimumCapacity: fields.count)
 
     for (name, config) in fields {
         try assertValid(name: name)
