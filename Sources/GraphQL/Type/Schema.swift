@@ -34,26 +34,9 @@ public final class GraphQLSchema: @unchecked Sendable {
     let astNode: SchemaDefinition?
     let extensionASTNodes: [SchemaExtensionDefinition]
 
-    // Used as a cache for validateSchema().
-    private var _validationErrors: [GraphQLError]?
-    private let validationErrorQueue = DispatchQueue(
-        label: "graphql.schema.validationerrors",
-        attributes: .concurrent
-    )
-    var validationErrors: [GraphQLError]? {
-        get {
-            // Reads can occur concurrently.
-            return validationErrorQueue.sync {
-                _validationErrors
-            }
-        }
-        set {
-            // Writes occur sequentially.
-            return validationErrorQueue.sync(flags: .barrier) {
-                self._validationErrors = newValue
-            }
-        }
-    }
+    /// Used as a cache for validateSchema(). Concurrent access is not protected, so assume
+    /// it can be changed at any time.
+    var validationErrors: [GraphQLError]?
 
     public let queryType: GraphQLObjectType?
     public let mutationType: GraphQLObjectType?
@@ -95,7 +78,7 @@ public final class GraphQLSchema: @unchecked Sendable {
         extensionASTNodes: [SchemaExtensionDefinition] = [],
         assumeValid: Bool = false
     ) throws {
-        _validationErrors = assumeValid ? [] : nil
+        validationErrors = assumeValid ? [] : nil
 
         self.description = description
         self.extensions = extensions

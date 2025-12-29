@@ -78,7 +78,11 @@ public final class ExecutionContext: @unchecked Sendable {
     }
 
     public func append(error: GraphQLError) {
-        errors.append(error)
+        // `append` must explicitly use the DispatchQueue and the underlying storage because by
+        // default `append` uses separate unblocked get, modify, and replace steps.
+        errorsQueue.sync(flags: .barrier) {
+            self._errors.append(error)
+        }
     }
 }
 
@@ -849,7 +853,7 @@ func completeListValue(
 
     return try await withThrowingTaskGroup(of: (Int, (any Sendable)?).self) { group in
         // To preserve order, match size to result, and filter out nils at the end.
-        var results: [(any Sendable)?] = result.map { _ in nil }
+        var results = [(any Sendable)?](repeating: nil, count: result.count)
         for (index, item) in result.enumerated() {
             group.addTask {
                 // No need to modify the info object containing the path,
