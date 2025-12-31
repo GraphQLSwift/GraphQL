@@ -23,6 +23,10 @@ func valueFromAST(
     variables: [String: Map] = [:]
 ) throws -> Map {
     if let nonNull = type as? GraphQLNonNull {
+        guard !(valueAST is NullValue) else {
+            throw GraphQLError(message: "Null value provided to non-nullable type")
+        }
+
         // Note: we're not checking that the result of valueFromAST is non-null.
         // We're assuming that this query has been validated and the value used
         // here is of the correct type.
@@ -30,6 +34,10 @@ func valueFromAST(
             throw GraphQLError(message: "NonNull must wrap an input type")
         }
         return try valueFromAST(valueAST: valueAST, type: nonNullType, variables: variables)
+    }
+
+    guard !(valueAST is NullValue) else {
+        return .null
     }
 
     if let variable = valueAST as? Variable {

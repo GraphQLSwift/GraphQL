@@ -1186,4 +1186,23 @@ import Testing
         // 'mutation' operation.
         #expect(schema.mutationType == nil)
     }
+
+    @Test func supportsNullLiterals() throws {
+        let sdl = """
+        input MyInput {
+          nullLiteral: String!
+        }
+
+        type Query {
+          field(in: MyInput = null): String
+        }
+        """
+        try #expect(cycleSDL(sdl: sdl) == sdl)
+
+        let schema = try buildSchema(source: sdl)
+
+        let rootFields = try #require(schema.getType(name: "Query") as? GraphQLObjectType)
+            .getFields()
+        #expect(rootFields["field"]?.args[0].defaultValue == .null)
+    }
 }
