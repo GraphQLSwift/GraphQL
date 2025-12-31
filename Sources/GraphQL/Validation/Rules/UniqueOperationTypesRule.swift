@@ -25,12 +25,18 @@ func UniqueOperationTypesRule(
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let operation = node as? SchemaDefinition {
+            switch node.kind {
+            case .schemaDefinition:
+                let operation = node as! SchemaDefinition
                 checkOperationTypes(operation.operationTypes)
-            } else if let operation = node as? SchemaExtensionDefinition {
+                return .continue
+            case .schemaExtensionDefinition:
+                let operation = node as! SchemaExtensionDefinition
                 checkOperationTypes(operation.definition.operationTypes)
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 

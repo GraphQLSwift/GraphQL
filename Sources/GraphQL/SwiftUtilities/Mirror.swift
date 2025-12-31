@@ -16,7 +16,7 @@ func unwrap(_ value: any Sendable) -> (any Sendable)? {
 
 extension Mirror {
     func getValue(named key: String) -> (any Sendable)? {
-        guard let matched = children.filter({ $0.label == key }).first else {
+        guard let matched = children.first(where: { $0.label == key }) else {
             return nil
         }
 

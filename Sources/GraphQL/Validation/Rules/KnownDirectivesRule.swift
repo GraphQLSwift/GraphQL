@@ -25,7 +25,8 @@ func KnownDirectivesRule(context: SDLorNormalValidationContext) -> Visitor {
 
     return Visitor(
         enter: { node, _, _, _, ancestors in
-            guard let node = node as? Directive else { return .continue }
+            guard node.kind == .directive else { return .continue }
+            let node = node as! Directive
 
             let name = node.name.value
 

@@ -8,7 +8,9 @@
 func PossibleFragmentSpreadsRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let node = node as? InlineFragment {
+            switch node.kind {
+            case .inlineFragment:
+                let node = node as! InlineFragment
                 guard
                     let fragType = context.type as? GraphQLCompositeType,
                     let parentType = context.parentType
@@ -32,9 +34,9 @@ func PossibleFragmentSpreadsRule(context: ValidationContext) -> Visitor {
                         nodes: [node]
                     )
                 )
-            }
-
-            if let node = node as? FragmentSpread {
+                return .continue
+            case .fragmentSpread:
+                let node = node as! FragmentSpread
                 let fragName = node.name.value
 
                 guard
@@ -60,9 +62,10 @@ func PossibleFragmentSpreadsRule(context: ValidationContext) -> Visitor {
                         nodes: [node]
                     )
                 )
+                return .continue
+            default:
+                return .continue
             }
-
-            return .continue
         }
     )
 }

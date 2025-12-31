@@ -204,19 +204,22 @@ public final class ValidationContext: ASTValidationContext {
             visitor: visitWithTypeInfo(
                 typeInfo: typeInfo,
                 visitor: Visitor(enter: { node, _, _, _, _ in
-                    if node is VariableDefinition {
+                    switch node.kind {
+                    case .variableDefinition:
                         return .skip
+                    case .variable:
+                        let variable = node as! Variable
+                        usages.append(
+                            VariableUsage(
+                                node: variable,
+                                type: typeInfo.inputType,
+                                defaultValue: typeInfo.defaultValue
+                            )
+                        )
+                        return .continue
+                    default:
+                        return .continue
                     }
-
-                    if let variable = node as? Variable {
-                        usages.append(VariableUsage(
-                            node: variable,
-                            type: typeInfo.inputType,
-                            defaultValue: typeInfo.defaultValue
-                        ))
-                    }
-
-                    return .continue
                 })
             )
         )

@@ -10,28 +10,40 @@ func UniqueArgumentDefinitionNamesRule(
 ) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let directiveNode = node as? DirectiveDefinition {
+            switch node.kind {
+            case .directiveDefinition:
+                let directiveNode = node as! DirectiveDefinition
                 let argumentNodes = directiveNode.arguments
                 checkArgUniqueness(
                     parentName: "@\(directiveNode.name.value)",
                     argumentNodes: argumentNodes
                 )
-            } else if let node = node as? InterfaceTypeDefinition {
+                return .continue
+            case .interfaceTypeDefinition:
+                let node = node as! InterfaceTypeDefinition
                 checkArgUniquenessPerField(name: node.name, fields: node.fields)
-            } else if let node = node as? InterfaceExtensionDefinition {
+                return .continue
+            case .interfaceExtensionDefinition:
+                let node = node as! InterfaceExtensionDefinition
                 checkArgUniquenessPerField(
                     name: node.definition.name,
                     fields: node.definition.fields
                 )
-            } else if let node = node as? ObjectTypeDefinition {
+                return .continue
+            case .objectTypeDefinition:
+                let node = node as! ObjectTypeDefinition
                 checkArgUniquenessPerField(name: node.name, fields: node.fields)
-            } else if let node = node as? TypeExtensionDefinition {
+                return .continue
+            case .typeExtensionDefinition:
+                let node = node as! TypeExtensionDefinition
                 checkArgUniquenessPerField(
                     name: node.definition.name,
                     fields: node.definition.fields
                 )
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 

@@ -11,7 +11,9 @@
 func FragmentsOnCompositeTypesRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let fragment = node as? InlineFragment {
+            switch node.kind {
+            case .inlineFragment:
+                let fragment = node as! InlineFragment
                 if let typeCondition = fragment.typeCondition {
                     if let type = typeFromAST(schema: context.schema, inputTypeAST: typeCondition) {
                         if type is GraphQLCompositeType {
@@ -28,8 +30,8 @@ func FragmentsOnCompositeTypesRule(context: ValidationContext) -> Visitor {
                     }
                 }
                 return .continue
-            }
-            if let fragment = node as? FragmentDefinition {
+            case .fragmentDefinition:
+                let fragment = node as! FragmentDefinition
                 let typeCondition = fragment.typeCondition
                 if let type = typeFromAST(schema: context.schema, inputTypeAST: typeCondition) {
                     if type is GraphQLCompositeType {
@@ -45,8 +47,9 @@ func FragmentsOnCompositeTypesRule(context: ValidationContext) -> Visitor {
                     )
                 }
                 return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }

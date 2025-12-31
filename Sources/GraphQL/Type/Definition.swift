@@ -275,10 +275,37 @@ extension GraphQLScalarType: Hashable {
 public final class GraphQLObjectType: @unchecked Sendable {
     public let name: String
     public let description: String?
+
     // While technically not sendable, fields and interfaces should not be mutated after schema
     // creation.
-    public var fields: () throws -> GraphQLFieldMap
-    public var interfaces: () throws -> [GraphQLInterfaceType]
+    public var fields: () throws -> GraphQLFieldMap {
+        get {
+            fieldFunc
+        }
+        set {
+            fieldFunc = newValue
+            // Clear the cache when setting a new function
+            fieldCache = nil
+        }
+    }
+
+    private var fieldFunc: () throws -> GraphQLFieldMap
+    private var fieldCache: GraphQLFieldDefinitionMap?
+
+    public var interfaces: () throws -> [GraphQLInterfaceType] {
+        get {
+            interfaceFunc
+        }
+        set {
+            interfaceFunc = newValue
+            // Clear the cache when setting a new function
+            interfaceCache = nil
+        }
+    }
+
+    private var interfaceFunc: () throws -> [GraphQLInterfaceType]
+    private var interfaceCache: [GraphQLInterfaceType]?
+
     public let isTypeOf: GraphQLIsTypeOf?
     public let astNode: ObjectTypeDefinition?
     public let extensionASTNodes: [TypeExtensionDefinition]
@@ -296,8 +323,8 @@ public final class GraphQLObjectType: @unchecked Sendable {
         try assertValid(name: name)
         self.name = name
         self.description = description
-        self.fields = { fields }
-        self.interfaces = { interfaces }
+        fieldFunc = { fields }
+        interfaceFunc = { interfaces }
         self.isTypeOf = isTypeOf
         self.astNode = astNode
         self.extensionASTNodes = extensionASTNodes
@@ -315,22 +342,32 @@ public final class GraphQLObjectType: @unchecked Sendable {
         try assertValid(name: name)
         self.name = name
         self.description = description
-        self.fields = fields
-        self.interfaces = interfaces
+        fieldFunc = fields
+        interfaceFunc = interfaces
         self.isTypeOf = isTypeOf
         self.astNode = astNode
         self.extensionASTNodes = extensionASTNodes
     }
 
     func getFields() throws -> GraphQLFieldDefinitionMap {
-        try defineFieldMap(
-            name: name,
-            fields: fields()
-        )
+        // Cache on the first call
+        return try fieldCache ?? {
+            let fields = try defineFieldMap(
+                name: name,
+                fields: fields()
+            )
+            self.fieldCache = fields
+            return fields
+        }()
     }
 
     func getInterfaces() throws -> [GraphQLInterfaceType] {
-        return try interfaces()
+        // Cache on the first call
+        return try interfaceCache ?? {
+            let interfaces = try interfaces()
+            self.interfaceCache = interfaces
+            return interfaces
+        }()
     }
 }
 
@@ -351,7 +388,7 @@ extension GraphQLObjectType: Hashable {
 }
 
 func defineFieldMap(name: String, fields: GraphQLFieldMap) throws -> GraphQLFieldDefinitionMap {
-    var fieldMap = GraphQLFieldDefinitionMap()
+    var fieldMap = GraphQLFieldDefinitionMap(minimumCapacity: fields.count)
 
     for (name, config) in fields {
         try assertValid(name: name)
@@ -657,10 +694,37 @@ public final class GraphQLInterfaceType: @unchecked Sendable {
     public let name: String
     public let description: String?
     public let resolveType: GraphQLTypeResolve?
+
     // While technically not sendable, fields and interfaces should not be mutated after schema
     // creation.
-    public var fields: () throws -> GraphQLFieldMap
-    public var interfaces: () throws -> [GraphQLInterfaceType]
+    public var fields: () throws -> GraphQLFieldMap {
+        get {
+            fieldFunc
+        }
+        set {
+            fieldFunc = newValue
+            // Clear the cache when setting a new function
+            fieldCache = nil
+        }
+    }
+
+    private var fieldFunc: () throws -> GraphQLFieldMap
+    private var fieldCache: GraphQLFieldDefinitionMap?
+
+    public var interfaces: () throws -> [GraphQLInterfaceType] {
+        get {
+            interfaceFunc
+        }
+        set {
+            interfaceFunc = newValue
+            // Clear the cache when setting a new function
+            interfaceCache = nil
+        }
+    }
+
+    private var interfaceFunc: () throws -> [GraphQLInterfaceType]
+    private var interfaceCache: [GraphQLInterfaceType]?
+
     public let astNode: InterfaceTypeDefinition?
     public let extensionASTNodes: [InterfaceExtensionDefinition]
     public let kind: TypeKind = .interface
@@ -677,8 +741,8 @@ public final class GraphQLInterfaceType: @unchecked Sendable {
         try assertValid(name: name)
         self.name = name
         self.description = description
-        self.fields = { fields }
-        self.interfaces = { interfaces }
+        fieldFunc = { fields }
+        interfaceFunc = { interfaces }
         self.resolveType = resolveType
         self.astNode = astNode
         self.extensionASTNodes = extensionASTNodes
@@ -696,22 +760,32 @@ public final class GraphQLInterfaceType: @unchecked Sendable {
         try assertValid(name: name)
         self.name = name
         self.description = description
-        self.fields = fields
-        self.interfaces = interfaces
+        fieldFunc = fields
+        interfaceFunc = interfaces
         self.resolveType = resolveType
         self.astNode = astNode
         self.extensionASTNodes = extensionASTNodes
     }
 
     func getFields() throws -> GraphQLFieldDefinitionMap {
-        try defineFieldMap(
-            name: name,
-            fields: fields()
-        )
+        // Cache on the first call
+        return try fieldCache ?? {
+            let fields = try defineFieldMap(
+                name: name,
+                fields: fields()
+            )
+            self.fieldCache = fields
+            return fields
+        }()
     }
 
     func getInterfaces() throws -> [GraphQLInterfaceType] {
-        return try interfaces()
+        // Cache on the first call
+        return try interfaceCache ?? {
+            let interfaces = try interfaces()
+            self.interfaceCache = interfaces
+            return interfaces
+        }()
     }
 }
 

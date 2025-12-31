@@ -10,22 +10,34 @@ func UniqueTypeNamesRule(context: SDLValidationContext) -> Visitor {
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let definition = node as? ScalarTypeDefinition {
+            switch node.kind {
+            case .scalarTypeDefinition:
+                let definition = node as! ScalarTypeDefinition
                 checkTypeName(node: definition)
-            } else if let definition = node as? ObjectTypeDefinition {
+                return .continue
+            case .objectTypeDefinition:
+                let definition = node as! ObjectTypeDefinition
                 checkTypeName(node: definition)
-            } else if let definition = node as? InterfaceTypeDefinition {
+                return .continue
+            case .interfaceTypeDefinition:
+                let definition = node as! InterfaceTypeDefinition
                 checkTypeName(node: definition)
-            } else if let definition = node as? InterfaceTypeDefinition {
+                return .continue
+            case .unionTypeDefinition:
+                let definition = node as! UnionTypeDefinition
                 checkTypeName(node: definition)
-            } else if let definition = node as? UnionTypeDefinition {
+                return .continue
+            case .enumTypeDefinition:
+                let definition = node as! EnumTypeDefinition
                 checkTypeName(node: definition)
-            } else if let definition = node as? EnumTypeDefinition {
+                return .continue
+            case .inputObjectTypeDefinition:
+                let definition = node as! InputObjectTypeDefinition
                 checkTypeName(node: definition)
-            } else if let definition = node as? InputObjectTypeDefinition {
-                checkTypeName(node: definition)
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 

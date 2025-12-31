@@ -15,7 +15,9 @@ func LoneSchemaDefinitionRule(context: SDLValidationContext) -> Visitor {
     var schemaDefinitionsCount = 0
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let node = node as? SchemaDefinition {
+            switch node.kind {
+            case .schemaDefinition:
+                let node = node as! SchemaDefinition
                 if alreadyDefined {
                     context.report(
                         error: GraphQLError(
@@ -35,8 +37,10 @@ func LoneSchemaDefinitionRule(context: SDLValidationContext) -> Visitor {
                 }
 
                 schemaDefinitionsCount = schemaDefinitionsCount + 1
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }

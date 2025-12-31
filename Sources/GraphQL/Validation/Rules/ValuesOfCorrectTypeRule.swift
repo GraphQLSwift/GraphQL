@@ -12,15 +12,16 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if node is OperationDefinition {
+            switch node.kind {
+            case .operationDefinition:
                 variableDefinitions = [:]
                 return .continue
-            }
-            if let variableDefinition = node as? VariableDefinition {
+            case .variableDefinition:
+                let variableDefinition = node as! VariableDefinition
                 variableDefinitions[variableDefinition.variable.name.value] = variableDefinition
                 return .continue
-            }
-            if let list = node as? ListValue {
+            case .listValue:
+                let list = node as! ListValue
                 guard let type = getNullableType(type: context.parentInputType) else {
                     return .continue
                 }
@@ -29,8 +30,8 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                     return .break // Don't traverse further.
                 }
                 return .continue
-            }
-            if let object = node as? ObjectValue {
+            case .objectValue:
+                let object = node as! ObjectValue
                 let type = getNamedType(type: context.inputType)
                 guard let type = type as? GraphQLInputObjectType else {
                     isValidValueNode(context, object)
@@ -64,8 +65,8 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                     )
                 }
                 return .continue
-            }
-            if let field = node as? ObjectField {
+            case .objectField:
+                let field = node as! ObjectField
                 let parentType = getNamedType(type: context.parentInputType)
                 if
                     context.inputType == nil,
@@ -86,8 +87,8 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                     )
                 }
                 return .continue
-            }
-            if let null = node as? NullValue {
+            case .nullValue:
+                let null = node as! NullValue
                 let type = context.inputType
                 if let type = type as? GraphQLNonNull {
                     context.report(
@@ -99,28 +100,13 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                     )
                 }
                 return .continue
-            }
-            if let node = node as? EnumValue {
+            case .enumValue, .intValue, .floatValue, .stringValue, .booleanValue:
+                let node = node as! Value
                 isValidValueNode(context, node)
                 return .continue
-            }
-            if let node = node as? IntValue {
-                isValidValueNode(context, node)
+            default:
                 return .continue
             }
-            if let node = node as? FloatValue {
-                isValidValueNode(context, node)
-                return .continue
-            }
-            if let node = node as? StringValue {
-                isValidValueNode(context, node)
-                return .continue
-            }
-            if let node = node as? BooleanValue {
-                isValidValueNode(context, node)
-                return .continue
-            }
-            return .continue
         }
     )
 }

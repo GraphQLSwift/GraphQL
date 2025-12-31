@@ -1061,10 +1061,7 @@ func defaultResolve(
     }
 
     let mirror = Mirror(reflecting: source)
-    guard let value = mirror.getValue(named: info.fieldName) else {
-        return nil
-    }
-    return value
+    return mirror.getValue(named: info.fieldName)
 }
 
 /**

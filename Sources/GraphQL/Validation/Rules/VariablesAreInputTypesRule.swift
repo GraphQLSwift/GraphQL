@@ -10,7 +10,9 @@
 func VariablesAreInputTypesRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let variableDefinition = node as? VariableDefinition {
+            switch node.kind {
+            case .variableDefinition:
+                let variableDefinition = node as! VariableDefinition
                 let variableType = variableDefinition.type
                 if let type = typeFromAST(schema: context.schema, inputTypeAST: variableType) {
                     guard !isInputType(type: type) else {
@@ -26,8 +28,10 @@ func VariablesAreInputTypesRule(context: ValidationContext) -> Visitor {
                         )
                     )
                 }
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }

@@ -29,7 +29,9 @@ func ProvidedRequiredArgumentsOnDirectivesRule(
     return Visitor(
         // Validate on leave to allow for deeper errors to appear first.
         leave: { node, _, _, _, _ in
-            if let directiveNode = node as? Directive {
+            switch node.kind {
+            case .directive:
+                let directiveNode = node as! Directive
                 let directiveName = directiveNode.name.value
                 if let requiredArgs = requiredArgsMap[directiveName] {
                     let argNodes = directiveNode.arguments
@@ -45,8 +47,10 @@ func ProvidedRequiredArgumentsOnDirectivesRule(
                         }
                     }
                 }
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }

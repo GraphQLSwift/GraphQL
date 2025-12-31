@@ -13,12 +13,13 @@ func UniqueInputFieldNamesRule(context: ASTValidationContext) -> Visitor {
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if node is ObjectValue {
+            switch node.kind {
+            case .objectValue:
                 knownNameStack.append(knownNames)
                 knownNames = [:]
                 return .continue
-            }
-            if let objectField = node as? ObjectField {
+            case .objectField:
+                let objectField = node as! ObjectField
                 let fieldName = objectField.name.value
                 if let knownName = knownNames[fieldName] {
                     context.report(
@@ -31,15 +32,19 @@ func UniqueInputFieldNamesRule(context: ASTValidationContext) -> Visitor {
                     knownNames[fieldName] = objectField.name
                 }
                 return .continue
+            default:
+                return .continue
             }
-            return .continue
         },
         leave: { node, _, _, _, _ in
-            if node is ObjectValue {
+            switch node.kind {
+            case .objectValue:
                 let prevKnownNames = knownNameStack.popLast()
                 knownNames = prevKnownNames ?? [:]
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 }

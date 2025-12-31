@@ -13,20 +13,34 @@ func UniqueFieldDefinitionNamesRule(
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let node = node as? InputObjectTypeDefinition {
+            switch node.kind {
+            case .inputObjectTypeDefinition:
+                let node = node as! InputObjectTypeDefinition
                 checkFieldUniqueness(name: node.name, fields: node.fields)
-            } else if let node = node as? InputObjectExtensionDefinition {
+                return .continue
+            case .inputObjectExtensionDefinition:
+                let node = node as! InputObjectExtensionDefinition
                 checkFieldUniqueness(name: node.name, fields: node.definition.fields)
-            } else if let node = node as? InterfaceTypeDefinition {
+                return .continue
+            case .interfaceTypeDefinition:
+                let node = node as! InterfaceTypeDefinition
                 checkFieldUniqueness(name: node.name, fields: node.fields)
-            } else if let node = node as? InterfaceExtensionDefinition {
+                return .continue
+            case .interfaceExtensionDefinition:
+                let node = node as! InterfaceExtensionDefinition
                 checkFieldUniqueness(name: node.name, fields: node.definition.fields)
-            } else if let node = node as? ObjectTypeDefinition {
+                return .continue
+            case .objectTypeDefinition:
+                let node = node as! ObjectTypeDefinition
                 checkFieldUniqueness(name: node.name, fields: node.fields)
-            } else if let node = node as? TypeExtensionDefinition {
+                return .continue
+            case .typeExtensionDefinition:
+                let node = node as! TypeExtensionDefinition
                 checkFieldUniqueness(name: node.name, fields: node.definition.fields)
+                return .continue
+            default:
+                return .continue
             }
-            return .continue
         }
     )
 
