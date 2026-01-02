@@ -505,13 +505,32 @@ public struct GraphQLResolveInfo: Sendable {
 
 public typealias GraphQLFieldMap = OrderedDictionary<String, GraphQLField>
 
-public struct GraphQLField: Sendable {
+public final class GraphQLField: @unchecked Sendable {
     public let type: GraphQLOutputType
     public let args: GraphQLArgumentConfigMap
     public let deprecationReason: String?
     public let description: String?
-    public let resolve: GraphQLFieldResolve?
-    public let subscribe: GraphQLFieldResolve?
+
+    private var _resolve: GraphQLFieldResolve?
+    public var resolve: GraphQLFieldResolve? {
+        get {
+            fieldPropertyQueue.sync { _resolve }
+        }
+        set {
+            fieldPropertyQueue.sync(flags: .barrier) { _resolve = newValue }
+        }
+    }
+
+    private var _subscribe: GraphQLFieldResolve?
+    public var subscribe: GraphQLFieldResolve? {
+        get {
+            fieldPropertyQueue.sync { _subscribe }
+        }
+        set {
+            fieldPropertyQueue.sync(flags: .barrier) { _subscribe = newValue }
+        }
+    }
+
     public let astNode: FieldDefinition?
 
     public init(
@@ -526,8 +545,8 @@ public struct GraphQLField: Sendable {
         self.deprecationReason = deprecationReason
         self.description = description
         self.astNode = astNode
-        resolve = nil
-        subscribe = nil
+        _resolve = nil
+        _subscribe = nil
     }
 
     public init(
@@ -544,8 +563,8 @@ public struct GraphQLField: Sendable {
         self.deprecationReason = deprecationReason
         self.description = description
         self.astNode = astNode
-        self.resolve = resolve
-        self.subscribe = subscribe
+        self._resolve = resolve
+        self._subscribe = subscribe
     }
 
     public init(
@@ -562,11 +581,11 @@ public struct GraphQLField: Sendable {
         self.description = description
         self.astNode = astNode
 
-        self.resolve = { source, args, context, info in
+        self._resolve = { source, args, context, info in
             let result = try resolve(source, args, context, info)
             return result
         }
-        subscribe = nil
+        _subscribe = nil
     }
 }
 
@@ -1420,5 +1439,12 @@ extension GraphQLNonNull: Hashable {
 /// It is implemented as a read-write lock since we expect the usage to be extremely read-heavy.
 private let cacheQueue = DispatchQueue(
     label: "graphql.objecttype.cache",
+    attributes: .concurrent
+)
+
+/// Shared queue for field property access
+/// Uses reader/writer pattern for read-heavy workload
+private let fieldPropertyQueue = DispatchQueue(
+    label: "graphql.field.properties",
     attributes: .concurrent
 )
