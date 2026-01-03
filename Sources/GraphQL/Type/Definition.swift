@@ -285,7 +285,9 @@ public final class GraphQLObjectType: @unchecked Sendable {
         set {
             fieldFunc = newValue
             // Clear the cache when setting a new function
-            fieldCache = nil
+            cacheQueue.sync(flags: .barrier) {
+                fieldCache = nil
+            }
         }
     }
 
@@ -299,7 +301,9 @@ public final class GraphQLObjectType: @unchecked Sendable {
         set {
             interfaceFunc = newValue
             // Clear the cache when setting a new function
-            interfaceCache = nil
+            cacheQueue.sync(flags: .barrier) {
+                interfaceCache = nil
+            }
         }
     }
 
@@ -350,24 +354,36 @@ public final class GraphQLObjectType: @unchecked Sendable {
     }
 
     func getFields() throws -> GraphQLFieldDefinitionMap {
-        // Cache on the first call
-        return try fieldCache ?? {
-            let fields = try defineFieldMap(
-                name: name,
-                fields: fields()
-            )
-            self.fieldCache = fields
-            return fields
-        }()
+        if let cached = cacheQueue.sync(execute: { fieldCache }) {
+            return cached
+        }
+        let fields = try defineFieldMap(
+            name: name,
+            fields: fields()
+        )
+        return cacheQueue.sync(flags: .barrier) {
+            if let fieldCache {
+                return fieldCache
+            } else {
+                fieldCache = fields
+                return fields
+            }
+        }
     }
 
     func getInterfaces() throws -> [GraphQLInterfaceType] {
-        // Cache on the first call
-        return try interfaceCache ?? {
-            let interfaces = try interfaces()
-            self.interfaceCache = interfaces
-            return interfaces
-        }()
+        if let cached = cacheQueue.sync(execute: { interfaceCache }) {
+            return cached
+        }
+        let interfaces = try interfaces()
+        return cacheQueue.sync(flags: .barrier) {
+            if let interfaceCache {
+                return interfaceCache
+            } else {
+                interfaceCache = interfaces
+                return interfaces
+            }
+        }
     }
 }
 
@@ -704,7 +720,9 @@ public final class GraphQLInterfaceType: @unchecked Sendable {
         set {
             fieldFunc = newValue
             // Clear the cache when setting a new function
-            fieldCache = nil
+            cacheQueue.sync(flags: .barrier) {
+                fieldCache = nil
+            }
         }
     }
 
@@ -718,7 +736,9 @@ public final class GraphQLInterfaceType: @unchecked Sendable {
         set {
             interfaceFunc = newValue
             // Clear the cache when setting a new function
-            interfaceCache = nil
+            cacheQueue.sync(flags: .barrier) {
+                interfaceCache = nil
+            }
         }
     }
 
@@ -768,24 +788,36 @@ public final class GraphQLInterfaceType: @unchecked Sendable {
     }
 
     func getFields() throws -> GraphQLFieldDefinitionMap {
-        // Cache on the first call
-        return try fieldCache ?? {
-            let fields = try defineFieldMap(
-                name: name,
-                fields: fields()
-            )
-            self.fieldCache = fields
-            return fields
-        }()
+        if let cached = cacheQueue.sync(execute: { fieldCache }) {
+            return cached
+        }
+        let fields = try defineFieldMap(
+            name: name,
+            fields: fields()
+        )
+        return cacheQueue.sync(flags: .barrier) {
+            if let fieldCache {
+                return fieldCache
+            } else {
+                fieldCache = fields
+                return fields
+            }
+        }
     }
 
     func getInterfaces() throws -> [GraphQLInterfaceType] {
-        // Cache on the first call
-        return try interfaceCache ?? {
-            let interfaces = try interfaces()
-            self.interfaceCache = interfaces
-            return interfaces
-        }()
+        if let cached = cacheQueue.sync(execute: { interfaceCache }) {
+            return cached
+        }
+        let interfaces = try interfaces()
+        return cacheQueue.sync(flags: .barrier) {
+            if let interfaceCache {
+                return interfaceCache
+            } else {
+                interfaceCache = interfaces
+                return interfaces
+            }
+        }
     }
 }
 
@@ -1383,3 +1415,10 @@ extension GraphQLNonNull: Hashable {
         return lhs.hashValue == rhs.hashValue
     }
 }
+
+/// Shared queue for all type caching operations to avoid creating many DispatchQueues.
+/// It is implemented as a read-write lock since we expect the usage to be extremely read-heavy.
+private let cacheQueue = DispatchQueue(
+    label: "graphql.objecttype.cache",
+    attributes: .concurrent
+)
