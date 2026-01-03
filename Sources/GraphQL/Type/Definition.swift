@@ -276,8 +276,8 @@ public final class GraphQLObjectType: @unchecked Sendable {
     public let name: String
     public let description: String?
 
-    // While technically not sendable, fields and interfaces should not be mutated after schema
-    // creation.
+    /// The fields that the object defines. These may be mutated during setup, but should not be
+    /// modified once the schema is being used for execution.
     public var fields: () throws -> GraphQLFieldMap {
         get {
             fieldFunc
@@ -294,6 +294,8 @@ public final class GraphQLObjectType: @unchecked Sendable {
     private var fieldFunc: () throws -> GraphQLFieldMap
     private var fieldCache: GraphQLFieldDefinitionMap?
 
+    /// The interfaces that the object conforms to. These may be mutated during setup, but should
+    /// not be modified once the schema is being used for execution.
     public var interfaces: () throws -> [GraphQLInterfaceType] {
         get {
             interfaceFunc
@@ -511,7 +513,6 @@ public final class GraphQLField: @unchecked Sendable {
     public let deprecationReason: String?
     public let description: String?
 
-    private var _resolve: GraphQLFieldResolve?
     public var resolve: GraphQLFieldResolve? {
         get {
             fieldPropertyQueue.sync { _resolve }
@@ -521,7 +522,8 @@ public final class GraphQLField: @unchecked Sendable {
         }
     }
 
-    private var _subscribe: GraphQLFieldResolve?
+    private var _resolve: GraphQLFieldResolve?
+
     public var subscribe: GraphQLFieldResolve? {
         get {
             fieldPropertyQueue.sync { _subscribe }
@@ -530,6 +532,8 @@ public final class GraphQLField: @unchecked Sendable {
             fieldPropertyQueue.sync(flags: .barrier) { _subscribe = newValue }
         }
     }
+
+    private var _subscribe: GraphQLFieldResolve?
 
     public let astNode: FieldDefinition?
 
@@ -563,8 +567,8 @@ public final class GraphQLField: @unchecked Sendable {
         self.deprecationReason = deprecationReason
         self.description = description
         self.astNode = astNode
-        self._resolve = resolve
-        self._subscribe = subscribe
+        _resolve = resolve
+        _subscribe = subscribe
     }
 
     public init(
@@ -581,7 +585,7 @@ public final class GraphQLField: @unchecked Sendable {
         self.description = description
         self.astNode = astNode
 
-        self._resolve = { source, args, context, info in
+        _resolve = { source, args, context, info in
             let result = try resolve(source, args, context, info)
             return result
         }
@@ -730,8 +734,8 @@ public final class GraphQLInterfaceType: @unchecked Sendable {
     public let description: String?
     public let resolveType: GraphQLTypeResolve?
 
-    // While technically not sendable, fields and interfaces should not be mutated after schema
-    // creation.
+    /// The fields that the interface defines. These may be mutated during setup, but should not be
+    /// modified once the schema is being used for execution.
     public var fields: () throws -> GraphQLFieldMap {
         get {
             fieldFunc
@@ -748,6 +752,8 @@ public final class GraphQLInterfaceType: @unchecked Sendable {
     private var fieldFunc: () throws -> GraphQLFieldMap
     private var fieldCache: GraphQLFieldDefinitionMap?
 
+    /// The interfaces that the interface conforms to. This may be mutated during setup, but should
+    /// not be modified once the schema is being used for execution.
     public var interfaces: () throws -> [GraphQLInterfaceType] {
         get {
             interfaceFunc
@@ -888,7 +894,9 @@ public final class GraphQLUnionType: @unchecked Sendable {
     public let name: String
     public let description: String?
     public let resolveType: GraphQLTypeResolve?
-    // While technically not sendable, types should not be mutated after schema creation.
+
+    /// The types that belong to the union. This may be mutated during setup, but must not be
+    /// modified once the schema is being used for execution.
     public internal(set) var types: () throws -> [GraphQLObjectType]
     public let possibleTypeNames: [String: Bool]
     let extensions: [GraphQLUnionTypeExtensions]
@@ -1183,7 +1191,9 @@ public struct GraphQLEnumValueDefinition: Sendable {
 public final class GraphQLInputObjectType: @unchecked Sendable {
     public let name: String
     public let description: String?
-    // While technically not sendable, this should not be mutated after schema creation.
+
+    /// The fields that the input has. This may be mutated during setup, but must not be modified
+    /// once the schema is being used for execution.
     public var fields: () throws -> InputObjectFieldMap
     public let astNode: InputObjectTypeDefinition?
     public let extensionASTNodes: [InputObjectExtensionDefinition]
