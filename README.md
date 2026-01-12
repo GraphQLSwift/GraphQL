@@ -1,10 +1,9 @@
 # GraphQL
 
-[![Swift][swift-badge]][swift-url]
+[![Platforms][platforms-badge]][platforms-url]
+[![Versions][versions-badge]][versions-url]
 [![SSWG][sswg-badge]][sswg-url]
 [![License][mit-badge]][mit-url]
-[![Codebeat][codebeat-badge]][codebeat-url]
-
 
 The Swift implementation for GraphQL, a query language for APIs created by Facebook.
 
@@ -150,8 +149,12 @@ missing, looking at the original code and "translating" it to Swift works, most 
 
 This project is released under the MIT license. See [LICENSE](LICENSE) for details.
 
-[swift-badge]: https://img.shields.io/badge/Swift-5.10-orange.svg?style=flat
-[swift-url]: https://swift.org
+
+[platforms-badge]: https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FGraphQLSwift%2FGraphQL%2Fbadge%3Ftype%3Dplatforms
+[platforms-url]: https://swiftpackageindex.com/GraphQLSwift/GraphQL
+
+[versions-badge]: https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FGraphQLSwift%2FGraphQL%2Fbadge%3Ftype%3Dswift-versions
+[versions-url]: https://swiftpackageindex.com/GraphQLSwift/GraphQL
 
 [sswg-badge]: https://img.shields.io/badge/sswg-incubating-blue.svg?style=flat
 [sswg-url]: https://swift.org/sswg/incubation-process.html#incubating-level
@@ -161,6 +164,3 @@ This project is released under the MIT license. See [LICENSE](LICENSE) for detai
 
 [gh-actions-badge]: https://github.com/GraphQLSwift/GraphQL/workflows/Build/badge.svg
 [gh-actions-url]: https://github.com/GraphQLSwift/GraphQl/actions?query=workflow%3ABuild
-
-[codebeat-badge]: https://codebeat.co/badges/13293962-d1d8-4906-8e62-30a2cbb66b38
-[codebeat-url]: https://codebeat.co/projects/github-com-graphqlswift-graphql
