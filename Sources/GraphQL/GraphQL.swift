@@ -1,3 +1,4 @@
+import Tracing
 
 public struct GraphQLResult: Equatable, Codable, Sendable, CustomStringConvertible {
     public var data: Map?
@@ -98,25 +99,36 @@ public func graphql(
     let source = Source(body: request, name: "GraphQL request")
     let documentAST = try parse(source: source)
 
-    // Validate
-    let validationErrors = validate(
-        schema: schema,
-        ast: documentAST,
-        rules: validationRules
-    )
-    guard validationErrors.isEmpty else {
-        return GraphQLResult(errors: validationErrors)
-    }
+    let operation = documentAST.definitions.first {
+        $0 is OperationDefinition
+    } as! OperationDefinition?
 
-    // Execute
-    return try await execute(
-        schema: schema,
-        documentAST: documentAST,
-        rootValue: rootValue,
-        context: context,
-        variableValues: variableValues,
-        operationName: operationName
-    )
+    // See https://opentelemetry.io/docs/specs/semconv/graphql/graphql-spans/
+    return try await withSpan(operation?.operation.rawValue ?? "GraphQL Operation") { span in
+        // `graphql.document` was omitted due to the possibility of very large sizes.
+        span.attributes["graphql.operation.name"] = operation?.name?.value
+        span.attributes["graphql.operation.type"] = operation?.operation.rawValue
+
+        // Validate
+        let validationErrors = validate(
+            schema: schema,
+            ast: documentAST,
+            rules: validationRules
+        )
+        guard validationErrors.isEmpty else {
+            return GraphQLResult(errors: validationErrors)
+        }
+
+        // Execute
+        return try await execute(
+            schema: schema,
+            documentAST: documentAST,
+            rootValue: rootValue,
+            context: context,
+            variableValues: variableValues,
+            operationName: operationName
+        )
+    }
 }
 
 /// This is the primary entry point function for fulfilling GraphQL operations
