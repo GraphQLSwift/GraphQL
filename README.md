@@ -132,7 +132,7 @@ swiftformat .
 ```
 
 Most of this repo mirrors the structure of
-(the canonical GraphQL implementation written in Javascript/Typescript)[https://github.com/graphql/graphql-js]. If there is any feature
+[the canonical GraphQL implementation written in Javascript/Typescript](https://github.com/graphql/graphql-js). If there is any feature
 missing, looking at the original code and "translating" it to Swift works, most of the time. For example:
 
 ### Swift
