@@ -22,8 +22,7 @@ public func parse(
 ) throws -> Document {
     do {
         let lexer = createLexer(source: source, noLocation: noLocation)
-        let document = try parseDocument(lexer: lexer)
-        return document
+        return try parseDocument(lexer: lexer)
     } catch let error as GraphQLError {
         throw error
     }
@@ -111,7 +110,7 @@ func peekDescription(lexer: Lexer) -> Bool {
     return peek(lexer: lexer, kind: .string) || peek(lexer: lexer, kind: .blockstring)
 }
 
-/**
+/*
  * Description is optional StringValue
  */
 
@@ -586,7 +585,7 @@ func parseObjectField(lexer: Lexer, isConst: Bool) throws -> ObjectField {
     )
 }
 
-/**
+/*
  * parseStringLiteral
  */
 

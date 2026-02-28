@@ -243,7 +243,7 @@ func extendSchemaImpl(
             name: type.name,
             description: type.description,
             fields: {
-                let fields = try type.getFields().mapValues { field in
+                try type.getFields().mapValues { field in
                     InputObjectField(
                         type: replaceType(field.type),
                         defaultValue: field.defaultValue,
@@ -252,7 +252,6 @@ func extendSchemaImpl(
                         astNode: field.astNode
                     )
                 }.merging(buildInputFieldMap(nodes: extensions)) { $1 }
-                return fields
             },
             astNode: type.astNode,
             extensionASTNodes: extensionASTNodes
@@ -960,7 +959,7 @@ let stdTypeMap = {
     return typeMap
 }()
 
-/**
+/*
  * Given a field or enum value node, returns the string value for the
  * deprecation reason.
  */

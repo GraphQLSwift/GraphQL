@@ -52,7 +52,7 @@ import Testing
         #expect(dictionary["fifth"]?.isUndefined == true)
     }
 
-    // Ensure that default decoding preserves undefined becoming nil
+    /// Ensure that default decoding preserves undefined becoming nil
     @Test func nilAndUndefinedDecodeToNilByDefault() throws {
         struct DecodableTest: Codable {
             let first: Int?
@@ -77,11 +77,11 @@ import Testing
         #expect(decodable.fourth == nil)
     }
 
-    // Ensure that, if custom decoding is defined, provided nulls and unset values can be
-    // differentiated.
-    // This should match JSON in that values set to `null` should be 'contained' by the container,
-    // but
-    // values expected by the result that are undefined or not present should not be.
+    /// Ensure that, if custom decoding is defined, provided nulls and unset values can be
+    /// differentiated.
+    /// This should match JSON in that values set to `null` should be 'contained' by the container,
+    /// but
+    /// values expected by the result that are undefined or not present should not be.
     @Test func nilAndUndefinedDecoding() throws {
         struct DecodableTest: Codable {
             let first: Int?
@@ -131,7 +131,7 @@ import Testing
         _ = try MapDecoder().decode(DecodableTest.self, from: map)
     }
 
-    // Ensure that map encoding includes defined nulls, but skips undefined values
+    /// Ensure that map encoding includes defined nulls, but skips undefined values
     @Test func mapEncodingNilAndUndefined() throws {
         let map = Map.dictionary(
             [
@@ -150,7 +150,7 @@ import Testing
         )
     }
 
-    // Ensure that GraphQLJSONEncoder preserves map dictionary order in output
+    /// Ensure that GraphQLJSONEncoder preserves map dictionary order in output
     @Test func mapEncodingOrderPreserved() throws {
         // Test top level
         #expect(

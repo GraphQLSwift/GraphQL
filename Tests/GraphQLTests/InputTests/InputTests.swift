@@ -704,7 +704,7 @@ import Testing
         )
     }
 
-    // Test that input objects parse as expected from non-null literals
+    /// Test that input objects parse as expected from non-null literals
     @Test func inputNoNull() async throws {
         struct Echo: Codable {
             let field1: String?
@@ -832,7 +832,7 @@ import Testing
         )
     }
 
-    // Test that inputs parse as expected when null literals are present
+    /// Test that inputs parse as expected when null literals are present
     @Test func inputParsingDefinedNull() async throws {
         struct Echo: Codable {
             let field1: String?
@@ -960,7 +960,7 @@ import Testing
         )
     }
 
-    // Test that input objects parse as expected when there are missing fields with no default
+    /// Test that input objects parse as expected when there are missing fields with no default
     @Test func inputParsingUndefined() async throws {
         struct Echo: Codable {
             let field1: String?
@@ -1087,7 +1087,7 @@ import Testing
         )
     }
 
-    // Test that input objects parse as expected when there are missing fields with defaults
+    /// Test that input objects parse as expected when there are missing fields with defaults
     @Test func inputParsingUndefinedWithDefault() async throws {
         struct Echo: Codable {
             let field1: String?

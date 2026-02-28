@@ -13,11 +13,15 @@ private protocol Printable {
 private let MAX_LINE_LENGTH = 80
 
 extension Name: Printable {
-    var printed: String { value }
+    var printed: String {
+        value
+    }
 }
 
 extension Variable: Printable {
-    var printed: String { "$" + name }
+    var printed: String {
+        "$" + name
+    }
 }
 
 // MARK: - Document
@@ -108,7 +112,9 @@ extension Argument: Printable {
 // MARK: - Fragments
 
 extension FragmentSpread: Printable {
-    var printed: String { "..." + name + wrap(" ", join(directives, " ")) }
+    var printed: String {
+        "..." + name + wrap(" ", join(directives, " "))
+    }
 }
 
 extension InlineFragment: Printable {
@@ -132,11 +138,15 @@ extension FragmentDefinition: Printable {
 // MARK: - Value
 
 extension IntValue: Printable {
-    var printed: String { value }
+    var printed: String {
+        value
+    }
 }
 
 extension FloatValue: Printable {
-    var printed: String { value }
+    var printed: String {
+        value
+    }
 }
 
 extension StringValue: Printable {
@@ -146,15 +156,21 @@ extension StringValue: Printable {
 }
 
 extension BooleanValue: Printable {
-    var printed: String { value ? "true" : "false" }
+    var printed: String {
+        value ? "true" : "false"
+    }
 }
 
 extension NullValue: Printable {
-    var printed: String { "null" }
+    var printed: String {
+        "null"
+    }
 }
 
 extension EnumValue: Printable {
-    var printed: String { value }
+    var printed: String {
+        value
+    }
 }
 
 extension ListValue: Printable {
@@ -183,27 +199,37 @@ extension ObjectValue: Printable {
 }
 
 extension ObjectField: Printable {
-    var printed: String { name + ": " + value.printed }
+    var printed: String {
+        name + ": " + value.printed
+    }
 }
 
 // MARK: - Directive
 
 extension Directive: Printable {
-    var printed: String { "@" + name + wrap("(", join(arguments, ", "), ")") }
+    var printed: String {
+        "@" + name + wrap("(", join(arguments, ", "), ")")
+    }
 }
 
 // MARK: - Type
 
 extension NamedType: Printable {
-    var printed: String { name.printed }
+    var printed: String {
+        name.printed
+    }
 }
 
 extension ListType: Printable {
-    var printed: String { "[" + type.printed + "]" }
+    var printed: String {
+        "[" + type.printed + "]"
+    }
 }
 
 extension NonNullType: Printable {
-    var printed: String { type.printed + "!" }
+    var printed: String {
+        type.printed + "!"
+    }
 }
 
 // MARK: - Type System Definitions
@@ -216,7 +242,9 @@ extension SchemaDefinition: Printable {
 }
 
 extension OperationTypeDefinition: Printable {
-    var printed: String { operation.rawValue + ": " + type }
+    var printed: String {
+        operation.rawValue + ": " + type
+    }
 }
 
 extension ScalarTypeDefinition: Printable {
@@ -423,7 +451,9 @@ private func + (lhs: Printable, rhs: String) -> String {
 }
 
 extension String: Printable {
-    fileprivate var printed: String { self }
+    fileprivate var printed: String {
+        self
+    }
 }
 
 private extension Node {

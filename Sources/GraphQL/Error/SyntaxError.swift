@@ -7,7 +7,7 @@ import Foundation
 func syntaxError(source: Source, position: Int, description: String) -> GraphQLError {
     let location = getLocation(source: source, position: position)
 
-    let error = GraphQLError(
+    return GraphQLError(
         message:
         "Syntax Error \(source.name) (\(location.line):\(location.column)) " +
             description + "\n\n" +
@@ -15,8 +15,6 @@ func syntaxError(source: Source, position: Int, description: String) -> GraphQLE
         source: source,
         positions: [position]
     )
-
-    return error
 }
 
 /**

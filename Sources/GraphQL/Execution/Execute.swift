@@ -1,7 +1,7 @@
 import Dispatch
 import OrderedCollections
 
-/**
+/*
  * Terminology
  *
  * "Definitions" are the generic name for top-level statements in the document.
@@ -632,8 +632,8 @@ public func resolveField(
     )
 }
 
-// Isolates the "ReturnOrAbrupt" behavior to not de-opt the `resolveField`
-// function. Returns the result of `resolve` or the abrupt-return Error object.
+/// Isolates the "ReturnOrAbrupt" behavior to not de-opt the `resolveField`
+/// function. Returns the result of `resolve` or the abrupt-return Error object.
 func resolveOrError(
     resolve: GraphQLFieldResolve,
     source: any Sendable,
@@ -649,8 +649,8 @@ func resolveOrError(
     }
 }
 
-// This is a small wrapper around completeValue which detects and logs errors
-// in the execution context.
+/// This is a small wrapper around completeValue which detects and logs errors
+/// in the execution context.
 func completeValueCatchingError(
     exeContext: ExecutionContext,
     returnType: GraphQLType,
@@ -693,8 +693,8 @@ func completeValueCatchingError(
     }
 }
 
-// This is a small wrapper around completeValue which annotates errors with
-// location information.
+/// This is a small wrapper around completeValue which annotates errors with
+/// location information.
 func completeValueWithLocatedError(
     exeContext: ExecutionContext,
     returnType: GraphQLType,
@@ -886,11 +886,9 @@ func completeLeafValue(returnType: GraphQLLeafType, result: (any Sendable)?) thr
     guard let result = result else {
         return .null
     }
-    let serializedResult = try returnType.serialize(value: result)
+    return try returnType.serialize(value: result)
 
     // Do not check for serialization to null here. Some scalars may model literals as `Map.null`.
-
-    return serializedResult
 }
 
 /**
@@ -1048,16 +1046,13 @@ func defaultResolve(
     }
 
     if let subscriptable = source as? KeySubscriptable {
-        let value = subscriptable[info.fieldName]
-        return value
+        return subscriptable[info.fieldName]
     }
     if let subscriptable = source as? [String: any Sendable] {
-        let value = subscriptable[info.fieldName]
-        return value
+        return subscriptable[info.fieldName]
     }
     if let subscriptable = source as? OrderedDictionary<String, any Sendable> {
-        let value = subscriptable[info.fieldName]
-        return value
+        return subscriptable[info.fieldName]
     }
 
     let mirror = Mirror(reflecting: source)

@@ -12,7 +12,7 @@ public struct GraphQLRequest: Equatable, Codable, Sendable {
         self.variables = variables
     }
 
-    // To handle decoding with a default of variables = []
+    /// To handle decoding with a default of variables = []
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         query = try container.decode(String.self, forKey: .query)

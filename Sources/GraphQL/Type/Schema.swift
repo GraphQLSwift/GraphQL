@@ -130,7 +130,7 @@ public final class GraphQLSchema: @unchecked Sendable {
         // Storing the resulting map for reference by the schema.
         var typeMap = TypeMap()
 
-        // Keep track of all implementations by interface name.
+        /// Keep track of all implementations by interface name.
         func collectImplementations(
             types: [GraphQLNamedType]
         ) throws -> [String: InterfaceImplementations] {
@@ -292,8 +292,7 @@ public final class GraphQLSchema: @unchecked Sendable {
             subTypeMap[abstractType.name] = map
         }
 
-        let isSubType = map?[maybeSubType.name] != nil
-        return isSubType
+        return map?[maybeSubType.name] != nil
     }
 
     public func getDirective(name: String) -> GraphQLDirective? {

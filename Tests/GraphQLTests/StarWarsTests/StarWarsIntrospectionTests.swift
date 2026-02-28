@@ -1,6 +1,5 @@
-import Testing
-
 @testable import GraphQL
+import Testing
 
 @Suite struct StarWarsIntrospectionTests {
     @Test func introspectionTypeQuery() async throws {

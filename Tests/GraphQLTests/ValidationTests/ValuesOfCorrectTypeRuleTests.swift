@@ -1154,7 +1154,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
             }
         )
 
-        let schema = try! GraphQLSchema(
+        let schema = try GraphQLSchema(
             query: GraphQLObjectType(
                 name: "Query",
                 fields: [
@@ -1192,7 +1192,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
             }
         )
 
-        let schema = try! GraphQLSchema(
+        let schema = try GraphQLSchema(
             query: GraphQLObjectType(
                 name: "Query",
                 fields: [
@@ -1224,7 +1224,7 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
             }
         )
 
-        let schema = try! GraphQLSchema(
+        let schema = try GraphQLSchema(
             query: GraphQLObjectType(
                 name: "Query",
                 fields: [

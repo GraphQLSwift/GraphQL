@@ -16,7 +16,7 @@ func createLexer(source: Source, noLocation: Bool = false) -> Lexer {
         value: nil
     )
 
-    let lexer = Lexer(
+    return Lexer(
         source: source,
         noLocation: noLocation,
         lastToken: startOfFileToken,
@@ -25,8 +25,6 @@ func createLexer(source: Source, noLocation: Bool = false) -> Lexer {
         lineStart: 0,
         advance: advanceLexer
     )
-
-    return lexer
 }
 
 func advanceLexer(lexer: Lexer) throws -> Token {
@@ -866,7 +864,7 @@ func readBlockString(
     )
 }
 
-/**
+/*
  * blockStringValue(rawValue: String)
  *
  * Transcription of the algorithm specified in the [spec](http://spec.graphql.org/draft/#BlockStringValue())

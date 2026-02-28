@@ -190,17 +190,17 @@ public final class GraphQLScalarType: Sendable {
         self.parseLiteral = parseLiteral ?? defaultParseLiteral
     }
 
-    // Serializes an internal value to include in a response.
+    /// Serializes an internal value to include in a response.
     public func serialize(value: Any) throws -> Map {
         return try serialize(value)
     }
 
-    // Parses an externally provided value to use as an input.
+    /// Parses an externally provided value to use as an input.
     public func parseValue(value: Map) throws -> Map {
         return try parseValue(value)
     }
 
-    // Parses an externally provided literal value to use as an input.
+    /// Parses an externally provided literal value to use as an input.
     public func parseLiteral(valueAST: Value) throws -> Map {
         return try parseLiteral(valueAST)
     }
@@ -586,8 +586,7 @@ public final class GraphQLField: @unchecked Sendable {
         self.astNode = astNode
 
         _resolve = { source, args, context, info in
-            let result = try resolve(source, args, context, info)
-            return result
+            try resolve(source, args, context, info)
         }
         _subscribe = nil
     }

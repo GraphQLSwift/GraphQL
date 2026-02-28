@@ -461,9 +461,9 @@ import Testing
     }
 }
 
-// This function exists because `error = #require(throwing: GraphQLError) { ... }` doesn't work
-// until Swift 6.1. Once we drop 6.0 support, we can change all calls of this to
-// `error = #require(throwing: GraphQLError) { ... }`
+/// This function exists because `error = #require(throwing: GraphQLError) { ... }` doesn't work
+/// until Swift 6.1. Once we drop 6.0 support, we can change all calls of this to
+/// `error = #require(throwing: GraphQLError) { ... }`
 private func expectGraphQLError<T>(_ test: () throws -> T) throws -> GraphQLError {
     do {
         _ = try test()

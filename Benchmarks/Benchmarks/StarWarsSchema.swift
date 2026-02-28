@@ -1,6 +1,6 @@
 import GraphQL
 
-/**
+/*
  * This is designed to be an end-to-end test, demonstrating
  * the full GraphQL stack.
  *
@@ -11,7 +11,7 @@ import GraphQL
  * Wars trilogy.
  */
 
-/**
+/*
  * Using our shorthand to describe type systems, the type system for our
  * Star Wars example is:
  *
