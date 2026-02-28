@@ -18,9 +18,9 @@ func NoFragmentCyclesRule(context: ValidationContext) -> Visitor {
     // Position in the spread path
     var spreadPathIndexByName = [String: Int]()
 
-    // This does a straight-forward DFS to find cycles.
-    // It does not terminate when a cycle was found but continues to explore
-    // the graph to find all possible cycles.
+    /// This does a straight-forward DFS to find cycles.
+    /// It does not terminate when a cycle was found but continues to explore
+    /// the graph to find all possible cycles.
     func detectCycleRecursive(fragment: FragmentDefinition) {
         if visitedFrags.contains(fragment.name.value) {
             return

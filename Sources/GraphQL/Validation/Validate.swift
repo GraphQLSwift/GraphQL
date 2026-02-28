@@ -18,8 +18,7 @@ public func validate(
 ) -> [GraphQLError] {
     let typeInfo = TypeInfo(schema: schema)
     let rules = rules.isEmpty ? specifiedRules : rules
-    let errors = visit(usingRules: rules, schema: schema, typeInfo: typeInfo, documentAST: ast)
-    return errors
+    return visit(usingRules: rules, schema: schema, typeInfo: typeInfo, documentAST: ast)
 }
 
 /**

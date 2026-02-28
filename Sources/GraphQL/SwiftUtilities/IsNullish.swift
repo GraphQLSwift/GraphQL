@@ -18,7 +18,7 @@ extension Optional: OptionalProtocol {
     }
 }
 
-/**
+/*
  * Returns true if a value is null, or nil.
  */
 // func isNullish(_ value: Any?) -> Bool {

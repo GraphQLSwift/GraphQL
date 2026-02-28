@@ -327,8 +327,7 @@ let __Type: GraphQLObjectType = {
                 }
 
                 let fieldMap = try type.getFields()
-                let fields = Array(fieldMap.values).sorted(by: { $0.name < $1.name })
-                return fields
+                return Array(fieldMap.values).sorted(by: { $0.name < $1.name })
             }
         ),
         "ofType": GraphQLField(type: __Type),
@@ -483,7 +482,7 @@ let __TypeKind = try! GraphQLEnumType(
     ]
 )
 
-/**
+/*
  * Note that these are GraphQLFieldDefinition and not GraphQLField,
  * so the format for args is different.
  */

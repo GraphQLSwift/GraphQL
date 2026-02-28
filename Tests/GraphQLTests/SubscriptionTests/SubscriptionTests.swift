@@ -356,7 +356,7 @@ import Testing
         ))
     }
 
-    /// 'resolves to an error for source event stream resolver errors'
+    // 'resolves to an error for source event stream resolver errors'
     // Tests above cover this
 
     /// 'resolves to an error if variables were wrong type'
@@ -711,7 +711,7 @@ import Testing
         #expect(results == expected)
     }
 
-    /// 'should not trigger when subscription is thrown'
+    // 'should not trigger when subscription is thrown'
     // Not necessary - Swift async stream handles throwing errors
 
     /// 'event order is correct for multiple publishes'
@@ -861,9 +861,9 @@ import Testing
         #expect(results == expected)
     }
 
-    /// 'should pass through error thrown in source event stream'
+    // 'should pass through error thrown in source event stream'
     // Handled by AsyncThrowingStream
 
-    /// Test incorrect emitted type errors
+    // Test incorrect emitted type errors
     // Handled by strongly typed PubSub
 }

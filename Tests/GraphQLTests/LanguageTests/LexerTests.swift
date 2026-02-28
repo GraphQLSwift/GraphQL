@@ -767,7 +767,7 @@ func lexOne(_ string: String) throws -> Token {
     // Tests for Blockstring support
     //
 
-    @Test func blockStringIndentAndBlankLine() throws {
+    @Test func blockStringIndentAndBlankLine() {
         let rawString =
             """
 
@@ -792,7 +792,7 @@ func lexOne(_ string: String) throws -> Token {
         """)
     }
 
-    @Test func blockStringDoubleIndentAndBlankLine() throws {
+    @Test func blockStringDoubleIndentAndBlankLine() {
         let rawString =
             """
 
@@ -823,7 +823,7 @@ func lexOne(_ string: String) throws -> Token {
         )
     }
 
-    @Test func blockStringIndentAndBlankLineFirstLineNotIndent() throws {
+    @Test func blockStringIndentAndBlankLineFirstLineNotIndent() {
         let rawString = """
 
 
@@ -847,7 +847,7 @@ func lexOne(_ string: String) throws -> Token {
         """)
     }
 
-    @Test func blockStringIndentBlankLineFirstLineNotIndentWeird() throws {
+    @Test func blockStringIndentBlankLineFirstLineNotIndentWeird() {
         let rawString = """
 
 
@@ -869,7 +869,7 @@ func lexOne(_ string: String) throws -> Token {
         """)
     }
 
-    @Test func blockStringIndentMultilineWithSingleSpaceIndent() throws {
+    @Test func blockStringIndentMultilineWithSingleSpaceIndent() {
         let rawString = """
          Multi-line string
          With Inner \"foo\"
@@ -884,7 +884,7 @@ func lexOne(_ string: String) throws -> Token {
         """)
     }
 
-    @Test func blockStringIndentMultilineWithSingleSpaceIndentExtraLines() throws {
+    @Test func blockStringIndentMultilineWithSingleSpaceIndentExtraLines() {
         let rawString = """
 
          Multi-line string

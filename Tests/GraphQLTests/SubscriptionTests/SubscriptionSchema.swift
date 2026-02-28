@@ -129,10 +129,9 @@ actor EmailDb {
             },
             subscribe: { _, args, _, _ throws -> Any? in
                 let priority = args["priority"].int ?? 0
-                let filtered = await self.publisher.subscribe().filter { email throws in
+                return await self.publisher.subscribe().filter { email throws in
                     return email.priority >= priority
                 }
-                return filtered
             }
         )
     }

@@ -83,11 +83,11 @@ let ValidationExampleCanine = try! GraphQLInterfaceType(
     }
 )
 
-// enum DogCommand {
-//   SIT
-//   HEEL
-//   DOWN
-// }
+/// enum DogCommand {
+///   SIT
+///   HEEL
+///   DOWN
+/// }
 let ValidationExampleDogCommand = try! GraphQLEnumType(
     name: "DogCommand",
     values: [
@@ -202,14 +202,14 @@ let ValidationExampleDog = try! GraphQLObjectType(
     ]
 )
 
-// enum FurColor {
-//  BROWN
-//  BLACK
-//  TAN
-//  SPOTTED
-//  NO_FUR
-//  UNKNOWN
-// }
+/// enum FurColor {
+///  BROWN
+///  BLACK
+///  TAN
+///  SPOTTED
+///  NO_FUR
+///  UNKNOWN
+/// }
 let ValidationExampleFurColor = try! GraphQLEnumType(
     name: "FurColor",
     values: [
@@ -260,7 +260,7 @@ let ValidationExampleCat = try! GraphQLObjectType(
     interfaces: [ValidationExampleBeing, ValidationExamplePet]
 )
 
-// union CatOrDog = Cat | Dog
+/// union CatOrDog = Cat | Dog
 let ValidationExampleCatOrDog = try! GraphQLUnionType(
     name: "CatOrDog",
     resolveType: { _, _ in
@@ -354,7 +354,7 @@ let ValidationExampleHuman = try! GraphQLObjectType(
     interfaces: [ValidationExampleBeing, ValidationExampleIntelligent]
 )
 
-// enum CatCommand { JUMP }
+/// enum CatCommand { JUMP }
 let ValidationExampleCatCommand = try! GraphQLEnumType(
     name: "CatCommand",
     values: [
@@ -364,7 +364,7 @@ let ValidationExampleCatCommand = try! GraphQLEnumType(
     ]
 )
 
-// union DogOrHuman = Dog | Human
+/// union DogOrHuman = Dog | Human
 let ValidationExampleDogOrHuman = try! GraphQLUnionType(
     name: "DogOrHuman",
     resolveType: { _, _ in
@@ -373,7 +373,7 @@ let ValidationExampleDogOrHuman = try! GraphQLUnionType(
     types: [ValidationExampleDog, ValidationExampleHuman]
 )
 
-// union HumanOrAlien = Human | Alien
+/// union HumanOrAlien = Human | Alien
 let ValidationExampleHumanOrAlien = try! GraphQLUnionType(
     name: "HumanOrAlien",
     resolveType: { _, _ in

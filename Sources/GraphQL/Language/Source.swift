@@ -7,7 +7,7 @@
  * Note that since Source parsing is heavily UTF8 dependent, the body
  * is converted into contiguous UTF8 bytes if necessary for optimal performance.
  */
-public struct Source: Hashable, Sendable {
+public struct Source: Hashable, Equatable, Sendable {
     public let body: String
     public let name: String
 
@@ -17,12 +17,5 @@ public struct Source: Hashable, Sendable {
 
         self.body = utf8Body
         self.name = name
-    }
-}
-
-extension Source: Equatable {
-    public static func == (lhs: Source, rhs: Source) -> Bool {
-        return lhs.body == rhs.body &&
-            lhs.name == rhs.name
     }
 }

@@ -161,7 +161,7 @@ func getSchema() throws -> GraphQLSchema {
         ],
         isOneOf: true
     )
-    let schema = try GraphQLSchema(
+    return try GraphQLSchema(
         query: GraphQLObjectType(
             name: "Query",
             fields: [
@@ -181,7 +181,6 @@ func getSchema() throws -> GraphQLSchema {
             testInputObject,
         ]
     )
-    return schema
 }
 
 struct TestObject: Codable {
