@@ -7,7 +7,9 @@
 
 The Swift implementation for GraphQL, a query language for APIs created by Facebook.
 
-Looking for help? Find resources [from the community](http://graphql.org/community/).
+This repo is a Swift port of the JavaScript reference implementation. To create GraphQL schemas more easily, use [graphql-generator](https://github.com/GraphQLSwift/graphql-generator) or [Graphiti](https://github.com/GraphQLSwift/Graphiti), and to expose your schema through HTTP, check out [graphql-vapor](https://github.com/GraphQLSwift/graphql-vapor) or [graphql-hummingbird](https://github.com/GraphQLSwift/graphql-hummingbird)
+
+Looking for help? Find resources [from the GraphQL community](http://graphql.org/community/).
 
 ## Usage
 
@@ -33,9 +35,6 @@ let schema = try GraphQLSchema(
 ```
 
 For more complex schema examples see the test files.
-
-This repo only contains the core GraphQL implementation and does not focus on the ease of schema creation. For a better experience
-when creating your GraphQL schema use [Graphiti](https://github.com/GraphQLSwift/Graphiti).
 
 ### Execution
 
