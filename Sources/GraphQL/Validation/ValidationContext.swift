@@ -1,14 +1,12 @@
-
-
 public enum HasSelectionSet {
     case operation(OperationDefinition)
     case fragment(FragmentDefinition)
 
     public var node: Node {
         switch self {
-        case let .operation(operation):
+        case .operation(let operation):
             return operation
-        case let .fragment(fragment):
+        case .fragment(let fragment):
             return fragment
         }
     }
@@ -17,18 +15,18 @@ public enum HasSelectionSet {
 extension HasSelectionSet: Hashable {
     public func hash(into hasher: inout Hasher) {
         switch self {
-        case let .operation(operation):
+        case .operation(let operation):
             return hasher.combine(operation.hashValue)
-        case let .fragment(fragment):
+        case .fragment(let fragment):
             return hasher.combine(fragment.hashValue)
         }
     }
 
     public static func == (lhs: HasSelectionSet, rhs: HasSelectionSet) -> Bool {
         switch (lhs, rhs) {
-        case let (.operation(l), .operation(r)):
+        case (.operation(let l), .operation(let r)):
             return l == r
-        case let (.fragment(l), .fragment(r)):
+        case (.fragment(let l), .fragment(let r)):
             return l == r
         default:
             return false
@@ -38,11 +36,9 @@ extension HasSelectionSet: Hashable {
 
 public typealias VariableUsage = (node: Variable, type: GraphQLInputType?, defaultValue: Map?)
 
-/**
- * An instance of this class is passed as the "this" context to all validators,
- * allowing access to commonly useful contextual information from within a
- * validation rule.
- */
+/// An instance of this class is passed as the "this" context to all validators,
+/// allowing access to commonly useful contextual information from within a
+/// validation rule.
 public class ASTValidationContext {
     let ast: Document
     var onError: (GraphQLError) -> Void
@@ -88,9 +84,9 @@ public class ASTValidationContext {
     public func getFragmentSpreads(node: SelectionSet) -> [FragmentSpread] {
         // Uncommenting this creates unpredictably wrong fragment path matching.
         // Failures can be seen in NoFragmentCyclesRuleTests.testNoSpreadingItselfDeeplyTwoPaths
-//        if let spreads = fragmentSpreads[node] {
-//            return spreads
-//        }
+        //        if let spreads = fragmentSpreads[node] {
+        //            return spreads
+        //        }
 
         var spreads = [FragmentSpread]()
         var setsToVisit: [SelectionSet] = [node]
@@ -100,20 +96,20 @@ public class ASTValidationContext {
                     spreads.append(spread)
                 } else if let fragment = selection as? InlineFragment {
                     setsToVisit.append(fragment.selectionSet)
-                } else if
-                    let field = selection as? Field,
+                } else if let field = selection as? Field,
                     let selectionSet = field.selectionSet
                 {
                     setsToVisit.append(selectionSet)
                 }
             }
         }
-//        fragmentSpreads[node] = spreads
+        //        fragmentSpreads[node] = spreads
         return spreads
     }
 
     public func getRecursivelyReferencedFragments(operation: OperationDefinition)
-    -> [FragmentDefinition] {
+        -> [FragmentDefinition]
+    {
         if let fragments = recursivelyReferencedFragments[operation] {
             return fragments
         }
@@ -162,11 +158,9 @@ public class SDLValidationContext: ASTValidationContext {
 
 public typealias SDLValidationRule = @Sendable (SDLValidationContext) -> Visitor
 
-/**
- * An instance of this class is passed as the "this" context to all validators,
- * allowing access to commonly useful contextual information from within a
- * validation rule.
- */
+/// An instance of this class is passed as the "this" context to all validators,
+/// allowing access to commonly useful contextual information from within a
+/// validation rule.
 public final class ValidationContext: ASTValidationContext {
     public let schema: GraphQLSchema
     let typeInfo: TypeInfo

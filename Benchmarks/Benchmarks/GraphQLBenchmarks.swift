@@ -6,19 +6,19 @@ let benchmarks: @Sendable () -> Void = {
         let result = try await graphql(
             schema: starWarsSchema,
             request: """
-            query NestedQuery {
-                hero {
-                    name
-                    friends {
+                query NestedQuery {
+                    hero {
                         name
-                        appearsIn
                         friends {
                             name
+                            appearsIn
+                            friends {
+                                name
+                            }
                         }
                     }
                 }
-            }
-            """
+                """
         )
     }
 }

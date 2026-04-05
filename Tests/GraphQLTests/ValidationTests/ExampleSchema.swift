@@ -13,7 +13,7 @@ let ValidationExampleBeing = try! GraphQLInterfaceType(
                 print(type(of: inputValue))
                 return nil
             }
-        ),
+        )
     ],
     resolveType: { _, _ in
         "Unknown"
@@ -51,7 +51,7 @@ let ValidationExamplePet = try! GraphQLInterfaceType(
                 print(type(of: inputValue))
                 return nil
             }
-        ),
+        )
     ],
     resolveType: { _, _ in
         "Unknown"
@@ -140,7 +140,7 @@ let ValidationExampleDog = try! GraphQLObjectType(
         "doesKnowCommand": GraphQLField(
             type: GraphQLBoolean,
             args: [
-                "dogCommand": GraphQLArgument(type: ValidationExampleDogCommand),
+                "dogCommand": GraphQLArgument(type: ValidationExampleDogCommand)
             ],
             resolve: { inputValue, _, _, _ -> String? in
                 print(type(of: inputValue))
@@ -153,7 +153,7 @@ let ValidationExampleDog = try! GraphQLObjectType(
                 "atOtherHomes": GraphQLArgument(
                     type: GraphQLBoolean,
                     defaultValue: true
-                ),
+                )
             ],
             resolve: { inputValue, _, _, _ -> String? in
                 print(type(of: inputValue))
@@ -252,7 +252,11 @@ let ValidationExampleCat = try! GraphQLObjectType(
             print(type(of: inputValue))
             return nil
         },
-        "furColor": GraphQLField(type: ValidationExampleFurColor) { inputValue, _, _, _ -> String? in
+        "furColor": GraphQLField(type: ValidationExampleFurColor) {
+            inputValue,
+            _,
+            _,
+            _ -> String? in
             print(type(of: inputValue))
             return nil
         },
@@ -275,7 +279,7 @@ let ValidationExampleCatOrDog = try! GraphQLUnionType(
 let ValidationExampleIntelligent = try! GraphQLInterfaceType(
     name: "Intelligent",
     fields: [
-        "iq": GraphQLField(type: GraphQLInt),
+        "iq": GraphQLField(type: GraphQLInt)
     ],
     resolveType: { _, _ in
         "Unknown"
@@ -293,7 +297,7 @@ let ValidationExampleSentient = try! GraphQLInterfaceType(
         ) { inputValue, _, _, _ -> String? in
             print(type(of: inputValue))
             return nil
-        },
+        }
     ],
     resolveType: { _, _ in
         "Unknown"
@@ -360,7 +364,7 @@ let ValidationExampleCatCommand = try! GraphQLEnumType(
     values: [
         "JUMP": GraphQLEnumValue(
             value: "JUMP"
-        ),
+        )
     ]
 )
 
@@ -507,7 +511,7 @@ let ValidationExampleComplicatedArgs = try! GraphQLObjectType(
             args: [
                 "stringListNonNullArg": GraphQLArgument(
                     type: GraphQLList(GraphQLNonNull(GraphQLString))
-                ),
+                )
             ],
             resolve: { inputValue, _, _, _ -> String? in
                 print(type(of: inputValue))
@@ -586,7 +590,11 @@ let ValidationExampleQueryRoot = try! GraphQLObjectType(
             print(type(of: inputValue))
             return nil
         },
-        "catOrDog": GraphQLField(type: ValidationExampleCatOrDog) { inputValue, _, _, _ -> String? in
+        "catOrDog": GraphQLField(type: ValidationExampleCatOrDog) {
+            inputValue,
+            _,
+            _,
+            _ -> String? in
             print(type(of: inputValue))
             return nil
         },
@@ -611,7 +619,7 @@ let ValidationExampleSchema = try! GraphQLSchema(
     directives: {
         var directives = specifiedDirectives
         directives.append(contentsOf: [
-            ValidationFieldDirective,
+            ValidationFieldDirective
         ])
         return directives
     }()

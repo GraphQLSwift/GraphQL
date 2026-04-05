@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class UniqueArgumentNamesRuleTests: ValidationTestCase {
     override init() {
@@ -102,11 +103,11 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              field(arg1: "value", arg1: "value")
-            }
-            """
+                """
+                {
+                  field(arg1: "value", arg1: "value")
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -122,11 +123,11 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              field(arg1: "value", arg1: "value", arg1: "value")
-            }
-            """
+                """
+                {
+                  field(arg1: "value", arg1: "value", arg1: "value")
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -143,11 +144,11 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              field @directive(arg1: "value", arg1: "value")
-            }
-            """
+                """
+                {
+                  field @directive(arg1: "value", arg1: "value")
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -163,11 +164,11 @@ class UniqueArgumentNamesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              field @directive(arg1: "value", arg1: "value", arg1: "value")
-            }
-            """
+                """
+                {
+                  field @directive(arg1: "value", arg1: "value", arg1: "value")
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],

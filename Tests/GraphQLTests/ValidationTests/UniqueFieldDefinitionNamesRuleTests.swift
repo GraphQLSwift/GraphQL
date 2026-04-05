@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class UniqueFieldDefinitionNamesRuleTests: SDLValidationTestCase {
     override init() {
@@ -297,88 +298,98 @@ class UniqueFieldDefinitionNamesRuleTests: SDLValidationTestCase {
     }
 
     @Test func addingNewFieldToTheTypeInsideExistingSchema() throws {
-        let schema = try buildSchema(source: """
-        type SomeObject
-        interface SomeInterface
-        input SomeInputObject
-        """)
+        let schema = try buildSchema(
+            source: """
+                type SomeObject
+                interface SomeInterface
+                input SomeInputObject
+                """
+        )
         let sdl = """
-        extend type SomeObject {
-          foo: String
-        }
+            extend type SomeObject {
+              foo: String
+            }
 
-        extend interface SomeInterface {
-          foo: String
-        }
+            extend interface SomeInterface {
+              foo: String
+            }
 
-        extend input SomeInputObject {
-          foo: String
-        }
-        """
+            extend input SomeInputObject {
+              foo: String
+            }
+            """
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
     @Test func addingConflictingFieldsToExistingSchemaTwice() throws {
-        let schema = try buildSchema(source: """
-        type SomeObject {
-          foo: String
-        }
+        let schema = try buildSchema(
+            source: """
+                type SomeObject {
+                  foo: String
+                }
 
-        interface SomeInterface {
-          foo: String
-        }
+                interface SomeInterface {
+                  foo: String
+                }
 
-        input SomeInputObject {
-          foo: String
-        }
-        """)
+                input SomeInputObject {
+                  foo: String
+                }
+                """
+        )
         let sdl = """
-        extend type SomeObject {
-          foo: String
-        }
-        extend interface SomeInterface {
-          foo: String
-        }
-        extend input SomeInputObject {
-          foo: String
-        }
+            extend type SomeObject {
+              foo: String
+            }
+            extend interface SomeInterface {
+              foo: String
+            }
+            extend input SomeInputObject {
+              foo: String
+            }
 
-        extend type SomeObject {
-          foo: String
-        }
-        extend interface SomeInterface {
-          foo: String
-        }
-        extend input SomeInputObject {
-          foo: String
-        }
-        """
+            extend type SomeObject {
+              foo: String
+            }
+            extend interface SomeInterface {
+              foo: String
+            }
+            extend input SomeInputObject {
+              foo: String
+            }
+            """
         try assertValidationErrors(
             sdl,
             schema: schema,
             [
                 GraphQLError(
-                    message: #"Field "SomeObject.foo" already exists in the schema. It cannot also be defined in this type extension."#,
+                    message:
+                        #"Field "SomeObject.foo" already exists in the schema. It cannot also be defined in this type extension."#,
                     locations: [.init(line: 2, column: 3)]
                 ),
                 GraphQLError(
-                    message: #"Field "SomeInterface.foo" already exists in the schema. It cannot also be defined in this type extension."#,
+                    message:
+                        #"Field "SomeInterface.foo" already exists in the schema. It cannot also be defined in this type extension."#,
                     locations: [.init(line: 5, column: 3)]
                 ),
                 GraphQLError(
-                    message: #"Field "SomeInputObject.foo" already exists in the schema. It cannot also be defined in this type extension."#,
+                    message:
+                        #"Field "SomeInputObject.foo" already exists in the schema. It cannot also be defined in this type extension."#,
                     locations: [.init(line: 8, column: 3)]
                 ),
                 GraphQLError(
-                    message: #"Field "SomeObject.foo" already exists in the schema. It cannot also be defined in this type extension."#,
+                    message:
+                        #"Field "SomeObject.foo" already exists in the schema. It cannot also be defined in this type extension."#,
                     locations: [.init(line: 12, column: 3)]
                 ),
                 GraphQLError(
-                    message: #"Field "SomeInterface.foo" already exists in the schema. It cannot also be defined in this type extension."#,
+                    message:
+                        #"Field "SomeInterface.foo" already exists in the schema. It cannot also be defined in this type extension."#,
                     locations: [.init(line: 15, column: 3)]
                 ),
                 GraphQLError(
-                    message: #"Field "SomeInputObject.foo" already exists in the schema. It cannot also be defined in this type extension."#,
+                    message:
+                        #"Field "SomeInputObject.foo" already exists in the schema. It cannot also be defined in this type extension."#,
                     locations: [.init(line: 18, column: 3)]
                 ),
             ]
@@ -386,33 +397,35 @@ class UniqueFieldDefinitionNamesRuleTests: SDLValidationTestCase {
     }
 
     @Test func addingFieldsToExistingSchemaTwice() throws {
-        let schema = try buildSchema(source: """
-        type SomeObject
-        interface SomeInterface
-        input SomeInputObject
-        """)
+        let schema = try buildSchema(
+            source: """
+                type SomeObject
+                interface SomeInterface
+                input SomeInputObject
+                """
+        )
         let sdl = """
-        extend type SomeObject {
-          foo: String
-        }
-        extend type SomeObject {
-          foo: String
-        }
+            extend type SomeObject {
+              foo: String
+            }
+            extend type SomeObject {
+              foo: String
+            }
 
-        extend interface SomeInterface {
-          foo: String
-        }
-        extend interface SomeInterface {
-          foo: String
-        }
+            extend interface SomeInterface {
+              foo: String
+            }
+            extend interface SomeInterface {
+              foo: String
+            }
 
-        extend input SomeInputObject {
-          foo: String
-        }
-        extend input SomeInputObject {
-          foo: String
-        }
-        """
+            extend input SomeInputObject {
+              foo: String
+            }
+            extend input SomeInputObject {
+              foo: String
+            }
+            """
         try assertValidationErrors(
             sdl,
             schema: schema,

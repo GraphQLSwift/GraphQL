@@ -1,9 +1,7 @@
-/**
- * A GraphQLError describes an Error found during the parse, validate, or
- * execute phases of performing a GraphQL operation. In addition to a message
- * it also includes information about the locations in a
- * GraphQL document and/or execution result that correspond to the error.
- */
+/// A GraphQLError describes an Error found during the parse, validate, or
+/// execute phases of performing a GraphQL operation. In addition to a message
+/// it also includes information about the locations in a
+/// GraphQL document and/or execution result that correspond to the error.
 public struct GraphQLError: Error, Codable {
     enum CodingKeys: String, CodingKey {
         case message
@@ -217,9 +215,9 @@ public enum IndexPathValue: Codable, Equatable, Sendable {
         var container = encoder.singleValueContainer()
 
         switch self {
-        case let .index(index):
+        case .index(let index):
             try container.encode(index)
-        case let .key(key):
+        case .key(let key):
             try container.encode(key)
         }
     }
@@ -234,9 +232,9 @@ extension IndexPathValue: IndexPathElement {
 extension IndexPathValue: CustomStringConvertible {
     public var description: String {
         switch self {
-        case let .index(index):
+        case .index(let index):
             return index.description
-        case let .key(key):
+        case .key(let key):
             return key.description
         }
     }
@@ -255,16 +253,16 @@ extension IndexPathElement {
     }
 }
 
-public extension IndexPathElement {
-    var indexValue: Int? {
-        if case let .index(index) = indexPathValue {
+extension IndexPathElement {
+    public var indexValue: Int? {
+        if case .index(let index) = indexPathValue {
             return index
         }
         return nil
     }
 
-    var keyValue: String? {
-        if case let .key(key) = indexPathValue {
+    public var keyValue: String? {
+        if case .key(let key) = indexPathValue {
             return key
         }
         return nil

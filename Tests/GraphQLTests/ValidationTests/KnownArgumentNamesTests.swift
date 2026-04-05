@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class KnownArgumentNamesTests: ValidationTestCase {
     override init() {
@@ -22,12 +23,16 @@ class KnownArgumentNamesTests: ValidationTestCase {
     @Test func invalidWithSlightlyMisspelledArgument() throws {
         let errors = try assertInvalid(
             errorCount: 1,
-            query: "fragment objectFieldSelection on Dog { __typename isHousetrained(atOtherHomees: true) }"
+            query:
+                "fragment objectFieldSelection on Dog { __typename isHousetrained(atOtherHomees: true) }"
         )
 
         try assertValidationError(
-            error: errors.first, line: 1, column: 66,
-            message: #"Field "isHousetrained" on type "Dog" does not have argument "atOtherHomees". Did you mean "atOtherHomes"?"#
+            error: errors.first,
+            line: 1,
+            column: 66,
+            message:
+                #"Field "isHousetrained" on type "Dog" does not have argument "atOtherHomees". Did you mean "atOtherHomes"?"#
         )
     }
 
@@ -38,7 +43,9 @@ class KnownArgumentNamesTests: ValidationTestCase {
         )
 
         try assertValidationError(
-            error: errors.first, line: 1, column: 56,
+            error: errors.first,
+            line: 1,
+            column: 56,
             message: #"Field "name" on type "Dog" does not have argument "uppercased"."#
         )
     }

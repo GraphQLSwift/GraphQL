@@ -1,10 +1,8 @@
-/**
- * Implements the "Type Validation" sub-sections of the specification's
- * "Type System" section.
- *
- * Validation runs synchronously, returning an array of encountered errors, or
- * an empty array if no errors were encountered and the Schema is valid.
- */
+/// Implements the "Type Validation" sub-sections of the specification's
+/// "Type System" section.
+///
+/// Validation runs synchronously, returning an array of encountered errors, or
+/// an empty array if no errors were encountered and the Schema is valid.
 public func validateSchema(
     schema: GraphQLSchema
 ) throws -> [GraphQLError] {
@@ -26,10 +24,8 @@ public func validateSchema(
     return errors
 }
 
-/**
- * Utility function which asserts a schema is valid by throwing an error if
- * it is invalid.
- */
+/// Utility function which asserts a schema is valid by throwing an error if
+/// it is invalid.
 func assertValidSchema(schema: GraphQLSchema) throws {
     let errors = try validateSchema(schema: schema)
     if !errors.isEmpty {
@@ -102,7 +98,8 @@ func validateRootTypes(context: SchemaValidationContext) {
         if operationTypes.count > 1 {
             let operationList = operationTypes.map { $0.rawValue }.andList()
             context.reportError(
-                message: "All root types must be different, \"\(rootType)\" type is used as \(operationList) root types.",
+                message:
+                    "All root types must be different, \"\(rootType)\" type is used as \(operationList) root types.",
                 nodes: operationTypes.map { operationType in
                     getOperationTypeNode(schema: schema, operation: operationType)
                 }
@@ -117,7 +114,7 @@ func getOperationTypeNode(
 ) -> Node? {
     let nodes: [SchemaDefinition?] = [schema.astNode]
     // TODO: Add schema operation extension support
-//    nodes.append(contentsOf: schema.extensionASTNodes)
+    //    nodes.append(contentsOf: schema.extensionASTNodes)
     return nodes.flatMap { schemaNode in
         schemaNode?.operationTypes ?? []
     }.find { operationNode in operationNode.operation == operation }?.type
@@ -142,7 +139,8 @@ func validateDirectives(context: SchemaValidationContext) {
 
             if isRequiredArgument(arg), arg.deprecationReason != nil {
                 context.reportError(
-                    message: "Required argument @\(directive.name)(\(arg.name):) cannot be deprecated.",
+                    message:
+                        "Required argument @\(directive.name)(\(arg.name):) cannot be deprecated.",
                     nodes: [
                         getDeprecatedDirectiveNode(directives: arg.astNode?.directives),
                         arg.astNode?.type,
@@ -161,7 +159,8 @@ func validateName(
     // Ensure names are valid, however introspection types opt out.
     if name.hasPrefix("__") {
         context.reportError(
-            message: "Name \"\(name)\" must not begin with \"__\", which is reserved by GraphQL introspection.",
+            message:
+                "Name \"\(name)\" must not begin with \"__\", which is reserved by GraphQL introspection.",
             node: astNode
         )
     }
@@ -246,15 +245,16 @@ func validateFields(
             // Ensure the type is an input type
             if !isInputType(type: arg.type) {
                 context.reportError(
-                    message: "The type of \(type).\(field.name)(\(argName):) must be Input " +
-                        "Type but got: \(arg.type).",
+                    message: "The type of \(type).\(field.name)(\(argName):) must be Input "
+                        + "Type but got: \(arg.type).",
                     node: arg.astNode?.type
                 )
             }
 
             if isRequiredArgument(arg), arg.deprecationReason != nil {
                 context.reportError(
-                    message: "Required argument \(type).\(field.name)(\(argName):) cannot be deprecated.",
+                    message:
+                        "Required argument \(type).\(field.name)(\(argName):) cannot be deprecated.",
                     nodes: [
                         getDeprecatedDirectiveNode(directives: arg.astNode?.directives),
                         arg.astNode?.type,
@@ -292,15 +292,16 @@ func validateFields(
             // Ensure the type is an input type
             if !isInputType(type: arg.type) {
                 context.reportError(
-                    message: "The type of \(type).\(field.name)(\(argName):) must be Input " +
-                        "Type but got: \(arg.type).",
+                    message: "The type of \(type).\(field.name)(\(argName):) must be Input "
+                        + "Type but got: \(arg.type).",
                     node: arg.astNode?.type
                 )
             }
 
             if isRequiredArgument(arg), arg.deprecationReason != nil {
                 context.reportError(
-                    message: "Required argument \(type).\(field.name)(\(argName):) cannot be deprecated.",
+                    message:
+                        "Required argument \(type).\(field.name)(\(argName):) cannot be deprecated.",
                     nodes: [
                         getDeprecatedDirectiveNode(directives: arg.astNode?.directives),
                         arg.astNode?.type,
@@ -319,7 +320,8 @@ func validateInterfaces(
     for iface in try type.getInterfaces() {
         if type == iface {
             context.reportError(
-                message: "Type \(type) cannot implement itself because it would create a circular reference.",
+                message:
+                    "Type \(type) cannot implement itself because it would create a circular reference.",
                 nodes: getAllImplementsInterfaceNodes(type: type, iface: iface)
             )
             continue
@@ -348,7 +350,8 @@ func validateInterfaces(
     for iface in try type.getInterfaces() {
         if type == iface {
             context.reportError(
-                message: "Type \(type) cannot implement itself because it would create a circular reference.",
+                message:
+                    "Type \(type) cannot implement itself because it would create a circular reference.",
                 nodes: getAllImplementsInterfaceNodes(type: type, iface: iface)
             )
             continue
@@ -386,7 +389,8 @@ func validateTypeImplementsInterface(
             var nodes: [Node?] = [ifaceField.astNode, type.astNode]
             nodes.append(contentsOf: type.extensionASTNodes)
             context.reportError(
-                message: "Interface field \(iface.name).\(fieldName) expected but \(type) does not provide it.",
+                message:
+                    "Interface field \(iface.name).\(fieldName) expected but \(type) does not provide it.",
                 nodes: nodes
             )
             continue
@@ -396,9 +400,8 @@ func validateTypeImplementsInterface(
         // a valid subtype. (covariant)
         if try !isTypeSubTypeOf(context.schema, typeField.type, ifaceField.type) {
             context.reportError(
-                message: "Interface field \(iface.name).\(fieldName) expects type " +
-                    "\(ifaceField.type) but \(type).\(fieldName) " +
-                    "is type \(typeField.type).",
+                message: "Interface field \(iface.name).\(fieldName) expects type "
+                    + "\(ifaceField.type) but \(type).\(fieldName) " + "is type \(typeField.type).",
                 nodes: [ifaceField.astNode?.type, typeField.astNode?.type]
             )
         }
@@ -411,7 +414,8 @@ func validateTypeImplementsInterface(
             // Assert interface field arg exists on object field.
             guard let typeArg = typeArg else {
                 context.reportError(
-                    message: "Interface field argument \(iface.name).\(fieldName)(\(argName):) expected but \(type).\(fieldName) does not provide it.",
+                    message:
+                        "Interface field argument \(iface.name).\(fieldName)(\(argName):) expected but \(type).\(fieldName) does not provide it.",
                     nodes: [ifaceArg.astNode, typeField.astNode]
                 )
                 continue
@@ -422,10 +426,10 @@ func validateTypeImplementsInterface(
             // TODO: change to contravariant?
             if !isEqualType(ifaceArg.type, typeArg.type) {
                 context.reportError(
-                    message: "Interface field argument \(iface.name).\(fieldName)(\(argName):) " +
-                        "expects type \(ifaceArg.type) but " +
-                        "\(type).\(fieldName)(\(argName):) is type " +
-                        "\(typeArg.type).",
+                    message: "Interface field argument \(iface.name).\(fieldName)(\(argName):) "
+                        + "expects type \(ifaceArg.type) but "
+                        + "\(type).\(fieldName)(\(argName):) is type "
+                        + "\(typeArg.type).",
                     nodes: [ifaceArg.astNode?.type, typeArg.astNode?.type]
                 )
             }
@@ -439,7 +443,8 @@ func validateTypeImplementsInterface(
             let ifaceArg = ifaceField.args.find { arg in arg.name == argName }
             if ifaceArg == nil, isRequiredArgument(typeArg) {
                 context.reportError(
-                    message: "Argument \"\(type).\(fieldName)(\(argName):)\" must not be required type \"\(typeArg.type)\" if not provided by the Interface field \"\(iface.name).\(fieldName)\".",
+                    message:
+                        "Argument \"\(type).\(fieldName)(\(argName):)\" must not be required type \"\(typeArg.type)\" if not provided by the Interface field \"\(iface.name).\(fieldName)\".",
                     nodes: [typeArg.astNode, ifaceField.astNode]
                 )
             }
@@ -464,7 +469,8 @@ func validateTypeImplementsInterface(
             var nodes: [Node?] = [ifaceField.astNode, type.astNode]
             nodes.append(contentsOf: type.extensionASTNodes)
             context.reportError(
-                message: "Interface field \(iface.name).\(fieldName) expected but \(type) does not provide it.",
+                message:
+                    "Interface field \(iface.name).\(fieldName) expected but \(type) does not provide it.",
                 nodes: nodes
             )
             continue
@@ -474,9 +480,8 @@ func validateTypeImplementsInterface(
         // a valid subtype. (covariant)
         if try !isTypeSubTypeOf(context.schema, typeField.type, ifaceField.type) {
             context.reportError(
-                message: "Interface field \(iface.name).\(fieldName) expects type " +
-                    "\(ifaceField.type) but \(type).\(fieldName) " +
-                    "is type \(typeField.type).",
+                message: "Interface field \(iface.name).\(fieldName) expects type "
+                    + "\(ifaceField.type) but \(type).\(fieldName) " + "is type \(typeField.type).",
                 nodes: [ifaceField.astNode?.type, typeField.astNode?.type]
             )
         }
@@ -489,7 +494,8 @@ func validateTypeImplementsInterface(
             // Assert interface field arg exists on object field.
             guard let typeArg = typeArg else {
                 context.reportError(
-                    message: "Interface field argument \(iface.name).\(fieldName)(\(argName):) expected but \(type).\(fieldName) does not provide it.",
+                    message:
+                        "Interface field argument \(iface.name).\(fieldName)(\(argName):) expected but \(type).\(fieldName) does not provide it.",
                     nodes: [ifaceArg.astNode, typeField.astNode]
                 )
                 continue
@@ -500,10 +506,10 @@ func validateTypeImplementsInterface(
             // TODO: change to contravariant?
             if !isEqualType(ifaceArg.type, typeArg.type) {
                 context.reportError(
-                    message: "Interface field argument \(iface.name).\(fieldName)(\(argName):) " +
-                        "expects type \(ifaceArg.type) but " +
-                        "\(type).\(fieldName)(\(argName):) is type " +
-                        "\(typeArg.type).",
+                    message: "Interface field argument \(iface.name).\(fieldName)(\(argName):) "
+                        + "expects type \(ifaceArg.type) but "
+                        + "\(type).\(fieldName)(\(argName):) is type "
+                        + "\(typeArg.type).",
                     nodes: [ifaceArg.astNode?.type, typeArg.astNode?.type]
                 )
             }
@@ -517,7 +523,8 @@ func validateTypeImplementsInterface(
             let ifaceArg = ifaceField.args.find { arg in arg.name == argName }
             if ifaceArg == nil, isRequiredArgument(typeArg) {
                 context.reportError(
-                    message: "Argument \"\(type).\(fieldName)(\(argName):)\" must not be required type \"\(typeArg.type)\" if not provided by the Interface field \"\(iface.name).\(fieldName)\".",
+                    message:
+                        "Argument \"\(type).\(fieldName)(\(argName):)\" must not be required type \"\(typeArg.type)\" if not provided by the Interface field \"\(iface.name).\(fieldName)\".",
                     nodes: [typeArg.astNode, ifaceField.astNode]
                 )
             }
@@ -537,10 +544,8 @@ func validateTypeImplementsAncestors(
             nodes.append(contentsOf: getAllImplementsInterfaceNodes(type: type, iface: iface))
             context.reportError(
                 message: transitive == type
-                    ?
-                    "Type \(type) cannot implement \(iface.name) because it would create a circular reference."
-                    :
-                    "Type \(type) must implement \(transitive.name) because it is implemented by \(iface.name).",
+                    ? "Type \(type) cannot implement \(iface.name) because it would create a circular reference."
+                    : "Type \(type) must implement \(transitive.name) because it is implemented by \(iface.name).",
                 nodes: nodes
             )
         }
@@ -559,10 +564,8 @@ func validateTypeImplementsAncestors(
             nodes.append(contentsOf: getAllImplementsInterfaceNodes(type: type, iface: iface))
             context.reportError(
                 message: transitive == type
-                    ?
-                    "Type \(type) cannot implement \(iface.name) because it would create a circular reference."
-                    :
-                    "Type \(type) must implement \(transitive.name) because it is implemented by \(iface.name).",
+                    ? "Type \(type) cannot implement \(iface.name) because it would create a circular reference."
+                    : "Type \(type) must implement \(transitive.name) because it is implemented by \(iface.name).",
                 nodes: nodes
             )
         }
@@ -641,15 +644,16 @@ func validateInputFields(
         // Ensure the type is an input type
         if !isInputType(type: field.type) {
             context.reportError(
-                message: "The type of \(inputObj.name).\(field.name) must be Input Type " +
-                    "but got: \(field.type).",
+                message: "The type of \(inputObj.name).\(field.name) must be Input Type "
+                    + "but got: \(field.type).",
                 node: field.astNode?.type
             )
         }
 
         if isRequiredInputField(field), field.deprecationReason != nil {
             context.reportError(
-                message: "Required input field \(inputObj.name).\(field.name) cannot be deprecated.",
+                message:
+                    "Required input field \(inputObj.name).\(field.name) cannot be deprecated.",
                 nodes: [
                     getDeprecatedDirectiveNode(directives: field.astNode?.directives),
                     field.astNode?.type,
@@ -712,18 +716,18 @@ func createInputObjectCircularRefsValidator(
 
         let fields = try inputObj.getFields().values
         for field in fields {
-            if
-                let nonNullType = field.type as? GraphQLNonNull,
+            if let nonNullType = field.type as? GraphQLNonNull,
                 let fieldType = nonNullType.ofType as? GraphQLInputObjectType
             {
                 let cycleIndex = fieldPathIndexByTypeName[fieldType.name]
 
                 fieldPath.append(field)
                 if let cycleIndex = cycleIndex {
-                    let cyclePath = fieldPath[cycleIndex ..< fieldPath.count]
+                    let cyclePath = fieldPath[cycleIndex..<fieldPath.count]
                     let pathStr = cyclePath.map { fieldObj in fieldObj.name }.joined(separator: ".")
                     context.reportError(
-                        message: "Cannot reference Input Object \"\(fieldType)\" within itself through a series of non-null fields: \"\(pathStr)\".",
+                        message:
+                            "Cannot reference Input Object \"\(fieldType)\" within itself through a series of non-null fields: \"\(pathStr)\".",
                         nodes: cyclePath.map { fieldObj in fieldObj.astNode }
                     )
                 } else {
@@ -744,7 +748,7 @@ func getAllImplementsInterfaceNodes(
     var nodes: [NamedType] = []
     nodes.append(contentsOf: type.astNode?.interfaces ?? [])
     // TODO: Add extension support for interface conformance
-//    nodes.append(contentsOf: type.extensionASTNodes.flatMap { $0.interfaces })
+    //    nodes.append(contentsOf: type.extensionASTNodes.flatMap { $0.interfaces })
     return nodes.filter { ifaceNode in ifaceNode.name.value == iface.name }
 }
 
@@ -755,7 +759,7 @@ func getAllImplementsInterfaceNodes(
     var nodes: [NamedType] = []
     nodes.append(contentsOf: type.astNode?.interfaces ?? [])
     // TODO: Add extension support for interface conformance
-//    nodes.append(contentsOf: type.extensionASTNodes.flatMap { $0.interfaces })
+    //    nodes.append(contentsOf: type.extensionASTNodes.flatMap { $0.interfaces })
     return nodes.filter { ifaceNode in ifaceNode.name.value == iface.name }
 }
 
@@ -766,7 +770,7 @@ func getUnionMemberTypeNodes(
     var nodes: [NamedType] = []
     nodes.append(contentsOf: union.astNode?.types ?? [])
     // TODO: Add extension support for union membership
-//    nodes.append(contentsOf: union.extensionASTNodes.flatMap { $0.types })
+    //    nodes.append(contentsOf: union.extensionASTNodes.flatMap { $0.types })
     return nodes.filter { typeNode in typeNode.name.value == typeName }
 }
 

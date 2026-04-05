@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class KnownDirectivesRuleTests: ValidationTestCase {
     override init() {
@@ -45,13 +46,13 @@ class KnownDirectivesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-                human @unknown(directive: "value") {
-                    name
+                """
+                {
+                    human @unknown(directive: "value") {
+                        name
+                    }
                 }
-            }
-            """,
+                """,
             schema: schemaWithDirectives
         )
 
@@ -66,17 +67,17 @@ class KnownDirectivesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 3,
             query:
-            """
-            {
-                __typename @unknown
-                human @unknown {
-                    name
-                    pets @unknown {
+                """
+                {
+                    __typename @unknown
+                    human @unknown {
                         name
+                        pets @unknown {
+                            name
+                        }
                     }
                 }
-            }
-            """,
+                """,
             schema: schemaWithDirectives
         )
 
@@ -129,28 +130,28 @@ class KnownDirectivesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 12,
             query:
-            """
-            query ($var: Boolean @onQuery) @onMutation {
-                human @onQuery {
-                    ...Frag @onQuery
-                    ... @onQuery {
-                        name @onQuery
+                """
+                query ($var: Boolean @onQuery) @onMutation {
+                    human @onQuery {
+                        ...Frag @onQuery
+                        ... @onQuery {
+                            name @onQuery
+                        }
                     }
                 }
-            }
 
-            mutation @onQuery {
-                someField @onQuery
-            }
+                mutation @onQuery {
+                    someField @onQuery
+                }
 
-            subscription @onQuery {
-                someField @onQuery
-            }
+                subscription @onQuery {
+                    someField @onQuery
+                }
 
-            fragment Frag on Human @onQuery {
-                name @onQuery
-            }
-            """,
+                fragment Frag on Human @onQuery {
+                    name @onQuery
+                }
+                """,
             schema: schemaWithDirectives
         )
 
@@ -223,7 +224,7 @@ class KnownDirectivesRuleTests: ValidationTestCase {
                 "dummy": GraphQLField(type: GraphQLString) { inputValue, _, _, _ -> String? in
                     print(type(of: inputValue))
                     return nil
-                },
+                }
             ]
         ),
         directives: {
@@ -292,42 +293,48 @@ class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
     }
 
     @Test func withDirectiveDefinedInSchemaExtension() throws {
-        let schema = try buildSchema(source: """
-        type Query {
-          foo: String
-        }
-        """)
+        let schema = try buildSchema(
+            source: """
+                type Query {
+                  foo: String
+                }
+                """
+        )
         let sdl = """
-        directive @test on OBJECT
+            directive @test on OBJECT
 
-        extend type Query @test
-        """
+            extend type Query @test
+            """
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
     @Test func withDirectiveUsedInSchemaExtension() throws {
-        let schema = try buildSchema(source: """
-        directive @test on OBJECT
+        let schema = try buildSchema(
+            source: """
+                directive @test on OBJECT
 
-        type Query {
-          foo: String
-        }
-        """)
+                type Query {
+                  foo: String
+                }
+                """
+        )
         let sdl = """
-        extend type Query @test
-        """
+            extend type Query @test
+            """
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
     @Test func withUnknownDirectiveInSchemaExtension() throws {
-        let schema = try buildSchema(source: """
-        type Query {
-          foo: String
-        }
-        """)
+        let schema = try buildSchema(
+            source: """
+                type Query {
+                  foo: String
+                }
+                """
+        )
         let sdl = """
-        extend type Query @unknown
-        """
+            extend type Query @unknown
+            """
         try assertValidationErrors(
             sdl,
             schema: schema,
@@ -335,7 +342,7 @@ class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
                 GraphQLError(
                     message: #"Unknown directive "@unknown"."#,
                     locations: [.init(line: 1, column: 19)]
-                ),
+                )
             ]
         )
     }
@@ -425,11 +432,13 @@ class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
                     locations: [.init(line: 1, column: 35)]
                 ),
                 GraphQLError(
-                    message: #"Directive "@onInputFieldDefinition" may not be used on ARGUMENT_DEFINITION."#,
+                    message:
+                        #"Directive "@onInputFieldDefinition" may not be used on ARGUMENT_DEFINITION."#,
                     locations: [.init(line: 2, column: 22)]
                 ),
                 GraphQLError(
-                    message: #"Directive "@onInputFieldDefinition" may not be used on FIELD_DEFINITION."#,
+                    message:
+                        #"Directive "@onInputFieldDefinition" may not be used on FIELD_DEFINITION."#,
                     locations: [.init(line: 2, column: 55)]
                 ),
                 GraphQLError(
@@ -441,11 +450,13 @@ class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
                     locations: [.init(line: 7, column: 23)]
                 ),
                 GraphQLError(
-                    message: #"Directive "@onInputFieldDefinition" may not be used on ARGUMENT_DEFINITION."#,
+                    message:
+                        #"Directive "@onInputFieldDefinition" may not be used on ARGUMENT_DEFINITION."#,
                     locations: [.init(line: 8, column: 22)]
                 ),
                 GraphQLError(
-                    message: #"Directive "@onInputFieldDefinition" may not be used on FIELD_DEFINITION."#,
+                    message:
+                        #"Directive "@onInputFieldDefinition" may not be used on FIELD_DEFINITION."#,
                     locations: [.init(line: 8, column: 55)]
                 ),
                 GraphQLError(
@@ -465,7 +476,8 @@ class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
                     locations: [.init(line: 17, column: 15)]
                 ),
                 GraphQLError(
-                    message: #"Directive "@onArgumentDefinition" may not be used on INPUT_FIELD_DEFINITION."#,
+                    message:
+                        #"Directive "@onArgumentDefinition" may not be used on INPUT_FIELD_DEFINITION."#,
                     locations: [.init(line: 18, column: 16)]
                 ),
                 GraphQLError(
@@ -490,8 +502,7 @@ class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
                 try! GraphQLDirective(name: "onFieldDefinition", locations: [.fieldDefinition]),
                 try! GraphQLDirective(
                     name: "onArgumentDefinition",
-                    locations:
-                    [.argumentDefinition]
+                    locations: [.argumentDefinition]
                 ),
                 try! GraphQLDirective(name: "onInterface", locations: [.interface]),
                 try! GraphQLDirective(name: "onUnion", locations: [.union]),
@@ -500,8 +511,7 @@ class KnownDirectivesRuleSDLTests: SDLValidationTestCase {
                 try! GraphQLDirective(name: "onInputObject", locations: [.inputObject]),
                 try! GraphQLDirective(
                     name: "onInputFieldDefinition",
-                    locations:
-                    [.inputFieldDefinition]
+                    locations: [.inputFieldDefinition]
                 ),
             ])
             return directives

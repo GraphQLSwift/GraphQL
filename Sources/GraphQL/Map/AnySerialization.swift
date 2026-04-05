@@ -11,7 +11,8 @@ public enum AnySerialization {
                 map,
                 EncodingError.Context(
                     codingPath: [],
-                    debugDescription: "Expected object input to be castable to NSObject: \(type(of: map))"
+                    debugDescription:
+                        "Expected object input to be castable to NSObject: \(type(of: map))"
                 )
             )
         }

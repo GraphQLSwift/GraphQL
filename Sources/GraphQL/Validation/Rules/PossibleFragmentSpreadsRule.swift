@@ -1,10 +1,8 @@
-/**
- * Possible fragment spread
- *
- * A fragment spread is only valid if the type condition could ever possibly
- * be true: if there is a non-empty intersection of the possible parent types,
- * and possible types which pass the type condition.
- */
+/// Possible fragment spread
+///
+/// A fragment spread is only valid if the type condition could ever possibly
+/// be true: if there is a non-empty intersection of the possible parent types,
+/// and possible types which pass the type condition.
 func PossibleFragmentSpreadsRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
@@ -30,7 +28,8 @@ func PossibleFragmentSpreadsRule(context: ValidationContext) -> Visitor {
 
                 context.report(
                     error: GraphQLError(
-                        message: "Fragment cannot be spread here as objects of type \"\(parentType)\" can never be of type \"\(fragType)\".",
+                        message:
+                            "Fragment cannot be spread here as objects of type \"\(parentType)\" can never be of type \"\(fragType)\".",
                         nodes: [node]
                     )
                 )
@@ -58,7 +57,8 @@ func PossibleFragmentSpreadsRule(context: ValidationContext) -> Visitor {
 
                 context.report(
                     error: GraphQLError(
-                        message: "Fragment \"\(fragName)\" cannot be spread here as objects of type \"\(parentType)\" can never be of type \"\(fragType)\".",
+                        message:
+                            "Fragment \"\(fragName)\" cannot be spread here as objects of type \"\(parentType)\" can never be of type \"\(fragType)\".",
                         nodes: [node]
                     )
                 )

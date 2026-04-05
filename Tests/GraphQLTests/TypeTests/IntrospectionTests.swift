@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct IntrospectionTests {
     @Test func defaultValues() async throws {
@@ -28,7 +29,7 @@ import Testing
                         "bool": .init(
                             type: GraphQLBoolean,
                             defaultValue: true
-                        ),
+                        )
                     ]
                 ),
                 "enum": .init(
@@ -37,7 +38,7 @@ import Testing
                         "enum": .init(
                             type: numEnum,
                             defaultValue: "One"
-                        ),
+                        )
                     ]
                 ),
                 "float": .init(
@@ -46,7 +47,7 @@ import Testing
                         "float": .init(
                             type: GraphQLFloat,
                             defaultValue: 2.2
-                        ),
+                        )
                     ]
                 ),
                 "id": .init(
@@ -55,7 +56,7 @@ import Testing
                         "id": .init(
                             type: GraphQLID,
                             defaultValue: "5"
-                        ),
+                        )
                     ]
                 ),
                 "int": .init(
@@ -64,7 +65,7 @@ import Testing
                         "int": .init(
                             type: GraphQLInt,
                             defaultValue: 5
-                        ),
+                        )
                     ]
                 ),
                 "list": .init(
@@ -73,7 +74,7 @@ import Testing
                         "list": .init(
                             type: GraphQLList(GraphQLInt),
                             defaultValue: [1, 2, 3]
-                        ),
+                        )
                     ]
                 ),
                 "object": .init(
@@ -82,7 +83,7 @@ import Testing
                         "input": .init(
                             type: inputObject,
                             defaultValue: ["str": "hello"]
-                        ),
+                        )
                     ]
                 ),
                 "string": .init(
@@ -91,7 +92,7 @@ import Testing
                         "string": .init(
                             type: GraphQLString,
                             defaultValue: "hello"
-                        ),
+                        )
                     ]
                 ),
             ]
@@ -102,27 +103,27 @@ import Testing
         let introspection = try await graphql(
             schema: schema,
             request: """
-            query IntrospectionTypeQuery {
-              __schema {
-                types {
-                  fields {
-                    args {
-                      defaultValue
-                      name
-                      type {
+                query IntrospectionTypeQuery {
+                  __schema {
+                    types {
+                      fields {
+                        args {
+                          defaultValue
+                          name
+                          type {
+                            name
+                          }
+                        }
                         name
+                        type {
+                          name
+                        }
                       }
-                    }
-                    name
-                    type {
                       name
                     }
                   }
-                  name
                 }
-              }
-            }
-            """
+                """
         )
 
         let queryType = try #require(
@@ -139,13 +140,13 @@ import Testing
                                 "defaultValue": "true",
                                 "name": "bool",
                                 "type": [
-                                    "name": "Boolean",
+                                    "name": "Boolean"
                                 ],
-                            ],
+                            ]
                         ],
                         "name": "bool",
                         "type": [
-                            "name": "Boolean",
+                            "name": "Boolean"
                         ],
                     ],
                     [
@@ -154,13 +155,13 @@ import Testing
                                 "defaultValue": "One",
                                 "name": "enum",
                                 "type": [
-                                    "name": "Enum",
+                                    "name": "Enum"
                                 ],
-                            ],
+                            ]
                         ],
                         "name": "enum",
                         "type": [
-                            "name": "Enum",
+                            "name": "Enum"
                         ],
                     ],
                     [
@@ -169,13 +170,13 @@ import Testing
                                 "defaultValue": "2.2",
                                 "name": "float",
                                 "type": [
-                                    "name": "Float",
+                                    "name": "Float"
                                 ],
-                            ],
+                            ]
                         ],
                         "name": "float",
                         "type": [
-                            "name": "Float",
+                            "name": "Float"
                         ],
                     ],
                     [
@@ -184,13 +185,13 @@ import Testing
                                 "defaultValue": "5",
                                 "name": "id",
                                 "type": [
-                                    "name": "ID",
+                                    "name": "ID"
                                 ],
-                            ],
+                            ]
                         ],
                         "name": "id",
                         "type": [
-                            "name": "ID",
+                            "name": "ID"
                         ],
                     ],
                     [
@@ -199,13 +200,13 @@ import Testing
                                 "defaultValue": "5",
                                 "name": "int",
                                 "type": [
-                                    "name": "Int",
+                                    "name": "Int"
                                 ],
-                            ],
+                            ]
                         ],
                         "name": "int",
                         "type": [
-                            "name": "Int",
+                            "name": "Int"
                         ],
                     ],
                     [
@@ -214,13 +215,13 @@ import Testing
                                 "defaultValue": "[1, 2, 3]",
                                 "name": "list",
                                 "type": [
-                                    "name": .null,
+                                    "name": .null
                                 ],
-                            ],
+                            ]
                         ],
                         "name": "list",
                         "type": [
-                            "name": .null,
+                            "name": .null
                         ],
                     ],
                     [
@@ -229,13 +230,13 @@ import Testing
                                 "defaultValue": "{ str: \"hello\" }",
                                 "name": "input",
                                 "type": [
-                                    "name": "InputObject",
+                                    "name": "InputObject"
                                 ],
-                            ],
+                            ]
                         ],
                         "name": "object",
                         "type": [
-                            "name": "Object",
+                            "name": "Object"
                         ],
                     ],
                     [
@@ -244,13 +245,13 @@ import Testing
                                 "defaultValue": "\"hello\"",
                                 "name": "string",
                                 "type": [
-                                    "name": "String",
+                                    "name": "String"
                                 ],
-                            ],
+                            ]
                         ],
                         "name": "string",
                         "type": [
-                            "name": "String",
+                            "name": "String"
                         ],
                     ],
                 ],

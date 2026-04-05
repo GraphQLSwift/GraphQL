@@ -21,12 +21,10 @@ import OrderedCollections
  * 3) inline fragment "spreads" e.g. "...on Type { a }"
  */
 
-/**
- * Data that must be available at all points during query execution.
- *
- * Namely, schema of the type system that is currently executing,
- * and the fragments defined in the query document
- */
+/// Data that must be available at all points during query execution.
+///
+/// Namely, schema of the type system that is currently executing,
+/// and the fragments defined in the query document
 public final class ExecutionContext: @unchecked Sendable {
     let queryStrategy: QueryFieldExecutionStrategy = ConcurrentFieldExecutionStrategy()
     let mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy()
@@ -100,9 +98,7 @@ public protocol MutationFieldExecutionStrategy: FieldExecutionStrategy {}
 public protocol QueryFieldExecutionStrategy: FieldExecutionStrategy {}
 public protocol SubscriptionFieldExecutionStrategy: FieldExecutionStrategy {}
 
-/**
- * Serial field execution strategy that's suitable for the "Evaluating selection sets" section of the spec for "write" mode.
- */
+/// Serial field execution strategy that's suitable for the "Evaluating selection sets" section of the spec for "write" mode.
 public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy,
     MutationFieldExecutionStrategy, SubscriptionFieldExecutionStrategy
 {
@@ -119,23 +115,22 @@ public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy,
         for field in fields {
             let fieldASTs = field.value
             let fieldPath = path.appending(field.key)
-            results[field.key] = try await resolveField(
-                exeContext: exeContext,
-                parentType: parentType,
-                source: sourceValue,
-                fieldASTs: fieldASTs,
-                path: fieldPath
-            ) ?? Map.null
+            results[field.key] =
+                try await resolveField(
+                    exeContext: exeContext,
+                    parentType: parentType,
+                    source: sourceValue,
+                    fieldASTs: fieldASTs,
+                    path: fieldPath
+                ) ?? Map.null
         }
         return results
     }
 }
 
-/**
- * Serial field execution strategy that's suitable for the "Evaluating selection sets" section of the spec for "read" mode.
- *
- * Each field is resolved as an individual task on a concurrent dispatch queue.
- */
+/// Serial field execution strategy that's suitable for the "Evaluating selection sets" section of the spec for "read" mode.
+///
+/// Each field is resolved as an individual task on a concurrent dispatch queue.
 public struct ConcurrentFieldExecutionStrategy: QueryFieldExecutionStrategy,
     SubscriptionFieldExecutionStrategy
 {
@@ -148,19 +143,21 @@ public struct ConcurrentFieldExecutionStrategy: QueryFieldExecutionStrategy,
     ) async throws -> OrderedDictionary<String, any Sendable> {
         return try await withThrowingTaskGroup(of: (String, (any Sendable)?).self) { group in
             // preserve field order by assigning to null and filtering later
-            var results: OrderedDictionary<String, (any Sendable)?> = fields
+            var results: OrderedDictionary<String, (any Sendable)?> =
+                fields
                 .mapValues { _ -> Any? in nil }
             for field in fields {
                 group.addTask {
                     let fieldASTs = field.value
                     let fieldPath = path.appending(field.key)
-                    let result = try await resolveField(
-                        exeContext: exeContext,
-                        parentType: parentType,
-                        source: sourceValue,
-                        fieldASTs: fieldASTs,
-                        path: fieldPath
-                    ) ?? Map.null
+                    let result =
+                        try await resolveField(
+                            exeContext: exeContext,
+                            parentType: parentType,
+                            source: sourceValue,
+                            fieldASTs: fieldASTs,
+                            path: fieldPath
+                        ) ?? Map.null
                     return (field.key, result)
                 }
             }
@@ -172,12 +169,10 @@ public struct ConcurrentFieldExecutionStrategy: QueryFieldExecutionStrategy,
     }
 }
 
-/**
- * Implements the "Evaluating requests" section of the GraphQL specification.
- *
- * If the arguments to this func do not result in a legal execution context,
- * a GraphQLError will be thrown immediately explaining the invalid input.
- */
+/// Implements the "Evaluating requests" section of the GraphQL specification.
+///
+/// If the arguments to this func do not result in a legal execution context,
+/// a GraphQLError will be thrown immediately explaining the invalid input.
 public func execute(
     schema: GraphQLSchema,
     documentAST: Document,
@@ -206,7 +201,7 @@ public func execute(
     }
 
     do {
-//        var executeErrors: [GraphQLError] = []
+        //        var executeErrors: [GraphQLError] = []
         let data = try await executeOperation(
             exeContext: buildContext,
             operation: buildContext.operation,
@@ -224,7 +219,7 @@ public func execute(
             result.errors = buildContext.errors
         }
 
-//            executeErrors = buildContext.errors
+        //            executeErrors = buildContext.errors
         return result
     } catch let error as GraphQLError {
         return GraphQLResult(errors: [error])
@@ -233,12 +228,10 @@ public func execute(
     }
 }
 
-/**
- * Constructs a ExecutionContext object from the arguments passed to
- * execute, which we will pass throughout the other execution methods.
- *
- * Throws a GraphQLError if a valid execution context cannot be created.
- */
+/// Constructs a ExecutionContext object from the arguments passed to
+/// execute, which we will pass throughout the other execution methods.
+///
+/// Throws a GraphQLError if a valid execution context cannot be created.
 func buildExecutionContext(
     schema: GraphQLSchema,
     documentAST: Document,
@@ -300,9 +293,7 @@ func buildExecutionContext(
     )
 }
 
-/**
- * Implements the "Evaluating operations" section of the spec.
- */
+/// Implements the "Evaluating operations" section of the spec.
 func executeOperation(
     exeContext: ExecutionContext,
     operation: OperationDefinition,
@@ -340,9 +331,7 @@ func executeOperation(
     )
 }
 
-/**
- * Extracts the root type of the operation from the schema.
- */
+/// Extracts the root type of the operation from the schema.
 func getOperationRootType(
     schema: GraphQLSchema,
     operation: OperationDefinition
@@ -378,14 +367,12 @@ func getOperationRootType(
     }
 }
 
-/**
- * Given a selectionSet, adds all of the fields in that selection to
- * the passed in map of fields, and returns it at the end.
- *
- * CollectFields requires the "runtime type" of an object. For a field which
- * returns and Interface or Union type, the "runtime type" will be the actual
- * Object type returned by that field.
- */
+/// Given a selectionSet, adds all of the fields in that selection to
+/// the passed in map of fields, and returns it at the end.
+///
+/// CollectFields requires the "runtime type" of an object. For a field which
+/// returns and Interface or Union type, the "runtime type" will be the actual
+/// Object type returned by that field.
 @discardableResult
 func collectFields(
     exeContext: ExecutionContext,
@@ -481,10 +468,8 @@ func collectFields(
     return fields
 }
 
-/**
- * Determines if a field should be included based on the @include and @skip
- * directives, where @skip has higher precidence than @include.
- */
+/// Determines if a field should be included based on the @include and @skip
+/// directives, where @skip has higher precidence than @include.
 func shouldIncludeNode(exeContext: ExecutionContext, directives: [Directive] = []) throws -> Bool {
     if let skipAST = directives.find({ $0.name.value == GraphQLSkipDirective.name }) {
         let skip = try getArgumentValues(
@@ -513,9 +498,7 @@ func shouldIncludeNode(exeContext: ExecutionContext, directives: [Directive] = [
     return true
 }
 
-/**
- * Determines if a fragment is applicable to the given type.
- */
+/// Determines if a fragment is applicable to the given type.
 func doesFragmentConditionMatch(
     exeContext: ExecutionContext,
     fragment: HasTypeCondition,
@@ -534,8 +517,7 @@ func doesFragmentConditionMatch(
         return true
     }
 
-    if
-        let conditionalType = conditionalType as? GraphQLObjectType,
+    if let conditionalType = conditionalType as? GraphQLObjectType,
         conditionalType.name == type.name
     {
         return true
@@ -551,19 +533,15 @@ func doesFragmentConditionMatch(
     return false
 }
 
-/**
- * Implements the logic to compute the key of a given field's entry
- */
+/// Implements the logic to compute the key of a given field's entry
 func getFieldEntryKey(node: Field) -> String {
     return node.alias?.value ?? node.name.value
 }
 
-/**
- * Resolves the field on the given source object. In particular, this
- * figures out the value that the field returns by calling its resolve func,
- * then calls completeValue to complete promises, serialize scalars, or execute
- * the sub-selection-set for objects.
- */
+/// Resolves the field on the given source object. In particular, this
+/// figures out the value that the field returns by calling its resolve func,
+/// then calls completeValue to complete promises, serialize scalars, or execute
+/// the sub-selection-set for objects.
 public func resolveField(
     exeContext: ExecutionContext,
     parentType: GraphQLObjectType,
@@ -721,27 +699,25 @@ func completeValueWithLocatedError(
     }
 }
 
-/**
- * Implements the instructions for completeValue as defined in the
- * "Field entries" section of the spec.
- *
- * If the field type is Non-Null, then this recursively completes the value
- * for the inner type. It throws a field error if that completion returns null,
- * as per the "Nullability" section of the spec.
- *
- * If the field type is a List, then this recursively completes the value
- * for the inner type on each item in the list.
- *
- * If the field type is a Scalar or Enum, ensures the completed value is a legal
- * value of the type by calling the `serialize` method of GraphQL type
- * definition.
- *
- * If the field is an abstract type, determine the runtime type of the value
- * and then complete based on that type
- *
- * Otherwise, the field type expects a sub-selection set, and will complete the
- * value by evaluating all sub-selections.
- */
+/// Implements the instructions for completeValue as defined in the
+/// "Field entries" section of the spec.
+///
+/// If the field type is Non-Null, then this recursively completes the value
+/// for the inner type. It throws a field error if that completion returns null,
+/// as per the "Nullability" section of the spec.
+///
+/// If the field type is a List, then this recursively completes the value
+/// for the inner type on each item in the list.
+///
+/// If the field type is a Scalar or Enum, ensures the completed value is a legal
+/// value of the type by calling the `serialize` method of GraphQL type
+/// definition.
+///
+/// If the field is an abstract type, determine the runtime type of the value
+/// and then complete based on that type
+///
+/// Otherwise, the field type expects a sub-selection set, and will complete the
+/// value by evaluating all sub-selections.
 func completeValue(
     exeContext: ExecutionContext,
     returnType: GraphQLType,
@@ -751,9 +727,9 @@ func completeValue(
     result: Result<(any Sendable)?, Error>
 ) async throws -> (any Sendable)? {
     switch result {
-    case let .failure(error):
+    case .failure(let error):
         throw error
-    case let .success(result):
+    case .success(let result):
         // If field type is NonNull, complete for inner type, and throw field error
         // if result is nullish.
         if let returnType = returnType as? GraphQLNonNull {
@@ -767,7 +743,8 @@ func completeValue(
             )
             guard let value = value else {
                 throw GraphQLError(
-                    message: "Cannot return null for non-nullable field \(info.parentType.name).\(info.fieldName)."
+                    message:
+                        "Cannot return null for non-nullable field \(info.parentType.name).\(info.fieldName)."
                 )
             }
 
@@ -829,10 +806,8 @@ func completeValue(
     }
 }
 
-/**
- * Complete a list value by completing each item in the list with the
- * inner type
- */
+/// Complete a list value by completing each item in the list with the
+/// inner type
 func completeListValue(
     exeContext: ExecutionContext,
     returnType: GraphQLList,
@@ -844,8 +819,8 @@ func completeListValue(
     guard let result = result as? [(any Sendable)?] else {
         throw GraphQLError(
             message:
-            "Expected array, but did not find one for field " +
-                "\(info.parentType.name).\(info.fieldName)."
+                "Expected array, but did not find one for field "
+                + "\(info.parentType.name).\(info.fieldName)."
         )
     }
 
@@ -878,10 +853,8 @@ func completeListValue(
     }
 }
 
-/**
- * Complete a Scalar or Enum by serializing to a valid value, returning
- * .null if serialization is not possible.
- */
+/// Complete a Scalar or Enum by serializing to a valid value, returning
+/// .null if serialization is not possible.
 func completeLeafValue(returnType: GraphQLLeafType, result: (any Sendable)?) throws -> Map {
     guard let result = result else {
         return .null
@@ -891,10 +864,8 @@ func completeLeafValue(returnType: GraphQLLeafType, result: (any Sendable)?) thr
     // Do not check for serialization to null here. Some scalars may model literals as `Map.null`.
 }
 
-/**
- * Complete a value of an abstract type by determining the runtime object type
- * of that value, then complete the value for that type.
- */
+/// Complete a value of an abstract type by determining the runtime object type
+/// of that value, then complete the value for that type.
 func completeAbstractValue(
     exeContext: ExecutionContext,
     returnType: GraphQLAbstractType,
@@ -906,11 +877,13 @@ func completeAbstractValue(
     var resolveRes = try returnType.resolveType?(result, info)
         .typeResolveResult
 
-    resolveRes = try resolveRes ?? defaultResolveType(
-        value: result,
-        info: info,
-        abstractType: returnType
-    )
+    resolveRes =
+        try resolveRes
+        ?? defaultResolveType(
+            value: result,
+            info: info,
+            abstractType: returnType
+        )
 
     guard let resolveResult = resolveRes else {
         throw GraphQLError(
@@ -923,18 +896,18 @@ func completeAbstractValue(
     var runtimeType: GraphQLType?
 
     switch resolveResult {
-    case let .name(name):
+    case .name(let name):
         runtimeType = exeContext.schema.getType(name: name)
-    case let .type(type):
+    case .type(let type):
         runtimeType = type
     }
 
     guard let objectType = runtimeType as? GraphQLObjectType else {
         throw GraphQLError(
             message:
-            "Abstract type \(returnType.name) must resolve to an Object type at " +
-                "runtime for field \(info.parentType.name).\(info.fieldName) with " +
-                "value \"\(resolveResult)\", received \"\(String(describing: runtimeType))\".",
+                "Abstract type \(returnType.name) must resolve to an Object type at "
+                + "runtime for field \(info.parentType.name).\(info.fieldName) with "
+                + "value \"\(resolveResult)\", received \"\(String(describing: runtimeType))\".",
             nodes: fieldASTs
         )
     }
@@ -942,8 +915,8 @@ func completeAbstractValue(
     if !exeContext.schema.isSubType(abstractType: returnType, maybeSubType: objectType) {
         throw GraphQLError(
             message:
-            "Runtime Object type \"\(objectType.name)\" is not a possible type " +
-                "for \"\(returnType.name)\".",
+                "Runtime Object type \"\(objectType.name)\" is not a possible type "
+                + "for \"\(returnType.name)\".",
             nodes: fieldASTs
         )
     }
@@ -958,9 +931,7 @@ func completeAbstractValue(
     )
 }
 
-/**
- * Complete an Object value by executing all sub-selections.
- */
+/// Complete an Object value by executing all sub-selections.
 func completeObjectValue(
     exeContext: ExecutionContext,
     returnType: GraphQLObjectType,
@@ -972,13 +943,12 @@ func completeObjectValue(
     // If there is an isTypeOf predicate func, call it with the
     // current result. If isTypeOf returns false, then raise an error rather
     // than continuing execution.
-    if
-        let isTypeOf = returnType.isTypeOf,
+    if let isTypeOf = returnType.isTypeOf,
         try !isTypeOf(result, info)
     {
         throw GraphQLError(
             message:
-            "Expected value of type \"\(returnType.name)\" but got: \(result).",
+                "Expected value of type \"\(returnType.name)\" but got: \(result).",
             nodes: fieldASTs
         )
     }
@@ -1008,11 +978,9 @@ func completeObjectValue(
     )
 }
 
-/**
- * If a resolveType func is not given, then a default resolve behavior is
- * used which tests each possible type for the abstract type by calling
- * isTypeOf for the object being coerced, returning the first type that matches.
- */
+/// If a resolveType func is not given, then a default resolve behavior is
+/// used which tests each possible type for the abstract type by calling
+/// isTypeOf for the object being coerced, returning the first type that matches.
 func defaultResolveType(
     value: any Sendable,
     info: GraphQLResolveInfo,
@@ -1021,7 +989,8 @@ func defaultResolveType(
     let possibleTypes = info.schema.getPossibleTypes(abstractType: abstractType)
 
     guard
-        let type = try possibleTypes
+        let type =
+            try possibleTypes
             .find({ try $0.isTypeOf?(value, info) ?? false })
     else {
         return nil
@@ -1030,11 +999,9 @@ func defaultResolveType(
     return .type(type)
 }
 
-/**
- * If a resolve func is not given, then a default resolve behavior is used
- * which takes the property of the source object of the same name as the field
- * and returns it as the result.
- */
+/// If a resolve func is not given, then a default resolve behavior is used
+/// which takes the property of the source object of the same name as the field
+/// and returns it as the result.
 func defaultResolve(
     source: any Sendable,
     args _: Map,
@@ -1059,15 +1026,13 @@ func defaultResolve(
     return mirror.getValue(named: info.fieldName)
 }
 
-/**
- * This method looks up the field on the given type defintion.
- * It has special casing for the two introspection fields, __schema
- * and __typename. __typename is special because it can always be
- * queried as a field, even in situations where no other fields
- * are allowed, like on a Union. __schema could get automatically
- * added to the query type, but that would require mutating type
- * definitions, which would cause issues.
- */
+/// This method looks up the field on the given type defintion.
+/// It has special casing for the two introspection fields, __schema
+/// and __typename. __typename is special because it can always be
+/// queried as a field, even in situations where no other fields
+/// are allowed, like on a Union. __schema could get automatically
+/// added to the query type, but that would require mutating type
+/// definitions, which would cause issues.
 func getFieldDef(
     schema: GraphQLSchema,
     parentType: GraphQLObjectType,

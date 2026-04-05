@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct BuildASTSchemaTests {
     /**
@@ -15,10 +16,10 @@ import Testing
         let schema = try buildASTSchema(
             documentAST: parse(
                 source: """
-                type Query {
-                  str: String
-                }
-                """
+                    type Query {
+                      str: String
+                    }
+                    """
             )
         )
 
@@ -29,52 +30,53 @@ import Testing
         )
 
         #expect(
-            result == GraphQLResult(data: [
-                "str": "123",
-            ])
+            result
+                == GraphQLResult(data: [
+                    "str": "123"
+                ])
         )
     }
 
     // Closures are invalid Map keys in Swift.
-//    @Test func canBuildASchemaDirectlyFromTheSource() throws {
-//        let schema = try buildASTSchema(
-//            documentAST: try parse(
-//                source: """
-//                type Query {
-//                  add(x: Int, y: Int): Int
-//                }
-//                """
-//            )
-//        )
-//
-//        let result = try await graphql(
-//            schema: schema,
-//            request: "{ add(x: 34, y: 55) }",
-//            rootValue: [
-//                "add": { (x: Int, y: Int) in
-//                    return x + y
-//                }
-//            ]
-//        )
-//
-//        #expect(
-//            result ==
-//            GraphQLResult(data: [
-//                "add": 89
-//            ])
-//        )
-//    }
+    //    @Test func canBuildASchemaDirectlyFromTheSource() throws {
+    //        let schema = try buildASTSchema(
+    //            documentAST: try parse(
+    //                source: """
+    //                type Query {
+    //                  add(x: Int, y: Int): Int
+    //                }
+    //                """
+    //            )
+    //        )
+    //
+    //        let result = try await graphql(
+    //            schema: schema,
+    //            request: "{ add(x: 34, y: 55) }",
+    //            rootValue: [
+    //                "add": { (x: Int, y: Int) in
+    //                    return x + y
+    //                }
+    //            ]
+    //        )
+    //
+    //        #expect(
+    //            result ==
+    //            GraphQLResult(data: [
+    //                "add": 89
+    //            ])
+    //        )
+    //    }
 
     @Test func ignoresNonTypeSystemDefinitions() throws {
         let sdl = """
-        type Query {
-          str: String
-        }
+            type Query {
+              str: String
+            }
 
-        fragment SomeFragment on Query {
-          str
-        }
-        """
+            fragment SomeFragment on Query {
+              str
+            }
+            """
 
         #expect(throws: Never.self) { try buildSchema(source: sdl) }
     }
@@ -85,29 +87,28 @@ import Testing
 
         #expect(sdlSchema.directives.map { $0.name } == schema.directives.map { $0.name })
         #expect(
-            sdlSchema.typeMap.mapValues { $0.name } ==
-                schema.typeMap.mapValues { $0.name }
+            sdlSchema.typeMap.mapValues { $0.name } == schema.typeMap.mapValues { $0.name }
         )
     }
 
     @Test func emptyType() throws {
         let sdl = """
-        type EmptyType
-        """
+            type EmptyType
+            """
 
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func simpleType() throws {
         let sdl = """
-        type Query {
-          str: String
-          int: Int
-          float: Float
-          id: ID
-          bool: Boolean
-        }
-        """
+            type Query {
+              str: String
+              int: Int
+              float: Float
+              id: ID
+              bool: Boolean
+            }
+            """
 
         try #expect(cycleSDL(sdl: sdl) == sdl)
 
@@ -151,60 +152,60 @@ import Testing
 
     @Test func withDirectives() throws {
         let sdl = """
-        directive @foo(arg: Int) on FIELD
+            directive @foo(arg: Int) on FIELD
 
-        directive @repeatableFoo(arg: Int) repeatable on FIELD
-        """
+            directive @repeatableFoo(arg: Int) repeatable on FIELD
+            """
 
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func supportsDescriptions() throws {
         let sdl = #"""
-        """Do you agree that this is the most creative schema ever?"""
-        schema {
-          query: Query
-        }
+            """Do you agree that this is the most creative schema ever?"""
+            schema {
+              query: Query
+            }
 
-        """This is a directive"""
-        directive @foo(
-          """It has an argument"""
-          arg: Int
-        ) on FIELD
+            """This is a directive"""
+            directive @foo(
+              """It has an argument"""
+              arg: Int
+            ) on FIELD
 
-        """Who knows what inside this scalar?"""
-        scalar MysteryScalar
+            """Who knows what inside this scalar?"""
+            scalar MysteryScalar
 
-        """This is a input object type"""
-        input FooInput {
-          """It has a field"""
-          field: Int
-        }
+            """This is a input object type"""
+            input FooInput {
+              """It has a field"""
+              field: Int
+            }
 
-        """This is a interface type"""
-        interface Energy {
-          """It also has a field"""
-          str: String
-        }
+            """This is a interface type"""
+            interface Energy {
+              """It also has a field"""
+              str: String
+            }
 
-        """There is nothing inside!"""
-        union BlackHole
+            """There is nothing inside!"""
+            union BlackHole
 
-        """With an enum"""
-        enum Color {
-          RED
+            """With an enum"""
+            enum Color {
+              RED
 
-          """Not a creative color"""
-          GREEN
-          BLUE
-        }
+              """Not a creative color"""
+              GREEN
+              BLUE
+            }
 
-        """What a great type"""
-        type Query {
-          """And a field to boot"""
-          str: String
-        }
-        """#
+            """What a great type"""
+            type Query {
+              """And a field to boot"""
+              str: String
+            }
+            """#
 
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
@@ -241,13 +242,15 @@ import Testing
     }
 
     @Test func overridingDirectivesExcludesSpecified() throws {
-        let schema = try buildSchema(source: """
-        directive @skip on FIELD
-        directive @include on FIELD
-        directive @deprecated on FIELD_DEFINITION
-        directive @specifiedBy on FIELD_DEFINITION
-        directive @oneOf on OBJECT
-        """)
+        let schema = try buildSchema(
+            source: """
+                directive @skip on FIELD
+                directive @include on FIELD
+                directive @deprecated on FIELD_DEFINITION
+                directive @specifiedBy on FIELD_DEFINITION
+                directive @oneOf on OBJECT
+                """
+        )
 
         #expect(schema.directives.count == 5)
         #expect(
@@ -278,9 +281,11 @@ import Testing
     }
 
     @Test func addingDirectivesMaintainsIncludeSkipDeprecatedSpecifiedByAndOneOf() throws {
-        let schema = try buildSchema(source: """
-        directive @foo(arg: Int) on FIELD
-        """)
+        let schema = try buildSchema(
+            source: """
+                directive @foo(arg: Int) on FIELD
+                """
+        )
 
         #expect(schema.directives.count == 6)
         #expect(schema.getDirective(name: GraphQLSkipDirective.name) != nil)
@@ -292,68 +297,68 @@ import Testing
 
     @Test func typeModifiers() throws {
         let sdl = """
-        type Query {
-          nonNullStr: String!
-          listOfStrings: [String]
-          listOfNonNullStrings: [String!]
-          nonNullListOfStrings: [String]!
-          nonNullListOfNonNullStrings: [String!]!
-        }
-        """
+            type Query {
+              nonNullStr: String!
+              listOfStrings: [String]
+              listOfNonNullStrings: [String!]
+              nonNullListOfStrings: [String]!
+              nonNullListOfNonNullStrings: [String!]!
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func recursiveType() throws {
         let sdl = """
-        type Query {
-          str: String
-          recurse: Query
-        }
-        """
+            type Query {
+              str: String
+              recurse: Query
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func twoTypesCircular() throws {
         let sdl = """
-        type TypeOne {
-          str: String
-          typeTwo: TypeTwo
-        }
+            type TypeOne {
+              str: String
+              typeTwo: TypeTwo
+            }
 
-        type TypeTwo {
-          str: String
-          typeOne: TypeOne
-        }
-        """
+            type TypeTwo {
+              str: String
+              typeOne: TypeOne
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func singleArgumentField() throws {
         let sdl = """
-        type Query {
-          str(int: Int): String
-          floatToStr(float: Float): String
-          idToStr(id: ID): String
-          booleanToStr(bool: Boolean): String
-          strToStr(bool: String): String
-        }
-        """
+            type Query {
+              str(int: Int): String
+              floatToStr(float: Float): String
+              idToStr(id: ID): String
+              booleanToStr(bool: Boolean): String
+              strToStr(bool: String): String
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func simpleTypeWithMultipleArguments() throws {
         let sdl = """
-        type Query {
-          str(int: Int, bool: Boolean): String
-        }
-        """
+            type Query {
+              str(int: Int, bool: Boolean): String
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func emptyInterface() throws {
         let sdl = """
-        interface EmptyInterface
-        """
+            interface EmptyInterface
+            """
         let definition = try #require(
             parse(source: sdl)
                 .definitions[0] as? InterfaceTypeDefinition
@@ -364,119 +369,119 @@ import Testing
 
     @Test func simpleTypeWithInterface() throws {
         let sdl = """
-        type Query implements WorldInterface {
-          str: String
-        }
+            type Query implements WorldInterface {
+              str: String
+            }
 
-        interface WorldInterface {
-          str: String
-        }
-        """
+            interface WorldInterface {
+              str: String
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func simpleInterfaceHierarchy() throws {
         let sdl = """
-        interface Child implements Parent {
-          str: String
-        }
+            interface Child implements Parent {
+              str: String
+            }
 
-        type Hello implements Parent & Child {
-          str: String
-        }
+            type Hello implements Parent & Child {
+              str: String
+            }
 
-        interface Parent {
-          str: String
-        }
-        """
+            interface Parent {
+              str: String
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func emptyEnum() throws {
         let sdl = """
-        enum EmptyEnum
-        """
+            enum EmptyEnum
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func simpleOutputEnum() throws {
         let sdl = """
-        enum Hello {
-          WORLD
-        }
+            enum Hello {
+              WORLD
+            }
 
-        type Query {
-          hello: Hello
-        }
-        """
+            type Query {
+              hello: Hello
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func simpleInputEnum() throws {
         let sdl = """
-        enum Hello {
-          WORLD
-        }
+            enum Hello {
+              WORLD
+            }
 
-        type Query {
-          str(hello: Hello): String
-        }
-        """
+            type Query {
+              str(hello: Hello): String
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func multipleValueEnum() throws {
         let sdl = """
-        enum Hello {
-          WO
-          RLD
-        }
+            enum Hello {
+              WO
+              RLD
+            }
 
-        type Query {
-          hello: Hello
-        }
-        """
+            type Query {
+              hello: Hello
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func emptyUnion() throws {
         let sdl = """
-        union EmptyUnion
-        """
+            union EmptyUnion
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func simpleUnion() throws {
         let sdl = """
-        union Hello = World
+            union Hello = World
 
-        type Query {
-          hello: Hello
-        }
+            type Query {
+              hello: Hello
+            }
 
-        type World {
-          str: String
-        }
-        """
+            type World {
+              str: String
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func multipleUnion() throws {
         let sdl = """
-        union Hello = WorldOne | WorldTwo
+            union Hello = WorldOne | WorldTwo
 
-        type Query {
-          hello: Hello
-        }
+            type Query {
+              hello: Hello
+            }
 
-        type WorldOne {
-          str: String
-        }
+            type WorldOne {
+              str: String
+            }
 
-        type WorldTwo {
-          str: String
-        }
-        """
+            type WorldTwo {
+              str: String
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
@@ -485,179 +490,181 @@ import Testing
             throws: (any Error).self,
             "Union type Hello can only include Object types, it cannot include Hello"
         ) {
-            try buildSchema(source: """
-            union Hello = Hello
+            try buildSchema(
+                source: """
+                    union Hello = Hello
 
-            type Query {
-              hello: Hello
-            }
-            """)
+                    type Query {
+                      hello: Hello
+                    }
+                    """
+            )
         }
     }
 
     @Test func customScalar() throws {
         let sdl = """
-        scalar CustomScalar
+            scalar CustomScalar
 
-        type Query {
-          customScalar: CustomScalar
-        }
-        """
+            type Query {
+              customScalar: CustomScalar
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func emptyInputObject() throws {
         let sdl = """
-        input EmptyInputObject
-        """
+            input EmptyInputObject
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func simpleInputObject() throws {
         let sdl = """
-        input Input {
-          int: Int
-        }
+            input Input {
+              int: Int
+            }
 
-        type Query {
-          field(in: Input): String
-        }
-        """
+            type Query {
+              field(in: Input): String
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func simpleArgumentFieldWithDefault() throws {
         let sdl = """
-        type Query {
-          str(int: Int = 2): String
-        }
-        """
+            type Query {
+              str(int: Int = 2): String
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func customScalarArgumentFieldWithDefault() throws {
         let sdl = """
-        scalar CustomScalar
+            scalar CustomScalar
 
-        type Query {
-          str(int: CustomScalar = 2): String
-        }
-        """
+            type Query {
+              str(int: CustomScalar = 2): String
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func simpleTypeWithMutation() throws {
         let sdl = """
-        schema {
-          query: HelloScalars
-          mutation: Mutation
-        }
+            schema {
+              query: HelloScalars
+              mutation: Mutation
+            }
 
-        type HelloScalars {
-          str: String
-          int: Int
-          bool: Boolean
-        }
+            type HelloScalars {
+              str: String
+              int: Int
+              bool: Boolean
+            }
 
-        type Mutation {
-          addHelloScalars(str: String, int: Int, bool: Boolean): HelloScalars
-        }
-        """
+            type Mutation {
+              addHelloScalars(str: String, int: Int, bool: Boolean): HelloScalars
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func simpleTypeWithSubscription() throws {
         let sdl = """
-        schema {
-          query: HelloScalars
-          subscription: Subscription
-        }
+            schema {
+              query: HelloScalars
+              subscription: Subscription
+            }
 
-        type HelloScalars {
-          str: String
-          int: Int
-          bool: Boolean
-        }
+            type HelloScalars {
+              str: String
+              int: Int
+              bool: Boolean
+            }
 
-        type Subscription {
-          subscribeHelloScalars(str: String, int: Int, bool: Boolean): HelloScalars
-        }
-        """
+            type Subscription {
+              subscribeHelloScalars(str: String, int: Int, bool: Boolean): HelloScalars
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func unreferencedTypeImplementingReferencedInterface() throws {
         let sdl = """
-        type Concrete implements Interface {
-          key: String
-        }
+            type Concrete implements Interface {
+              key: String
+            }
 
-        interface Interface {
-          key: String
-        }
+            interface Interface {
+              key: String
+            }
 
-        type Query {
-          interface: Interface
-        }
-        """
+            type Query {
+              interface: Interface
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func unreferencedInterfaceImplementingReferencedInterface() throws {
         let sdl = """
-        interface Child implements Parent {
-          key: String
-        }
+            interface Child implements Parent {
+              key: String
+            }
 
-        interface Parent {
-          key: String
-        }
+            interface Parent {
+              key: String
+            }
 
-        type Query {
-          interfaceField: Parent
-        }
-        """
+            type Query {
+              interfaceField: Parent
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func unreferencedTypeImplementingReferencedUnion() throws {
         let sdl = """
-        type Concrete {
-          key: String
-        }
+            type Concrete {
+              key: String
+            }
 
-        type Query {
-          union: Union
-        }
+            type Query {
+              union: Union
+            }
 
-        union Union = Concrete
-        """
+            union Union = Concrete
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
     }
 
     @Test func supportsDeprecated() throws {
         let sdl = """
-        enum MyEnum {
-          VALUE
-          OLD_VALUE @deprecated
-          OTHER_VALUE @deprecated(reason: "Terrible reasons")
-        }
+            enum MyEnum {
+              VALUE
+              OLD_VALUE @deprecated
+              OTHER_VALUE @deprecated(reason: "Terrible reasons")
+            }
 
-        input MyInput {
-          oldInput: String @deprecated
-          otherInput: String @deprecated(reason: "Use newInput")
-          newInput: String
-        }
+            input MyInput {
+              oldInput: String @deprecated
+              otherInput: String @deprecated(reason: "Use newInput")
+              newInput: String
+            }
 
-        type Query {
-          field1: String @deprecated
-          field2: Int @deprecated(reason: "Because I said so")
-          enum: MyEnum
-          field3(oldArg: String @deprecated, arg: String): String
-          field4(oldArg: String @deprecated(reason: "Why not?"), arg: String): String
-          field5(arg: MyInput): String
-        }
-        """
+            type Query {
+              field1: String @deprecated
+              field2: Int @deprecated(reason: "Because I said so")
+              enum: MyEnum
+              field3(oldArg: String @deprecated, arg: String): String
+              field4(oldArg: String @deprecated(reason: "Why not?"), arg: String): String
+              field5(arg: MyInput): String
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
 
         let schema = try buildSchema(source: sdl)
@@ -690,12 +697,12 @@ import Testing
 
     @Test func supportsSpecifiedBy() throws {
         let sdl = """
-        scalar Foo @specifiedBy(url: "https://example.com/foo_spec")
+            scalar Foo @specifiedBy(url: "https://example.com/foo_spec")
 
-        type Query {
-          foo: Foo @deprecated
-        }
-        """
+            type Query {
+              foo: Foo @deprecated
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
 
         let schema = try buildSchema(source: sdl)
@@ -705,19 +712,21 @@ import Testing
     }
 
     @Test func correctlyExtendScalarType() throws {
-        let schema = try buildSchema(source: """
-        scalar SomeScalar
-        extend scalar SomeScalar @foo
-        extend scalar SomeScalar @bar
+        let schema = try buildSchema(
+            source: """
+                scalar SomeScalar
+                extend scalar SomeScalar @foo
+                extend scalar SomeScalar @bar
 
-        directive @foo on SCALAR
-        directive @bar on SCALAR
-        """)
+                directive @foo on SCALAR
+                directive @bar on SCALAR
+                """
+        )
         let someScalar = try #require(schema.getType(name: "SomeScalar") as? GraphQLScalarType)
         #expect(
             printType(type: someScalar) == """
-            scalar SomeScalar
-            """
+                scalar SomeScalar
+                """
         )
         try #expect(print(ast: #require(someScalar.astNode)) == "scalar SomeScalar")
         #expect(
@@ -729,39 +738,41 @@ import Testing
     }
 
     @Test func correctlyExtendObjectType() throws {
-        let schema = try buildSchema(source: """
-        type SomeObject implements Foo {
-          first: String
-        }
+        let schema = try buildSchema(
+            source: """
+                type SomeObject implements Foo {
+                  first: String
+                }
 
-        extend type SomeObject implements Bar {
-          second: Int
-        }
+                extend type SomeObject implements Bar {
+                  second: Int
+                }
 
-        extend type SomeObject implements Baz {
-          third: Float
-        }
+                extend type SomeObject implements Baz {
+                  third: Float
+                }
 
-        interface Foo
-        interface Bar
-        interface Baz
-        """)
+                interface Foo
+                interface Bar
+                interface Baz
+                """
+        )
         let someObject = try #require(schema.getType(name: "SomeObject") as? GraphQLObjectType)
         #expect(
             printType(type: someObject) == """
-            type SomeObject implements Foo & Bar & Baz {
-              first: String
-              second: Int
-              third: Float
-            }
-            """
+                type SomeObject implements Foo & Bar & Baz {
+                  first: String
+                  second: Int
+                  third: Float
+                }
+                """
         )
         try #expect(
             print(ast: #require(someObject.astNode)) == """
-            type SomeObject implements Foo {
-              first: String
-            }
-            """
+                type SomeObject implements Foo {
+                  first: String
+                }
+                """
         )
         #expect(
             someObject.extensionASTNodes.map { print(ast: $0) } == [
@@ -780,37 +791,39 @@ import Testing
     }
 
     @Test func correctlyExtendInterfaceType() throws {
-        let schema = try buildSchema(source: """
-        interface SomeInterface {
-          first: String
-        }
+        let schema = try buildSchema(
+            source: """
+                interface SomeInterface {
+                  first: String
+                }
 
-        extend interface SomeInterface {
-          second: Int
-        }
+                extend interface SomeInterface {
+                  second: Int
+                }
 
-        extend interface SomeInterface {
-          third: Float
-        }
-        """)
+                extend interface SomeInterface {
+                  third: Float
+                }
+                """
+        )
         let someInterface = try #require(
             schema.getType(name: "SomeInterface") as? GraphQLInterfaceType
         )
         #expect(
             printType(type: someInterface) == """
-            interface SomeInterface {
-              first: String
-              second: Int
-              third: Float
-            }
-            """
+                interface SomeInterface {
+                  first: String
+                  second: Int
+                  third: Float
+                }
+                """
         )
         try #expect(
             print(ast: #require(someInterface.astNode)) == """
-            interface SomeInterface {
-              first: String
-            }
-            """
+                interface SomeInterface {
+                  first: String
+                }
+                """
         )
         #expect(
             someInterface.extensionASTNodes.map { print(ast: $0) } == [
@@ -829,20 +842,22 @@ import Testing
     }
 
     @Test func correctlyExtendUnionType() throws {
-        let schema = try buildSchema(source: """
-        union SomeUnion = FirstType
-        extend union SomeUnion = SecondType
-        extend union SomeUnion = ThirdType
+        let schema = try buildSchema(
+            source: """
+                union SomeUnion = FirstType
+                extend union SomeUnion = SecondType
+                extend union SomeUnion = ThirdType
 
-        type FirstType
-        type SecondType
-        type ThirdType
-        """)
+                type FirstType
+                type SecondType
+                type ThirdType
+                """
+        )
         let someUnion = try #require(schema.getType(name: "SomeUnion") as? GraphQLUnionType)
         #expect(
             printType(type: someUnion) == """
-            union SomeUnion = FirstType | SecondType | ThirdType
-            """
+                union SomeUnion = FirstType | SecondType | ThirdType
+                """
         )
         try #expect(
             print(
@@ -858,35 +873,37 @@ import Testing
     }
 
     @Test func correctlyExtendEnumType() throws {
-        let schema = try buildSchema(source: """
-        enum SomeEnum {
-          FIRST
-        }
+        let schema = try buildSchema(
+            source: """
+                enum SomeEnum {
+                  FIRST
+                }
 
-        extend enum SomeEnum {
-          SECOND
-        }
+                extend enum SomeEnum {
+                  SECOND
+                }
 
-        extend enum SomeEnum {
-          THIRD
-        }
-        """)
+                extend enum SomeEnum {
+                  THIRD
+                }
+                """
+        )
         let someEnum = try #require(schema.getType(name: "SomeEnum") as? GraphQLEnumType)
         #expect(
             printType(type: someEnum) == """
-            enum SomeEnum {
-              FIRST
-              SECOND
-              THIRD
-            }
-            """
+                enum SomeEnum {
+                  FIRST
+                  SECOND
+                  THIRD
+                }
+                """
         )
         try #expect(
             print(ast: #require(someEnum.astNode)) == """
-            enum SomeEnum {
-              FIRST
-            }
-            """
+                enum SomeEnum {
+                  FIRST
+                }
+                """
         )
         #expect(
             someEnum.extensionASTNodes.map { print(ast: $0) } == [
@@ -905,35 +922,37 @@ import Testing
     }
 
     @Test func correctlyExtendInputObjectType() throws {
-        let schema = try buildSchema(source: """
-        input SomeInput {
-          first: String
-        }
+        let schema = try buildSchema(
+            source: """
+                input SomeInput {
+                  first: String
+                }
 
-        extend input SomeInput {
-          second: Int
-        }
+                extend input SomeInput {
+                  second: Int
+                }
 
-        extend input SomeInput {
-          third: Float
-        }
-        """)
+                extend input SomeInput {
+                  third: Float
+                }
+                """
+        )
         let someInput = try #require(schema.getType(name: "SomeInput") as? GraphQLInputObjectType)
         #expect(
             printType(type: someInput) == """
-            input SomeInput {
-              first: String
-              second: Int
-              third: Float
-            }
-            """
+                input SomeInput {
+                  first: String
+                  second: Int
+                  third: Float
+                }
+                """
         )
         try #expect(
             print(ast: #require(someInput.astNode)) == """
-            input SomeInput {
-              first: String
-            }
-            """
+                input SomeInput {
+                  first: String
+                }
+                """
         )
         #expect(
             someInput.extensionASTNodes.map { print(ast: $0) } == [
@@ -953,36 +972,36 @@ import Testing
 
     @Test func correctlyAssignASTNodes() throws {
         let sdl = """
-        schema {
-          query: Query
-        }
+            schema {
+              query: Query
+            }
 
-        type Query {
-          testField(testArg: TestInput): TestUnion
-        }
+            type Query {
+              testField(testArg: TestInput): TestUnion
+            }
 
-        input TestInput {
-          testInputField: TestEnum
-        }
+            input TestInput {
+              testInputField: TestEnum
+            }
 
-        enum TestEnum {
-          TEST_VALUE
-        }
+            enum TestEnum {
+              TEST_VALUE
+            }
 
-        union TestUnion = TestType
+            union TestUnion = TestType
 
-        interface TestInterface {
-          interfaceField: String
-        }
+            interface TestInterface {
+              interfaceField: String
+            }
 
-        type TestType implements TestInterface {
-          interfaceField: String
-        }
+            type TestType implements TestInterface {
+              interfaceField: String
+            }
 
-        scalar TestScalar
+            scalar TestScalar
 
-        directive @test(arg: TestScalar) on FIELD
-        """
+            directive @test(arg: TestScalar) on FIELD
+            """
         let ast = try parse(source: sdl, noLocation: true)
 
         let schema = try buildASTSchema(documentAST: ast)
@@ -998,20 +1017,20 @@ import Testing
         let testDirective = try #require(schema.getDirective(name: "test"))
 
         // No `Equatable` conformance
-//        #expect(
-//            [
-//              schema.astNode,
-//              query.astNode,
-//              testInput.astNode,
-//              testEnum.astNode,
-//              testUnion.astNode,
-//              testInterface.astNode,
-//              testType.astNode,
-//              testScalar.astNode,
-//              testDirective.astNode,
-//            ] ==
-//            ast.definitions
-//        )
+        //        #expect(
+        //            [
+        //              schema.astNode,
+        //              query.astNode,
+        //              testInput.astNode,
+        //              testEnum.astNode,
+        //              testUnion.astNode,
+        //              testInterface.astNode,
+        //              testType.astNode,
+        //              testScalar.astNode,
+        //              testDirective.astNode,
+        //            ] ==
+        //            ast.definitions
+        //        )
 
         let testField = try #require(query.getFields()["testField"])
         try #expect(
@@ -1054,27 +1073,31 @@ import Testing
     }
 
     @Test func rootOperationTypesWithCustomNames() throws {
-        let schema = try buildSchema(source: """
-        schema {
-          query: SomeQuery
-          mutation: SomeMutation
-          subscription: SomeSubscription
-        }
-        type SomeQuery
-        type SomeMutation
-        type SomeSubscription
-        """)
+        let schema = try buildSchema(
+            source: """
+                schema {
+                  query: SomeQuery
+                  mutation: SomeMutation
+                  subscription: SomeSubscription
+                }
+                type SomeQuery
+                type SomeMutation
+                type SomeSubscription
+                """
+        )
         #expect(schema.queryType?.name == "SomeQuery")
         #expect(schema.mutationType?.name == "SomeMutation")
         #expect(schema.subscriptionType?.name == "SomeSubscription")
     }
 
     @Test func defaultRootOperationTypeNames() throws {
-        let schema = try buildSchema(source: """
-        type Query
-        type Mutation
-        type Subscription
-        """)
+        let schema = try buildSchema(
+            source: """
+                type Query
+                type Mutation
+                type Subscription
+                """
+        )
         #expect(schema.queryType?.name == "Query")
         #expect(schema.mutationType?.name == "Mutation")
         #expect(schema.subscriptionType?.name == "Subscription")
@@ -1087,46 +1110,46 @@ import Testing
     }
 
     @Test func doNotOverrideStandardTypes() throws {
-        let schema = try buildSchema(source: """
-        scalar ID
+        let schema = try buildSchema(
+            source: """
+                scalar ID
 
-        scalar __Schema
-        """)
-        #expect(
-            schema.getType(name: "ID") as? GraphQLScalarType ===
-                GraphQLID
+                scalar __Schema
+                """
         )
         #expect(
-            schema.getType(name: "__Schema") as? GraphQLObjectType ===
-                __Schema
+            schema.getType(name: "ID") as? GraphQLScalarType === GraphQLID
+        )
+        #expect(
+            schema.getType(name: "__Schema") as? GraphQLObjectType === __Schema
         )
     }
 
     @Test func allowsToReferenceIntrospectionTypes() throws {
-        let schema = try buildSchema(source: """
-        type Query {
-          introspectionField: __EnumValue
-        }
-        """)
+        let schema = try buildSchema(
+            source: """
+                type Query {
+                  introspectionField: __EnumValue
+                }
+                """
+        )
         let queryType = try #require(schema.getType(name: "Query") as? GraphQLObjectType)
         try #expect(
             queryType.getFields().contains { key, field in
-                key == "introspectionField" &&
-                    (field.type as? GraphQLObjectType) === __EnumValue
+                key == "introspectionField" && (field.type as? GraphQLObjectType) === __EnumValue
             }
         )
         #expect(
-            schema.getType(name: "__EnumValue") as? GraphQLObjectType ===
-                __EnumValue
+            schema.getType(name: "__EnumValue") as? GraphQLObjectType === __EnumValue
         )
     }
 
     @Test func rejectsInvalidSDL() throws {
         let sdl = """
-        type Query {
-          foo: String @unknown
-        }
-        """
+            type Query {
+              foo: String @unknown
+            }
+            """
         #expect(
             throws: (any Error).self,
             "Unknown directive: \"@unknown\"."
@@ -1137,20 +1160,20 @@ import Testing
 
     @Test func allowsToDisableSDLValidation() throws {
         let sdl = """
-        type Query {
-          foo: String @unknown
-        }
-        """
+            type Query {
+              foo: String @unknown
+            }
+            """
         _ = try buildSchema(source: sdl, assumeValid: true)
         _ = try buildSchema(source: sdl, assumeValidSDL: true)
     }
 
     @Test func throwsOnUnknownTypes() throws {
         let sdl = """
-        type Query {
-          unknown: UnknownType
-        }
-        """
+            type Query {
+              unknown: UnknownType
+            }
+            """
         #expect(
             throws: (any Error).self,
             "Unknown type: \"@UnknownType\"."
@@ -1160,25 +1183,27 @@ import Testing
     }
 
     @Test func correctlyProcessesViralSchema() throws {
-        let schema = try buildSchema(source: """
-        schema {
-          query: Query
-        }
+        let schema = try buildSchema(
+            source: """
+                schema {
+                  query: Query
+                }
 
-        type Query {
-          viruses: [Virus!]
-        }
+                type Query {
+                  viruses: [Virus!]
+                }
 
-        type Virus {
-          name: String!
-          knownMutations: [Mutation!]!
-        }
+                type Virus {
+                  name: String!
+                  knownMutations: [Mutation!]!
+                }
 
-        type Mutation {
-          name: String!
-          geneSequence: String!
-        }
-        """)
+                type Mutation {
+                  name: String!
+                  geneSequence: String!
+                }
+                """
+        )
         #expect(schema.queryType?.name == "Query")
         #expect(schema.getType(name: "Virus")?.name == "Virus")
         #expect(schema.getType(name: "Mutation")?.name == "Mutation")
@@ -1189,14 +1214,14 @@ import Testing
 
     @Test func supportsNullLiterals() throws {
         let sdl = """
-        input MyInput {
-          nullLiteral: String!
-        }
+            input MyInput {
+              nullLiteral: String!
+            }
 
-        type Query {
-          field(in: MyInput = null): String
-        }
-        """
+            type Query {
+              field(in: MyInput = null): String
+            }
+            """
         try #expect(cycleSDL(sdl: sdl) == sdl)
 
         let schema = try buildSchema(source: sdl)

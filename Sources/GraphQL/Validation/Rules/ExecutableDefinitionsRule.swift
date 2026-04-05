@@ -1,12 +1,9 @@
-
-/**
- * Executable definitions
- *
- * A GraphQL document is only valid for execution if all definitions are either
- * operation or fragment definitions.
- *
- * See https://spec.graphql.org/draft/#sec-Executable-Definitions
- */
+/// Executable definitions
+///
+/// A GraphQL document is only valid for execution if all definitions are either
+/// operation or fragment definitions.
+///
+/// See https://spec.graphql.org/draft/#sec-Executable-Definitions
 func ExecutableDefinitionsRule(context: ValidationContext) -> Visitor {
     let definitions = context.ast.definitions
     let existingTypesMap = context.schema.typeMap
@@ -16,10 +13,9 @@ func ExecutableDefinitionsRule(context: ValidationContext) -> Visitor {
         typeNames.insert(typeName)
     }
     for definition in definitions {
-        if
-            let type = definition as? TypeDefinition,
+        if let type = definition as? TypeDefinition,
             let nameResult = type.get(key: "name"),
-            case let .node(nameNode) = nameResult,
+            case .node(let nameNode) = nameResult,
             let name = nameNode as? Name
         {
             typeNames.insert(name.value)
@@ -56,6 +52,7 @@ func ExecutableDefinitionsRule(context: ValidationContext) -> Visitor {
 }
 
 func isExecutable(_ definition: Definition) -> Bool {
-    definition.kind == .operationDefinition || definition
-        .kind == .fragmentDefinition
+    definition.kind == .operationDefinition
+        || definition
+            .kind == .fragmentDefinition
 }

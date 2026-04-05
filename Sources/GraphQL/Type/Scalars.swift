@@ -1,23 +1,19 @@
-/**
- * Maximum possible Int value as per GraphQL Spec (32-bit signed integer).
- * n.b. This differs from JavaScript's numbers that are IEEE 754 doubles safe up-to 2^53 - 1
- * */
+/// Maximum possible Int value as per GraphQL Spec (32-bit signed integer).
+/// n.b. This differs from JavaScript's numbers that are IEEE 754 doubles safe up-to 2^53 - 1
 let GRAPHQL_MAX_INT = 2_147_483_647
 
-/**
- * Minimum possible Int value as per GraphQL Spec (32-bit signed integer).
- * n.b. This differs from JavaScript's numbers that are IEEE 754 doubles safe starting at -(2^53 - 1)
- * */
+/// Minimum possible Int value as per GraphQL Spec (32-bit signed integer).
+/// n.b. This differs from JavaScript's numbers that are IEEE 754 doubles safe starting at -(2^53 - 1)
 let GRAPHQL_MIN_INT = -2_147_483_648
 
 public let GraphQLInt = try! GraphQLScalarType(
     name: "Int",
     description:
-    "The `Int` scalar type represents non-fractional signed whole numeric " +
-        "values. Int can represent values between -(2^31) and 2^31 - 1.",
+        "The `Int` scalar type represents non-fractional signed whole numeric "
+        + "values. Int can represent values between -(2^31) and 2^31 - 1.",
     serialize: { outputValue in
         if let value = outputValue as? Map {
-            if case let .number(value) = value {
+            if case .number(let value) = value {
                 return .int(value.intValue)
             }
             throw GraphQLError(
@@ -30,8 +26,7 @@ public let GraphQLInt = try! GraphQLScalarType(
         if let value = outputValue as? String, value != "", let int = Int(value) {
             return .int(int)
         }
-        if
-            let value = outputValue as? Double, Double(GRAPHQL_MIN_INT) <= value,
+        if let value = outputValue as? Double, Double(GRAPHQL_MIN_INT) <= value,
             value <= Double(GRAPHQL_MAX_INT), value.isFinite
         {
             return .int(Int(value))
@@ -44,8 +39,7 @@ public let GraphQLInt = try! GraphQLScalarType(
         )
     },
     parseValue: { inputValue in
-        if
-            case let .number(value) = inputValue, Double(GRAPHQL_MIN_INT) <= value.doubleValue,
+        if case .number(let value) = inputValue, Double(GRAPHQL_MIN_INT) <= value.doubleValue,
             value.doubleValue <= Double(GRAPHQL_MAX_INT), value.doubleValue.isFinite
         {
             return .number(value)
@@ -69,12 +63,12 @@ public let GraphQLInt = try! GraphQLScalarType(
 public let GraphQLFloat = try! GraphQLScalarType(
     name: "Float",
     description:
-    "The `Float` scalar type represents signed double-precision fractional " +
-        "values as specified by " +
-        "[IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point). ",
+        "The `Float` scalar type represents signed double-precision fractional "
+        + "values as specified by "
+        + "[IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point). ",
     serialize: { outputValue in
         if let value = outputValue as? Map {
-            if case let .number(value) = value {
+            if case .number(let value) = value {
                 return .double(value.doubleValue)
             }
             throw GraphQLError(
@@ -98,7 +92,7 @@ public let GraphQLFloat = try! GraphQLScalarType(
         )
     },
     parseValue: { inputValue in
-        if case let .number(value) = inputValue, value.doubleValue.isFinite {
+        if case .number(let value) = inputValue, value.doubleValue.isFinite {
             return .number(value)
         }
         throw GraphQLError(
@@ -124,12 +118,12 @@ public let GraphQLFloat = try! GraphQLScalarType(
 public let GraphQLString = try! GraphQLScalarType(
     name: "String",
     description:
-    "The `String` scalar type represents textual data, represented as UTF-8 " +
-        "character sequences. The String type is most often used by GraphQL to " +
-        "represent free-form human-readable text.",
+        "The `String` scalar type represents textual data, represented as UTF-8 "
+        + "character sequences. The String type is most often used by GraphQL to "
+        + "represent free-form human-readable text.",
     serialize: { outputValue in
         if let value = outputValue as? Map {
-            if case let .string(value) = value {
+            if case .string(let value) = value {
                 return .string(value)
             }
             throw GraphQLError(
@@ -153,7 +147,7 @@ public let GraphQLString = try! GraphQLScalarType(
         )
     },
     parseValue: { outputValue in
-        if case let .string(value) = outputValue {
+        if case .string(let value) = outputValue {
             return .string(value)
         }
         throw GraphQLError(
@@ -177,10 +171,10 @@ public let GraphQLBoolean = try! GraphQLScalarType(
     description: "The `Boolean` scalar type represents `true` or `false`.",
     serialize: { outputValue in
         if let value = outputValue as? Map {
-            if case let .bool(value) = value {
+            if case .bool(let value) = value {
                 return .bool(value)
             }
-            if case let .number(value) = value {
+            if case .number(let value) = value {
                 return .bool(value.intValue != 0)
             }
             throw GraphQLError(
@@ -198,12 +192,12 @@ public let GraphQLBoolean = try! GraphQLScalarType(
         )
     },
     parseValue: { inputValue in
-        if case let .bool(value) = inputValue {
+        if case .bool(let value) = inputValue {
             return inputValue
         }
         // NOTE: We deviate from graphql-js and allow numeric conversions here because
         // the MapCoder's round-trip conversion to NSObject for Bool converts to 0/1 numbers.
-        if case let .number(value) = inputValue {
+        if case .number(let value) = inputValue {
             return .bool(value.intValue != 0)
         }
         throw GraphQLError(
@@ -225,17 +219,17 @@ public let GraphQLBoolean = try! GraphQLScalarType(
 public let GraphQLID = try! GraphQLScalarType(
     name: "ID",
     description:
-    "The `ID` scalar type represents a unique identifier, often used to " +
-        "refetch an object or as key for a cache. The ID type appears in a JSON " +
-        "response as a String; however, it is not intended to be human-readable. " +
-        "When expected as an input type, any string (such as `\"4\"`) or integer " +
-        "(such as `4`) input value will be accepted as an ID.",
+        "The `ID` scalar type represents a unique identifier, often used to "
+        + "refetch an object or as key for a cache. The ID type appears in a JSON "
+        + "response as a String; however, it is not intended to be human-readable. "
+        + "When expected as an input type, any string (such as `\"4\"`) or integer "
+        + "(such as `4`) input value will be accepted as an ID.",
     serialize: { outputValue in
         if let value = outputValue as? Map {
-            if case let .string(value) = value {
+            if case .string(let value) = value {
                 return .string(value)
             }
-            if case let .number(value) = value {
+            if case .number(let value) = value {
                 return .string(value.description)
             }
             throw GraphQLError(
@@ -251,10 +245,10 @@ public let GraphQLID = try! GraphQLScalarType(
         throw GraphQLError(message: "ID cannot represent value: \(outputValue)")
     },
     parseValue: { inputValue in
-        if case let .string(value) = inputValue {
+        if case .string(let value) = inputValue {
             return inputValue
         }
-        if case let .number(value) = inputValue, value.storageType == .int {
+        if case .number(let value) = inputValue, value.storageType == .int {
             return .string(value.description)
         }
         throw GraphQLError(message: "ID cannot represent value: \(inputValue)")

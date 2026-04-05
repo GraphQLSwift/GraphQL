@@ -1,19 +1,17 @@
 func noSubselectionAllowedMessage(fieldName: String, type: GraphQLType) -> String {
-    return "Field \"\(fieldName)\" must not have a selection since " +
-        "type \"\(type)\" has no subfields."
+    return "Field \"\(fieldName)\" must not have a selection since "
+        + "type \"\(type)\" has no subfields."
 }
 
 func requiredSubselectionMessage(fieldName: String, type: GraphQLType) -> String {
-    return "Field \"\(fieldName)\" of type \"\(type)\" must have a " +
-        "selection of subfields." + didYouMean(suggestions: ["\(fieldName) { ... }"])
+    return "Field \"\(fieldName)\" of type \"\(type)\" must have a " + "selection of subfields."
+        + didYouMean(suggestions: ["\(fieldName) { ... }"])
 }
 
-/**
- * Scalar leafs
- *
- * A GraphQL document is valid only if all leaf fields (fields without
- * sub selections) are of scalar or enum types.
- */
+/// Scalar leafs
+///
+/// A GraphQL document is valid only if all leaf fields (fields without
+/// sub selections) are of scalar or enum types.
 func ScalarLeafsRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in

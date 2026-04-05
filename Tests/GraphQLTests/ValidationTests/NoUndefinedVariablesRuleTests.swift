@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class NoUndefinedVariablesRuleTests: ValidationTestCase {
     override init() {
@@ -126,10 +127,10 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
-            query Foo($a: String, $b: String, $c: String) {
-              field(a: $a, b: $b, c: $c, d: $d)
-            }
-            """
+                query Foo($a: String, $b: String, $c: String) {
+                  field(a: $a, b: $b, c: $c, d: $d)
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -145,10 +146,10 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
-            {
-              field(a: $a)
-            }
-            """
+                {
+                  field(a: $a)
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -164,10 +165,10 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
-            query Foo($b: String) {
-              field(a: $a, b: $b, c: $c)
-            }
-            """
+                query Foo($b: String) {
+                  field(a: $a, b: $b, c: $c)
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -191,13 +192,13 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
-            {
-              ...FragA
-            }
-            fragment FragA on Type {
-              field(a: $a)
-            }
-            """
+                {
+                  ...FragA
+                }
+                fragment FragA on Type {
+                  field(a: $a)
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -213,23 +214,23 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
-            query Foo($a: String, $b: String) {
-              ...FragA
-            }
-            fragment FragA on Type {
-              field(a: $a) {
-                ...FragB
-              }
-            }
-            fragment FragB on Type {
-              field(b: $b) {
-                ...FragC
-              }
-            }
-            fragment FragC on Type {
-              field(c: $c)
-            }
-            """
+                query Foo($a: String, $b: String) {
+                  ...FragA
+                }
+                fragment FragA on Type {
+                  field(a: $a) {
+                    ...FragB
+                  }
+                }
+                fragment FragB on Type {
+                  field(b: $b) {
+                    ...FragC
+                  }
+                }
+                fragment FragC on Type {
+                  field(c: $c)
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -245,23 +246,23 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
-            query Foo($b: String) {
-              ...FragA
-            }
-            fragment FragA on Type {
-              field(a: $a) {
-                ...FragB
-              }
-            }
-            fragment FragB on Type {
-              field(b: $b) {
-                ...FragC
-              }
-            }
-            fragment FragC on Type {
-              field(c: $c)
-            }
-            """
+                query Foo($b: String) {
+                  ...FragA
+                }
+                fragment FragA on Type {
+                  field(a: $a) {
+                    ...FragB
+                  }
+                }
+                fragment FragB on Type {
+                  field(b: $b) {
+                    ...FragC
+                  }
+                }
+                fragment FragC on Type {
+                  field(c: $c)
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -285,16 +286,16 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
-            query Foo($a: String) {
-              ...FragAB
-            }
-            query Bar($a: String) {
-              ...FragAB
-            }
-            fragment FragAB on Type {
-              field(a: $a, b: $b)
-            }
-            """
+                query Foo($a: String) {
+                  ...FragAB
+                }
+                query Bar($a: String) {
+                  ...FragAB
+                }
+                fragment FragAB on Type {
+                  field(a: $a, b: $b)
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -318,19 +319,19 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
-            query Foo($b: String) {
-              ...FragA
-            }
-            query Bar($a: String) {
-              ...FragB
-            }
-            fragment FragA on Type {
-              field(a: $a)
-            }
-            fragment FragB on Type {
-              field(b: $b)
-            }
-            """
+                query Foo($b: String) {
+                  ...FragA
+                }
+                query Bar($a: String) {
+                  ...FragB
+                }
+                fragment FragA on Type {
+                  field(a: $a)
+                }
+                fragment FragB on Type {
+                  field(b: $b)
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -354,21 +355,21 @@ class NoUndefinedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 6,
             query: """
-            query Foo($b: String) {
-              ...FragAB
-            }
-            query Bar($a: String) {
-              ...FragAB
-            }
-            fragment FragAB on Type {
-              field1(a: $a, b: $b)
-              ...FragC
-              field3(a: $a, b: $b)
-            }
-            fragment FragC on Type {
-              field2(c: $c)
-            }
-            """
+                query Foo($b: String) {
+                  ...FragAB
+                }
+                query Bar($a: String) {
+                  ...FragAB
+                }
+                fragment FragAB on Type {
+                  field1(a: $a, b: $b)
+                  ...FragC
+                  field3(a: $a, b: $b)
+                }
+                fragment FragC on Type {
+                  field2(c: $c)
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],

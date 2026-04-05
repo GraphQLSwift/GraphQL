@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct HelloWorldTests {
     let schema = try! GraphQLSchema(
@@ -11,7 +12,7 @@ import Testing
                     resolve: { _, _, _, _ in
                         "world"
                     }
-                ),
+                )
             ]
         )
     )
@@ -36,7 +37,7 @@ import Testing
                 GraphQLError(
                     message: "Cannot query field \"boyhowdy\" on type \"RootQueryType\".",
                     locations: [SourceLocation(line: 1, column: 3)]
-                ),
+                )
             ]
         )
 

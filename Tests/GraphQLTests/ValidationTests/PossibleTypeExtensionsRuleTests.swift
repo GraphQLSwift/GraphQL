@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
     override init() {
@@ -84,27 +85,33 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
             """,
             [
                 GraphQLError(
-                    message: #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
+                    message:
+                        #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
                     locations: [.init(line: 3, column: 15)]
                 ),
                 GraphQLError(
-                    message: #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
+                    message:
+                        #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
                     locations: [.init(line: 4, column: 13)]
                 ),
                 GraphQLError(
-                    message: #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
+                    message:
+                        #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
                     locations: [.init(line: 5, column: 18)]
                 ),
                 GraphQLError(
-                    message: #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
+                    message:
+                        #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
                     locations: [.init(line: 6, column: 14)]
                 ),
                 GraphQLError(
-                    message: #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
+                    message:
+                        #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
                     locations: [.init(line: 7, column: 13)]
                 ),
                 GraphQLError(
-                    message: #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
+                    message:
+                        #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
                     locations: [.init(line: 8, column: 14)]
                 ),
             ]
@@ -219,61 +226,69 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
     }
 
     @Test func extendingTypesWithinExistingSchema() throws {
-        let schema = try buildSchema(source: """
-        scalar FooScalar
-        type FooObject
-        interface FooInterface
-        union FooUnion
-        enum FooEnum
-        input FooInputObject
-        """)
+        let schema = try buildSchema(
+            source: """
+                scalar FooScalar
+                type FooObject
+                interface FooInterface
+                union FooUnion
+                enum FooEnum
+                input FooInputObject
+                """
+        )
         let sdl = """
-        extend scalar FooScalar @dummy
-        extend type FooObject @dummy
-        extend interface FooInterface @dummy
-        extend union FooUnion @dummy
-        extend enum FooEnum @dummy
-        extend input FooInputObject @dummy
-        """
+            extend scalar FooScalar @dummy
+            extend type FooObject @dummy
+            extend interface FooInterface @dummy
+            extend union FooUnion @dummy
+            extend enum FooEnum @dummy
+            extend input FooInputObject @dummy
+            """
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
     @Test func extendingUnknownTypesWithinExistingSchema() throws {
         let schema = try buildSchema(source: "type Known")
         let sdl = """
-        extend scalar Unknown @dummy
-        extend type Unknown @dummy
-        extend interface Unknown @dummy
-        extend union Unknown @dummy
-        extend enum Unknown @dummy
-        extend input Unknown @dummy
-        """
+            extend scalar Unknown @dummy
+            extend type Unknown @dummy
+            extend interface Unknown @dummy
+            extend union Unknown @dummy
+            extend enum Unknown @dummy
+            extend input Unknown @dummy
+            """
         try assertValidationErrors(
             sdl,
             schema: schema,
             [
                 GraphQLError(
-                    message: #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
+                    message:
+                        #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
                     locations: [.init(line: 1, column: 15)]
                 ),
                 GraphQLError(
-                    message: #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
+                    message:
+                        #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
                     locations: [.init(line: 2, column: 13)]
                 ),
                 GraphQLError(
-                    message: #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
+                    message:
+                        #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
                     locations: [.init(line: 3, column: 18)]
                 ),
                 GraphQLError(
-                    message: #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
+                    message:
+                        #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
                     locations: [.init(line: 4, column: 14)]
                 ),
                 GraphQLError(
-                    message: #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
+                    message:
+                        #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
                     locations: [.init(line: 5, column: 13)]
                 ),
                 GraphQLError(
-                    message: #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
+                    message:
+                        #"Cannot extend type "Unknown" because it is not defined. Did you mean "Known"?"#,
                     locations: [.init(line: 6, column: 14)]
                 ),
             ]
@@ -281,22 +296,24 @@ class PossibleTypeExtensionsRuleTests: SDLValidationTestCase {
     }
 
     @Test func extendingTypesWithDifferentKindsWithinExistingSchema() throws {
-        let schema = try buildSchema(source: """
-        scalar FooScalar
-        type FooObject
-        interface FooInterface
-        union FooUnion
-        enum FooEnum
-        input FooInputObject
-        """)
+        let schema = try buildSchema(
+            source: """
+                scalar FooScalar
+                type FooObject
+                interface FooInterface
+                union FooUnion
+                enum FooEnum
+                input FooInputObject
+                """
+        )
         let sdl = """
-        extend type FooScalar @dummy
-        extend interface FooObject @dummy
-        extend union FooInterface @dummy
-        extend enum FooUnion @dummy
-        extend input FooEnum @dummy
-        extend scalar FooInputObject @dummy
-        """
+            extend type FooScalar @dummy
+            extend interface FooObject @dummy
+            extend union FooInterface @dummy
+            extend enum FooUnion @dummy
+            extend input FooEnum @dummy
+            extend scalar FooInputObject @dummy
+            """
         try assertValidationErrors(
             sdl,
             schema: schema,

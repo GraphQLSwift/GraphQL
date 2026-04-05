@@ -50,8 +50,7 @@ func printSchemaDefinition(schema: GraphQLSchema) -> String? {
     // Only print a schema definition if there is a description or if it should
     // not be omitted because of having default type names.
     if schema.description != nil || !hasDefaultRootOperationTypes(schema: schema) {
-        var result = printDescription(schema.description) +
-            "schema {\n"
+        var result = printDescription(schema.description) + "schema {\n"
         if let queryType = queryType {
             result = result + "  query: \(queryType.name)\n"
         }
@@ -67,40 +66,37 @@ func printSchemaDefinition(schema: GraphQLSchema) -> String? {
     return nil
 }
 
-/**
- * GraphQL schema define root types for each type of operation. These types are
- * the same as any other type and can be named in any manner, however there is
- * a common naming convention:
- *
- * ```graphql
- *   schema {
- *     query: Query
- *     mutation: Mutation
- *     subscription: Subscription
- *   }
- * ```
- *
- * When using this naming convention, the schema description can be omitted so
- * long as these names are only used for operation types.
- *
- * Note however that if any of these default names are used elsewhere in the
- * schema but not as a root operation type, the schema definition must still
- * be printed to avoid ambiguity.
- */
+/// GraphQL schema define root types for each type of operation. These types are
+/// the same as any other type and can be named in any manner, however there is
+/// a common naming convention:
+///
+/// ```graphql
+///   schema {
+///     query: Query
+///     mutation: Mutation
+///     subscription: Subscription
+///   }
+/// ```
+///
+/// When using this naming convention, the schema description can be omitted so
+/// long as these names are only used for operation types.
+///
+/// Note however that if any of these default names are used elsewhere in the
+/// schema but not as a root operation type, the schema definition must still
+/// be printed to avoid ambiguity.
 func hasDefaultRootOperationTypes(schema: GraphQLSchema) -> Bool {
     // The goal here is to check if a type was declared using the default names of "Query",
     // "Mutation" or "Subscription". We do so by comparing object IDs to determine if the
     // schema operation object is the same as the type object by that name.
-    return (
-        schema.queryType.map { ObjectIdentifier($0) }
-            == (schema.getType(name: "Query") as? GraphQLObjectType).map { ObjectIdentifier($0) } &&
-            schema.mutationType.map { ObjectIdentifier($0) }
+    return
+        (schema.queryType.map { ObjectIdentifier($0) }
+        == (schema.getType(name: "Query") as? GraphQLObjectType).map { ObjectIdentifier($0) }
+        && schema.mutationType.map { ObjectIdentifier($0) }
             == (schema.getType(name: "Mutation") as? GraphQLObjectType)
-            .map { ObjectIdentifier($0) } &&
-            schema.subscriptionType.map { ObjectIdentifier($0) }
-            == (schema.getType(name: "Subscription") as? GraphQLObjectType)
             .map { ObjectIdentifier($0) }
-    )
+        && schema.subscriptionType.map { ObjectIdentifier($0) }
+            == (schema.getType(name: "Subscription") as? GraphQLObjectType)
+            .map { ObjectIdentifier($0) })
 }
 
 public func printType(type: GraphQLNamedType) -> String {
@@ -128,9 +124,8 @@ public func printType(type: GraphQLNamedType) -> String {
 }
 
 func printScalar(type: GraphQLScalarType) -> String {
-    return printDescription(type.description) +
-        "scalar \(type.name)" +
-        printSpecifiedByURL(scalar: type)
+    return printDescription(type.description) + "scalar \(type.name)"
+        + printSpecifiedByURL(scalar: type)
 }
 
 func printImplementedInterfaces(
@@ -143,34 +138,30 @@ func printImplementedInterfaces(
 
 func printObject(type: GraphQLObjectType) -> String {
     return
-        printDescription(type.description) +
-        "type \(type.name)" +
-        printImplementedInterfaces(interfaces: (try? type.getInterfaces()) ?? []) +
-        printFields(fields: (try? type.getFields()) ?? [:])
+        printDescription(type.description) + "type \(type.name)"
+        + printImplementedInterfaces(interfaces: (try? type.getInterfaces()) ?? [])
+        + printFields(fields: (try? type.getFields()) ?? [:])
 }
 
 func printInterface(type: GraphQLInterfaceType) -> String {
     return
-        printDescription(type.description) +
-        "interface \(type.name)" +
-        printImplementedInterfaces(interfaces: (try? type.getInterfaces()) ?? []) +
-        printFields(fields: (try? type.getFields()) ?? [:])
+        printDescription(type.description) + "interface \(type.name)"
+        + printImplementedInterfaces(interfaces: (try? type.getInterfaces()) ?? [])
+        + printFields(fields: (try? type.getFields()) ?? [:])
 }
 
 func printUnion(type: GraphQLUnionType) -> String {
     let types = (try? type.getTypes()) ?? []
     return
-        printDescription(type.description) +
-        "union \(type.name)" +
-        (types.isEmpty ? "" : " = " + types.map { $0.name }.joined(separator: " | "))
+        printDescription(type.description) + "union \(type.name)"
+        + (types.isEmpty ? "" : " = " + types.map { $0.name }.joined(separator: " | "))
 }
 
 func printEnum(type: GraphQLEnumType) -> String {
     let values = type.values.enumerated().map { i, value in
-        printDescription(value.description, indentation: "  ", firstInBlock: i == 0) +
-            "  " +
-            value.name +
-            printDeprecated(reason: value.deprecationReason)
+        printDescription(value.description, indentation: "  ", firstInBlock: i == 0) + "  "
+            + value.name
+            + printDeprecated(reason: value.deprecationReason)
     }
 
     return printDescription(type.description) + "enum \(type.name)" + printBlock(items: values)
@@ -179,26 +170,20 @@ func printEnum(type: GraphQLEnumType) -> String {
 func printInputObject(type: GraphQLInputObjectType) -> String {
     let inputFields = (try? type.getFields()) ?? [:]
     let fields = inputFields.values.enumerated().map { i, f in
-        printDescription(f.description, indentation: "  ", firstInBlock: i == 0) + "  " +
-            printInputValue(arg: f)
+        printDescription(f.description, indentation: "  ", firstInBlock: i == 0) + "  "
+            + printInputValue(arg: f)
     }
 
     return
-        printDescription(type.description) +
-        "input \(type.name)" +
-        (type.isOneOf ? " @oneOf" : "") +
-        printBlock(items: fields)
+        printDescription(type.description) + "input \(type.name)" + (type.isOneOf ? " @oneOf" : "")
+        + printBlock(items: fields)
 }
 
 func printFields(fields: GraphQLFieldDefinitionMap) -> String {
     let fields = fields.values.enumerated().map { i, f in
-        printDescription(f.description, indentation: "  ", firstInBlock: i == 0) +
-            "  " +
-            f.name +
-            printArgs(args: f.args, indentation: "  ") +
-            ": " +
-            f.type.debugDescription +
-            printDeprecated(reason: f.deprecationReason)
+        printDescription(f.description, indentation: "  ", firstInBlock: i == 0) + "  " + f.name
+            + printArgs(args: f.args, indentation: "  ") + ": " + f.type.debugDescription
+            + printDeprecated(reason: f.deprecationReason)
     }
     return printBlock(items: fields)
 }
@@ -221,20 +206,14 @@ func printArgs(
     }
 
     return
-        "(\n" +
-        args.enumerated().map { i, arg in
+        "(\n"
+        + args.enumerated().map { i, arg in
             printDescription(
                 arg.description,
                 indentation: "  " + indentation,
                 firstInBlock: i == 0
-            ) +
-                "  " +
-                indentation +
-                printArgValue(arg: arg)
-        }.joined(separator: "\n") +
-        "\n" +
-        indentation +
-        ")"
+            ) + "  " + indentation + printArgValue(arg: arg)
+        }.joined(separator: "\n") + "\n" + indentation + ")"
 }
 
 func printArgValue(arg: GraphQLArgumentDefinition) -> String {
@@ -259,13 +238,9 @@ func printInputValue(arg: InputObjectFieldDefinition) -> String {
 
 public func printDirective(directive: GraphQLDirective) -> String {
     return
-        printDescription(directive.description) +
-        "directive @" +
-        directive.name +
-        printArgs(args: directive.args) +
-        (directive.isRepeatable ? " repeatable" : "") +
-        " on " +
-        directive.locations.map { $0.rawValue }.joined(separator: " | ")
+        printDescription(directive.description) + "directive @" + directive.name
+        + printArgs(args: directive.args) + (directive.isRepeatable ? " repeatable" : "") + " on "
+        + directive.locations.map { $0.rawValue }.joined(separator: " | ")
 }
 
 func printDeprecated(reason: String?) -> String {
@@ -296,10 +271,12 @@ func printDescription(
         return ""
     }
 
-    let blockString = print(ast: StringValue(
-        value: description,
-        block: isPrintableAsBlockString(description)
-    ))
+    let blockString = print(
+        ast: StringValue(
+            value: description,
+            block: isPrintableAsBlockString(description)
+        )
+    )
 
     let prefix = (!indentation.isEmpty && !firstInBlock) ? "\n" + indentation : indentation
 

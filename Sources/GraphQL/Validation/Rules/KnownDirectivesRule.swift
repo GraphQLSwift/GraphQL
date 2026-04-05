@@ -1,12 +1,9 @@
-
-/**
- * Known directives
- *
- * A GraphQL document is only valid if all `@directives` are known by the
- * schema and legally positioned.
- *
- * See https://spec.graphql.org/draft/#sec-Directives-Are-Defined
- */
+/// Known directives
+///
+/// A GraphQL document is only valid if all `@directives` are known by the
+/// schema and legally positioned.
+///
+/// See https://spec.graphql.org/draft/#sec-Directives-Are-Defined
 func KnownDirectivesRule(context: SDLorNormalValidationContext) -> Visitor {
     var locationsMap = [String: [String]]()
 
@@ -47,7 +44,8 @@ func KnownDirectivesRule(context: SDLorNormalValidationContext) -> Visitor {
 
             context.report(
                 error: GraphQLError(
-                    message: "Directive \"@\(name)\" may not be used on \(candidateLocation.rawValue).",
+                    message:
+                        "Directive \"@\(name)\" may not be used on \(candidateLocation.rawValue).",
                     nodes: [node]
                 )
             )
@@ -58,7 +56,7 @@ func KnownDirectivesRule(context: SDLorNormalValidationContext) -> Visitor {
 }
 
 func getDirectiveLocationForASTPath(_ ancestors: [NodeResult]) -> DirectiveLocation? {
-    guard let last = ancestors.last, case let .node(appliedTo) = last else {
+    guard let last = ancestors.last, case .node(let appliedTo) = last else {
         return nil
     }
 
@@ -98,7 +96,7 @@ func getDirectiveLocationForASTPath(_ ancestors: [NodeResult]) -> DirectiveLocat
             return nil
         }
         let parentNode = ancestors[ancestors.count - 3]
-        guard case let .node(parentNode) = parentNode else {
+        guard case .node(let parentNode) = parentNode else {
             return nil
         }
         return parentNode.kind == .inputObjectTypeDefinition

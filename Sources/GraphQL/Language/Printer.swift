@@ -37,11 +37,14 @@ extension Document: Printable {
 extension OperationDefinition: Printable {
     var printed: String {
         let varDefs = wrap("(", join(variableDefinitions, ", "), ")")
-        let prefix = join([
-            operation.rawValue,
-            join([name, varDefs]),
-            join(directives, " "),
-        ], " ")
+        let prefix = join(
+            [
+                operation.rawValue,
+                join([name, varDefs]),
+                join(directives, " "),
+            ],
+            " "
+        )
 
         // Anonymous queries with no directives or variable definitions can use
         // the query short form.
@@ -119,19 +122,22 @@ extension FragmentSpread: Printable {
 
 extension InlineFragment: Printable {
     var printed: String {
-        join([
-            "...",
-            wrap("on ", typeCondition),
-            join(directives, " "),
-            selectionSet,
-        ], " ")
+        join(
+            [
+                "...",
+                wrap("on ", typeCondition),
+                join(directives, " "),
+                selectionSet,
+            ],
+            " "
+        )
     }
 }
 
 extension FragmentDefinition: Printable {
     var printed: String {
-        "fragment " + name + " on " + typeCondition + " " + wrap("", join(directives, " "), " ") +
-            selectionSet
+        "fragment " + name + " on " + typeCondition + " " + wrap("", join(directives, " "), " ")
+            + selectionSet
     }
 }
 
@@ -236,8 +242,8 @@ extension NonNullType: Printable {
 
 extension SchemaDefinition: Printable {
     var printed: String {
-        wrap("", description, "\n") +
-            join(["schema", join(directives, " "), block(operationTypes)], " ")
+        wrap("", description, "\n")
+            + join(["schema", join(directives, " "), block(operationTypes)], " ")
     }
 }
 
@@ -249,15 +255,14 @@ extension OperationTypeDefinition: Printable {
 
 extension ScalarTypeDefinition: Printable {
     var printed: String {
-        wrap("", description, "\n") +
-            join(["scalar", name.printed, join(directives, " ")], " ")
+        wrap("", description, "\n") + join(["scalar", name.printed, join(directives, " ")], " ")
     }
 }
 
 extension ObjectTypeDefinition: Printable {
     var printed: String {
-        wrap("", description, "\n") +
-            join(
+        wrap("", description, "\n")
+            + join(
                 [
                     "type",
                     name,
@@ -274,9 +279,10 @@ extension FieldDefinition: Printable {
     var printed: String {
         let prefix = wrap("", description, "\n") + name
 
-        let args = hasMultilineItems(arguments) ?
-            wrap("(\n", indent(join(arguments, "\n")), "\n)") :
-            wrap("(", join(arguments, ", "), ")")
+        let args =
+            hasMultilineItems(arguments)
+            ? wrap("(\n", indent(join(arguments, "\n")), "\n)")
+            : wrap("(", join(arguments, ", "), ")")
 
         return prefix + args + ": " + type.printed + wrap(" ", join(directives, " "))
     }
@@ -284,8 +290,8 @@ extension FieldDefinition: Printable {
 
 extension InputValueDefinition: Printable {
     var printed: String {
-        wrap("", description, "\n") +
-            join(
+        wrap("", description, "\n")
+            + join(
                 [
                     name + ": " + type.printed,
                     wrap("= ", defaultValue?.printed),
@@ -298,8 +304,8 @@ extension InputValueDefinition: Printable {
 
 extension InterfaceTypeDefinition: Printable {
     var printed: String {
-        wrap("", description, "\n") +
-            join(
+        wrap("", description, "\n")
+            + join(
                 [
                     "interface",
                     name,
@@ -314,29 +320,28 @@ extension InterfaceTypeDefinition: Printable {
 
 extension UnionTypeDefinition: Printable {
     var printed: String {
-        wrap("", description, "\n") +
-            join(["union", name, join(directives, " "), wrap("= ", join(types, " | "))], " ")
+        wrap("", description, "\n")
+            + join(["union", name, join(directives, " "), wrap("= ", join(types, " | "))], " ")
     }
 }
 
 extension EnumTypeDefinition: Printable {
     var printed: String {
-        wrap("", description, "\n") +
-            join(["enum", name, join(directives, " "), block(values)], " ")
+        wrap("", description, "\n")
+            + join(["enum", name, join(directives, " "), block(values)], " ")
     }
 }
 
 extension EnumValueDefinition: Printable {
     var printed: String {
-        wrap("", description, "\n") +
-            join([name, join(directives, " ")], " ")
+        wrap("", description, "\n") + join([name, join(directives, " ")], " ")
     }
 }
 
 extension InputObjectTypeDefinition: Printable {
     var printed: String {
-        wrap("", description, "\n") +
-            join(["input", name, join(directives, " "), block(fields)], " ")
+        wrap("", description, "\n")
+            + join(["input", name, join(directives, " "), block(fields)], " ")
     }
 }
 
@@ -344,9 +349,10 @@ extension DirectiveDefinition: Printable {
     var printed: String {
         let prefix = wrap("", description, "\n") + "directive @" + name
 
-        let args = hasMultilineItems(arguments) ?
-            wrap("(\n", indent(join(arguments, "\n")), "\n)") :
-            wrap("(", join(arguments, ", "), ")")
+        let args =
+            hasMultilineItems(arguments)
+            ? wrap("(\n", indent(join(arguments, "\n")), "\n)")
+            : wrap("(", join(arguments, ", "), ")")
 
         return prefix + args + (repeatable ? " repeatable" : "") + " on " + join(locations, " | ")
     }
@@ -456,26 +462,26 @@ extension String: Printable {
     }
 }
 
-private extension Node {
-    var printed: String {
+extension Node {
+    fileprivate var printed: String {
         (self as? Printable)?.printed ?? "UnknownNode"
     }
 }
 
-private extension Value {
-    var printed: String {
+extension Value {
+    fileprivate var printed: String {
         (self as? Printable)?.printed ?? "UnknownValue"
     }
 }
 
-private extension Selection {
-    var printed: String {
+extension Selection {
+    fileprivate var printed: String {
         (self as? Printable)?.printed ?? "UnknownSelection"
     }
 }
 
-private extension Type {
-    var printed: String {
+extension Type {
+    fileprivate var printed: String {
         (self as? Printable)?.printed ?? "UnknownType"
     }
 }

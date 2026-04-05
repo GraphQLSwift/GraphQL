@@ -1,12 +1,9 @@
-
-/**
- * Known type names
- *
- * A GraphQL document is only valid if referenced types (specifically
- * variable definitions and fragment conditions) are defined by the type schema.
- *
- * See https://spec.graphql.org/draft/#sec-Fragment-Spread-Type-Existence
- */
+/// Known type names
+///
+/// A GraphQL document is only valid if referenced types (specifically
+/// variable definitions and fragment conditions) are defined by the type schema.
+///
+/// See https://spec.graphql.org/draft/#sec-Fragment-Spread-Type-Existence
 func KnownTypeNamesRule(context: SDLorNormalValidationContext) -> Visitor {
     let definitions = context.ast.definitions
     let existingTypesMap = context.getSchema()?.typeMap ?? [:]
@@ -16,10 +13,9 @@ func KnownTypeNamesRule(context: SDLorNormalValidationContext) -> Visitor {
         typeNames.insert(typeName)
     }
     for definition in definitions {
-        if
-            isTypeSystemDefinitionNode(definition),
+        if isTypeSystemDefinitionNode(definition),
             let nameResult = definition.get(key: "name"),
-            case let .node(nameNode) = nameResult,
+            case .node(let nameNode) = nameResult,
             let name = nameNode as? Name
         {
             typeNames.insert(name.value)
@@ -35,7 +31,7 @@ func KnownTypeNamesRule(context: SDLorNormalValidationContext) -> Visitor {
                 if !typeNames.contains(typeName) {
                     let definitionNode = ancestors.count > 2 ? ancestors[2] : parent
                     var isSDL = false
-                    if let definitionNode = definitionNode, case let .node(node) = definitionNode {
+                    if let definitionNode = definitionNode, case .node(let node) = definitionNode {
                         isSDL = isSDLNode(node)
                     }
                     if isSDL, standardTypeNames.contains(typeName) {
@@ -48,8 +44,8 @@ func KnownTypeNamesRule(context: SDLorNormalValidationContext) -> Visitor {
                     )
                     context.report(
                         error: GraphQLError(
-                            message: "Unknown type \"\(typeName)\"." +
-                                didYouMean(suggestions: suggestedTypes),
+                            message: "Unknown type \"\(typeName)\"."
+                                + didYouMean(suggestions: suggestedTypes),
                             nodes: [node]
                         )
                     )

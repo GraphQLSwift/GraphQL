@@ -1,12 +1,9 @@
-
-/**
- * Value literals of correct type
- *
- * A GraphQL document is only valid if all value literals are of the type
- * expected at their position.
- *
- * See https://spec.graphql.org/draft/#sec-Values-of-Correct-Type
- */
+/// Value literals of correct type
+///
+/// A GraphQL document is only valid if all value literals are of the type
+/// expected at their position.
+///
+/// See https://spec.graphql.org/draft/#sec-Values-of-Correct-Type
 func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
     var variableDefinitions = [String: VariableDefinition]()
 
@@ -27,7 +24,7 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                 }
                 guard type is GraphQLList else {
                     isValidValueNode(context, list)
-                    return .break // Don't traverse further.
+                    return .break  // Don't traverse further.
                 }
                 return .continue
             case .objectValue:
@@ -35,7 +32,7 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                 let type = getNamedType(type: context.inputType)
                 guard let type = type as? GraphQLInputObjectType else {
                     isValidValueNode(context, object)
-                    return .break // Don't traverse further.
+                    return .break  // Don't traverse further.
                 }
                 // Ensure every required field exists.
                 var fieldNodeMap = [String: ObjectField]()
@@ -48,7 +45,8 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                         let typeStr = fieldDef.type
                         context.report(
                             error: GraphQLError(
-                                message: "Field \"\(type.name).\(fieldDef.name)\" of required type \"\(typeStr)\" was not provided.",
+                                message:
+                                    "Field \"\(type.name).\(fieldDef.name)\" of required type \"\(typeStr)\" was not provided.",
                                 nodes: [object]
                             )
                         )
@@ -68,8 +66,7 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
             case .objectField:
                 let field = node as! ObjectField
                 let parentType = getNamedType(type: context.parentInputType)
-                if
-                    context.inputType == nil,
+                if context.inputType == nil,
                     let parentType = parentType as? GraphQLInputObjectType
                 {
                     let parentFields = (try? parentType.getFields()) ?? [:]
@@ -80,8 +77,8 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                     context.report(
                         error: GraphQLError(
                             message:
-                            "Field \"\(field.name.value)\" is not defined by type \"\(parentType.name)\"." +
-                                didYouMean(suggestions: suggestions),
+                                "Field \"\(field.name.value)\" is not defined by type \"\(parentType.name)\"."
+                                + didYouMean(suggestions: suggestions),
                             nodes: [field]
                         )
                     )
@@ -94,7 +91,7 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                     context.report(
                         error: GraphQLError(
                             message:
-                            "Expected value of type \"\(type)\", found \(print(ast: node)).",
+                                "Expected value of type \"\(type)\", found \(print(ast: node)).",
                             nodes: [null]
                         )
                     )
@@ -111,10 +108,8 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
     )
 }
 
-/**
- * Any value literal may be a valid representation of a Scalar, depending on
- * that scalar type.
- */
+/// Any value literal may be a valid representation of a Scalar, depending on
+/// that scalar type.
 func isValidValueNode(_ context: ValidationContext, _ node: Value) {
     // Report any error at the full type expected by the location.
     guard let locationType = context.inputType else {
@@ -140,7 +135,8 @@ func isValidValueNode(_ context: ValidationContext, _ node: Value) {
             if try type.parseLiteral(valueAST: node) == .undefined {
                 context.report(
                     error: GraphQLError(
-                        message: "Expected value of type \"\(locationType)\", found \(print(ast: node)).",
+                        message:
+                            "Expected value of type \"\(locationType)\", found \(print(ast: node)).",
                         nodes: [node]
                     )
                 )
@@ -150,7 +146,8 @@ func isValidValueNode(_ context: ValidationContext, _ node: Value) {
             if try type.parseLiteral(valueAST: node) == .undefined {
                 context.report(
                     error: GraphQLError(
-                        message: "Expected value of type \"\(locationType)\", found \(print(ast: node)).",
+                        message:
+                            "Expected value of type \"\(locationType)\", found \(print(ast: node)).",
                         nodes: [node]
                     )
                 )
@@ -162,7 +159,8 @@ func isValidValueNode(_ context: ValidationContext, _ node: Value) {
         } else {
             context.report(
                 error: GraphQLError(
-                    message: "Expected value of type \"\(locationType)\", found \(print(ast: node)).",
+                    message:
+                        "Expected value of type \"\(locationType)\", found \(print(ast: node)).",
                     nodes: [node]
                 )
             )
@@ -204,16 +202,16 @@ func validateOneOfInputObject(
     }
 
     if let value = value, value.kind == .variable {
-        let variable = value as! Variable // Force unwrap is safe because of variable definition
+        let variable = value as! Variable  // Force unwrap is safe because of variable definition
         let variableName = variable.name.value
 
-        if
-            let definition = variableDefinitions[variableName],
+        if let definition = variableDefinitions[variableName],
             definition.type.kind != .nonNullType
         {
             context.report(
                 error: GraphQLError(
-                    message: "Variable \"\(variableName)\" must be non-nullable to be used for OneOf Input Object \"\(type.name)\".",
+                    message:
+                        "Variable \"\(variableName)\" must be non-nullable to be used for OneOf Input Object \"\(type.name)\".",
                     nodes: [node]
                 )
             )

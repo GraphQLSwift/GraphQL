@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct FederationTests {
     @Test func federationSampleSchema() throws {
@@ -71,53 +72,70 @@ import Testing
             """
 
         let schemaExtensionDefinition =
-            SchemaExtensionDefinition(definition: SchemaDefinition(directives: [
-                Directive(name: nameNode("link"), arguments: [
-                    Argument(
-                        name: nameNode("url"),
-                        value: StringValue(
-                            value: "https://specs.apollo.dev/federation/v2.0",
-                            block: false
+            SchemaExtensionDefinition(
+                definition: SchemaDefinition(
+                    directives: [
+                        Directive(
+                            name: nameNode("link"),
+                            arguments: [
+                                Argument(
+                                    name: nameNode("url"),
+                                    value: StringValue(
+                                        value: "https://specs.apollo.dev/federation/v2.0",
+                                        block: false
+                                    )
+                                ),
+                                Argument(
+                                    name: nameNode("import"),
+                                    value: ListValue(values: [
+                                        StringValue(value: "@extends", block: false),
+                                        StringValue(value: "@external", block: false),
+                                        StringValue(value: "@key", block: false),
+                                        StringValue(value: "@inaccessible", block: false),
+                                        StringValue(value: "@override", block: false),
+                                        StringValue(value: "@provides", block: false),
+                                        StringValue(value: "@requires", block: false),
+                                        StringValue(value: "@shareable", block: false),
+                                        StringValue(value: "@tag", block: false),
+                                    ])
+                                ),
+                            ]
                         )
-                    ),
-                    Argument(
-                        name: nameNode("import"),
-                        value: ListValue(values: [
-                            StringValue(value: "@extends", block: false),
-                            StringValue(value: "@external", block: false),
-                            StringValue(value: "@key", block: false),
-                            StringValue(value: "@inaccessible", block: false),
-                            StringValue(value: "@override", block: false),
-                            StringValue(value: "@provides", block: false),
-                            StringValue(value: "@requires", block: false),
-                            StringValue(value: "@shareable", block: false),
-                            StringValue(value: "@tag", block: false),
-                        ])
-                    ),
-                ]),
-            ], operationTypes: []))
+                    ],
+                    operationTypes: []
+                )
+            )
 
         let productObjectTypeDefinition = ObjectTypeDefinition(
             name: nameNode("Product"),
             directives: [
-                Directive(name: nameNode("key"), arguments: [
-                    Argument(
-                        name: nameNode("fields"),
-                        value: StringValue(value: "id", block: false)
-                    ),
-                ]),
-                Directive(name: nameNode("key"), arguments: [
-                    Argument(
-                        name: nameNode("fields"),
-                        value: StringValue(value: "sku package", block: false)
-                    ),
-                ]),
-                Directive(name: nameNode("key"), arguments: [
-                    Argument(
-                        name: nameNode("fields"),
-                        value: StringValue(value: "sku variation { id }", block: false)
-                    ),
-                ]),
+                Directive(
+                    name: nameNode("key"),
+                    arguments: [
+                        Argument(
+                            name: nameNode("fields"),
+                            value: StringValue(value: "id", block: false)
+                        )
+                    ]
+                ),
+                Directive(
+                    name: nameNode("key"),
+                    arguments: [
+                        Argument(
+                            name: nameNode("fields"),
+                            value: StringValue(value: "sku package", block: false)
+                        )
+                    ]
+                ),
+                Directive(
+                    name: nameNode("key"),
+                    arguments: [
+                        Argument(
+                            name: nameNode("fields"),
+                            value: StringValue(value: "sku variation { id }", block: false)
+                        )
+                    ]
+                ),
             ],
             fields: [
                 FieldDefinition(name: nameNode("id"), type: NonNullType(type: typeNode("ID"))),
@@ -125,22 +143,36 @@ import Testing
                 FieldDefinition(name: nameNode("package"), type: typeNode("String")),
                 FieldDefinition(name: nameNode("variation"), type: typeNode("ProductVariation")),
                 FieldDefinition(name: nameNode("dimensions"), type: typeNode("ProductDimension")),
-                FieldDefinition(name: nameNode("createdBy"), type: typeNode("User"), directives: [
-                    Directive(name: nameNode("provides"), arguments: [
-                        Argument(
-                            name: nameNode("fields"),
-                            value: StringValue(value: "totalProductsCreated", block: false)
-                        ),
-                    ]),
-                ]),
-                FieldDefinition(name: nameNode("notes"), type: typeNode("String"), directives: [
-                    Directive(name: nameNode("tag"), arguments: [
-                        Argument(
-                            name: nameNode("name"),
-                            value: StringValue(value: "internal", block: false)
-                        ),
-                    ]),
-                ]),
+                FieldDefinition(
+                    name: nameNode("createdBy"),
+                    type: typeNode("User"),
+                    directives: [
+                        Directive(
+                            name: nameNode("provides"),
+                            arguments: [
+                                Argument(
+                                    name: nameNode("fields"),
+                                    value: StringValue(value: "totalProductsCreated", block: false)
+                                )
+                            ]
+                        )
+                    ]
+                ),
+                FieldDefinition(
+                    name: nameNode("notes"),
+                    type: typeNode("String"),
+                    directives: [
+                        Directive(
+                            name: nameNode("tag"),
+                            arguments: [
+                                Argument(
+                                    name: nameNode("name"),
+                                    value: StringValue(value: "internal", block: false)
+                                )
+                            ]
+                        )
+                    ]
+                ),
                 FieldDefinition(
                     name: nameNode("research"),
                     type: NonNullType(
@@ -155,12 +187,15 @@ import Testing
         let deprecatedProductObjectTypeDefinition = ObjectTypeDefinition(
             name: nameNode("DeprecatedProduct"),
             directives: [
-                Directive(name: nameNode("key"), arguments: [
-                    Argument(
-                        name: nameNode("fields"),
-                        value: StringValue(value: "sku package", block: false)
-                    ),
-                ]),
+                Directive(
+                    name: nameNode("key"),
+                    arguments: [
+                        Argument(
+                            name: nameNode("fields"),
+                            value: StringValue(value: "sku package", block: false)
+                        )
+                    ]
+                )
             ],
             fields: [
                 FieldDefinition(name: nameNode("sku"), type: NonNullType(type: typeNode("String"))),
@@ -176,19 +211,22 @@ import Testing
         let productVariationObjectTypeDefinition = ObjectTypeDefinition(
             name: nameNode("ProductVariation"),
             fields: [
-                FieldDefinition(name: nameNode("id"), type: NonNullType(type: typeNode("ID"))),
+                FieldDefinition(name: nameNode("id"), type: NonNullType(type: typeNode("ID")))
             ]
         )
 
         let productResearchObjectTypeDefinition = ObjectTypeDefinition(
             name: nameNode("ProductResearch"),
             directives: [
-                Directive(name: nameNode("key"), arguments: [
-                    Argument(
-                        name: nameNode("fields"),
-                        value: StringValue(value: "study { caseNumber }", block: false)
-                    ),
-                ]),
+                Directive(
+                    name: nameNode("key"),
+                    arguments: [
+                        Argument(
+                            name: nameNode("fields"),
+                            value: StringValue(value: "study { caseNumber }", block: false)
+                        )
+                    ]
+                )
             ],
             fields: [
                 FieldDefinition(
@@ -213,105 +251,141 @@ import Testing
         let productDimensionObjectTypeDefinition = ObjectTypeDefinition(
             name: nameNode("ProductDimension"),
             directives: [
-                Directive(name: nameNode("shareable")),
+                Directive(name: nameNode("shareable"))
             ],
             fields: [
                 FieldDefinition(name: nameNode("size"), type: typeNode("String")),
                 FieldDefinition(name: nameNode("weight"), type: typeNode("Float")),
-                FieldDefinition(name: nameNode("unit"), type: typeNode("String"), directives: [
-                    Directive(name: nameNode("inaccessible")),
-                ]),
+                FieldDefinition(
+                    name: nameNode("unit"),
+                    type: typeNode("String"),
+                    directives: [
+                        Directive(name: nameNode("inaccessible"))
+                    ]
+                ),
             ]
         )
 
         let queryExtensionObjectTypeDefinition =
-            TypeExtensionDefinition(definition: ObjectTypeDefinition(
-                name: nameNode("Query"),
-                fields: [
-                    FieldDefinition(name: nameNode("product"), arguments: [
-                        InputValueDefinition(
-                            name: nameNode("id"),
-                            type: NonNullType(type: NamedType(name: nameNode("ID")))
+            TypeExtensionDefinition(
+                definition: ObjectTypeDefinition(
+                    name: nameNode("Query"),
+                    fields: [
+                        FieldDefinition(
+                            name: nameNode("product"),
+                            arguments: [
+                                InputValueDefinition(
+                                    name: nameNode("id"),
+                                    type: NonNullType(type: NamedType(name: nameNode("ID")))
+                                )
+                            ],
+                            type: typeNode("Product")
                         ),
-                    ], type: typeNode("Product")),
-                    FieldDefinition(name: nameNode("deprecatedProduct"), arguments: [
-                        InputValueDefinition(
-                            name: nameNode("sku"),
-                            type: NonNullType(type: NamedType(name: nameNode("String")))
+                        FieldDefinition(
+                            name: nameNode("deprecatedProduct"),
+                            arguments: [
+                                InputValueDefinition(
+                                    name: nameNode("sku"),
+                                    type: NonNullType(type: NamedType(name: nameNode("String")))
+                                ),
+                                InputValueDefinition(
+                                    name: nameNode("package"),
+                                    type: NonNullType(type: NamedType(name: nameNode("String")))
+                                ),
+                            ],
+                            type: typeNode("DeprecatedProduct"),
+                            directives: [
+                                Directive(
+                                    name: nameNode("deprecated"),
+                                    arguments: [
+                                        Argument(
+                                            name: nameNode("reason"),
+                                            value: StringValue(
+                                                value: "Use product query instead",
+                                                block: false
+                                            )
+                                        )
+                                    ]
+                                )
+                            ]
                         ),
-                        InputValueDefinition(
-                            name: nameNode("package"),
-                            type: NonNullType(type: NamedType(name: nameNode("String")))
-                        ),
-                    ], type: typeNode("DeprecatedProduct"), directives: [
-                        Directive(name: nameNode("deprecated"), arguments: [
-                            Argument(
-                                name: nameNode("reason"),
-                                value: StringValue(value: "Use product query instead", block: false)
-                            ),
-                        ]),
-                    ]),
-                ]
-            ))
+                    ]
+                )
+            )
 
         let userExtensionObjectTypeDefinition =
-            TypeExtensionDefinition(definition: ObjectTypeDefinition(
-                name: nameNode("User"),
-                directives: [
-                    Directive(name: nameNode("key"), arguments: [
-                        Argument(
-                            name: nameNode("fields"),
-                            value: StringValue(value: "email", block: false)
-                        ),
-                    ]),
-                ],
-                fields: [
-                    FieldDefinition(
-                        name: nameNode("averageProductsCreatedPerYear"),
-                        type: typeNode("Int"),
-                        directives: [
-                            Directive(name: nameNode("requires"), arguments: [
+            TypeExtensionDefinition(
+                definition: ObjectTypeDefinition(
+                    name: nameNode("User"),
+                    directives: [
+                        Directive(
+                            name: nameNode("key"),
+                            arguments: [
                                 Argument(
                                     name: nameNode("fields"),
-                                    value: StringValue(
-                                        value: "totalProductsCreated yearsOfEmployment",
-                                        block: false
-                                    )
-                                ),
-                            ]),
-                        ]
-                    ),
-                    FieldDefinition(
-                        name: nameNode("email"),
-                        type: NonNullType(type: NamedType(name: nameNode("ID"))),
-                        directives: [
-                            Directive(name: nameNode("external")),
-                        ]
-                    ),
-                    FieldDefinition(name: nameNode("name"), type: typeNode("String"), directives: [
-                        Directive(name: nameNode("override"), arguments: [
-                            Argument(
-                                name: nameNode("from"),
-                                value: StringValue(value: "users", block: false)
-                            ),
-                        ]),
-                    ]),
-                    FieldDefinition(
-                        name: nameNode("totalProductsCreated"),
-                        type: typeNode("Int"),
-                        directives: [
-                            Directive(name: nameNode("external")),
-                        ]
-                    ),
-                    FieldDefinition(
-                        name: nameNode("yearsOfEmployment"),
-                        type: NonNullType(type: typeNode("Int")),
-                        directives: [
-                            Directive(name: nameNode("external")),
-                        ]
-                    ),
-                ]
-            ))
+                                    value: StringValue(value: "email", block: false)
+                                )
+                            ]
+                        )
+                    ],
+                    fields: [
+                        FieldDefinition(
+                            name: nameNode("averageProductsCreatedPerYear"),
+                            type: typeNode("Int"),
+                            directives: [
+                                Directive(
+                                    name: nameNode("requires"),
+                                    arguments: [
+                                        Argument(
+                                            name: nameNode("fields"),
+                                            value: StringValue(
+                                                value: "totalProductsCreated yearsOfEmployment",
+                                                block: false
+                                            )
+                                        )
+                                    ]
+                                )
+                            ]
+                        ),
+                        FieldDefinition(
+                            name: nameNode("email"),
+                            type: NonNullType(type: NamedType(name: nameNode("ID"))),
+                            directives: [
+                                Directive(name: nameNode("external"))
+                            ]
+                        ),
+                        FieldDefinition(
+                            name: nameNode("name"),
+                            type: typeNode("String"),
+                            directives: [
+                                Directive(
+                                    name: nameNode("override"),
+                                    arguments: [
+                                        Argument(
+                                            name: nameNode("from"),
+                                            value: StringValue(value: "users", block: false)
+                                        )
+                                    ]
+                                )
+                            ]
+                        ),
+                        FieldDefinition(
+                            name: nameNode("totalProductsCreated"),
+                            type: typeNode("Int"),
+                            directives: [
+                                Directive(name: nameNode("external"))
+                            ]
+                        ),
+                        FieldDefinition(
+                            name: nameNode("yearsOfEmployment"),
+                            type: NonNullType(type: typeNode("Int")),
+                            directives: [
+                                Directive(name: nameNode("external"))
+                            ]
+                        ),
+                    ]
+                )
+            )
 
         let expected = Document(definitions: [
             schemaExtensionDefinition,

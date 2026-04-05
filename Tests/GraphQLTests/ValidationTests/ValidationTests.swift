@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class ValidationTestCase {
     typealias Rule = @Sendable (ValidationContext) -> Visitor
@@ -90,13 +91,11 @@ class SDLValidationTestCase {
         let validationErrors = validateSDL(documentAST: doc, schemaToExtend: schema, rules: [rule])
 
         #expect(
-            validationErrors.map(\.message) ==
-                errors.map(\.message)
+            validationErrors.map(\.message) == errors.map(\.message)
         )
 
         #expect(
-            validationErrors.map(\.locations) ==
-                errors.map(\.locations)
+            validationErrors.map(\.locations) == errors.map(\.locations)
         )
     }
 }

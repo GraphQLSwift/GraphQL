@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class NoUnusedVariablesRuleTests: ValidationTestCase {
     override init() {
@@ -110,14 +111,16 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
-            query ($a: String, $b: String, $c: String) {
-                field(a: $a, b: $b)
-            }
-            """
+                query ($a: String, $b: String, $c: String) {
+                    field(a: $a, b: $b)
+                }
+                """
         )
 
         try assertValidationError(
-            error: errors.first, line: 1, column: 32,
+            error: errors.first,
+            line: 1,
+            column: 32,
             message: "Variable \"$c\" is never used."
         )
     }
@@ -126,19 +129,23 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
-            query Foo($a: String, $b: String, $c: String) {
-                field(b: $b)
-            }
-            """
+                query Foo($a: String, $b: String, $c: String) {
+                    field(b: $b)
+                }
+                """
         )
 
         try assertValidationError(
-            error: errors[0], line: 1, column: 11,
+            error: errors[0],
+            line: 1,
+            column: 11,
             message: #"Variable "$a" is never used in operation "Foo"."#
         )
 
         try assertValidationError(
-            error: errors[1], line: 1, column: 35,
+            error: errors[1],
+            line: 1,
+            column: 35,
             message: #"Variable "$c" is never used in operation "Foo"."#
         )
     }
@@ -147,27 +154,29 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
-            query Foo($a: String, $b: String, $c: String) {
-                ...FragA
-            }
-            fragment FragA on Type {
-                field(a: $a) {
-                    ...FragB
+                query Foo($a: String, $b: String, $c: String) {
+                    ...FragA
                 }
-            }
-            fragment FragB on Type {
-                field(b: $b) {
-                    ...FragC
+                fragment FragA on Type {
+                    field(a: $a) {
+                        ...FragB
+                    }
                 }
-            }
-            fragment FragC on Type {
-                field
-            }
-            """
+                fragment FragB on Type {
+                    field(b: $b) {
+                        ...FragC
+                    }
+                }
+                fragment FragC on Type {
+                    field
+                }
+                """
         )
 
         try assertValidationError(
-            error: errors.first, line: 1, column: 35,
+            error: errors.first,
+            line: 1,
+            column: 35,
             message: #"Variable "$c" is never used in operation "Foo"."#
         )
     }
@@ -176,32 +185,36 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
-            query Foo($a: String, $b: String, $c: String) {
-                ...FragA
-            }
-            fragment FragA on Type {
-                field {
-                    ...FragB
+                query Foo($a: String, $b: String, $c: String) {
+                    ...FragA
                 }
-            }
-            fragment FragB on Type {
-                field(b: $b) {
-                    ...FragC
+                fragment FragA on Type {
+                    field {
+                        ...FragB
+                    }
                 }
-            }
-            fragment FragC on Type {
-                field
-            }
-            """
+                fragment FragB on Type {
+                    field(b: $b) {
+                        ...FragC
+                    }
+                }
+                fragment FragC on Type {
+                    field
+                }
+                """
         )
 
         try assertValidationError(
-            error: errors[0], line: 1, column: 11,
+            error: errors[0],
+            line: 1,
+            column: 11,
             message: #"Variable "$a" is never used in operation "Foo"."#
         )
 
         try assertValidationError(
-            error: errors[1], line: 1, column: 35,
+            error: errors[1],
+            line: 1,
+            column: 35,
             message: #"Variable "$c" is never used in operation "Foo"."#
         )
     }
@@ -210,20 +223,22 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
-            query Foo($b: String) {
-                ...FragA
-            }
-            fragment FragA on Type {
-                field(a: $a)
-            }
-            fragment FragB on Type {
-                field(b: $b)
-            }
-            """
+                query Foo($b: String) {
+                    ...FragA
+                }
+                fragment FragA on Type {
+                    field(a: $a)
+                }
+                fragment FragB on Type {
+                    field(b: $b)
+                }
+                """
         )
 
         try assertValidationError(
-            error: errors.first, line: 1, column: 11,
+            error: errors.first,
+            line: 1,
+            column: 11,
             message: #"Variable "$b" is never used in operation "Foo"."#
         )
     }
@@ -232,28 +247,32 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
-            query Foo($b: String) {
-                ...FragA
-            }
-            query Bar($a: String) {
-                ...FragB
-            }
-            fragment FragA on Type {
-                field(a: $a)
-            }
-            fragment FragB on Type {
-                field(b: $b)
-            }
-            """
+                query Foo($b: String) {
+                    ...FragA
+                }
+                query Bar($a: String) {
+                    ...FragB
+                }
+                fragment FragA on Type {
+                    field(a: $a)
+                }
+                fragment FragB on Type {
+                    field(b: $b)
+                }
+                """
         )
 
         try assertValidationError(
-            error: errors[0], line: 1, column: 11,
+            error: errors[0],
+            line: 1,
+            column: 11,
             message: #"Variable "$b" is never used in operation "Foo"."#
         )
 
         try assertValidationError(
-            error: errors[1], line: 4, column: 11,
+            error: errors[1],
+            line: 4,
+            column: 11,
             message: #"Variable "$a" is never used in operation "Bar"."#
         )
     }
@@ -272,14 +291,16 @@ class NoUnusedVariablesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
-            query Foo($a: String, $b: String) {
-              field(object: { a: $a })
-            }
-            """
+                query Foo($a: String, $b: String) {
+                  field(object: { a: $a })
+                }
+                """
         )
 
         try assertValidationError(
-            error: errors[0], line: 1, column: 23,
+            error: errors[0],
+            line: 1,
+            column: 23,
             message: #"Variable "$b" is never used in operation "Foo"."#
         )
     }

@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class LoneAnonymousOperationRuleTests: ValidationTestCase {
     override init() {
@@ -58,14 +59,14 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
-            """
-            {
-              fieldA
-            }
-            {
-              fieldB
-            }
-            """
+                """
+                {
+                  fieldA
+                }
+                {
+                  fieldB
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -83,14 +84,14 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              fieldA
-            }
-            mutation Foo {
-              fieldB
-            }
-            """
+                """
+                {
+                  fieldA
+                }
+                mutation Foo {
+                  fieldB
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -103,14 +104,14 @@ class LoneAnonymousOperationRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              fieldA
-            }
-            subscription Foo {
-              fieldB
-            }
-            """
+                """
+                {
+                  fieldA
+                }
+                subscription Foo {
+                  fieldB
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],

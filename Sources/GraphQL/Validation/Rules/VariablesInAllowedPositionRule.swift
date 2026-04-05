@@ -1,11 +1,8 @@
-
-/**
- * Variables in allowed position
- *
- * Variable usages must be compatible with the arguments they are passed to.
- *
- * See https://spec.graphql.org/draft/#sec-All-Variable-Usages-are-Allowed
- */
+/// Variables in allowed position
+///
+/// Variable usages must be compatible with the arguments they are passed to.
+///
+/// See https://spec.graphql.org/draft/#sec-All-Variable-Usages-are-Allowed
 func VariablesInAllowedPositionRule(context: ValidationContext) -> Visitor {
     var varDefMap: [String: VariableDefinition] = [:]
     return Visitor(
@@ -29,8 +26,7 @@ func VariablesInAllowedPositionRule(context: ValidationContext) -> Visitor {
                     let varName = usage.node.name.value
                     let schema = context.schema
 
-                    if
-                        let varDef = varDefMap[varName],
+                    if let varDef = varDefMap[varName],
                         let type = usage.type,
                         let varType = typeFromAST(schema: schema, inputTypeAST: varDef.type)
                     {
@@ -39,17 +35,19 @@ func VariablesInAllowedPositionRule(context: ValidationContext) -> Visitor {
                         // the variable type is non-null when the expected type is nullable.
                         // If both are list types, the variable item type can be more strict
                         // than the expected item type (contravariant).
-                        let isAllowed = (try? allowedVariableUsage(
-                            schema: schema,
-                            varType: varType,
-                            varDefaultValue: varDef.defaultValue,
-                            locationType: type,
-                            locationDefaultValue: usage.defaultValue
-                        )) ?? false
+                        let isAllowed =
+                            (try? allowedVariableUsage(
+                                schema: schema,
+                                varType: varType,
+                                varDefaultValue: varDef.defaultValue,
+                                locationType: type,
+                                locationDefaultValue: usage.defaultValue
+                            )) ?? false
                         if !isAllowed {
                             context.report(
                                 error: GraphQLError(
-                                    message: "Variable \"$\(varName)\" of type \"\(varType)\" used in position expecting type \"\(type)\".",
+                                    message:
+                                        "Variable \"$\(varName)\" of type \"\(varType)\" used in position expecting type \"\(type)\".",
                                     nodes: [varDef, usage.node]
                                 )
                             )
@@ -64,11 +62,9 @@ func VariablesInAllowedPositionRule(context: ValidationContext) -> Visitor {
     )
 }
 
-/**
- * Returns true if the variable is allowed in the location it was found,
- * which includes considering if default values exist for either the variable
- * or the location at which it is located.
- */
+/// Returns true if the variable is allowed in the location it was found,
+/// which includes considering if default values exist for either the variable
+/// or the location at which it is located.
 func allowedVariableUsage(
     schema: GraphQLSchema,
     varType: GraphQLType,
@@ -77,8 +73,10 @@ func allowedVariableUsage(
     locationDefaultValue: Map?
 ) throws -> Bool {
     if let locationType = locationType as? GraphQLNonNull, !(varType is GraphQLNonNull) {
-        let hasNonNullVariableDefaultValue = varDefaultValue != nil && varDefaultValue?
-            .kind != .nullValue
+        let hasNonNullVariableDefaultValue =
+            varDefaultValue != nil
+            && varDefaultValue?
+                .kind != .nullValue
         let hasLocationDefaultValue = locationDefaultValue != .undefined
         if !hasNonNullVariableDefaultValue && !hasLocationDefaultValue {
             return false

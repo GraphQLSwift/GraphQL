@@ -1,6 +1,7 @@
 import Foundation
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 func nameNode(_ name: String) -> Name {
     return Name(value: name)
@@ -79,9 +80,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                         fieldNode(
                             nameNode("world"),
                             typeNode("String")
-                        ),
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -90,12 +91,14 @@ func namedTypeNode(_ name: String) -> NamedType {
     }
 
     @Test func parsesTypeWithDescriptionString() throws {
-        let doc = try parse(source: """
-        "Description"
-        type Hello {
-          world: String
-        }
-        """)
+        let doc = try parse(
+            source: """
+                "Description"
+                type Hello {
+                  world: String
+                }
+                """
+        )
 
         let type = try #require(doc.definitions[0] as? ObjectTypeDefinition)
 
@@ -103,15 +106,17 @@ func namedTypeNode(_ name: String) -> NamedType {
     }
 
     @Test func parsesTypeWithDescriptionMultiLineString() throws {
-        let doc = try parse(source: #"""
-        """
-        Description
-        """
-        # Even with comments between them
-        type Hello {
-          world: String
-        }
-        """#)
+        let doc = try parse(
+            source: #"""
+                """
+                Description
+                """
+                # Even with comments between them
+                type Hello {
+                  world: String
+                }
+                """#
+        )
 
         let type = try #require(doc.definitions[0] as? ObjectTypeDefinition)
 
@@ -119,12 +124,14 @@ func namedTypeNode(_ name: String) -> NamedType {
     }
 
     @Test func parsesSchemaWithDescriptionMultiLineString() throws {
-        let doc = try parse(source: """
-        "Description"
-        schema {
-          query: Foo
-        }
-        """)
+        let doc = try parse(
+            source: """
+                "Description"
+                schema {
+                  query: Foo
+                }
+                """
+        )
 
         let type = try #require(doc.definitions[0] as? SchemaDefinition)
 
@@ -149,10 +156,10 @@ func namedTypeNode(_ name: String) -> NamedType {
                             fieldNode(
                                 nameNode("world"),
                                 typeNode("String")
-                            ),
+                            )
                         ]
                     )
-                ),
+                )
             ]
         )
 
@@ -162,64 +169,69 @@ func namedTypeNode(_ name: String) -> NamedType {
 
     @Test func objectExtensionWithoutFields() throws {
         #expect(
-            try parse(source: "extend type Hello implements Greeting") == Document(
-                definitions: [
-                    TypeExtensionDefinition(
-                        definition: ObjectTypeDefinition(
-                            name: nameNode("Hello"),
-                            interfaces: [typeNode("Greeting")],
-                            directives: [],
-                            fields: []
+            try parse(source: "extend type Hello implements Greeting")
+                == Document(
+                    definitions: [
+                        TypeExtensionDefinition(
+                            definition: ObjectTypeDefinition(
+                                name: nameNode("Hello"),
+                                interfaces: [typeNode("Greeting")],
+                                directives: [],
+                                fields: []
+                            )
                         )
-                    ),
-                ]
-            )
+                    ]
+                )
         )
     }
 
     @Test func interfaceExtensionWithoutFields() throws {
         #expect(
-            try parse(source: "extend interface Hello implements Greeting") == Document(
-                definitions: [
-                    InterfaceExtensionDefinition(
-                        definition: InterfaceTypeDefinition(
-                            name: nameNode("Hello"),
-                            interfaces: [typeNode("Greeting")],
-                            directives: [],
-                            fields: []
+            try parse(source: "extend interface Hello implements Greeting")
+                == Document(
+                    definitions: [
+                        InterfaceExtensionDefinition(
+                            definition: InterfaceTypeDefinition(
+                                name: nameNode("Hello"),
+                                interfaces: [typeNode("Greeting")],
+                                directives: [],
+                                fields: []
+                            )
                         )
-                    ),
-                ]
-            )
+                    ]
+                )
         )
     }
 
     @Test func objectExtensionWithoutFieldsFollowedByExtension() throws {
         #expect(
-            try parse(source: """
-            extend type Hello implements Greeting
+            try parse(
+                source: """
+                    extend type Hello implements Greeting
 
-            extend type Hello implements SecondGreeting
-            """) == Document(
-                definitions: [
-                    TypeExtensionDefinition(
-                        definition: ObjectTypeDefinition(
-                            name: nameNode("Hello"),
-                            interfaces: [typeNode("Greeting")],
-                            directives: [],
-                            fields: []
-                        )
-                    ),
-                    TypeExtensionDefinition(
-                        definition: ObjectTypeDefinition(
-                            name: nameNode("Hello"),
-                            interfaces: [typeNode("SecondGreeting")],
-                            directives: [],
-                            fields: []
-                        )
-                    ),
-                ]
+                    extend type Hello implements SecondGreeting
+                    """
             )
+                == Document(
+                    definitions: [
+                        TypeExtensionDefinition(
+                            definition: ObjectTypeDefinition(
+                                name: nameNode("Hello"),
+                                interfaces: [typeNode("Greeting")],
+                                directives: [],
+                                fields: []
+                            )
+                        ),
+                        TypeExtensionDefinition(
+                            definition: ObjectTypeDefinition(
+                                name: nameNode("Hello"),
+                                interfaces: [typeNode("SecondGreeting")],
+                                directives: [],
+                                fields: []
+                            )
+                        ),
+                    ]
+                )
         )
     }
 
@@ -234,109 +246,124 @@ func namedTypeNode(_ name: String) -> NamedType {
 
     @Test func interfaceExtensionWithoutFieldsFollowedByExtension() throws {
         #expect(
-            try parse(source: """
-            extend interface Hello implements Greeting
+            try parse(
+                source: """
+                    extend interface Hello implements Greeting
 
-            extend interface Hello implements SecondGreeting
-            """) == Document(
-                definitions: [
-                    InterfaceExtensionDefinition(
-                        definition: InterfaceTypeDefinition(
-                            name: nameNode("Hello"),
-                            interfaces: [typeNode("Greeting")],
-                            directives: [],
-                            fields: []
-                        )
-                    ),
-                    InterfaceExtensionDefinition(
-                        definition: InterfaceTypeDefinition(
-                            name: nameNode("Hello"),
-                            interfaces: [typeNode("SecondGreeting")],
-                            directives: [],
-                            fields: []
-                        )
-                    ),
-                ]
+                    extend interface Hello implements SecondGreeting
+                    """
             )
+                == Document(
+                    definitions: [
+                        InterfaceExtensionDefinition(
+                            definition: InterfaceTypeDefinition(
+                                name: nameNode("Hello"),
+                                interfaces: [typeNode("Greeting")],
+                                directives: [],
+                                fields: []
+                            )
+                        ),
+                        InterfaceExtensionDefinition(
+                            definition: InterfaceTypeDefinition(
+                                name: nameNode("Hello"),
+                                interfaces: [typeNode("SecondGreeting")],
+                                directives: [],
+                                fields: []
+                            )
+                        ),
+                    ]
+                )
         )
     }
 
     @Test func objectExtensionDoNotIncludeDescriptions() throws {
         #expect(throws: (any Error).self) {
-            try parse(source: """
-            "Description"
-            extend type Hello {
-              world: String
-            }
-            """)
+            try parse(
+                source: """
+                    "Description"
+                    extend type Hello {
+                      world: String
+                    }
+                    """
+            )
         }
 
         #expect(throws: (any Error).self) {
-            try parse(source: """
-            extend "Description" type Hello {
-              world: String
-            }
-            """)
+            try parse(
+                source: """
+                    extend "Description" type Hello {
+                      world: String
+                    }
+                    """
+            )
         }
     }
 
     @Test func interfaceExtensionDoNotIncludeDescriptions() throws {
         #expect(throws: (any Error).self) {
-            try parse(source: """
-            "Description"
-            extend interface Hello {
-              world: String
-            }
-            """)
+            try parse(
+                source: """
+                    "Description"
+                    extend interface Hello {
+                      world: String
+                    }
+                    """
+            )
         }
 
         #expect(throws: (any Error).self) {
-            try parse(source: """
-            extend "Description" interface Hello {
-              world: String
-            }
-            """)
+            try parse(
+                source: """
+                    extend "Description" interface Hello {
+                      world: String
+                    }
+                    """
+            )
         }
     }
 
     @Test func schemaExtension() throws {
         #expect(
-            try parse(source: """
-            extend schema {
-              mutation: Mutation
-            }
-            """) == Document(
-                definitions: [
-                    SchemaExtensionDefinition(
-                        definition: SchemaDefinition(
-                            directives: [],
-                            operationTypes: [
-                                OperationTypeDefinition(
-                                    operation: .mutation,
-                                    type: .init(name: .init(value: "Mutation"))
-                                ),
-                            ]
-                        )
-                    ),
-                ]
+            try parse(
+                source: """
+                    extend schema {
+                      mutation: Mutation
+                    }
+                    """
             )
+                == Document(
+                    definitions: [
+                        SchemaExtensionDefinition(
+                            definition: SchemaDefinition(
+                                directives: [],
+                                operationTypes: [
+                                    OperationTypeDefinition(
+                                        operation: .mutation,
+                                        type: .init(name: .init(value: "Mutation"))
+                                    )
+                                ]
+                            )
+                        )
+                    ]
+                )
         )
     }
 
     @Test func schemaExtensionWithOnlyDirectives() throws {
         #expect(
-            try parse(source: "extend schema @directive") == Document(
-                definitions: [
-                    SchemaExtensionDefinition(
-                        definition: SchemaDefinition(
-                            directives: [
-                                Directive(name: .init(value: "directive")),
-                            ],
-                            operationTypes: []
+            try parse(source: "extend schema @directive")
+                == Document(
+                    definitions: [
+                        SchemaExtensionDefinition(
+                            definition: SchemaDefinition(
+                                directives: [
+                                    Directive(name: .init(value: "directive"))
+                                ],
+                                operationTypes: []
+                            )
                         )
-                    ),
-                ]
-            )
+                    ]
+                )
         )
     }
 
@@ -365,9 +392,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                             NonNullType(
                                 type: typeNode("String")
                             )
-                        ),
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -379,20 +406,21 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(
             try parse(
                 source: "interface Hello implements World { field: String }"
-            ) == Document(
-                definitions: [
-                    InterfaceTypeDefinition(
-                        name: nameNode("Hello"),
-                        interfaces: [typeNode("World")],
-                        fields: [
-                            FieldDefinition(
-                                name: .init(value: "field"),
-                                type: NamedType(name: .init(value: "String"))
-                            ),
-                        ]
-                    ),
-                ]
             )
+                == Document(
+                    definitions: [
+                        InterfaceTypeDefinition(
+                            name: nameNode("Hello"),
+                            interfaces: [typeNode("World")],
+                            fields: [
+                                FieldDefinition(
+                                    name: .init(value: "field"),
+                                    type: NamedType(name: .init(value: "String"))
+                                )
+                            ]
+                        )
+                    ]
+                )
         )
     }
 
@@ -404,7 +432,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                 ObjectTypeDefinition(
                     name: nameNode("Hello"),
                     interfaces: [typeNode("World")]
-                ),
+                )
             ]
         )
 
@@ -423,7 +451,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                         typeNode("Wo"),
                         typeNode("rld"),
                     ]
-                ),
+                )
             ]
         )
 
@@ -435,23 +463,24 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(
             try parse(
                 source: "interface Hello implements Wo & rld { field: String }"
-            ) == Document(
-                definitions: [
-                    InterfaceTypeDefinition(
-                        name: nameNode("Hello"),
-                        interfaces: [
-                            typeNode("Wo"),
-                            typeNode("rld"),
-                        ],
-                        fields: [
-                            FieldDefinition(
-                                name: .init(value: "field"),
-                                type: NamedType(name: .init(value: "String"))
-                            ),
-                        ]
-                    ),
-                ]
             )
+                == Document(
+                    definitions: [
+                        InterfaceTypeDefinition(
+                            name: nameNode("Hello"),
+                            interfaces: [
+                                typeNode("Wo"),
+                                typeNode("rld"),
+                            ],
+                            fields: [
+                                FieldDefinition(
+                                    name: .init(value: "field"),
+                                    type: NamedType(name: .init(value: "String"))
+                                )
+                            ]
+                        )
+                    ]
+                )
         )
     }
 
@@ -466,7 +495,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                         typeNode("Wo"),
                         typeNode("rld"),
                     ]
-                ),
+                )
             ]
         )
 
@@ -478,23 +507,24 @@ func namedTypeNode(_ name: String) -> NamedType {
         #expect(
             try parse(
                 source: "interface Hello implements & Wo & rld { field: String }"
-            ) == Document(
-                definitions: [
-                    InterfaceTypeDefinition(
-                        name: nameNode("Hello"),
-                        interfaces: [
-                            typeNode("Wo"),
-                            typeNode("rld"),
-                        ],
-                        fields: [
-                            FieldDefinition(
-                                name: .init(value: "field"),
-                                type: NamedType(name: .init(value: "String"))
-                            ),
-                        ]
-                    ),
-                ]
             )
+                == Document(
+                    definitions: [
+                        InterfaceTypeDefinition(
+                            name: nameNode("Hello"),
+                            interfaces: [
+                                typeNode("Wo"),
+                                typeNode("rld"),
+                            ],
+                            fields: [
+                                FieldDefinition(
+                                    name: .init(value: "field"),
+                                    type: NamedType(name: .init(value: "String"))
+                                )
+                            ]
+                        )
+                    ]
+                )
         )
     }
 
@@ -506,9 +536,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                 EnumTypeDefinition(
                     name: nameNode("Hello"),
                     values: [
-                        enumValueNode("WORLD"),
+                        enumValueNode("WORLD")
                     ]
-                ),
+                )
             ]
         )
 
@@ -527,7 +557,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                         enumValueNode("WO"),
                         enumValueNode("RLD"),
                     ]
-                ),
+                )
             ]
         )
 
@@ -546,9 +576,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                         fieldNode(
                             nameNode("world"),
                             typeNode("String")
-                        ),
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -571,11 +601,11 @@ func namedTypeNode(_ name: String) -> NamedType {
                                 inputValueNode(
                                     nameNode("flag"),
                                     typeNode("Boolean")
-                                ),
+                                )
                             ]
-                        ),
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -599,11 +629,11 @@ func namedTypeNode(_ name: String) -> NamedType {
                                     nameNode("flag"),
                                     typeNode("Boolean"),
                                     BooleanValue(value: true)
-                                ),
+                                )
                             ]
-                        ),
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -626,11 +656,11 @@ func namedTypeNode(_ name: String) -> NamedType {
                                 inputValueNode(
                                     nameNode("things"),
                                     ListType(type: typeNode("String"))
-                                ),
+                                )
                             ]
-                        ),
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -659,9 +689,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                                     typeNode("Int")
                                 ),
                             ]
-                        ),
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -677,9 +707,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                 UnionTypeDefinition(
                     name: nameNode("Hello"),
                     types: [
-                        typeNode("World"),
+                        typeNode("World")
                     ]
-                ),
+                )
             ]
         )
 
@@ -698,7 +728,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                         typeNode("Wo"),
                         typeNode("Rld"),
                     ]
-                ),
+                )
             ]
         )
 
@@ -713,7 +743,7 @@ func namedTypeNode(_ name: String) -> NamedType {
             definitions: [
                 ScalarTypeDefinition(
                     name: nameNode("Hello")
-                ),
+                )
             ]
         )
 
@@ -732,9 +762,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                         inputValueNode(
                             nameNode("world"),
                             typeNode("String")
-                        ),
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -755,7 +785,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                 OperationTypeDefinition(
                     operation: .query,
                     type: namedTypeNode("Hello")
-                ),
+                )
             ]
         )
         let result = try parse(source: source)
@@ -774,7 +804,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                 fieldNode(
                     nameNode("world"),
                     typeNode("String")
-                ),
+                )
             ]
         )
 
@@ -791,14 +821,14 @@ func namedTypeNode(_ name: String) -> NamedType {
 
     @Test func typeWitMultilinehDescription() throws {
         let source = #"""
-        """
-        The Hello type.
-        Multi-line description
-        """
-        type Hello {
-            world: String
-        }
-        """#
+            """
+            The Hello type.
+            Multi-line description
+            """
+            type Hello {
+                world: String
+            }
+            """#
 
         let expected = Document(
             definitions: [
@@ -812,9 +842,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                         fieldNode(
                             nameNode("world"),
                             typeNode("String")
-                        ),
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -839,12 +869,12 @@ func namedTypeNode(_ name: String) -> NamedType {
                             nameNode("a"),
                             typeNode("String"),
                             StringValue(value: "hello", block: false)
-                        ),
+                        )
                     ],
                     locations: [
-                        nameNode("FIELD"),
+                        nameNode("FIELD")
                     ]
-                ),
+                )
             ]
         )
 
@@ -854,11 +884,11 @@ func namedTypeNode(_ name: String) -> NamedType {
 
     @Test func directiveMultilineDesciption() throws {
         let source = #"""
-        """
-        directive description
-        """
-        directive @Test(a: String = "hello") on FIELD
-        """#
+            """
+            directive description
+            """
+            directive @Test(a: String = "hello") on FIELD
+            """#
         let expected = Document(
             definitions: [
                 DirectiveDefinition(
@@ -873,12 +903,12 @@ func namedTypeNode(_ name: String) -> NamedType {
                             nameNode("a"),
                             typeNode("String"),
                             StringValue(value: "hello", block: false)
-                        ),
+                        )
                     ],
                     locations: [
-                        nameNode("FIELD"),
+                        nameNode("FIELD")
                     ]
-                ),
+                )
             ]
         )
 
@@ -896,7 +926,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                 OperationTypeDefinition(
                     operation: .query,
                     type: namedTypeNode("Hello")
-                ),
+                )
             ]
         )
         let result = try parse(source: source)
@@ -911,7 +941,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                 ScalarTypeDefinition(
                     description: StringValue(value: "Hello Scaler Test", block: false),
                     name: nameNode("Hello")
-                ),
+                )
             ]
         )
 
@@ -931,9 +961,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                         fieldNode(
                             nameNode("world"),
                             typeNode("String")
-                        ),
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -950,9 +980,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                     description: StringValue(value: "Hello World Union!", block: false),
                     name: nameNode("Hello"),
                     types: [
-                        typeNode("World"),
+                        typeNode("World")
                     ]
-                ),
+                )
             ]
         )
 
@@ -969,9 +999,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                     description: StringValue(value: "Hello World Enum...", block: false),
                     name: nameNode("Hello"),
                     values: [
-                        enumValueNode("WORLD"),
+                        enumValueNode("WORLD")
                     ]
-                ),
+                )
             ]
         )
 
@@ -991,9 +1021,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                         inputValueNode(
                             nameNode("world"),
                             typeNode("String")
-                        ),
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -1005,13 +1035,13 @@ func namedTypeNode(_ name: String) -> NamedType {
 
     @Test func singleValueEnumWithDescription() throws {
         let source = """
-        enum Hello {
-            "world description"
-            WORLD
-            "Hello there"
-            HELLO
-        }
-        """
+            enum Hello {
+                "world description"
+                WORLD
+                "Hello there"
+                HELLO
+            }
+            """
 
         let expected = Document(
             definitions: [
@@ -1027,7 +1057,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                             "HELLO"
                         ),
                     ]
-                ),
+                )
             ]
         )
 
@@ -1047,9 +1077,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                             StringValue(value: "The world field.", block: false),
                             nameNode("world"),
                             typeNode("String")
-                        ),
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -1059,14 +1089,14 @@ func namedTypeNode(_ name: String) -> NamedType {
 
     @Test func typeFieldWithMultilineDescription() throws {
         let source = #"""
-        type Hello {
-            """
-            The world
-            field.
-            """
-            world: String
-        }
-        """#
+            type Hello {
+                """
+                The world
+                field.
+                """
+                world: String
+            }
+            """#
 
         let expected = Document(
             definitions: [
@@ -1077,9 +1107,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                             StringValue(value: "The world\nfield.", block: true),
                             nameNode("world"),
                             typeNode("String")
-                        ),
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -1099,9 +1129,9 @@ func namedTypeNode(_ name: String) -> NamedType {
                             StringValue(value: "World field", block: false),
                             nameNode("world"),
                             typeNode("String")
-                        ),
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -1114,7 +1144,7 @@ func namedTypeNode(_ name: String) -> NamedType {
 
         let expected = Document(
             definitions: [
-                ObjectTypeDefinition(name: nameNode("UndefinedType")),
+                ObjectTypeDefinition(name: nameNode("UndefinedType"))
             ]
         )
 
@@ -1130,7 +1160,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                 InterfaceTypeDefinition(
                     name: nameNode("UndefinedInterface"),
                     fields: []
-                ),
+                )
             ]
         )
 
@@ -1147,11 +1177,11 @@ func namedTypeNode(_ name: String) -> NamedType {
                     definition: InterfaceTypeDefinition(
                         name: nameNode("Bar"),
                         directives: [
-                            Directive(name: nameNode("onInterface")),
+                            Directive(name: nameNode("onInterface"))
                         ],
                         fields: []
                     )
-                ),
+                )
             ]
         )
 
@@ -1167,13 +1197,13 @@ func namedTypeNode(_ name: String) -> NamedType {
                 UnionTypeDefinition(
                     name: nameNode("AnnotatedUnionTwo"),
                     directives: [
-                        Directive(name: nameNode("onUnion")),
+                        Directive(name: nameNode("onUnion"))
                     ],
                     types: [
                         NamedType(name: nameNode("A")),
                         NamedType(name: nameNode("B")),
                     ]
-                ),
+                )
             ]
         )
 
@@ -1190,10 +1220,10 @@ func namedTypeNode(_ name: String) -> NamedType {
                     definition: ScalarTypeDefinition(
                         name: nameNode("CustomScalar"),
                         directives: [
-                            Directive(name: nameNode("onScalar")),
+                            Directive(name: nameNode("onScalar"))
                         ]
                     )
-                ),
+                )
             ]
         )
 
@@ -1209,7 +1239,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                 UnionTypeDefinition(
                     name: nameNode("UndefinedUnion"),
                     types: []
-                ),
+                )
             ]
         )
 
@@ -1230,7 +1260,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                             namedTypeNode("Video"),
                         ]
                     )
-                ),
+                )
             ]
         )
 
@@ -1246,7 +1276,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                 EnumTypeDefinition(
                     name: nameNode("UndefinedEnum"),
                     values: []
-                ),
+                )
             ]
         )
 
@@ -1263,11 +1293,11 @@ func namedTypeNode(_ name: String) -> NamedType {
                     definition: EnumTypeDefinition(
                         name: nameNode("Site"),
                         directives: [
-                            Directive(name: nameNode("onEnum")),
+                            Directive(name: nameNode("onEnum"))
                         ],
                         values: []
                     )
-                ),
+                )
             ]
         )
 
@@ -1283,7 +1313,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                 InputObjectTypeDefinition(
                     name: nameNode("UndefinedInput"),
                     fields: []
-                ),
+                )
             ]
         )
 
@@ -1300,11 +1330,11 @@ func namedTypeNode(_ name: String) -> NamedType {
                     definition: InputObjectTypeDefinition(
                         name: nameNode("InputType"),
                         directives: [
-                            Directive(name: Name(value: "include")),
+                            Directive(name: Name(value: "include"))
                         ],
                         fields: []
                     )
-                ),
+                )
             ]
         )
 
@@ -1314,11 +1344,11 @@ func namedTypeNode(_ name: String) -> NamedType {
 
     @Test func directivePipe() throws {
         let source = """
-        directive @include2 on
-            | FIELD
-            | FRAGMENT_SPREAD
-            | INLINE_FRAGMENT
-        """
+            directive @include2 on
+                | FIELD
+                | FRAGMENT_SPREAD
+                | INLINE_FRAGMENT
+            """
 
         let expected = Document(
             definitions: [
@@ -1329,7 +1359,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                         nameNode("FRAGMENT_SPREAD"),
                         nameNode("INLINE_FRAGMENT"),
                     ]
-                ),
+                )
             ]
         )
 
@@ -1339,10 +1369,10 @@ func namedTypeNode(_ name: String) -> NamedType {
 
     @Test func directiveRepeatable() throws {
         let source = """
-        directive @myRepeatableDir repeatable on
-          | OBJECT
-          | INTERFACE
-        """
+            directive @myRepeatableDir repeatable on
+              | OBJECT
+              | INTERFACE
+            """
 
         let expected = Document(
             definitions: [
@@ -1353,7 +1383,7 @@ func namedTypeNode(_ name: String) -> NamedType {
                         nameNode("INTERFACE"),
                     ],
                     repeatable: true
-                ),
+                )
             ]
         )
 
@@ -1427,11 +1457,11 @@ func namedTypeNode(_ name: String) -> NamedType {
                                         ])
                                     ),
                                 ]
-                            ),
+                            )
                         ],
                         operationTypes: []
                     )
-                ),
+                )
             ]
         )
 

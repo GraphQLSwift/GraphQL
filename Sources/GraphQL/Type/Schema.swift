@@ -1,33 +1,30 @@
 import Dispatch
 import OrderedCollections
 
-/**
- * Schema Definition
- *
- * A Schema is created by supplying the root types of each type of operation,
- * query and mutation (optional). A schema definition is then supplied to the
- * validator and executor.
- *
- * Example:
- *
- *     let MyAppSchema = GraphQLSchema(
- *         query: MyAppQueryRootType,
- *         mutation: MyAppMutationRootType,
- *     )
- *
- * Note: If an array of `directives` are provided to GraphQLSchema, that will be
- * the exact list of directives represented and allowed. If `directives` is not
- * provided then a default set of the specified directives (e.g. @include and
- * @skip) will be used. If you wish to provide *additional* directives to these
- * specified directives, you must explicitly declare them. Example:
- *
- *     let MyAppSchema = GraphQLSchema(
- *         ...
- *         directives: specifiedDirectives + [myCustomDirective],
- *         ...
- *     )
- *
- */
+/// Schema Definition
+///
+/// A Schema is created by supplying the root types of each type of operation,
+/// query and mutation (optional). A schema definition is then supplied to the
+/// validator and executor.
+///
+/// Example:
+///
+///     let MyAppSchema = GraphQLSchema(
+///         query: MyAppQueryRootType,
+///         mutation: MyAppMutationRootType,
+///     )
+///
+/// Note: If an array of `directives` are provided to GraphQLSchema, that will be
+/// the exact list of directives represented and allowed. If `directives` is not
+/// provided then a default set of the specified directives (e.g. @include and
+/// @skip) will be used. If you wish to provide *additional* directives to these
+/// specified directives, you must explicitly declare them. Example:
+///
+///     let MyAppSchema = GraphQLSchema(
+///         ...
+///         directives: specifiedDirectives + [myCustomDirective],
+///         ...
+///     )
 public final class GraphQLSchema: @unchecked Sendable {
     let description: String?
     let extensions: [GraphQLSchemaExtensions]
@@ -169,7 +166,7 @@ public final class GraphQLSchema: @unchecked Sendable {
             if typeMap[typeName] != nil {
                 throw GraphQLError(
                     message:
-                    "Schema must contain uniquely named types but contains multiple types named \"\(typeName)\"."
+                        "Schema must contain uniquely named types but contains multiple types named \"\(typeName)\"."
                 )
             }
             typeMap[typeName] = namedType
@@ -177,10 +174,12 @@ public final class GraphQLSchema: @unchecked Sendable {
             if let namedType = namedType as? GraphQLInterfaceType {
                 // Store implementations by interface.
                 for iface in try namedType.getInterfaces() {
-                    let implementation = implementations[iface.name] ?? .init(
-                        objects: [],
-                        interfaces: []
-                    )
+                    let implementation =
+                        implementations[iface.name]
+                        ?? .init(
+                            objects: [],
+                            interfaces: []
+                        )
 
                     var interfaces = implementation.interfaces
                     interfaces.append(namedType)
@@ -192,10 +191,12 @@ public final class GraphQLSchema: @unchecked Sendable {
             } else if let namedType = namedType as? GraphQLObjectType {
                 // Store implementations by objects.
                 for iface in try namedType.getInterfaces() {
-                    let implementation = implementations[iface.name] ?? .init(
-                        objects: [],
-                        interfaces: []
-                    )
+                    let implementation =
+                        implementations[iface.name]
+                        ?? .init(
+                            objects: [],
+                            interfaces: []
+                        )
 
                     var objects = implementation.objects
                     objects.append(namedType)
@@ -342,15 +343,15 @@ func typeMapReducer(typeMap: TypeMap, type: GraphQLType) throws -> TypeMap {
     }
 
     guard let type = type as? GraphQLNamedType else {
-        return typeMap // Should never happen
+        return typeMap  // Should never happen
     }
 
     if let existingType = typeMap[type.name] {
         if !(existingType == type) {
             throw GraphQLError(
                 message:
-                "Schema must contain unique named types but contains multiple " +
-                    "types named \"\(type.name)\"."
+                    "Schema must contain unique named types but contains multiple "
+                    + "types named \"\(type.name)\"."
             )
         } else {
             // Otherwise, it's already been defined so short circuit
@@ -436,13 +437,11 @@ class GraphQLSchemaNormalizedConfig {
     }
 }
 
-/**
- * Custom extensions
- *
- * @remarks
- * Use a unique identifier name for your extension, for example the name of
- * your library or project. Do not use a shortened identifier as this increases
- * the risk of conflicts. We recommend you add at most one extension field,
- * an object which can contain all the values you need.
- */
+/// Custom extensions
+///
+/// @remarks
+/// Use a unique identifier name for your extension, for example the name of
+/// your library or project. Do not use a shortened identifier as this increases
+/// the risk of conflicts. We recommend you add at most one extension field,
+/// an object which can contain all the values you need.
 public typealias GraphQLSchemaExtensions = [String: String]?

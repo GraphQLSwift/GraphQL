@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class UniqueOperationNamesRuleTests: ValidationTestCase {
     override init() {
@@ -86,14 +87,14 @@ class UniqueOperationNamesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            query Foo {
-              fieldA
-            }
-            query Foo {
-              fieldB
-            }
-            """
+                """
+                query Foo {
+                  fieldA
+                }
+                query Foo {
+                  fieldB
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -109,14 +110,14 @@ class UniqueOperationNamesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            query Foo {
-              fieldA
-            }
-            mutation Foo {
-              fieldB
-            }
-            """
+                """
+                query Foo {
+                  fieldA
+                }
+                mutation Foo {
+                  fieldB
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -132,14 +133,14 @@ class UniqueOperationNamesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            query Foo {
-              fieldA
-            }
-            subscription Foo {
-              fieldB
-            }
-            """
+                """
+                query Foo {
+                  fieldA
+                }
+                subscription Foo {
+                  fieldB
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],

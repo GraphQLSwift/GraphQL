@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
     override init() {
@@ -66,11 +67,13 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
     }
 
     @Test func defineSchemaInSchemaExtension() throws {
-        let schema = try buildSchema(source: """
-          type Foo {
-            foo: String
-          }
-        """)
+        let schema = try buildSchema(
+            source: """
+                  type Foo {
+                    foo: String
+                  }
+                """
+        )
 
         try assertValidationErrors(
             """
@@ -84,15 +87,17 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
     }
 
     @Test func redefineSchemaInSchemaExtension() throws {
-        let schema = try buildSchema(source: """
-        schema {
-          query: Foo
-        }
+        let schema = try buildSchema(
+            source: """
+                schema {
+                  query: Foo
+                }
 
-        type Foo {
-          foo: String
-        }
-        """)
+                type Foo {
+                  foo: String
+                }
+                """
+        )
 
         try assertValidationErrors(
             """
@@ -105,21 +110,23 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
                 GraphQLError(
                     message: "Cannot define a new schema within a schema extension.",
                     locations: [.init(line: 1, column: 1)]
-                ),
+                )
             ]
         )
     }
 
     @Test func redefineImplicitSchemaInSchemaExtension() throws {
-        let schema = try buildSchema(source: """
-        type Query {
-          fooField: Foo
-        }
+        let schema = try buildSchema(
+            source: """
+                type Query {
+                  fooField: Foo
+                }
 
-        type Foo {
-          foo: String
-        }
-        """)
+                type Foo {
+                  foo: String
+                }
+                """
+        )
 
         try assertValidationErrors(
             """
@@ -132,21 +139,23 @@ class LoneSchemaDefinitionRuleTests: SDLValidationTestCase {
                 GraphQLError(
                     message: "Cannot define a new schema within a schema extension.",
                     locations: [.init(line: 1, column: 1)]
-                ),
+                )
             ]
         )
     }
 
     @Test func extendSchemaInSchemaExtension() throws {
-        let schema = try buildSchema(source: """
-        type Query {
-          fooField: Foo
-        }
+        let schema = try buildSchema(
+            source: """
+                type Query {
+                  fooField: Foo
+                }
 
-        type Foo {
-          foo: String
-        }
-        """)
+                type Foo {
+                  foo: String
+                }
+                """
+        )
 
         try assertValidationErrors(
             """

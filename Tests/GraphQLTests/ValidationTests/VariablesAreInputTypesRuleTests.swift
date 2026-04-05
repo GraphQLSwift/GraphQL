@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class VariablesAreInputTypesRuleTests: ValidationTestCase {
     override init() {
@@ -31,11 +32,11 @@ class VariablesAreInputTypesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 3,
             query:
-            """
-            query Foo($a: Dog, $b: [[CatOrDog!]]!, $c: Pet) {
-              field(a: $a, b: $b, c: $c)
-            }
-            """
+                """
+                query Foo($a: Dog, $b: [[CatOrDog!]]!, $c: Pet) {
+                  field(a: $a, b: $b, c: $c)
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],

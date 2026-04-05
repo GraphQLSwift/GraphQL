@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
     override init() {
@@ -159,20 +160,21 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
-            {
-              complicatedArgs {
-                multipleReqs(req2: 2)
-              }
-            }
-            """
+                {
+                  complicatedArgs {
+                    multipleReqs(req2: 2)
+                  }
+                }
+                """
         )
 
         try assertValidationError(
             error: errors[0],
             locations: [
-                (line: 3, column: 5),
+                (line: 3, column: 5)
             ],
-            message: #"Field "multipleReqs" argument "req1" of type "Int!" is required, but it was not provided."#
+            message:
+                #"Field "multipleReqs" argument "req1" of type "Int!" is required, but it was not provided."#
         )
     }
 
@@ -180,27 +182,29 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
-            {
-              complicatedArgs {
-                multipleReqs
-              }
-            }
-            """
+                {
+                  complicatedArgs {
+                    multipleReqs
+                  }
+                }
+                """
         )
 
         try assertValidationError(
             error: errors[0],
             locations: [
-                (line: 3, column: 5),
+                (line: 3, column: 5)
             ],
-            message: #"Field "multipleReqs" argument "req1" of type "Int!" is required, but it was not provided."#
+            message:
+                #"Field "multipleReqs" argument "req1" of type "Int!" is required, but it was not provided."#
         )
         try assertValidationError(
             error: errors[1],
             locations: [
-                (line: 3, column: 5),
+                (line: 3, column: 5)
             ],
-            message: #"Field "multipleReqs" argument "req2" of type "Int!" is required, but it was not provided."#
+            message:
+                #"Field "multipleReqs" argument "req2" of type "Int!" is required, but it was not provided."#
         )
     }
 
@@ -208,20 +212,21 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
-            {
-              complicatedArgs {
-                multipleReqs(req1: "one")
-              }
-            }
-            """
+                {
+                  complicatedArgs {
+                    multipleReqs(req1: "one")
+                  }
+                }
+                """
         )
 
         try assertValidationError(
             error: errors[0],
             locations: [
-                (line: 3, column: 5),
+                (line: 3, column: 5)
             ],
-            message: #"Field "multipleReqs" argument "req2" of type "Int!" is required, but it was not provided."#
+            message:
+                #"Field "multipleReqs" argument "req2" of type "Int!" is required, but it was not provided."#
         )
     }
 
@@ -256,27 +261,29 @@ class ProvidedRequiredArgumentsRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
-            {
-              dog @include {
-                name @skip
-              }
-            }
-            """
+                {
+                  dog @include {
+                    name @skip
+                  }
+                }
+                """
         )
 
         try assertValidationError(
             error: errors[0],
             locations: [
-                (line: 2, column: 7),
+                (line: 2, column: 7)
             ],
-            message: #"Directive "@include" argument "if" of type "Boolean!" is required, but it was not provided."#
+            message:
+                #"Directive "@include" argument "if" of type "Boolean!" is required, but it was not provided."#
         )
         try assertValidationError(
             error: errors[1],
             locations: [
-                (line: 3, column: 10),
+                (line: 3, column: 10)
             ],
-            message: #"Directive "@skip" argument "if" of type "Boolean!" is required, but it was not provided."#
+            message:
+                #"Directive "@skip" argument "if" of type "Boolean!" is required, but it was not provided."#
         )
     }
 

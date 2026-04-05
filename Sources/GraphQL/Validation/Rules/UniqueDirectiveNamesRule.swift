@@ -1,9 +1,6 @@
-
-/**
- * Unique directive names
- *
- * A GraphQL document is only valid if all defined directives have unique names.
- */
+/// Unique directive names
+///
+/// A GraphQL document is only valid if all defined directives have unique names.
 func UniqueDirectiveNamesRule(
     context: SDLValidationContext
 ) -> Visitor {
@@ -19,7 +16,8 @@ func UniqueDirectiveNamesRule(
                 if schema?.getDirective(name: directiveName) != nil {
                     context.report(
                         error: GraphQLError(
-                            message: "Directive \"@\(directiveName)\" already exists in the schema. It cannot be redefined.",
+                            message:
+                                "Directive \"@\(directiveName)\" already exists in the schema. It cannot be redefined.",
                             nodes: [node.name]
                         )
                     )

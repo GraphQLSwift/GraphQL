@@ -1,12 +1,9 @@
-
-/**
- * No fragment cycles
- *
- * The graph of fragment spreads must not form any cycles including spreading itself.
- * Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.
- *
- * See https://spec.graphql.org/draft/#sec-Fragment-spreads-must-not-form-cycles
- */
+/// No fragment cycles
+///
+/// The graph of fragment spreads must not form any cycles including spreading itself.
+/// Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.
+///
+/// See https://spec.graphql.org/draft/#sec-Fragment-spreads-must-not-form-cycles
 func NoFragmentCyclesRule(context: ValidationContext) -> Visitor {
     // Tracks already visited fragments to maintain O(N) and to ensure that cycles
     // are not redundantly reported.
@@ -42,14 +39,14 @@ func NoFragmentCyclesRule(context: ValidationContext) -> Visitor {
 
             spreadPath.append(spreadNode)
             if let cycleIndex = cycleIndex {
-                let cyclePath = Array(spreadPath[cycleIndex ..< spreadPath.count])
-                let viaPath = cyclePath[0 ..< max(cyclePath.count - 1, 0)]
+                let cyclePath = Array(spreadPath[cycleIndex..<spreadPath.count])
+                let viaPath = cyclePath[0..<max(cyclePath.count - 1, 0)]
                     .map { "\"\($0.name.value)\"" }.joined(separator: ", ")
 
                 context.report(
                     error: GraphQLError(
-                        message: "Cannot spread fragment \"\(spreadName)\" within itself" +
-                            (viaPath != "" ? " via \(viaPath)." : "."),
+                        message: "Cannot spread fragment \"\(spreadName)\" within itself"
+                            + (viaPath != "" ? " via \(viaPath)." : "."),
                         nodes: cyclePath
                     )
                 )

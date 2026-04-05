@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class UniqueOperationTypesRuleTests: SDLValidationTestCase {
     override init() {
@@ -234,51 +235,56 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
     @Test func defineAndExtendSchemaInsideExtensionSDL() throws {
         let schema = try buildSchema(source: "type Foo")
         let sdl = """
-        schema { query: Foo }
-        extend schema { mutation: Foo }
-        extend schema { subscription: Foo }
-        """
+            schema { query: Foo }
+            extend schema { mutation: Foo }
+            extend schema { subscription: Foo }
+            """
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
     @Test func addingNewOperationTypesToExistingSchema() throws {
         let schema = try buildSchema(source: "type Query")
         let sdl = """
-        extend schema { mutation: Foo }
-        extend schema { subscription: Foo }
-        """
+            extend schema { mutation: Foo }
+            extend schema { subscription: Foo }
+            """
         try assertValidationErrors(sdl, schema: schema, [])
     }
 
     @Test func addingConflictingOperationTypesToExistingSchema() throws {
-        let schema = try buildSchema(source: """
-        type Query
-        type Mutation
-        type Subscription
+        let schema = try buildSchema(
+            source: """
+                type Query
+                type Mutation
+                type Subscription
 
-        type Foo
-        """)
+                type Foo
+                """
+        )
         let sdl = """
-        extend schema {
-          query: Foo
-          mutation: Foo
-          subscription: Foo
-        }
-        """
+            extend schema {
+              query: Foo
+              mutation: Foo
+              subscription: Foo
+            }
+            """
         try assertValidationErrors(
             sdl,
             schema: schema,
             [
                 GraphQLError(
-                    message: "Type for query already defined in the schema. It cannot be redefined.",
+                    message:
+                        "Type for query already defined in the schema. It cannot be redefined.",
                     locations: [.init(line: 2, column: 3)]
                 ),
                 GraphQLError(
-                    message: "Type for mutation already defined in the schema. It cannot be redefined.",
+                    message:
+                        "Type for mutation already defined in the schema. It cannot be redefined.",
                     locations: [.init(line: 3, column: 3)]
                 ),
                 GraphQLError(
-                    message: "Type for subscription already defined in the schema. It cannot be redefined.",
+                    message:
+                        "Type for subscription already defined in the schema. It cannot be redefined.",
                     locations: [.init(line: 4, column: 3)]
                 ),
             ]
@@ -286,50 +292,58 @@ class UniqueOperationTypesRuleTests: SDLValidationTestCase {
     }
 
     @Test func addingConflictingOperationTypesToExistingSchemaTwice() throws {
-        let schema = try buildSchema(source: """
-        type Query
-        type Mutation
-        type Subscription
-        """)
+        let schema = try buildSchema(
+            source: """
+                type Query
+                type Mutation
+                type Subscription
+                """
+        )
         let sdl = """
-        extend schema {
-          query: Foo
-          mutation: Foo
-          subscription: Foo
-        }
+            extend schema {
+              query: Foo
+              mutation: Foo
+              subscription: Foo
+            }
 
-        extend schema {
-          query: Foo
-          mutation: Foo
-          subscription: Foo
-        }
-        """
+            extend schema {
+              query: Foo
+              mutation: Foo
+              subscription: Foo
+            }
+            """
         try assertValidationErrors(
             sdl,
             schema: schema,
             [
                 GraphQLError(
-                    message: "Type for query already defined in the schema. It cannot be redefined.",
+                    message:
+                        "Type for query already defined in the schema. It cannot be redefined.",
                     locations: [.init(line: 2, column: 3)]
                 ),
                 GraphQLError(
-                    message: "Type for mutation already defined in the schema. It cannot be redefined.",
+                    message:
+                        "Type for mutation already defined in the schema. It cannot be redefined.",
                     locations: [.init(line: 3, column: 3)]
                 ),
                 GraphQLError(
-                    message: "Type for subscription already defined in the schema. It cannot be redefined.",
+                    message:
+                        "Type for subscription already defined in the schema. It cannot be redefined.",
                     locations: [.init(line: 4, column: 3)]
                 ),
                 GraphQLError(
-                    message: "Type for query already defined in the schema. It cannot be redefined.",
+                    message:
+                        "Type for query already defined in the schema. It cannot be redefined.",
                     locations: [.init(line: 8, column: 3)]
                 ),
                 GraphQLError(
-                    message: "Type for mutation already defined in the schema. It cannot be redefined.",
+                    message:
+                        "Type for mutation already defined in the schema. It cannot be redefined.",
                     locations: [.init(line: 9, column: 3)]
                 ),
                 GraphQLError(
-                    message: "Type for subscription already defined in the schema. It cannot be redefined.",
+                    message:
+                        "Type for subscription already defined in the schema. It cannot be redefined.",
                     locations: [.init(line: 10, column: 3)]
                 ),
             ]

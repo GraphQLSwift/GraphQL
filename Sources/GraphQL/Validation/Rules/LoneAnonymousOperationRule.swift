@@ -1,12 +1,9 @@
-
-/**
- * Lone anonymous operation
- *
- * A GraphQL document is only valid if when it contains an anonymous operation
- * (the query short-hand) that it contains only that one operation definition.
- *
- * See https://spec.graphql.org/draft/#sec-Lone-Anonymous-Operation
- */
+/// Lone anonymous operation
+///
+/// A GraphQL document is only valid if when it contains an anonymous operation
+/// (the query short-hand) that it contains only that one operation definition.
+///
+/// See https://spec.graphql.org/draft/#sec-Lone-Anonymous-Operation
 func LoneAnonymousOperationRule(context: ValidationContext) -> Visitor {
     var operationCount = 0
     return Visitor(

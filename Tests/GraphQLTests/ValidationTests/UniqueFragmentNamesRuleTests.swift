@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class UniqueFragmentNamesRuleTests: ValidationTestCase {
     override init() {
@@ -84,17 +85,17 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              ...fragA
-            }
-            fragment fragA on Type {
-              fieldA
-            }
-            fragment fragA on Type {
-              fieldB
-            }
-            """
+                """
+                {
+                  ...fragA
+                }
+                fragment fragA on Type {
+                  fieldA
+                }
+                fragment fragA on Type {
+                  fieldB
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -110,14 +111,14 @@ class UniqueFragmentNamesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            fragment fragA on Type {
-              fieldA
-            }
-            fragment fragA on Type {
-              fieldB
-            }
-            """
+                """
+                fragment fragA on Type {
+                  fieldA
+                }
+                fragment fragA on Type {
+                  fieldB
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],

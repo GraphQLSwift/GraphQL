@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class UniqueVariableNamesRuleTests: ValidationTestCase {
     override init() {
@@ -20,11 +21,11 @@ class UniqueVariableNamesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 3,
             query:
-            """
-            query A($x: Int, $x: Int, $x: String) { __typename }
-            query B($x: String, $x: Int) { __typename }
-            query C($x: Int, $x: Int) { __typename }
-            """
+                """
+                query A($x: Int, $x: Int, $x: String) { __typename }
+                query B($x: String, $x: Int) { __typename }
+                query C($x: Int, $x: Int) { __typename }
+                """
         )
         try assertValidationError(
             error: errors[0],

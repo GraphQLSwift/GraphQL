@@ -18,7 +18,7 @@ extension Collection where Element == String, Index == Int {
         case 2:
             return joined(separator: " \(conjunction) ")
         default:
-            let allButLast = self[0 ... count - 2]
+            let allButLast = self[0...count - 2]
             let lastItem = self[count - 1]
 
             return allButLast.joined(separator: ", ") + ", \(conjunction) \(lastItem)"

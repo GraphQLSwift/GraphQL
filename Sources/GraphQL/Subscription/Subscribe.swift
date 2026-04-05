@@ -1,19 +1,17 @@
 import OrderedCollections
 
-/**
- * Implements the "Subscribe" algorithm described in the GraphQL specification.
- *
- * Returns a `Result` that either succeeds with an `AsyncThrowingStream`, or fails with `GraphQLErrors`.
- *
- * If the client-provided arguments to this function do not result in a
- * compliant subscription, the `Result` will fails with descriptive errors.
- *
- * If the source stream could not be created due to faulty subscription
- * resolver logic or underlying systems, the `Result` will fail with errors.
- *
- * If the operation succeeded, the `Result` will succeed with an `AsyncThrowingStream` of `GraphQLResult`s
- * representing the response stream.
- */
+/// Implements the "Subscribe" algorithm described in the GraphQL specification.
+///
+/// Returns a `Result` that either succeeds with an `AsyncThrowingStream`, or fails with `GraphQLErrors`.
+///
+/// If the client-provided arguments to this function do not result in a
+/// compliant subscription, the `Result` will fails with descriptive errors.
+///
+/// If the source stream could not be created due to faulty subscription
+/// resolver logic or underlying systems, the `Result` will fail with errors.
+///
+/// If the operation succeeded, the `Result` will succeed with an `AsyncThrowingStream` of `GraphQLResult`s
+/// representing the response stream.
 func subscribe(
     schema: GraphQLSchema,
     documentAST: Document,
@@ -67,29 +65,27 @@ func subscribe(
     }
 }
 
-/**
- * Implements the "CreateSourceEventStream" algorithm described in the
- * GraphQL specification, resolving the subscription source event stream.
- *
- * Returns a Result that either succeeds with an `AsyncSequence` or fails with `GraphQLErrors`.
- *
- * If the client-provided arguments to this function do not result in a
- * compliant subscription, the `Result` will fail with descriptive errors.
- *
- * If the source stream could not be created due to faulty subscription
- * resolver logic or underlying systems, the `Result` will fail with errors.
- *
- * If the operation succeeded, the `Result` will succeed with an AsyncSequence for the
- * event stream returned by the resolver.
- *
- * A Source Event Stream represents a sequence of events, each of which triggers
- * a GraphQL execution for that event.
- *
- * This may be useful when hosting the stateful subscription service in a
- * different process or machine than the stateless GraphQL execution engine,
- * or otherwise separating these two steps. For more on this, see the
- * "Supporting Subscriptions at Scale" information in the GraphQL specification.
- */
+/// Implements the "CreateSourceEventStream" algorithm described in the
+/// GraphQL specification, resolving the subscription source event stream.
+///
+/// Returns a Result that either succeeds with an `AsyncSequence` or fails with `GraphQLErrors`.
+///
+/// If the client-provided arguments to this function do not result in a
+/// compliant subscription, the `Result` will fail with descriptive errors.
+///
+/// If the source stream could not be created due to faulty subscription
+/// resolver logic or underlying systems, the `Result` will fail with errors.
+///
+/// If the operation succeeded, the `Result` will succeed with an AsyncSequence for the
+/// event stream returned by the resolver.
+///
+/// A Source Event Stream represents a sequence of events, each of which triggers
+/// a GraphQL execution for that event.
+///
+/// This may be useful when hosting the stateful subscription service in a
+/// different process or machine than the stateless GraphQL execution engine,
+/// or otherwise separating these two steps. For more on this, see the
+/// "Supporting Subscriptions at Scale" information in the GraphQL specification.
 func createSourceEventStream(
     schema: GraphQLSchema,
     documentAST: Document,
@@ -204,13 +200,13 @@ func executeSubscription(
 
     let resolved: Any?
     switch resolvedOrError {
-    case let .failure(error):
+    case .failure(let error):
         if let graphQLError = error as? GraphQLError {
             throw graphQLError
         } else {
             throw GraphQLError(error)
         }
-    case let .success(success):
+    case .success(let success):
         resolved = success
     }
     if !context.errors.isEmpty {
@@ -223,15 +219,20 @@ func executeSubscription(
         // return Sendable AsyncSequences.
         return .success(stream as! (any AsyncSequence & Sendable))
     } else if resolved == nil {
-        return .failure(.init([
-            GraphQLError(message: "Resolved subscription was nil"),
-        ]))
+        return .failure(
+            .init([
+                GraphQLError(message: "Resolved subscription was nil")
+            ])
+        )
     } else {
         let resolvedObj = resolved as AnyObject
-        return .failure(.init([
-            GraphQLError(
-                message: "Subscription field resolver must return an AsyncSequence. Received: '\(resolvedObj)'"
-            ),
-        ]))
+        return .failure(
+            .init([
+                GraphQLError(
+                    message:
+                        "Subscription field resolver must return an AsyncSequence. Received: '\(resolvedObj)'"
+                )
+            ])
+        )
     }
 }

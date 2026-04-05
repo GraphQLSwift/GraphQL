@@ -1,9 +1,12 @@
-@testable import GraphQL
 import Testing
 
+@testable import GraphQL
+
 @Suite struct GraphQLSchemaTests {
-    @Test func assertObjectImplementsInterfacePassesWhenObjectFieldHasRequiredArgumentsFromInterface(
-    ) throws {
+    @Test
+    func assertObjectImplementsInterfacePassesWhenObjectFieldHasRequiredArgumentsFromInterface()
+        throws
+    {
         let interface = try GraphQLInterfaceType(
             name: "Interface",
             fields: [
@@ -55,15 +58,18 @@ import Testing
         _ = try GraphQLSchema(query: object, types: [interface, object])
     }
 
-    @Test func assertObjectImplementsInterfacePassesWhenObjectFieldHasRequiredArgumentMissingInInterfaceButHasDefaultValue(
-    ) throws {
+    @Test
+    func
+        assertObjectImplementsInterfacePassesWhenObjectFieldHasRequiredArgumentMissingInInterfaceButHasDefaultValue()
+        throws
+    {
         let interface = try GraphQLInterfaceType(
             name: "Interface",
             fields: [
                 "fieldWithOneArg": GraphQLField(
                     type: GraphQLInt,
                     args: [:]
-                ),
+                )
             ]
         )
 
@@ -76,9 +82,9 @@ import Testing
                         "addedRequiredArgWithDefaultValue": GraphQLArgument(
                             type: GraphQLNonNull(GraphQLInt),
                             defaultValue: .int(5)
-                        ),
+                        )
                     ]
-                ),
+                )
             ],
             interfaces: [interface],
             isTypeOf: { _, _ -> Bool in
@@ -89,15 +95,17 @@ import Testing
         _ = try GraphQLSchema(query: object, types: [interface, object])
     }
 
-    @Test func assertObjectImplementsInterfacePassesWhenObjectFieldHasNullableArgumentMissingInInterface(
-    ) throws {
+    @Test
+    func assertObjectImplementsInterfacePassesWhenObjectFieldHasNullableArgumentMissingInInterface()
+        throws
+    {
         let interface = try GraphQLInterfaceType(
             name: "Interface",
             fields: [
                 "fieldWithOneArg": GraphQLField(
                     type: GraphQLInt,
                     args: [:]
-                ),
+                )
             ]
         )
 
@@ -107,7 +115,7 @@ import Testing
                 "fieldWithOneArg": GraphQLField(
                     type: GraphQLInt,
                     args: ["addedNullableArg": GraphQLArgument(type: GraphQLInt)]
-                ),
+                )
             ],
             interfaces: [interface],
             isTypeOf: { _, _ -> Bool in
@@ -132,7 +140,7 @@ import Testing
             return [
                 "object2": GraphQLField(
                     type: object2
-                ),
+                )
             ]
         }
         object2.fields = { [weak object1] in
@@ -142,7 +150,7 @@ import Testing
             return [
                 "object1": GraphQLField(
                     type: object1
-                ),
+                )
             ]
         }
         let query = try GraphQLObjectType(

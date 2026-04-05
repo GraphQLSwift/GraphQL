@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class UniqueArgumentDefinitionNamesRuleTests: SDLValidationTestCase {
     override init() {
@@ -153,7 +154,8 @@ class UniqueArgumentDefinitionNamesRuleTests: SDLValidationTestCase {
                     ]
                 ),
                 GraphQLError(
-                    message: #"Argument "SomeInterface.anotherField(foo:)" can only be defined once."#,
+                    message:
+                        #"Argument "SomeInterface.anotherField(foo:)" can only be defined once."#,
                     locations: [
                         .init(line: 28, column: 5),
                         .init(line: 29, column: 5),

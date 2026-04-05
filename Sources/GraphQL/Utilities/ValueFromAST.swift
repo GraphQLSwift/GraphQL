@@ -1,22 +1,19 @@
 import OrderedCollections
 
-/**
- * Produces a Map value given a GraphQL Value AST.
- *
- * A GraphQL type must be provided, which will be used to interpret different
- * GraphQL Value literals.
- *
- * | GraphQL Value        | Map Value     |
- * | -------------------- | ------------- |
- * | Input Object         | .dictionary   |
- * | List                 | .array        |
- * | Boolean              | .bool         |
- * | String               | .string       |
- * | Int                  | .int          |
- * | Float                | .float        |
- * | Enum Value           | .string       |
- *
- */
+/// Produces a Map value given a GraphQL Value AST.
+///
+/// A GraphQL type must be provided, which will be used to interpret different
+/// GraphQL Value literals.
+///
+/// | GraphQL Value        | Map Value     |
+/// | -------------------- | ------------- |
+/// | Input Object         | .dictionary   |
+/// | List                 | .array        |
+/// | Boolean              | .bool         |
+/// | String               | .string       |
+/// | Int                  | .int          |
+/// | Float                | .float        |
+/// | Enum Value           | .string       |
 func valueFromAST(
     valueAST: Value,
     type: GraphQLInputType,
@@ -78,7 +75,7 @@ func valueFromAST(
                 valueAST: valueAST,
                 type: itemType,
                 variables: variables
-            ),
+            )
         ])
     }
 
@@ -111,11 +108,11 @@ func valueFromAST(
         if objectType.isOneOf {
             let keys = object.filter { $1 != .undefined }.keys
             if keys.count != 1 {
-                return .undefined // Invalid: not exactly one key, intentionally return no value.
+                return .undefined  // Invalid: not exactly one key, intentionally return no value.
             }
 
             if object[keys[0]] == .null {
-                return .undefined // Invalid: value not non-null, intentionally return no value.
+                return .undefined  // Invalid: value not non-null, intentionally return no value.
             }
         }
 

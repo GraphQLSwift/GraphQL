@@ -1,12 +1,9 @@
-
-/**
- * Unique input field names
- *
- * A GraphQL input object value is only valid if all supplied fields are
- * uniquely named.
- *
- * See https://spec.graphql.org/draft/#sec-Input-Object-Field-Uniqueness
- */
+/// Unique input field names
+///
+/// A GraphQL input object value is only valid if all supplied fields are
+/// uniquely named.
+///
+/// See https://spec.graphql.org/draft/#sec-Input-Object-Field-Uniqueness
 func UniqueInputFieldNamesRule(context: ASTValidationContext) -> Visitor {
     var knownNameStack = [[String: Name]]()
     var knownNames = [String: Name]()

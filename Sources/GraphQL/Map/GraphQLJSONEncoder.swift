@@ -131,21 +131,19 @@ open class GraphQLJSONEncoder: @unchecked Sendable {
             //
             // We assume, per Swift naming conventions, that the first character of the key is lowercase.
             var wordStart = stringKey.startIndex
-            var searchRange = stringKey.index(after: wordStart) ..< stringKey.endIndex
+            var searchRange = stringKey.index(after: wordStart)..<stringKey.endIndex
 
             // Find next uppercase character
-            while
-                let upperCaseRange = stringKey.rangeOfCharacter(
-                    from: CharacterSet.uppercaseLetters,
-                    options: [],
-                    range: searchRange
-                )
-            {
-                let untilUpperCase = wordStart ..< upperCaseRange.lowerBound
+            while let upperCaseRange = stringKey.rangeOfCharacter(
+                from: CharacterSet.uppercaseLetters,
+                options: [],
+                range: searchRange
+            ) {
+                let untilUpperCase = wordStart..<upperCaseRange.lowerBound
                 words.append(untilUpperCase)
 
                 // Find next lowercase character
-                searchRange = upperCaseRange.lowerBound ..< searchRange.upperBound
+                searchRange = upperCaseRange.lowerBound..<searchRange.upperBound
                 guard
                     let lowerCaseRange = stringKey.rangeOfCharacter(
                         from: CharacterSet.lowercaseLetters,
@@ -167,14 +165,14 @@ open class GraphQLJSONEncoder: @unchecked Sendable {
                 } else {
                     // There was a range of >1 capital letters. Turn those into a word, stopping at the capital before the lower case character.
                     let beforeLowerIndex = stringKey.index(before: lowerCaseRange.lowerBound)
-                    words.append(upperCaseRange.lowerBound ..< beforeLowerIndex)
+                    words.append(upperCaseRange.lowerBound..<beforeLowerIndex)
 
                     // Next word starts at the capital before the lowercase we just found
                     wordStart = beforeLowerIndex
                 }
-                searchRange = lowerCaseRange.upperBound ..< searchRange.upperBound
+                searchRange = lowerCaseRange.upperBound..<searchRange.upperBound
             }
-            words.append(wordStart ..< searchRange.upperBound)
+            words.append(wordStart..<searchRange.upperBound)
             let result = words.map { range in
                 stringKey[range].lowercased()
             }.joined(separator: "_")
@@ -296,13 +294,13 @@ private enum JSONFuture {
         var values: [JSONValue] {
             array.map { future -> JSONValue in
                 switch future {
-                case let .value(value):
+                case .value(let value):
                     return value
-                case let .nestedArray(array):
+                case .nestedArray(let array):
                     return .array(array.values)
-                case let .nestedObject(object):
+                case .nestedObject(let object):
                     return .object(object.values)
-                case let .encoder(encoder):
+                case .encoder(let encoder):
                     return encoder.value ?? .object([:])
                 }
             }
@@ -328,7 +326,7 @@ private enum JSONFuture {
                 preconditionFailure(
                     "For key \"\(key)\" a keyed container has already been created."
                 )
-            case let .nestedArray(array):
+            case .nestedArray(let array):
                 return array
             case .none, .value:
                 let array = RefArray()
@@ -341,7 +339,7 @@ private enum JSONFuture {
             switch dict[key] {
             case .encoder:
                 preconditionFailure("For key \"\(key)\" an encoder has already been created.")
-            case let .nestedObject(object):
+            case .nestedObject(let object):
                 return object
             case .nestedArray:
                 preconditionFailure(
@@ -374,13 +372,13 @@ private enum JSONFuture {
         var values: OrderedDictionary<String, JSONValue> {
             dict.mapValues { future -> JSONValue in
                 switch future {
-                case let .value(value):
+                case .value(let value):
                     return value
-                case let .nestedArray(array):
+                case .nestedArray(let array):
                     return .array(array.values)
-                case let .nestedObject(object):
+                case .nestedObject(let object):
                     return .object(object.values)
-                case let .encoder(encoder):
+                case .encoder(let encoder):
                     return encoder.value ?? .object([:])
                 }
             }
@@ -417,7 +415,7 @@ private class JSONEncoderImpl {
 
 extension JSONEncoderImpl: Encoder {
     func container<Key>(keyedBy _: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
-        if let _ = object {
+        if object != nil {
             let container = JSONKeyedEncodingContainer<Key>(impl: self, codingPath: codingPath)
             return KeyedEncodingContainer(container)
         }
@@ -432,7 +430,7 @@ extension JSONEncoderImpl: Encoder {
     }
 
     func unkeyedContainer() -> UnkeyedEncodingContainer {
-        if let _ = array {
+        if array != nil {
             return JSONUnkeyedEncodingContainer(impl: self, codingPath: codingPath)
         }
 
@@ -487,14 +485,13 @@ private protocol _SpecialTreatmentEncoder {
 }
 
 extension _SpecialTreatmentEncoder {
-    @inline(__always) fileprivate func wrapFloat<
-        F: FloatingPoint &
-            CustomStringConvertible
+    @inline(__always)
+    fileprivate func wrapFloat<
+        F: FloatingPoint & CustomStringConvertible
     >(_ float: F, for additionalKey: CodingKey?) throws -> JSONValue {
         guard !float.isNaN, !float.isInfinite else {
-            if
-                case let .convertToString(posInfString, negInfString, nanString) = options
-                    .nonConformingFloatEncodingStrategy
+            if case .convertToString(let posInfString, let negInfString, let nanString) = options
+                .nonConformingFloatEncodingStrategy
             {
                 switch float {
                 case F.infinity:
@@ -512,10 +509,13 @@ extension _SpecialTreatmentEncoder {
                 path.append(additionalKey)
             }
 
-            throw EncodingError.invalidValue(float, .init(
-                codingPath: path,
-                debugDescription: "Unable to encode \(F.self).\(float) directly in JSON."
-            ))
+            throw EncodingError.invalidValue(
+                float,
+                .init(
+                    codingPath: path,
+                    debugDescription: "Unable to encode \(F.self).\(float) directly in JSON."
+                )
+            )
         }
 
         var string = float.description
@@ -565,10 +565,10 @@ extension _SpecialTreatmentEncoder {
                 fatalError("ISO8601DateFormatter is unavailable on this platform.")
             }
 
-        case let .formatted(formatter):
+        case .formatted(let formatter):
             return .string(formatter.string(from: date))
 
-        case let .custom(closure):
+        case .custom(let closure):
             let encoder = getEncoder(for: additionalKey)
             try closure(date, encoder)
             // The closure didn't encode anything. Return the default keyed container.
@@ -587,7 +587,7 @@ extension _SpecialTreatmentEncoder {
             let base64 = data.base64EncodedString()
             return .string(base64)
 
-        case let .custom(closure):
+        case .custom(let closure):
             let encoder = getEncoder(for: additionalKey)
             try closure(data, encoder)
             // The closure didn't encode anything. Return the default keyed container.
@@ -663,7 +663,7 @@ private struct JSONKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContainerP
             let newKeyString = GraphQLJSONEncoder.KeyEncodingStrategy
                 ._convertToSnakeCase(key.stringValue)
             return _JSONKey(stringValue: newKeyString, intValue: key.intValue)
-        case let .custom(converter):
+        case .custom(let converter):
             return converter(codingPath + [key])
         }
     }
@@ -734,8 +734,8 @@ private struct JSONKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContainerP
         object.set(encoded ?? .object([:]), for: convertedKey.stringValue)
     }
 
-    mutating func nestedContainer<NestedKey>(keyedBy _: NestedKey.Type, forKey key: Self.Key) ->
-        KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey
+    mutating func nestedContainer<NestedKey>(keyedBy _: NestedKey.Type, forKey key: Self.Key)
+        -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey
     {
         let convertedKey = _converted(key)
         let newPath = codingPath + [convertedKey]
@@ -775,9 +775,9 @@ private struct JSONKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContainerP
 }
 
 extension JSONKeyedEncodingContainer {
-    @inline(__always) private mutating func encodeFloatingPoint<
-        F: FloatingPoint &
-            CustomStringConvertible
+    @inline(__always)
+    private mutating func encodeFloatingPoint<
+        F: FloatingPoint & CustomStringConvertible
     >(_ float: F, key: CodingKey) throws {
         let value = try wrapFloat(float, for: key)
         object.set(value, for: key.stringValue)
@@ -884,9 +884,9 @@ private struct JSONUnkeyedEncodingContainer: UnkeyedEncodingContainer, _SpecialT
         array.append(encoded ?? .object([:]))
     }
 
-    mutating func nestedContainer<NestedKey>(keyedBy _: NestedKey.Type) ->
-        KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey
-    {
+    mutating func nestedContainer<NestedKey>(keyedBy _: NestedKey.Type) -> KeyedEncodingContainer<
+        NestedKey
+    > where NestedKey: CodingKey {
         let newPath = codingPath + [_JSONKey(index: count)]
         let object = array.appendObject()
         let nestedContainer = JSONKeyedEncodingContainer<NestedKey>(
@@ -916,13 +916,17 @@ private struct JSONUnkeyedEncodingContainer: UnkeyedEncodingContainer, _SpecialT
 }
 
 extension JSONUnkeyedEncodingContainer {
-    @inline(__always) private mutating func encodeFixedWidthInteger<N: FixedWidthInteger>(_ value: N) throws {
+    @inline(__always) private mutating func encodeFixedWidthInteger<N: FixedWidthInteger>(
+        _ value: N
+    )
+        throws
+    {
         array.append(.number(value.description))
     }
 
-    @inline(__always) private mutating func encodeFloatingPoint<
-        F: FloatingPoint &
-            CustomStringConvertible
+    @inline(__always)
+    private mutating func encodeFloatingPoint<
+        F: FloatingPoint & CustomStringConvertible
     >(_ float: F) throws {
         let value = try wrapFloat(float, for: _JSONKey(index: count))
         array.append(value)
@@ -1022,14 +1026,18 @@ private struct JSONSingleValueEncodingContainer: SingleValueEncodingContainer,
 }
 
 extension JSONSingleValueEncodingContainer {
-    @inline(__always) private mutating func encodeFixedWidthInteger<N: FixedWidthInteger>(_ value: N) throws {
+    @inline(__always) private mutating func encodeFixedWidthInteger<N: FixedWidthInteger>(
+        _ value: N
+    )
+        throws
+    {
         preconditionCanEncodeNewValue()
         impl.singleValue = .number(value.description)
     }
 
-    @inline(__always) private mutating func encodeFloatingPoint<
-        F: FloatingPoint &
-            CustomStringConvertible
+    @inline(__always)
+    private mutating func encodeFloatingPoint<
+        F: FloatingPoint & CustomStringConvertible
     >(_ float: F) throws {
         preconditionCanEncodeNewValue()
         let value = try wrapFloat(float, for: nil)
@@ -1037,8 +1045,8 @@ extension JSONSingleValueEncodingContainer {
     }
 }
 
-private extension JSONValue {
-    struct Writer {
+extension JSONValue {
+    fileprivate struct Writer {
         let options: GraphQLJSONEncoder.OutputFormatting
 
         init(options: GraphQLJSONEncoder.OutputFormatting) {
@@ -1063,11 +1071,11 @@ private extension JSONValue {
                 bytes.append(contentsOf: [UInt8]._true)
             case .bool(false):
                 bytes.append(contentsOf: [UInt8]._false)
-            case let .string(string):
+            case .string(let string):
                 encodeString(string, to: &bytes)
-            case let .number(string):
+            case .number(let string):
                 bytes.append(contentsOf: string.utf8)
-            case let .array(array):
+            case .array(let array):
                 var iterator = array.makeIterator()
                 bytes.append(._openbracket)
                 // we don't like branching, this is why we have this extra
@@ -1079,7 +1087,7 @@ private extension JSONValue {
                     writeValue(item, into: &bytes)
                 }
                 bytes.append(._closebracket)
-            case let .object(dict):
+            case .object(let dict):
                 if #available(OSX 10.13, *), options.contains(.sortedKeys) {
                     let sorted = dict.sorted { $0.key < $1.key }
                     self.writeObject(sorted, into: &bytes)
@@ -1094,8 +1102,7 @@ private extension JSONValue {
             into bytes: inout [UInt8],
             depth _: Int = 0
         )
-            where Object.Element == (key: String, value: JSONValue)
-        {
+        where Object.Element == (key: String, value: JSONValue) {
             var iterator = object.makeIterator()
             bytes.append(._openbrace)
             if let (key, value) = iterator.next() {
@@ -1130,11 +1137,11 @@ private extension JSONValue {
                 bytes.append(contentsOf: [UInt8]._true)
             case .bool(false):
                 bytes.append(contentsOf: [UInt8]._false)
-            case let .string(string):
+            case .string(let string):
                 encodeString(string, to: &bytes)
-            case let .number(string):
+            case .number(let string):
                 bytes.append(contentsOf: string.utf8)
-            case let .array(array):
+            case .array(let array):
                 var iterator = array.makeIterator()
                 bytes.append(contentsOf: [._openbracket, ._newline])
                 if let first = iterator.next() {
@@ -1149,7 +1156,7 @@ private extension JSONValue {
                 bytes.append(._newline)
                 addInset(to: &bytes, depth: depth)
                 bytes.append(._closebracket)
-            case let .object(dict):
+            case .object(let dict):
                 if #available(OSX 10.13, *), options.contains(.sortedKeys) {
                     let sorted = dict.sorted { $0.key < $1.key }
                     self.writePrettyObject(sorted, into: &bytes, depth: depth)
@@ -1164,8 +1171,7 @@ private extension JSONValue {
             into bytes: inout [UInt8],
             depth: Int = 0
         )
-            where Object.Element == (key: String, value: JSONValue)
-        {
+        where Object.Element == (key: String, value: JSONValue) {
             var iterator = object.makeIterator()
             bytes.append(contentsOf: [._openbrace, ._newline])
             if let (key, value) = iterator.next() {
@@ -1196,7 +1202,7 @@ private extension JSONValue {
 
             while nextIndex != stringBytes.endIndex {
                 switch stringBytes[nextIndex] {
-                case 0 ..< 32, UInt8(ascii: "\""), UInt8(ascii: "\\"):
+                case 0..<32, UInt8(ascii: "\""), UInt8(ascii: "\\"):
                     // All Unicode characters may be placed within the
                     // quotation marks, except for the characters that MUST be escaped:
                     // quotation mark, reverse solidus, and the control characters (U+0000
@@ -1204,28 +1210,28 @@ private extension JSONValue {
                     // https://tools.ietf.org/html/rfc8259#section-7
 
                     // copy the current range over
-                    bytes.append(contentsOf: stringBytes[startCopyIndex ..< nextIndex])
+                    bytes.append(contentsOf: stringBytes[startCopyIndex..<nextIndex])
                     switch stringBytes[nextIndex] {
-                    case UInt8(ascii: "\""): // quotation mark
+                    case UInt8(ascii: "\""):  // quotation mark
                         bytes.append(contentsOf: [._backslash, ._quote])
-                    case UInt8(ascii: "\\"): // reverse solidus
+                    case UInt8(ascii: "\\"):  // reverse solidus
                         bytes.append(contentsOf: [._backslash, ._backslash])
-                    case 0x08: // backspace
+                    case 0x08:  // backspace
                         bytes.append(contentsOf: [._backslash, UInt8(ascii: "b")])
-                    case 0x0C: // form feed
+                    case 0x0C:  // form feed
                         bytes.append(contentsOf: [._backslash, UInt8(ascii: "f")])
-                    case 0x0A: // line feed
+                    case 0x0A:  // line feed
                         bytes.append(contentsOf: [._backslash, UInt8(ascii: "n")])
-                    case 0x0D: // carriage return
+                    case 0x0D:  // carriage return
                         bytes.append(contentsOf: [._backslash, UInt8(ascii: "r")])
-                    case 0x09: // tab
+                    case 0x09:  // tab
                         bytes.append(contentsOf: [._backslash, UInt8(ascii: "t")])
                     default:
                         func valueToAscii(_ value: UInt8) -> UInt8 {
                             switch value {
-                            case 0 ... 9:
+                            case 0...9:
                                 return value + UInt8(ascii: "0")
-                            case 10 ... 15:
+                            case 10...15:
                                 return value - 10 + UInt8(ascii: "a")
                             default:
                                 preconditionFailure()
@@ -1244,7 +1250,7 @@ private extension JSONValue {
                     nextIndex = stringBytes.index(after: nextIndex)
                     startCopyIndex = nextIndex
                 case UInt8(ascii: "/") where options.contains(.withoutEscapingSlashes) == false:
-                    bytes.append(contentsOf: stringBytes[startCopyIndex ..< nextIndex])
+                    bytes.append(contentsOf: stringBytes[startCopyIndex..<nextIndex])
                     bytes.append(contentsOf: [._backslash, UInt8(ascii: "/")])
                     nextIndex = stringBytes.index(after: nextIndex)
                     startCopyIndex = nextIndex
@@ -1254,7 +1260,7 @@ private extension JSONValue {
             }
 
             // copy everything, that hasn't been copied yet
-            bytes.append(contentsOf: stringBytes[startCopyIndex ..< nextIndex])
+            bytes.append(contentsOf: stringBytes[startCopyIndex..<nextIndex])
             bytes.append(UInt8(ascii: "\""))
         }
     }
@@ -1306,14 +1312,14 @@ private func _iso8601Formatter() -> ISO8601DateFormatter {
 // Error Utilities
 //===----------------------------------------------------------------------===//
 
-private extension EncodingError {
+extension EncodingError {
     /// Returns a `.invalidValue` error describing the given invalid floating-point value.
     ///
     ///
     /// - parameter value: The value that was invalid to encode.
     /// - parameter path: The path of `CodingKey`s taken to encode this value.
     /// - returns: An `EncodingError` with the appropriate path and debug description.
-    static func _invalidFloatingPointValue<T: FloatingPoint>(
+    fileprivate static func _invalidFloatingPointValue<T: FloatingPoint>(
         _ value: T,
         at codingPath: [CodingKey]
     ) -> EncodingError {

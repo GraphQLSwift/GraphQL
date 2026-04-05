@@ -1,11 +1,9 @@
-/**
- * This set includes all validation rules defined by the GraphQL spec.
- */
+/// This set includes all validation rules defined by the GraphQL spec.
 public let specifiedRules: [@Sendable (ValidationContext) -> Visitor] = [
     ExecutableDefinitionsRule,
     UniqueOperationNamesRule,
     LoneAnonymousOperationRule,
-//    SingleFieldSubscriptionsRule,
+    //    SingleFieldSubscriptionsRule,
     KnownTypeNamesRule,
     FragmentsOnCompositeTypesRule,
     VariablesAreInputTypesRule,
@@ -21,21 +19,19 @@ public let specifiedRules: [@Sendable (ValidationContext) -> Visitor] = [
     NoUnusedVariablesRule,
     KnownDirectivesRule,
     UniqueDirectivesPerLocationRule,
-//    DeferStreamDirectiveOnRootFieldRule,
-//    DeferStreamDirectiveOnValidOperationsRule,
-//    DeferStreamDirectiveLabelRule,
+    //    DeferStreamDirectiveOnRootFieldRule,
+    //    DeferStreamDirectiveOnValidOperationsRule,
+    //    DeferStreamDirectiveLabelRule,
     KnownArgumentNamesRule,
     UniqueArgumentNamesRule,
     ValuesOfCorrectTypeRule,
     ProvidedRequiredArgumentsRule,
     VariablesInAllowedPositionRule,
-//    OverlappingFieldsCanBeMergedRule,
+    //    OverlappingFieldsCanBeMergedRule,
     UniqueInputFieldNamesRule,
 ]
 
-/**
- * @internal
- */
+/// @internal
 public let specifiedSDLRules: [SDLValidationRule] = [
     LoneSchemaDefinitionRule,
     UniqueOperationTypesRule,

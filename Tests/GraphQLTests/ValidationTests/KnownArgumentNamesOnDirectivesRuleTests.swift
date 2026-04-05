@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class KnownArgumentNamesOnDirectivesRuleTests: SDLValidationTestCase {
     override init() {
@@ -33,7 +34,7 @@ class KnownArgumentNamesOnDirectivesRuleTests: SDLValidationTestCase {
                 GraphQLError(
                     message: #"Unknown argument "unknown" on directive "@test"."#,
                     locations: [.init(line: 2, column: 21)]
-                ),
+                )
             ]
         )
     }
@@ -51,7 +52,7 @@ class KnownArgumentNamesOnDirectivesRuleTests: SDLValidationTestCase {
                 GraphQLError(
                     message: #"Unknown argument "agr" on directive "@test". Did you mean "arg"?"#,
                     locations: [.init(line: 2, column: 21)]
-                ),
+                )
             ]
         )
     }
@@ -67,7 +68,7 @@ class KnownArgumentNamesOnDirectivesRuleTests: SDLValidationTestCase {
                 GraphQLError(
                     message: #"Unknown argument "unknown" on directive "@deprecated"."#,
                     locations: [.init(line: 2, column: 27)]
-                ),
+                )
             ]
         )
     }
@@ -84,22 +85,24 @@ class KnownArgumentNamesOnDirectivesRuleTests: SDLValidationTestCase {
                 GraphQLError(
                     message: #"Unknown argument "reason" on directive "@deprecated"."#,
                     locations: [.init(line: 2, column: 27)]
-                ),
+                )
             ]
         )
     }
 
     @Test func unknownArgOnDirectiveDefinedInSchemaExtension() throws {
-        let schema = try buildSchema(source: """
-        type Query {
-          foo: String
-        }
-        """)
+        let schema = try buildSchema(
+            source: """
+                type Query {
+                  foo: String
+                }
+                """
+        )
         let sdl = """
-        directive @test(arg: String) on OBJECT
+            directive @test(arg: String) on OBJECT
 
-        extend type Query  @test(unknown: "")
-        """
+            extend type Query  @test(unknown: "")
+            """
         try assertValidationErrors(
             sdl,
             schema: schema,
@@ -107,22 +110,24 @@ class KnownArgumentNamesOnDirectivesRuleTests: SDLValidationTestCase {
                 GraphQLError(
                     message: #"Unknown argument "unknown" on directive "@test"."#,
                     locations: [.init(line: 3, column: 26)]
-                ),
+                )
             ]
         )
     }
 
     @Test func unknownArgOnDirectiveUsedInSchemaExtension() throws {
-        let schema = try buildSchema(source: """
-        directive @test(arg: String) on OBJECT
+        let schema = try buildSchema(
+            source: """
+                directive @test(arg: String) on OBJECT
 
-        type Query {
-          foo: String
-        }
-        """)
+                type Query {
+                  foo: String
+                }
+                """
+        )
         let sdl = """
-        extend type Query @test(unknown: "")
-        """
+            extend type Query @test(unknown: "")
+            """
         try assertValidationErrors(
             sdl,
             schema: schema,
@@ -130,7 +135,7 @@ class KnownArgumentNamesOnDirectivesRuleTests: SDLValidationTestCase {
                 GraphQLError(
                     message: #"Unknown argument "unknown" on directive "@test"."#,
                     locations: [.init(line: 1, column: 25)]
-                ),
+                )
             ]
         )
     }

@@ -31,66 +31,66 @@ public enum Map: Sendable {
 
 // MARK: Initializers
 
-public extension Map {
-    static let encoder = MapEncoder()
+extension Map {
+    public static let encoder = MapEncoder()
 
-    init<T: Encodable>(_ encodable: T, encoder: MapEncoder = Map.encoder) throws {
+    public init<T: Encodable>(_ encodable: T, encoder: MapEncoder = Map.encoder) throws {
         self = try encoder.encode(encodable)
     }
 
-    init(_ number: Number) {
+    public init(_ number: Number) {
         self = .number(number)
     }
 
-    init(_ bool: Bool) {
+    public init(_ bool: Bool) {
         self = .bool(bool)
     }
 
-    init(_ int: Int) {
+    public init(_ int: Int) {
         self.init(Number(int))
     }
 
-    init(_ double: Double) {
+    public init(_ double: Double) {
         self.init(Number(double))
     }
 
-    init(_ string: String) {
+    public init(_ string: String) {
         self = .string(string)
     }
 
-    init(_ array: [Map]) {
+    public init(_ array: [Map]) {
         self = .array(array)
     }
 
-    init(_ dictionary: OrderedDictionary<String, Map>) {
+    public init(_ dictionary: OrderedDictionary<String, Map>) {
         self = .dictionary(dictionary)
     }
 
-    init(_ number: Number?) {
+    public init(_ number: Number?) {
         self = number.map { Map($0) } ?? .null
     }
 
-    init(_ bool: Bool?) {
+    public init(_ bool: Bool?) {
         self.init(bool.map { Number($0) })
     }
 
-    init(_ int: Int?) {
+    public init(_ int: Int?) {
         self.init(int.map { Number($0) })
     }
 
-    init(_ double: Double?) {
+    public init(_ double: Double?) {
         self.init(double.map { Number($0) })
     }
 
-    init(_ string: String?) {
+    public init(_ string: String?) {
         self = string.map { Map($0) } ?? .null
     }
 
-    init(_ array: [Map]?) {
+    public init(_ array: [Map]?) {
         self = array.map { Map($0) } ?? .null
     }
 
-    init(_ dictionary: OrderedDictionary<String, Map>?) {
+    public init(_ dictionary: OrderedDictionary<String, Map>?) {
         self = dictionary.map { Map($0) } ?? .null
     }
 }
@@ -110,18 +110,20 @@ public func map(from value: Any?) throws -> Map {
         return map
     }
 
-    if
-        let value = value as? OrderedDictionary<String, Any>,
-        let dictionary: OrderedDictionary<String, Map> = try? value
-            .reduce(into: [:], { result, pair in
-                result[pair.key] = try map(from: pair.value)
-            })
+    if let value = value as? OrderedDictionary<String, Any>,
+        let dictionary: OrderedDictionary<String, Map> =
+            try? value
+            .reduce(
+                into: [:],
+                { result, pair in
+                    result[pair.key] = try map(from: pair.value)
+                }
+            )
     {
         return .dictionary(dictionary)
     }
 
-    if
-        let value = value as? [Any],
+    if let value = value as? [Any],
         let array: [Map] = try? value.map({ value in
             try map(from: value)
         })
@@ -129,8 +131,7 @@ public func map(from value: Any?) throws -> Map {
         return .array(array)
     }
 
-    if
-        let value = value as? Encodable,
+    if let value = value as? Encodable,
         let map = try? Map(AnyEncodable(value))
     {
         return map
@@ -139,8 +140,8 @@ public func map(from value: Any?) throws -> Map {
     throw MapError.incompatibleType
 }
 
-public extension Map {
-    init(any: Any?) throws {
+extension Map {
+    public init(any: Any?) throws {
         switch any {
         case .none:
             self = .null
@@ -166,43 +167,43 @@ public extension Map {
 
 // MARK: is<Type>
 
-public extension Map {
-    var isUndefined: Bool {
+extension Map {
+    public var isUndefined: Bool {
         if case .undefined = self {
             return true
         }
         return false
     }
 
-    var isNull: Bool {
+    public var isNull: Bool {
         if case .null = self {
             return true
         }
         return false
     }
 
-    var isNumber: Bool {
+    public var isNumber: Bool {
         if case .number = self {
             return true
         }
         return false
     }
 
-    var isString: Bool {
+    public var isString: Bool {
         if case .string = self {
             return true
         }
         return false
     }
 
-    var isArray: Bool {
+    public var isArray: Bool {
         if case .array = self {
             return true
         }
         return false
     }
 
-    var isDictionary: Bool {
+    public var isDictionary: Bool {
         if case .dictionary = self {
             return true
         }
@@ -212,8 +213,8 @@ public extension Map {
 
 // MARK: is<Type>
 
-public extension Map {
-    var typeDescription: String {
+extension Map {
+    public var typeDescription: String {
         switch self {
         case .undefined:
             return "undefined"
@@ -235,36 +236,36 @@ public extension Map {
 
 // MARK: as<type>?
 
-public extension Map {
-    var bool: Bool? {
+extension Map {
+    public var bool: Bool? {
         return try? boolValue()
     }
 
-    var int: Int? {
+    public var int: Int? {
         return try? intValue()
     }
 
-    var double: Double? {
+    public var double: Double? {
         return try? doubleValue()
     }
 
-    var string: String? {
+    public var string: String? {
         return try? stringValue()
     }
 
-    var array: [Map]? {
+    public var array: [Map]? {
         return try? arrayValue()
     }
 
-    var dictionary: OrderedDictionary<String, Map>? {
+    public var dictionary: OrderedDictionary<String, Map>? {
         return try? dictionaryValue()
     }
 }
 
 // MARK: try as<type>()
 
-public extension Map {
-    func boolValue(converting: Bool = false) throws -> Bool {
+extension Map {
+    public func boolValue(converting: Bool = false) throws -> Bool {
         guard converting else {
             return try get()
         }
@@ -276,28 +277,28 @@ public extension Map {
         case .null:
             return false
 
-        case let .bool(value):
+        case .bool(let value):
             return value
 
-        case let .number(number):
+        case .number(let number):
             return number.boolValue
 
-        case let .string(value):
+        case .string(let value):
             switch value.lowercased() {
             case "true": return true
             case "false": return false
             default: throw MapError.incompatibleType
             }
 
-        case let .array(value):
+        case .array(let value):
             return !value.isEmpty
 
-        case let .dictionary(value):
+        case .dictionary(let value):
             return !value.isEmpty
         }
     }
 
-    func intValue(converting: Bool = false) throws -> Int {
+    public func intValue(converting: Bool = false) throws -> Int {
         guard converting else {
             return try (get() as Number).intValue
         }
@@ -306,10 +307,10 @@ public extension Map {
         case .null:
             return 0
 
-        case let .number(number):
+        case .number(let number):
             return number.intValue
 
-        case let .string(value):
+        case .string(let value):
             guard let value = Int(value) else {
                 throw MapError.incompatibleType
             }
@@ -321,7 +322,7 @@ public extension Map {
         }
     }
 
-    func doubleValue(converting: Bool = false) throws -> Double {
+    public func doubleValue(converting: Bool = false) throws -> Double {
         guard converting else {
             return try (get() as Number).doubleValue
         }
@@ -330,10 +331,10 @@ public extension Map {
         case .null:
             return 0
 
-        case let .number(number):
+        case .number(let number):
             return number.doubleValue
 
-        case let .string(value):
+        case .string(let value):
             guard let value = Double(value) else {
                 throw MapError.incompatibleType
             }
@@ -345,7 +346,7 @@ public extension Map {
         }
     }
 
-    func stringValue(converting: Bool = false) throws -> String {
+    public func stringValue(converting: Bool = false) throws -> String {
         guard converting else {
             return try get()
         }
@@ -357,13 +358,13 @@ public extension Map {
         case .null:
             return "null"
 
-        case let .bool(value):
+        case .bool(let value):
             return "\(value)"
 
-        case let .number(number):
+        case .number(let number):
             return number.stringValue
 
-        case let .string(value):
+        case .string(let value):
             return value
 
         case .array:
@@ -374,13 +375,13 @@ public extension Map {
         }
     }
 
-    func arrayValue(converting: Bool = false) throws -> [Map] {
+    public func arrayValue(converting: Bool = false) throws -> [Map] {
         guard converting else {
             return try get()
         }
 
         switch self {
-        case let .array(value):
+        case .array(let value):
             return value
 
         case .null:
@@ -391,13 +392,13 @@ public extension Map {
         }
     }
 
-    func dictionaryValue(converting: Bool = false) throws -> OrderedDictionary<String, Map> {
+    public func dictionaryValue(converting: Bool = false) throws -> OrderedDictionary<String, Map> {
         guard converting else {
             return try get()
         }
 
         switch self {
-        case let .dictionary(value):
+        case .dictionary(let value):
             return value
 
         case .null:
@@ -411,19 +412,19 @@ public extension Map {
 
 // MARK: Get
 
-public extension Map {
-    func get<T>(_ indexPath: IndexPathElement...) throws -> T {
+extension Map {
+    public func get<T>(_ indexPath: IndexPathElement...) throws -> T {
         if indexPath.isEmpty {
             switch self {
-            case let .number(value as T):
+            case .number(let value as T):
                 return value
-            case let .bool(value as T):
+            case .bool(let value as T):
                 return value
-            case let .string(value as T):
+            case .string(let value as T):
                 return value
-            case let .array(value as T):
+            case .array(let value as T):
                 return value
-            case let .dictionary(value as T):
+            case .dictionary(let value as T):
                 return value
             default:
                 throw MapError.incompatibleType
@@ -433,16 +434,16 @@ public extension Map {
         return try get(IndexPath(indexPath)).get()
     }
 
-    func get(_ indexPath: IndexPathElement...) throws -> Map {
+    public func get(_ indexPath: IndexPathElement...) throws -> Map {
         return try get(IndexPath(indexPath))
     }
 
-    func get(_ indexPath: IndexPath) throws -> Map {
+    public func get(_ indexPath: IndexPath) throws -> Map {
         var value: Map = self
 
         for element in indexPath.elements {
             switch element {
-            case let .index(index):
+            case .index(let index):
                 let array = try value.arrayValue()
 
                 if array.indices.contains(index) {
@@ -451,7 +452,7 @@ public extension Map {
                     throw MapError.outOfBounds
                 }
 
-            case let .key(key):
+            case .key(let key):
                 let dictionary = try value.dictionaryValue()
 
                 if let newValue = dictionary[key] {
@@ -468,12 +469,12 @@ public extension Map {
 
 // MARK: Set
 
-public extension Map {
-    mutating func set(_ value: Map, for indexPath: IndexPathElement...) throws {
+extension Map {
+    public mutating func set(_ value: Map, for indexPath: IndexPathElement...) throws {
         try set(value, for: indexPath)
     }
 
-    mutating func set(_ value: Map, for indexPath: [IndexPathElement]) throws {
+    public mutating func set(_ value: Map, for indexPath: [IndexPathElement]) throws {
         try set(value, for: IndexPath(indexPath), merging: true)
     }
 
@@ -481,15 +482,16 @@ public extension Map {
         var elements = indexPath.elements
 
         guard let first = elements.first else {
-            return self = value
+            self = value
+            return
         }
 
         elements.removeFirst()
 
         if elements.isEmpty {
             switch first {
-            case let .index(index):
-                if case var .array(array) = self {
+            case .index(let index):
+                if case .array(var array) = self {
                     if !array.indices.contains(index) {
                         throw MapError.outOfBounds
                     }
@@ -499,12 +501,11 @@ public extension Map {
                 } else {
                     throw MapError.incompatibleType
                 }
-            case let .key(key):
-                if case var .dictionary(dictionary) = self {
+            case .key(let key):
+                if case .dictionary(var dictionary) = self {
                     let newValue = value
 
-                    if
-                        let existingDictionary = dictionary[key]?.dictionary,
+                    if let existingDictionary = dictionary[key]?.dictionary,
                         let newDictionary = newValue.dictionary,
                         merging
                     {
@@ -538,24 +539,25 @@ public extension Map {
 
 // MARK: Remove
 
-public extension Map {
-    mutating func remove(_ indexPath: IndexPathElement...) throws {
+extension Map {
+    public mutating func remove(_ indexPath: IndexPathElement...) throws {
         try remove(indexPath)
     }
 
-    mutating func remove(_ indexPath: [IndexPathElement]) throws {
+    public mutating func remove(_ indexPath: [IndexPathElement]) throws {
         var indexPath = indexPath
 
         guard let first = indexPath.first else {
-            return self = .null
+            self = .null
+            return
         }
 
         indexPath.removeFirst()
 
         if indexPath.isEmpty {
             guard
-                case var .dictionary(dictionary) = self,
-                case let .key(key) = first.indexPathValue
+                case .dictionary(var dictionary) = self,
+                case .key(let key) = first.indexPathValue
             else {
                 throw MapError.incompatibleType
             }
@@ -574,8 +576,8 @@ public extension Map {
 
 // MARK: Subscripts
 
-public extension Map {
-    subscript(indexPath: IndexPathElement...) -> Map {
+extension Map {
+    public subscript(indexPath: IndexPathElement...) -> Map {
         get {
             return self[IndexPath(indexPath)]
         }
@@ -585,7 +587,7 @@ public extension Map {
         }
     }
 
-    subscript(indexPath: IndexPath) -> Map {
+    public subscript(indexPath: IndexPath) -> Map {
         get {
             return (try? get(indexPath)) ?? nil
         }
@@ -632,7 +634,7 @@ extension Map: Codable {
             self = .string(string)
         } else if let array = try? container.decode([Map].self) {
             self = .array(array)
-        } else if let _ = try? container.decode([String: Map].self) {
+        } else if (try? container.decode([String: Map].self)) != nil {
             // Override OrderedDictionary default (unkeyed alternating key-value)
             // Instead decode as a keyed container (like normal Dictionary) but use the order of the
             // input
@@ -667,15 +669,15 @@ extension Map: Codable {
             )
         case .null:
             try container.encodeNil()
-        case let .bool(value):
+        case .bool(let value):
             try container.encode(value)
-        case let .number(number):
+        case .number(let number):
             try container.encode(number.doubleValue)
-        case let .string(string):
+        case .string(let string):
             try container.encode(string)
-        case let .array(array):
+        case .array(let array):
             try container.encode(array)
-        case let .dictionary(dictionary):
+        case .dictionary(let dictionary):
             // Override OrderedDictionary default (unkeyed alternating key-value)
             // Instead decode as a keyed container (like normal Dictionary) in the order of our
             // OrderedDictionary
@@ -727,15 +729,15 @@ public func == (lhs: Map, rhs: Map) -> Bool {
         return true
     case (.null, .null):
         return true
-    case let (.bool(l), .bool(r)) where l == r:
+    case (.bool(let l), .bool(let r)) where l == r:
         return true
-    case let (.number(l), .number(r)) where l == r:
+    case (.number(let l), .number(let r)) where l == r:
         return true
-    case let (.string(l), .string(r)) where l == r:
+    case (.string(let l), .string(let r)) where l == r:
         return true
-    case let (.array(l), .array(r)) where l == r:
+    case (.array(let l), .array(let r)) where l == r:
         return true
-    case let (.dictionary(l), .dictionary(r)) where l == r:
+    case (.dictionary(let l), .dictionary(let r)) where l == r:
         return true
     default:
         return false
@@ -751,15 +753,15 @@ extension Map: Hashable {
             hasher.combine(0)
         case .null:
             hasher.combine(0)
-        case let .bool(value):
+        case .bool(let value):
             hasher.combine(value)
-        case let .number(number):
+        case .number(let number):
             hasher.combine(number)
-        case let .string(string):
+        case .string(let string):
             hasher.combine(string)
-        case let .array(array):
+        case .array(let array):
             hasher.combine(array)
-        case let .dictionary(dictionary):
+        case .dictionary(let dictionary):
             hasher.combine(dictionary)
         }
     }
@@ -841,8 +843,8 @@ extension Map: CustomDebugStringConvertible {
 
 // MARK: Generic Description
 
-public extension Map {
-    func description(debug: Bool) -> String {
+extension Map {
+    public func description(debug: Bool) -> String {
         var indentLevel = 0
 
         let escapeMapping: [Character: String] = [
@@ -879,15 +881,15 @@ public extension Map {
                 return "undefined"
             case .null:
                 return "null"
-            case let .bool(value):
+            case .bool(let value):
                 return value.description
-            case let .number(number):
+            case .number(let number):
                 return number.description
-            case let .string(string):
+            case .string(let string):
                 return escape(string)
-            case let .array(array):
+            case .array(let array):
                 return serialize(array: array)
-            case let .dictionary(dictionary):
+            case .dictionary(let dictionary):
                 return serialize(dictionary: dictionary)
             }
         }
@@ -899,7 +901,7 @@ public extension Map {
                 indentLevel += 1
             }
 
-            for index in 0 ..< array.count {
+            for index in 0..<array.count {
                 if debug {
                     string += "\n"
                     string += indent()

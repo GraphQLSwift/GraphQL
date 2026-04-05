@@ -1,9 +1,6 @@
-
-/**
- * Unique type names
- *
- * A GraphQL document is only valid if all defined types have unique names.
- */
+/// Unique type names
+///
+/// A GraphQL document is only valid if all defined types have unique names.
 func UniqueTypeNamesRule(context: SDLValidationContext) -> Visitor {
     var knownTypeNames = [String: Name]()
     let schema = context.getSchema()
@@ -47,7 +44,8 @@ func UniqueTypeNamesRule(context: SDLValidationContext) -> Visitor {
         if schema?.getType(name: typeName) != nil {
             context.report(
                 error: GraphQLError(
-                    message: "Type \"\(typeName)\" already exists in the schema. It cannot also be defined in this type definition.",
+                    message:
+                        "Type \"\(typeName)\" already exists in the schema. It cannot also be defined in this type definition.",
                     nodes: [node.name]
                 )
             )

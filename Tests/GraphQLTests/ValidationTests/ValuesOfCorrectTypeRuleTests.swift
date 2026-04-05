@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
     override init() {
@@ -181,13 +182,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                stringArgField(stringArg: 1)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    stringArgField(stringArg: 1)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -200,13 +201,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                stringArgField(stringArg: 1.0)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    stringArgField(stringArg: 1.0)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -219,13 +220,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                stringArgField(stringArg: true)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    stringArgField(stringArg: true)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -238,13 +239,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                stringArgField(stringArg: BAR)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    stringArgField(stringArg: BAR)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -257,13 +258,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                intArgField(intArg: "3")
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    intArgField(intArg: "3")
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -273,36 +274,36 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
     }
 
     // Swift doesn't parse BigInt anyway
-//    @Test func bigIntIntoInt() throws {
-//        let errors = try assertInvalid(
-//            errorCount: 1,
-//            query:
-//            """
-//            {
-//              complicatedArgs {
-//                intArgField(intArg: 829384293849283498239482938)
-//              }
-//            }
-//            """
-//        )
-//        try assertValidationError(
-//            error: errors[0],
-//            locations: [(line: 3, column: 25)],
-//            message: "Int cannot represent non-32-bit signed integer value: 829384293849283498239482938"
-//        )
-//    }
+    //    @Test func bigIntIntoInt() throws {
+    //        let errors = try assertInvalid(
+    //            errorCount: 1,
+    //            query:
+    //            """
+    //            {
+    //              complicatedArgs {
+    //                intArgField(intArg: 829384293849283498239482938)
+    //              }
+    //            }
+    //            """
+    //        )
+    //        try assertValidationError(
+    //            error: errors[0],
+    //            locations: [(line: 3, column: 25)],
+    //            message: "Int cannot represent non-32-bit signed integer value: 829384293849283498239482938"
+    //        )
+    //    }
 
     @Test func unquotedStringIntoInt() throws {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                intArgField(intArg: FOO)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    intArgField(intArg: FOO)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -315,13 +316,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                intArgField(intArg: 3.0)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    intArgField(intArg: 3.0)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -334,13 +335,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                intArgField(intArg: 3.333)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    intArgField(intArg: 3.333)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -355,13 +356,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                floatArgField(floatArg: "3.333")
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    floatArgField(floatArg: "3.333")
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -374,13 +375,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                floatArgField(floatArg: true)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    floatArgField(floatArg: true)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -393,13 +394,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                floatArgField(floatArg: FOO)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    floatArgField(floatArg: FOO)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -414,13 +415,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                booleanArgField(booleanArg: 2)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    booleanArgField(booleanArg: 2)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -433,13 +434,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                booleanArgField(booleanArg: 1.0)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    booleanArgField(booleanArg: 1.0)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -452,13 +453,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                booleanArgField(booleanArg: "true")
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    booleanArgField(booleanArg: "true")
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -471,13 +472,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                booleanArgField(booleanArg: TRUE)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    booleanArgField(booleanArg: TRUE)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -492,13 +493,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                idArgField(idArg: 1.0)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    idArgField(idArg: 1.0)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -511,13 +512,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                idArgField(idArg: true)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    idArgField(idArg: true)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -530,13 +531,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                idArgField(idArg: SOMETHING)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    idArgField(idArg: SOMETHING)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -551,13 +552,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              dog {
-                doesKnowCommand(dogCommand: 2)
-              }
-            }
-            """
+                """
+                {
+                  dog {
+                    doesKnowCommand(dogCommand: 2)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -570,13 +571,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              dog {
-                doesKnowCommand(dogCommand: 1.0)
-              }
-            }
-            """
+                """
+                {
+                  dog {
+                    doesKnowCommand(dogCommand: 1.0)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -589,18 +590,19 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              dog {
-                doesKnowCommand(dogCommand: "SIT")
-              }
-            }
-            """
+                """
+                {
+                  dog {
+                    doesKnowCommand(dogCommand: "SIT")
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
             locations: [(line: 3, column: 33)],
-            message: #"Enum "DogCommand" cannot represent non-enum value: "SIT". Did you mean the enum value "SIT"?"#
+            message:
+                #"Enum "DogCommand" cannot represent non-enum value: "SIT". Did you mean the enum value "SIT"?"#
         )
     }
 
@@ -608,13 +610,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              dog {
-                doesKnowCommand(dogCommand: true)
-              }
-            }
-            """
+                """
+                {
+                  dog {
+                    doesKnowCommand(dogCommand: true)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -627,13 +629,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              dog {
-                doesKnowCommand(dogCommand: JUGGLE)
-              }
-            }
-            """
+                """
+                {
+                  dog {
+                    doesKnowCommand(dogCommand: JUGGLE)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -646,13 +648,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              dog {
-                doesKnowCommand(dogCommand: sit)
-              }
-            }
-            """
+                """
+                {
+                  dog {
+                    doesKnowCommand(dogCommand: sit)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -717,13 +719,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                stringListArgField(stringListArg: ["one", 2])
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    stringListArgField(stringListArg: ["one", 2])
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -736,13 +738,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                stringListArgField(stringListArg: 1)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    stringListArgField(stringListArg: 1)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -879,13 +881,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
-            """
-            {
-              complicatedArgs {
-                multipleReqs(req2: "two", req1: "one")
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    multipleReqs(req2: "two", req1: "one")
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -903,13 +905,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                multipleReqs(req1: "one")
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    multipleReqs(req1: "one")
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -922,13 +924,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                multipleReqs(req1: null)
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    multipleReqs(req1: null)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -1055,18 +1057,19 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                complexArgField(complexArg: { intField: 4 })
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    complexArgField(complexArg: { intField: 4 })
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
             locations: [(line: 3, column: 33)],
-            message: #"Field "ComplexInput.requiredField" of required type "Boolean!" was not provided."#
+            message:
+                #"Field "ComplexInput.requiredField" of required type "Boolean!" was not provided."#
         )
     }
 
@@ -1074,16 +1077,16 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                complexArgField(complexArg: {
-                  stringListField: ["one", 2],
-                  requiredField: true,
-                })
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    complexArgField(complexArg: {
+                      stringListField: ["one", 2],
+                      requiredField: true,
+                    })
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -1096,16 +1099,16 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                complexArgField(complexArg: {
-                  requiredField: true,
-                  nonNullField: null,
-                })
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    complexArgField(complexArg: {
+                      requiredField: true,
+                      nonNullField: null,
+                    })
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -1118,21 +1121,22 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                complexArgField(complexArg: {
-                  requiredField: true,
-                  invalidField: "value"
-                })
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    complexArgField(complexArg: {
+                      requiredField: true,
+                      invalidField: "value"
+                    })
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
             locations: [(line: 5, column: 7)],
-            message: #"Field "invalidField" is not defined by type "ComplexInput". Did you mean "intField" or "nonNullField"?"#
+            message:
+                #"Field "invalidField" is not defined by type "ComplexInput". Did you mean "intField" or "nonNullField"?"#
         )
     }
 
@@ -1161,9 +1165,9 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
                     "invalidArg": GraphQLField(
                         type: GraphQLString,
                         args: [
-                            "arg": GraphQLArgument(type: customScalar),
+                            "arg": GraphQLArgument(type: customScalar)
                         ]
-                    ),
+                    )
                 ]
             )
         )
@@ -1199,9 +1203,9 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
                     "invalidArg": GraphQLField(
                         type: GraphQLString,
                         args: [
-                            "arg": GraphQLArgument(type: customScalar),
+                            "arg": GraphQLArgument(type: customScalar)
                         ]
-                    ),
+                    )
                 ]
             )
         )
@@ -1231,24 +1235,26 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
                     "anyArg": GraphQLField(
                         type: GraphQLString,
                         args: [
-                            "arg": GraphQLArgument(type: customScalar),
+                            "arg": GraphQLArgument(type: customScalar)
                         ]
-                    ),
+                    )
                 ]
             ),
             types: [
-                customScalar,
+                customScalar
             ]
         )
 
-        let doc = try parse(source: """
-        {
-          test1: anyArg(arg: 123)
-          test2: anyArg(arg: "abc")
-          test3: anyArg(arg: [123, "abc"])
-          test4: anyArg(arg: {deep: [123, "abc"]})
-        }
-        """)
+        let doc = try parse(
+            source: """
+                {
+                  test1: anyArg(arg: 123)
+                  test2: anyArg(arg: "abc")
+                  test3: anyArg(arg: [123, "abc"])
+                  test4: anyArg(arg: {deep: [123, "abc"]})
+                }
+                """
+        )
         let errors = validate(schema: schema, ast: doc, rules: [ValuesOfCorrectTypeRule])
         #expect(errors == [])
     }
@@ -1259,13 +1265,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                oneOfArgField(oneOfArg: { stringField: 2 })
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    oneOfArgField(oneOfArg: { stringField: 2 })
+                  }
+                }
+                """
         )
 
         try assertValidationError(
@@ -1279,13 +1285,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                oneOfArgField(oneOfArg: { stringField: null })
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    oneOfArgField(oneOfArg: { stringField: null })
+                  }
+                }
+                """
         )
 
         try assertValidationError(
@@ -1299,19 +1305,20 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            query ($string: String) {
-              complicatedArgs {
-                oneOfArgField(oneOfArg: { stringField: $string })
-              }
-            }
-            """
+                """
+                query ($string: String) {
+                  complicatedArgs {
+                    oneOfArgField(oneOfArg: { stringField: $string })
+                  }
+                }
+                """
         )
 
         try assertValidationError(
             error: errors[0],
             locations: [(line: 3, column: 29)],
-            message: #"Variable "string" must be non-nullable to be used for OneOf Input Object "OneOfInput"."#
+            message:
+                #"Variable "string" must be non-nullable to be used for OneOf Input Object "OneOfInput"."#
         )
     }
 
@@ -1319,13 +1326,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              complicatedArgs {
-                oneOfArgField(oneOfArg: { stringField: "abc", intField: 123 })
-              }
-            }
-            """
+                """
+                {
+                  complicatedArgs {
+                    oneOfArgField(oneOfArg: { stringField: "abc", intField: 123 })
+                  }
+                }
+                """
         )
 
         try assertValidationError(
@@ -1356,13 +1363,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
-            """
-            {
-              dog @include(if: "yes") {
-                name @skip(if: ENUM)
-              }
-            }
-            """
+                """
+                {
+                  dog @include(if: "yes") {
+                    name @skip(if: ENUM)
+                  }
+                }
+                """
         )
 
         try assertValidationError(
@@ -1413,15 +1420,15 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 3,
             query:
-            """
-            query WithDefaultValues(
-              $a: Int! = null,
-              $b: String! = null,
-              $c: ComplexInput = { requiredField: null, intField: null }
-            ) {
-              dog { name }
-            }
-            """
+                """
+                query WithDefaultValues(
+                  $a: Int! = null,
+                  $b: String! = null,
+                  $c: ComplexInput = { requiredField: null, intField: null }
+                ) {
+                  dog { name }
+                }
+                """
         )
 
         try assertValidationError(
@@ -1447,15 +1454,15 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 3,
             query:
-            """
-            query InvalidDefaultValues(
-              $a: Int = "one",
-              $b: String = 4,
-              $c: ComplexInput = "NotVeryComplex"
-            ) {
-              dog { name }
-            }
-            """
+                """
+                query InvalidDefaultValues(
+                  $a: Int = "one",
+                  $b: String = 4,
+                  $c: ComplexInput = "NotVeryComplex"
+                ) {
+                  dog { name }
+                }
+                """
         )
 
         try assertValidationError(
@@ -1481,13 +1488,13 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
-            """
-            query WithDefaultValues(
-              $a: ComplexInput = { requiredField: 123, intField: "abc" }
-            ) {
-              dog { name }
-            }
-            """
+                """
+                query WithDefaultValues(
+                  $a: ComplexInput = { requiredField: 123, intField: "abc" }
+                ) {
+                  dog { name }
+                }
+                """
         )
 
         try assertValidationError(
@@ -1507,17 +1514,18 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            query MissingRequiredField($a: ComplexInput = {intField: 3}) {
-              dog { name }
-            }
-            """
+                """
+                query MissingRequiredField($a: ComplexInput = {intField: 3}) {
+                  dog { name }
+                }
+                """
         )
 
         try assertValidationError(
             error: errors[0],
             locations: [(line: 1, column: 47)],
-            message: #"Field "ComplexInput.requiredField" of required type "Boolean!" was not provided."#
+            message:
+                #"Field "ComplexInput.requiredField" of required type "Boolean!" was not provided."#
         )
     }
 
@@ -1525,11 +1533,11 @@ class ValuesOfCorrectTypeRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            query InvalidItem($a: [String] = ["one", 2]) {
-              dog { name }
-            }
-            """
+                """
+                query InvalidItem($a: [String] = ["one", 2]) {
+                  dog { name }
+                }
+                """
         )
 
         try assertValidationError(

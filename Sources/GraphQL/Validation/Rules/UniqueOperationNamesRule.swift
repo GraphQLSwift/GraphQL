@@ -1,11 +1,8 @@
-
-/**
- * Unique operation names
- *
- * A GraphQL document is only valid if all defined operations have unique names.
- *
- * See https://spec.graphql.org/draft/#sec-Operation-Name-Uniqueness
- */
+/// Unique operation names
+///
+/// A GraphQL document is only valid if all defined operations have unique names.
+///
+/// See https://spec.graphql.org/draft/#sec-Operation-Name-Uniqueness
 func UniqueOperationNamesRule(context: ValidationContext) -> Visitor {
     var knownOperationNames = [String: Name]()
     return Visitor(
@@ -17,7 +14,8 @@ func UniqueOperationNamesRule(context: ValidationContext) -> Visitor {
                     if let knownOperationName = knownOperationNames[operationName.value] {
                         context.report(
                             error: GraphQLError(
-                                message: "There can be only one operation named \"\(operationName.value)\".",
+                                message:
+                                    "There can be only one operation named \"\(operationName.value)\".",
                                 nodes: [knownOperationName, operationName]
                             )
                         )

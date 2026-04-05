@@ -1,7 +1,5 @@
-/**
- * Given a GraphQL source, parses it into a Document.
- * Throws GraphQLError if a syntax error is encountered.
- */
+/// Given a GraphQL source, parses it into a Document.
+/// Throws GraphQLError if a syntax error is encountered.
 public func parse(
     source: String,
     noLocation: Bool = false
@@ -12,10 +10,8 @@ public func parse(
     )
 }
 
-/**
- * Given a GraphQL source, parses it into a Document.
- * Throws GraphQLError if a syntax error is encountered.
- */
+/// Given a GraphQL source, parses it into a Document.
+/// Throws GraphQLError if a syntax error is encountered.
 public func parse(
     source: Source,
     noLocation: Bool = false
@@ -28,30 +24,26 @@ public func parse(
     }
 }
 
-/**
- * Given a string containing a GraphQL value (ex. `[42]`), parse the AST for
- * that value.
- * Throws GraphQLError if a syntax error is encountered.
- *
- * This is useful within tools that operate upon GraphQL Values directly and
- * in isolation of complete GraphQL documents.
- *
- * Consider providing the results to the utility func: valueFromAST().
- */
+/// Given a string containing a GraphQL value (ex. `[42]`), parse the AST for
+/// that value.
+/// Throws GraphQLError if a syntax error is encountered.
+///
+/// This is useful within tools that operate upon GraphQL Values directly and
+/// in isolation of complete GraphQL documents.
+///
+/// Consider providing the results to the utility func: valueFromAST().
 func parseValue(source: String, noLocation: Bool = false) throws -> Value {
     return try parseValue(source: Source(body: source), noLocation: noLocation)
 }
 
-/**
- * Given a string containing a GraphQL value (ex. `[42]`), parse the AST for
- * that value.
- * Throws GraphQLError if a syntax error is encountered.
- *
- * This is useful within tools that operate upon GraphQL Values directly and
- * in isolation of complete GraphQL documents.
- *
- * Consider providing the results to the utility func: valueFromAST().
- */
+/// Given a string containing a GraphQL value (ex. `[42]`), parse the AST for
+/// that value.
+/// Throws GraphQLError if a syntax error is encountered.
+///
+/// This is useful within tools that operate upon GraphQL Values directly and
+/// in isolation of complete GraphQL documents.
+///
+/// Consider providing the results to the utility func: valueFromAST().
 func parseValue(source: Source, noLocation: Bool = false) throws -> Value {
     let lexer = createLexer(source: source, noLocation: noLocation)
     try expect(lexer: lexer, kind: .sof)
@@ -60,30 +52,26 @@ func parseValue(source: Source, noLocation: Bool = false) throws -> Value {
     return value
 }
 
-/**
- * Given a string containing a GraphQL Type (ex. `[Int!]`), parse the AST for
- * that type.
- * Throws GraphQLError if a syntax error is encountered.
- *
- * This is useful within tools that operate upon GraphQL Types directly and
- * in isolation of complete GraphQL documents.
- *
- * Consider providing the results to the utility func: typeFromAST().
- */
+/// Given a string containing a GraphQL Type (ex. `[Int!]`), parse the AST for
+/// that type.
+/// Throws GraphQLError if a syntax error is encountered.
+///
+/// This is useful within tools that operate upon GraphQL Types directly and
+/// in isolation of complete GraphQL documents.
+///
+/// Consider providing the results to the utility func: typeFromAST().
 func parseType(source: String, noLocation: Bool = false) throws -> Type {
     return try parseType(source: Source(body: source), noLocation: noLocation)
 }
 
-/**
- * Given a string containing a GraphQL Type (ex. `[Int!]`), parse the AST for
- * that type.
- * Throws GraphQLError if a syntax error is encountered.
- *
- * This is useful within tools that operate upon GraphQL Types directly and
- * in isolation of complete GraphQL documents.
- *
- * Consider providing the results to the utility func: typeFromAST().
- */
+/// Given a string containing a GraphQL Type (ex. `[Int!]`), parse the AST for
+/// that type.
+/// Throws GraphQLError if a syntax error is encountered.
+///
+/// This is useful within tools that operate upon GraphQL Types directly and
+/// in isolation of complete GraphQL documents.
+///
+/// Consider providing the results to the utility func: typeFromAST().
 func parseType(source: Source, noLocation: Bool = false) throws -> Type {
     let lexer = createLexer(source: source, noLocation: noLocation)
     try expect(lexer: lexer, kind: .sof)
@@ -92,9 +80,7 @@ func parseType(source: Source, noLocation: Bool = false) throws -> Type {
     return type
 }
 
-/**
- * Converts a name lex token into a name parse node.
- */
+/// Converts a name lex token into a name parse node.
 func parseName(lexer: Lexer) throws -> Name {
     let token = try expect(lexer: lexer, kind: .name)
     guard let value = token.value else {
@@ -123,9 +109,7 @@ func parseDescription(lexer: Lexer) throws -> StringValue? {
 
 // Implements the parsing rules in the Document section.
 
-/**
- * Document : Definition+
- */
+/// Document : Definition+
 func parseDocument(lexer: Lexer) throws -> Document {
     let start = lexer.token
     try expect(lexer: lexer, kind: .sof)
@@ -141,12 +125,10 @@ func parseDocument(lexer: Lexer) throws -> Document {
     )
 }
 
-/**
- * Definition :
- *   - OperationDefinition
- *   - FragmentDefinition
- *   - TypeSystemDefinition
- */
+/// Definition :
+///   - OperationDefinition
+///   - FragmentDefinition
+///   - TypeSystemDefinition
 func parseDefinition(lexer: Lexer) throws -> Definition {
     if peek(lexer: lexer, kind: .openingBrace) {
         return try parseOperationDefinition(lexer: lexer)
@@ -154,7 +136,8 @@ func parseDefinition(lexer: Lexer) throws -> Definition {
 
     // Many definitions begin with a description and require a lookahead.
     let hasDescription = peekDescription(lexer: lexer)
-    let keywordToken = hasDescription
+    let keywordToken =
+        hasDescription
         ? try lexer.lookahead()
         : lexer.token
 
@@ -177,7 +160,8 @@ func parseDefinition(lexer: Lexer) throws -> Definition {
                 throw syntaxError(
                     source: lexer.source,
                     position: lexer.token.start,
-                    description: "Unexpected description, descriptions are supported only on type definitions."
+                    description:
+                        "Unexpected description, descriptions are supported only on type definitions."
                 )
             }
             switch value {
@@ -198,11 +182,9 @@ func parseDefinition(lexer: Lexer) throws -> Definition {
 
 // Implements the parsing rules in the Operations section.
 
-/**
- * OperationDefinition :
- *  - SelectionSet
- *  - OperationType Name? VariableDefinitions? Directives? SelectionSet
- */
+/// OperationDefinition :
+///  - SelectionSet
+///  - OperationType Name? VariableDefinitions? Directives? SelectionSet
 func parseOperationDefinition(lexer: Lexer) throws -> OperationDefinition {
     let start = lexer.token
 
@@ -211,7 +193,7 @@ func parseOperationDefinition(lexer: Lexer) throws -> OperationDefinition {
             loc: loc(lexer: lexer, startToken: start),
             operation: .query,
             name: nil,
-            variableDefinitions: [], // nil
+            variableDefinitions: [],  // nil
             directives: [],
             selectionSet: parseSelectionSet(lexer: lexer)
         )
@@ -235,9 +217,7 @@ func parseOperationDefinition(lexer: Lexer) throws -> OperationDefinition {
     )
 }
 
-/**
- * OperationType : one of query mutation subscription
- */
+/// OperationType : one of query mutation subscription
 func parseOperationType(lexer: Lexer) throws -> OperationType {
     let operationToken = try expect(lexer: lexer, kind: .name)
     guard let value = operationToken.value else {
@@ -252,38 +232,31 @@ func parseOperationType(lexer: Lexer) throws -> OperationType {
     }
 }
 
-/**
- * VariableDefinitions : ( VariableDefinition+ )
- */
+/// VariableDefinitions : ( VariableDefinition+ )
 func parseVariableDefinitions(lexer: Lexer) throws -> [VariableDefinition] {
-    return peek(lexer: lexer, kind: .openingParenthesis) ?
-        try many(
+    return peek(lexer: lexer, kind: .openingParenthesis)
+        ? try many(
             lexer: lexer,
             openKind: .openingParenthesis,
             closeKind: .closingParenthesis,
             parse: parseVariableDefinition
-        ) :
-        []
+        ) : []
 }
 
-/**
- * VariableDefinition : Variable : Type DefaultValue?
- */
+/// VariableDefinition : Variable : Type DefaultValue?
 func parseVariableDefinition(lexer: Lexer) throws -> VariableDefinition {
     let start = lexer.token
     return try VariableDefinition(
         loc: loc(lexer: lexer, startToken: start),
         variable: parseVariable(lexer: lexer),
         type: (expect(lexer: lexer, kind: .colon), parseTypeReference(lexer: lexer)).1,
-        defaultValue: skip(lexer: lexer, kind: .equals) ?
-            parseValueLiteral(lexer: lexer, isConst: true) : nil,
+        defaultValue: skip(lexer: lexer, kind: .equals)
+            ? parseValueLiteral(lexer: lexer, isConst: true) : nil,
         directives: parseDirectives(lexer: lexer)
     )
 }
 
-/**
- * Variable : $ Name
- */
+/// Variable : $ Name
 func parseVariable(lexer: Lexer) throws -> Variable {
     let start = lexer.token
     try expect(lexer: lexer, kind: .dollar)
@@ -293,9 +266,7 @@ func parseVariable(lexer: Lexer) throws -> Variable {
     )
 }
 
-/**
- * SelectionSet : { Selection+ }
- */
+/// SelectionSet : { Selection+ }
 func parseSelectionSet(lexer: Lexer) throws -> SelectionSet {
     let start = lexer.token
     return try SelectionSet(
@@ -309,23 +280,18 @@ func parseSelectionSet(lexer: Lexer) throws -> SelectionSet {
     )
 }
 
-/**
- * Selection :
- *   - Field
- *   - FragmentSpread
- *   - InlineFragment
- */
+/// Selection :
+///   - Field
+///   - FragmentSpread
+///   - InlineFragment
 func parseSelection(lexer: Lexer) throws -> Selection {
-    return peek(lexer: lexer, kind: .spread) ?
-        try parseFragment(lexer: lexer) :
-        try parseField(lexer: lexer)
+    return peek(lexer: lexer, kind: .spread)
+        ? try parseFragment(lexer: lexer) : try parseField(lexer: lexer)
 }
 
-/**
- * Field : Alias? Name Arguments? Directives? SelectionSet?
- *
- * Alias : Name :
- */
+/// Field : Alias? Name Arguments? Directives? SelectionSet?
+///
+/// Alias : Name :
 func parseField(lexer: Lexer) throws -> Field {
     let start = lexer.token
 
@@ -347,18 +313,15 @@ func parseField(lexer: Lexer) throws -> Field {
         name: name,
         arguments: parseArguments(lexer: lexer),
         directives: parseDirectives(lexer: lexer),
-        selectionSet: peek(lexer: lexer, kind: .openingBrace) ?
-            parseSelectionSet(lexer: lexer) :
-            nil
+        selectionSet: peek(lexer: lexer, kind: .openingBrace)
+            ? parseSelectionSet(lexer: lexer) : nil
     )
 }
 
-/**
- * Arguments : ( Argument+ )
- */
+/// Arguments : ( Argument+ )
 func parseArguments(lexer: Lexer) throws -> [Argument] {
-    return peek(lexer: lexer, kind: .openingParenthesis) ?
-        try many(
+    return peek(lexer: lexer, kind: .openingParenthesis)
+        ? try many(
             lexer: lexer,
             openKind: .openingParenthesis,
             closeKind: .closingParenthesis,
@@ -366,9 +329,7 @@ func parseArguments(lexer: Lexer) throws -> [Argument] {
         ) : []
 }
 
-/**
- * Argument : Name : Value
- */
+/// Argument : Name : Value
 func parseArgument(lexer: Lexer) throws -> Argument {
     let start = lexer.token
     return try Argument(
@@ -383,13 +344,11 @@ func parseArgument(lexer: Lexer) throws -> Argument {
 
 // Implements the parsing rules in the Fragments section.
 
-/**
- * Corresponds to both FragmentSpread and InlineFragment in the spec.
- *
- * FragmentSpread : ... FragmentName Directives?
- *
- * InlineFragment : ... TypeCondition? Directives? SelectionSet
- */
+/// Corresponds to both FragmentSpread and InlineFragment in the spec.
+///
+/// FragmentSpread : ... FragmentName Directives?
+///
+/// InlineFragment : ... TypeCondition? Directives? SelectionSet
 func parseFragment(lexer: Lexer) throws -> Fragment {
     let start = lexer.token
     try expect(lexer: lexer, kind: .spread)
@@ -415,12 +374,10 @@ func parseFragment(lexer: Lexer) throws -> Fragment {
     )
 }
 
-/**
- * FragmentDefinition :
- *   - fragment FragmentName on TypeCondition Directives? SelectionSet
- *
- * TypeCondition : NamedType
- */
+/// FragmentDefinition :
+///   - fragment FragmentName on TypeCondition Directives? SelectionSet
+///
+/// TypeCondition : NamedType
 func parseFragmentDefinition(lexer: Lexer) throws -> FragmentDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "fragment")
@@ -436,9 +393,7 @@ func parseFragmentDefinition(lexer: Lexer) throws -> FragmentDefinition {
     )
 }
 
-/**
- * FragmentName : Name but not `on`
- */
+/// FragmentName : Name but not `on`
 func parseFragmentName(lexer: Lexer) throws -> Name {
     if lexer.token.value == "on" {
         throw unexpected(lexer: lexer)
@@ -448,21 +403,19 @@ func parseFragmentName(lexer: Lexer) throws -> Name {
 
 // Implements the parsing rules in the Values section.
 
-/**
- * Value[Const] :
- *   - [~Const] Variable
- *   - IntValue
- *   - FloatValue
- *   - StringValue
- *   - BooleanValue
- *   - EnumValue
- *   - ListValue[?Const]
- *   - ObjectValue[?Const]
- *
- * BooleanValue : one of `true` `false`
- *
- * EnumValue : Name but not `true`, `false` or `null`
- */
+/// Value[Const] :
+///   - [~Const] Variable
+///   - IntValue
+///   - FloatValue
+///   - StringValue
+///   - BooleanValue
+///   - EnumValue
+///   - ListValue[?Const]
+///   - ObjectValue[?Const]
+///
+/// BooleanValue : one of `true` `false`
+///
+/// EnumValue : Name but not `true`, `false` or `null`
 func parseValueLiteral(lexer: Lexer, isConst: Bool) throws -> Value {
     let token = lexer.token
     switch token.kind {
@@ -531,11 +484,9 @@ func parseValueValue(lexer: Lexer) throws -> Value {
     return try parseValueLiteral(lexer: lexer, isConst: false)
 }
 
-/**
- * ListValue[Const] :
- *   - [ ]
- *   - [ Value[?Const]+ ]
- */
+/// ListValue[Const] :
+///   - [ ]
+///   - [ Value[?Const]+ ]
 func parseList(lexer: Lexer, isConst: Bool) throws -> ListValue {
     let start = lexer.token
     let item = isConst ? parseConstValue : parseValueValue
@@ -550,11 +501,9 @@ func parseList(lexer: Lexer, isConst: Bool) throws -> ListValue {
     )
 }
 
-/**
- * ObjectValue[Const] :
- *   - { }
- *   - { ObjectField[?Const]+ }
- */
+/// ObjectValue[Const] :
+///   - { }
+///   - { ObjectField[?Const]+ }
 func parseObject(lexer: Lexer, isConst: Bool) throws -> ObjectValue {
     let start = lexer.token
     try expect(lexer: lexer, kind: .openingBrace)
@@ -570,9 +519,7 @@ func parseObject(lexer: Lexer, isConst: Bool) throws -> ObjectValue {
     )
 }
 
-/**
- * ObjectField[Const] : Name : Value[?Const]
- */
+/// ObjectField[Const] : Name : Value[?Const]
 func parseObjectField(lexer: Lexer, isConst: Bool) throws -> ObjectField {
     let start = lexer.token
     return try ObjectField(
@@ -603,9 +550,7 @@ func parseStringLiteral(lexer: Lexer, startToken: Token) throws -> StringValue {
 
 // Implements the parsing rules in the Directives section.
 
-/**
- * Directives : Directive+
- */
+/// Directives : Directive+
 func parseDirectives(lexer: Lexer) throws -> [Directive] {
     var directives: [Directive] = []
 
@@ -616,9 +561,7 @@ func parseDirectives(lexer: Lexer) throws -> [Directive] {
     return directives
 }
 
-/**
- * Directive : @ Name Arguments?
- */
+/// Directive : @ Name Arguments?
 func parseDirective(lexer: Lexer) throws -> Directive {
     let start = lexer.token
     try expect(lexer: lexer, kind: .at)
@@ -631,12 +574,10 @@ func parseDirective(lexer: Lexer) throws -> Directive {
 
 // Implements the parsing rules in the Types section.
 
-/**
- * Type :
- *   - NamedType
- *   - ListType
- *   - NonNullType
- */
+/// Type :
+///   - NamedType
+///   - ListType
+///   - NonNullType
 func parseTypeReference(lexer: Lexer) throws -> Type {
     let start = lexer.token
     var type: Type
@@ -662,9 +603,7 @@ func parseTypeReference(lexer: Lexer) throws -> Type {
     return type
 }
 
-/**
- * NamedType : Name
- */
+/// NamedType : Name
 func parseNamedType(lexer: Lexer) throws -> NamedType {
     let start = lexer.token
     return try NamedType(
@@ -675,11 +614,9 @@ func parseNamedType(lexer: Lexer) throws -> NamedType {
 
 // Implements the parsing rules in the Type Definition section.
 
-/**
- * SchemaDefinition : schema Directives? { OperationTypeDefinition+ }
- *
- * OperationTypeDefinition : OperationType : NamedType
- */
+/// SchemaDefinition : schema Directives? { OperationTypeDefinition+ }
+///
+/// OperationTypeDefinition : OperationType : NamedType
 func parseSchemaDefinition(lexer: Lexer) throws -> SchemaDefinition {
     let start = lexer.token
     let description = try parseDescription(lexer: lexer)
@@ -711,9 +648,7 @@ func parseOperationTypeDefinition(lexer: Lexer) throws -> OperationTypeDefinitio
     )
 }
 
-/**
- * ScalarTypeDefinition : scalar Name Directives?
- */
+/// ScalarTypeDefinition : scalar Name Directives?
 func parseScalarTypeDefinition(lexer: Lexer) throws -> ScalarTypeDefinition {
     let start = lexer.token
     let description = try parseDescription(lexer: lexer)
@@ -728,11 +663,9 @@ func parseScalarTypeDefinition(lexer: Lexer) throws -> ScalarTypeDefinition {
     )
 }
 
-/**
- * ObjectTypeDefinition :
- *   - type Name ImplementsInterfaces? Directives? { FieldDefinition+ }
- *   - type Name ImplementsInterfaces? Directives?
- */
+/// ObjectTypeDefinition :
+///   - type Name ImplementsInterfaces? Directives? { FieldDefinition+ }
+///   - type Name ImplementsInterfaces? Directives?
 func parseObjectTypeDefinition(lexer: Lexer) throws -> ObjectTypeDefinition {
     let start = lexer.token
     let description = try parseDescription(lexer: lexer)
@@ -756,20 +689,16 @@ func parseObjectTypeDefinition(lexer: Lexer) throws -> ObjectTypeDefinition {
     )
 }
 
-/**
- * ImplementsInterfaces :
- *  - implements &? NamedType
- *  - ImplementsInterfaces & NamedType
- */
+/// ImplementsInterfaces :
+///  - implements &? NamedType
+///  - ImplementsInterfaces & NamedType
 func parseImplementsInterfaces(lexer: Lexer) throws -> [NamedType] {
     try expectOptionalKeyword(lexer: lexer, value: "implements")
         ? delimitedMany(lexer: lexer, kind: .amp, parseFn: parseNamedType)
         : []
 }
 
-/**
- * FieldDefinition : Name ArgumentsDefinition? : Type Directives?
- */
+/// FieldDefinition : Name ArgumentsDefinition? : Type Directives?
 func parseFieldDefinition(lexer: Lexer) throws -> FieldDefinition {
     let start = lexer.token
     let description = try parseDescription(lexer: lexer)
@@ -788,9 +717,7 @@ func parseFieldDefinition(lexer: Lexer) throws -> FieldDefinition {
     )
 }
 
-/**
- * ArgumentsDefinition : ( InputValueDefinition+ )
- */
+/// ArgumentsDefinition : ( InputValueDefinition+ )
 func parseArgumentDefs(lexer: Lexer) throws -> [InputValueDefinition] {
     if !peek(lexer: lexer, kind: .openingParenthesis) {
         return []
@@ -803,9 +730,7 @@ func parseArgumentDefs(lexer: Lexer) throws -> [InputValueDefinition] {
     )
 }
 
-/**
- * InputValueDefinition : Name : Type DefaultValue? Directives?
- */
+/// InputValueDefinition : Name : Type DefaultValue? Directives?
 func parseInputValueDef(lexer: Lexer) throws -> InputValueDefinition {
     let start = lexer.token
     let description = try parseDescription(lexer: lexer)
@@ -830,11 +755,9 @@ func parseInputValueDef(lexer: Lexer) throws -> InputValueDefinition {
     )
 }
 
-/**
- * InterfaceTypeDefinition :
- * - interface Name Directives? { FieldDefinition+ }
- * - interface Name Directives?
- */
+/// InterfaceTypeDefinition :
+/// - interface Name Directives? { FieldDefinition+ }
+/// - interface Name Directives?
 func parseInterfaceTypeDefinition(lexer: Lexer) throws -> InterfaceTypeDefinition {
     let start = lexer.token
     let description = try parseDescription(lexer: lexer)
@@ -858,11 +781,9 @@ func parseInterfaceTypeDefinition(lexer: Lexer) throws -> InterfaceTypeDefinitio
     )
 }
 
-/**
- * UnionTypeDefinition :
- * - union Name Directives? = UnionMembers
- * - union Name Directives?
- */
+/// UnionTypeDefinition :
+/// - union Name Directives? = UnionMembers
+/// - union Name Directives?
 func parseUnionTypeDefinition(lexer: Lexer) throws -> UnionTypeDefinition {
     let start = lexer.token
     let description = try parseDescription(lexer: lexer)
@@ -878,22 +799,18 @@ func parseUnionTypeDefinition(lexer: Lexer) throws -> UnionTypeDefinition {
     )
 }
 
-/**
- * UnionMembers :
- *   - = |? NamedType
- *   - UnionMemberTypes | NamedType
- */
+/// UnionMembers :
+///   - = |? NamedType
+///   - UnionMemberTypes | NamedType
 func parseUnionMembers(lexer: Lexer) throws -> [NamedType] {
     try expectOptional(lexer: lexer, kind: .equals) != nil
         ? delimitedMany(lexer: lexer, kind: .pipe, parseFn: parseNamedType)
         : []
 }
 
-/**
- * EnumTypeDefinition :
- * - enum Name Directives? { EnumValueDefinition+ }
- * - enum Name Directives?
- */
+/// EnumTypeDefinition :
+/// - enum Name Directives? { EnumValueDefinition+ }
+/// - enum Name Directives?
 func parseEnumTypeDefinition(lexer: Lexer) throws -> EnumTypeDefinition {
     let start = lexer.token
     let description = try parseDescription(lexer: lexer)
@@ -915,11 +832,9 @@ func parseEnumTypeDefinition(lexer: Lexer) throws -> EnumTypeDefinition {
     )
 }
 
-/**
- * EnumValueDefinition : EnumValue Directives?
- *
- * EnumValue : Name
- */
+/// EnumValueDefinition : EnumValue Directives?
+///
+/// EnumValue : Name
 func parseEnumValueDefinition(lexer: Lexer) throws -> EnumValueDefinition {
     let start = lexer.token
     let description = try parseDescription(lexer: lexer)
@@ -933,11 +848,9 @@ func parseEnumValueDefinition(lexer: Lexer) throws -> EnumValueDefinition {
     )
 }
 
-/**
- * InputObjectTypeDefinition :
- * - input Name Directives? { InputValueDefinition+ }
- * - input Name Directives?
- */
+/// InputObjectTypeDefinition :
+/// - input Name Directives? { InputValueDefinition+ }
+/// - input Name Directives?
 func parseInputObjectTypeDefinition(lexer: Lexer) throws -> InputObjectTypeDefinition {
     let start = lexer.token
     let description = try parseDescription(lexer: lexer)
@@ -973,14 +886,13 @@ func parseExtensionDefinition(lexer: Lexer) throws -> TypeSystemDefinition {
         throw syntaxError(
             source: lexer.source,
             position: token.start,
-            description: "expected schema or type or interface or scalar or union or enum or input after extend"
+            description:
+                "expected schema or type or interface or scalar or union or enum or input after extend"
         )
     }
 }
 
-/**
- * TypeExtensionDefinition : extend ObjectTypeDefinition
- */
+/// TypeExtensionDefinition : extend ObjectTypeDefinition
 func parseTypeExtensionDefinition(lexer: Lexer) throws -> TypeExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
@@ -994,8 +906,7 @@ func parseTypeExtensionDefinition(lexer: Lexer) throws -> TypeExtensionDefinitio
         closeKind: .closingBrace,
         parse: parseFieldDefinition
     )
-    if
-        interfaces.isEmpty,
+    if interfaces.isEmpty,
         directives.isEmpty,
         fields.isEmpty
     {
@@ -1012,9 +923,7 @@ func parseTypeExtensionDefinition(lexer: Lexer) throws -> TypeExtensionDefinitio
     )
 }
 
-/**
- * SchemaExtensionDefinition: extend SchemaExtensionDefinition
- */
+/// SchemaExtensionDefinition: extend SchemaExtensionDefinition
 func parseSchemaExtensionDefinition(lexer: Lexer) throws -> SchemaExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
@@ -1040,9 +949,7 @@ func parseSchemaExtensionDefinition(lexer: Lexer) throws -> SchemaExtensionDefin
     )
 }
 
-/**
- * InterfaceExtensionDefinition: extend InterfaceTypeDefinition
- */
+/// InterfaceExtensionDefinition: extend InterfaceTypeDefinition
 func parseInterfaceExtensionDefinition(lexer: Lexer) throws -> InterfaceExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
@@ -1056,8 +963,7 @@ func parseInterfaceExtensionDefinition(lexer: Lexer) throws -> InterfaceExtensio
         closeKind: .closingBrace,
         parse: parseFieldDefinition
     )
-    if
-        interfaces.isEmpty,
+    if interfaces.isEmpty,
         directives.isEmpty,
         fields.isEmpty
     {
@@ -1074,9 +980,7 @@ func parseInterfaceExtensionDefinition(lexer: Lexer) throws -> InterfaceExtensio
     )
 }
 
-/**
- * ScalarExtensionDefinition: extend InterfaceTypeDefinition
- */
+/// ScalarExtensionDefinition: extend InterfaceTypeDefinition
 func parseScalarExtensionDefinition(lexer: Lexer) throws -> ScalarExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
@@ -1096,9 +1000,7 @@ func parseScalarExtensionDefinition(lexer: Lexer) throws -> ScalarExtensionDefin
     )
 }
 
-/**
- * UnionExtensionDefinition: extend UnionTypeDefinition
- */
+/// UnionExtensionDefinition: extend UnionTypeDefinition
 func parseUnionExtensionDefinition(lexer: Lexer) throws -> UnionExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
@@ -1106,8 +1008,7 @@ func parseUnionExtensionDefinition(lexer: Lexer) throws -> UnionExtensionDefinit
     let name = try parseName(lexer: lexer)
     let directives = try parseDirectives(lexer: lexer)
     let types = try parseUnionMembers(lexer: lexer)
-    if
-        directives.isEmpty,
+    if directives.isEmpty,
         types.isEmpty
     {
         throw unexpected(lexer: lexer)
@@ -1123,9 +1024,7 @@ func parseUnionExtensionDefinition(lexer: Lexer) throws -> UnionExtensionDefinit
     )
 }
 
-/**
- * EnumExtensionDefinition: extend EnumTypeDefinition
- */
+/// EnumExtensionDefinition: extend EnumTypeDefinition
 func parseEnumExtensionDefinition(lexer: Lexer) throws -> EnumExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
@@ -1138,8 +1037,7 @@ func parseEnumExtensionDefinition(lexer: Lexer) throws -> EnumExtensionDefinitio
         closeKind: .closingBrace,
         parse: parseEnumValueDefinition
     )
-    if
-        directives.isEmpty,
+    if directives.isEmpty,
         values.isEmpty
     {
         throw unexpected(lexer: lexer)
@@ -1155,9 +1053,7 @@ func parseEnumExtensionDefinition(lexer: Lexer) throws -> EnumExtensionDefinitio
     )
 }
 
-/**
- * InputObjectExtensionDefinition: extend InputObjectTypeDefinition
- */
+/// InputObjectExtensionDefinition: extend InputObjectTypeDefinition
 func parseInputObjectExtensionDefinition(lexer: Lexer) throws -> InputObjectExtensionDefinition {
     let start = lexer.token
     try expectKeyword(lexer: lexer, value: "extend")
@@ -1170,8 +1066,7 @@ func parseInputObjectExtensionDefinition(lexer: Lexer) throws -> InputObjectExte
         closeKind: .closingBrace,
         parse: parseInputValueDef
     )
-    if
-        directives.isEmpty,
+    if directives.isEmpty,
         fields.isEmpty
     {
         throw unexpected(lexer: lexer)
@@ -1187,10 +1082,8 @@ func parseInputObjectExtensionDefinition(lexer: Lexer) throws -> InputObjectExte
     )
 }
 
-/**
- * DirectiveDefinition :
- *   - directive @ Name ArgumentsDefinition? repeatable? on DirectiveLocations
- */
+/// DirectiveDefinition :
+///   - directive @ Name ArgumentsDefinition? repeatable? on DirectiveLocations
 func parseDirectiveDefinition(lexer: Lexer) throws -> DirectiveDefinition {
     let start = lexer.token
     let description = try parseDescription(lexer: lexer)
@@ -1212,21 +1105,17 @@ func parseDirectiveDefinition(lexer: Lexer) throws -> DirectiveDefinition {
     )
 }
 
-/**
- * DirectiveLocations :
- *   - |? DirectiveLocation
- *   - DirectiveLocations | DirectiveLocation
- */
+/// DirectiveLocations :
+///   - |? DirectiveLocation
+///   - DirectiveLocations | DirectiveLocation
 func parseDirectiveLocations(lexer: Lexer) throws -> [Name] {
     try delimitedMany(lexer: lexer, kind: .pipe, parseFn: parseName)
 }
 
 // Core parsing utility funcs
 
-/**
- * Returns a location object, used to identify the place in
- * the source that created a given parsed object.
- */
+/// Returns a location object, used to identify the place in
+/// the source that created a given parsed object.
 func loc(lexer: Lexer, startToken: Token) -> Location? {
     if !lexer.noLocation {
         return location(startToken: startToken, endToken: lexer.lastToken, source: lexer.source)
@@ -1244,17 +1133,13 @@ func location(startToken: Token, endToken: Token, source: Source) -> Location {
     )
 }
 
-/**
- * Determines if the next token is of a given kind
- */
+/// Determines if the next token is of a given kind
 func peek(lexer: Lexer, kind: Token.Kind) -> Bool {
     return lexer.token.kind == kind
 }
 
-/**
- * If the next token is of the given kind, return true after advancing
- * the lexer. Otherwise, do not change the parser state and return false.
- */
+/// If the next token is of the given kind, return true after advancing
+/// the lexer. Otherwise, do not change the parser state and return false.
 func skip(lexer: Lexer, kind: Token.Kind) throws -> Bool {
     let match = lexer.token.kind == kind
     if match {
@@ -1263,10 +1148,8 @@ func skip(lexer: Lexer, kind: Token.Kind) throws -> Bool {
     return match
 }
 
-/**
- * If the next token is of the given kind, return that token after advancing
- * the lexer. Otherwise, do not change the parser state and throw an error.
- */
+/// If the next token is of the given kind, return that token after advancing
+/// the lexer. Otherwise, do not change the parser state and throw an error.
 @discardableResult
 func expect(lexer: Lexer, kind: Token.Kind) throws -> Token {
     let token = lexer.token
@@ -1283,10 +1166,8 @@ func expect(lexer: Lexer, kind: Token.Kind) throws -> Token {
     return token
 }
 
-/**
- * If the next token is of the given kind, return that token after advancing
- * the lexer. Otherwise, do not change the parser state and return nil.
- */
+/// If the next token is of the given kind, return that token after advancing
+/// the lexer. Otherwise, do not change the parser state and return nil.
 @discardableResult
 func expectOptional(lexer: Lexer, kind: Token.Kind) throws -> Token? {
     let token = lexer.token
@@ -1297,11 +1178,9 @@ func expectOptional(lexer: Lexer, kind: Token.Kind) throws -> Token? {
     return nil
 }
 
-/**
- * If the next token is a keyword with the given value, return that token after
- * advancing the lexer. Otherwise, do not change the parser state and return
- * false.
- */
+/// If the next token is a keyword with the given value, return that token after
+/// advancing the lexer. Otherwise, do not change the parser state and return
+/// false.
 @discardableResult
 func expectKeyword(lexer: Lexer, value: String) throws -> Token {
     let token = lexer.token
@@ -1318,10 +1197,8 @@ func expectKeyword(lexer: Lexer, value: String) throws -> Token {
     return token
 }
 
-/**
- * If the next token is a given keyword, return "true" after advancing the lexer.
- * Otherwise, do not change the parser state and return "false".
- */
+/// If the next token is a given keyword, return "true" after advancing the lexer.
+/// Otherwise, do not change the parser state and return "false".
 @discardableResult
 func expectOptionalKeyword(lexer: Lexer, value: String) throws -> Bool {
     let token = lexer.token
@@ -1332,11 +1209,9 @@ func expectOptionalKeyword(lexer: Lexer, value: String) throws -> Bool {
     return true
 }
 
-/**
- * Helper func for creating an error when an unexpected lexed token
- * is encountered.
- */
-func unexpected(lexer: Lexer, atToken: Token? = nil) -> Error { // GraphQLError {
+/// Helper func for creating an error when an unexpected lexed token
+/// is encountered.
+func unexpected(lexer: Lexer, atToken: Token? = nil) -> Error {  // GraphQLError {
     let token = atToken ?? lexer.token
     return syntaxError(
         source: lexer.source,
@@ -1345,12 +1220,10 @@ func unexpected(lexer: Lexer, atToken: Token? = nil) -> Error { // GraphQLError 
     )
 }
 
-/**
- * Returns a possibly empty list of parse nodes, determined by
- * the parseFn. This list begins with a lex token of openKind
- * and ends with a lex token of closeKind. Advances the parser
- * to the next lex token after the closing token.
- */
+/// Returns a possibly empty list of parse nodes, determined by
+/// the parseFn. This list begins with a lex token of openKind
+/// and ends with a lex token of closeKind. Advances the parser
+/// to the next lex token after the closing token.
 func any<T>(
     lexer: Lexer,
     openKind: Token.Kind,
@@ -1367,12 +1240,10 @@ func any<T>(
     return nodes
 }
 
-/**
- * Returns a list of parse nodes, determined by the parseFn.
- * It can be empty only if open token is missing otherwise it will always return non-empty list
- * that begins with a lex token of openKind and ends with a lex token of closeKind.
- * Advances the parser to the next lex token after the closing token.
- */
+/// Returns a list of parse nodes, determined by the parseFn.
+/// It can be empty only if open token is missing otherwise it will always return non-empty list
+/// that begins with a lex token of openKind and ends with a lex token of closeKind.
+/// Advances the parser to the next lex token after the closing token.
 func optionalMany<T>(
     lexer: Lexer,
     openKind: Token.Kind,
@@ -1389,12 +1260,10 @@ func optionalMany<T>(
     return nodes
 }
 
-/**
- * Returns a non-empty list of parse nodes, determined by
- * the parseFn. This list begins with a lex token of openKind
- * and ends with a lex token of closeKind. Advances the parser
- * to the next lex token after the closing token.
- */
+/// Returns a non-empty list of parse nodes, determined by
+/// the parseFn. This list begins with a lex token of openKind
+/// and ends with a lex token of closeKind. Advances the parser
+/// to the next lex token after the closing token.
 func many<T>(
     lexer: Lexer,
     openKind: Token.Kind,

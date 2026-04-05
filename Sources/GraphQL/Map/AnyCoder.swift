@@ -127,21 +127,19 @@ open class AnyEncoder {
             //
             // We assume, per Swift naming conventions, that the first character of the key is lowercase.
             var wordStart = stringKey.startIndex
-            var searchRange = stringKey.index(after: wordStart) ..< stringKey.endIndex
+            var searchRange = stringKey.index(after: wordStart)..<stringKey.endIndex
 
             // Find next uppercase character
-            while
-                let upperCaseRange = stringKey.rangeOfCharacter(
-                    from: CharacterSet.uppercaseLetters,
-                    options: [],
-                    range: searchRange
-                )
-            {
-                let untilUpperCase = wordStart ..< upperCaseRange.lowerBound
+            while let upperCaseRange = stringKey.rangeOfCharacter(
+                from: CharacterSet.uppercaseLetters,
+                options: [],
+                range: searchRange
+            ) {
+                let untilUpperCase = wordStart..<upperCaseRange.lowerBound
                 words.append(untilUpperCase)
 
                 // Find next lowercase character
-                searchRange = upperCaseRange.lowerBound ..< searchRange.upperBound
+                searchRange = upperCaseRange.lowerBound..<searchRange.upperBound
                 guard
                     let lowerCaseRange = stringKey.rangeOfCharacter(
                         from: CharacterSet.lowercaseLetters,
@@ -163,14 +161,14 @@ open class AnyEncoder {
                 } else {
                     // There was a range of >1 capital letters. Turn those into a word, stopping at the capital before the lower case character.
                     let beforeLowerIndex = stringKey.index(before: lowerCaseRange.lowerBound)
-                    words.append(upperCaseRange.lowerBound ..< beforeLowerIndex)
+                    words.append(upperCaseRange.lowerBound..<beforeLowerIndex)
 
                     // Next word starts at the capital before the lowercase we just found
                     wordStart = beforeLowerIndex
                 }
-                searchRange = lowerCaseRange.upperBound ..< searchRange.upperBound
+                searchRange = lowerCaseRange.upperBound..<searchRange.upperBound
             }
-            words.append(wordStart ..< searchRange.upperBound)
+            words.append(wordStart..<searchRange.upperBound)
             let result = words.map { range in
                 stringKey[range].lowercased()
             }.joined(separator: "_")
@@ -422,7 +420,7 @@ private struct _AnyKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContainerP
         case .convertToSnakeCase:
             let newKeyString = AnyEncoder.KeyEncodingStrategy._convertToSnakeCase(key.stringValue)
             return _AnyKey(stringValue: newKeyString, intValue: key.intValue)
-        case let .custom(converter):
+        case .custom(let converter):
             return converter(codingPath + [key])
         }
     }
@@ -628,8 +626,7 @@ private struct _AnyUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     }
 
     public mutating func nestedContainer<NestedKey>(
-        keyedBy _: NestedKey
-            .Type
+        keyedBy _: NestedKey.Type
     ) -> KeyedEncodingContainer<NestedKey> {
         codingPath.append(_AnyKey(index: count))
         defer { self.codingPath.removeLast() }
@@ -760,28 +757,28 @@ extension _AnyEncoder: SingleValueEncodingContainer {
 
 // MARK: - Concrete Value Representations
 
-private extension _AnyEncoder {
+extension _AnyEncoder {
     /// Returns the given value boxed in a container appropriate for pushing onto the container stack.
-    func box(_ value: Bool) -> NSObject { return NSNumber(value: value) }
-    func box(_ value: Int) -> NSObject { return NSNumber(value: value) }
-    func box(_ value: Int8) -> NSObject { return NSNumber(value: value) }
-    func box(_ value: Int16) -> NSObject { return NSNumber(value: value) }
-    func box(_ value: Int32) -> NSObject { return NSNumber(value: value) }
-    func box(_ value: Int64) -> NSObject { return NSNumber(value: value) }
-    func box(_ value: UInt) -> NSObject { return NSNumber(value: value) }
-    func box(_ value: UInt8) -> NSObject { return NSNumber(value: value) }
-    func box(_ value: UInt16) -> NSObject { return NSNumber(value: value) }
-    func box(_ value: UInt32) -> NSObject { return NSNumber(value: value) }
-    func box(_ value: UInt64) -> NSObject { return NSNumber(value: value) }
-    func box(_ value: String) -> NSObject { return NSString(string: value) }
+    fileprivate func box(_ value: Bool) -> NSObject { return NSNumber(value: value) }
+    fileprivate func box(_ value: Int) -> NSObject { return NSNumber(value: value) }
+    fileprivate func box(_ value: Int8) -> NSObject { return NSNumber(value: value) }
+    fileprivate func box(_ value: Int16) -> NSObject { return NSNumber(value: value) }
+    fileprivate func box(_ value: Int32) -> NSObject { return NSNumber(value: value) }
+    fileprivate func box(_ value: Int64) -> NSObject { return NSNumber(value: value) }
+    fileprivate func box(_ value: UInt) -> NSObject { return NSNumber(value: value) }
+    fileprivate func box(_ value: UInt8) -> NSObject { return NSNumber(value: value) }
+    fileprivate func box(_ value: UInt16) -> NSObject { return NSNumber(value: value) }
+    fileprivate func box(_ value: UInt32) -> NSObject { return NSNumber(value: value) }
+    fileprivate func box(_ value: UInt64) -> NSObject { return NSNumber(value: value) }
+    fileprivate func box(_ value: String) -> NSObject { return NSString(string: value) }
 
-    func box(_ float: Float) throws -> NSObject {
+    fileprivate func box(_ float: Float) throws -> NSObject {
         guard !float.isInfinite, !float.isNaN else {
             guard
-                case let .convertToString(
-                    positiveInfinity: posInfString,
-                    negativeInfinity: negInfString,
-                    nan: nanString
+                case .convertToString(
+                    positiveInfinity: let posInfString,
+                    negativeInfinity: let negInfString,
+                    nan: let nanString
                 ) = options.nonConformingFloatEncodingStrategy
             else {
                 throw EncodingError._invalidFloatingPointValue(float, at: codingPath)
@@ -799,13 +796,13 @@ private extension _AnyEncoder {
         return NSNumber(value: float)
     }
 
-    func box(_ double: Double) throws -> NSObject {
+    fileprivate func box(_ double: Double) throws -> NSObject {
         guard !double.isInfinite, !double.isNaN else {
             guard
-                case let .convertToString(
-                    positiveInfinity: posInfString,
-                    negativeInfinity: negInfString,
-                    nan: nanString
+                case .convertToString(
+                    positiveInfinity: let posInfString,
+                    negativeInfinity: let negInfString,
+                    nan: let nanString
                 ) = options.nonConformingFloatEncodingStrategy
             else {
                 throw EncodingError._invalidFloatingPointValue(double, at: codingPath)
@@ -823,7 +820,7 @@ private extension _AnyEncoder {
         return NSNumber(value: double)
     }
 
-    func box(_ date: Date) throws -> NSObject {
+    fileprivate func box(_ date: Date) throws -> NSObject {
         switch options.dateEncodingStrategy {
         case .deferredToDate:
             // Must be called with a surrounding with(pushedKey:) call.
@@ -844,10 +841,10 @@ private extension _AnyEncoder {
                 fatalError("ISO8601DateFormatter is unavailable on this platform.")
             }
 
-        case let .formatted(formatter):
+        case .formatted(let formatter):
             return NSString(string: formatter.string(from: date))
 
-        case let .custom(closure):
+        case .custom(let closure):
             let depth = storage.count
             do {
                 try closure(date, self)
@@ -869,7 +866,7 @@ private extension _AnyEncoder {
         }
     }
 
-    func box(_ data: Data) throws -> NSObject {
+    fileprivate func box(_ data: Data) throws -> NSObject {
         switch options.dataEncodingStrategy {
         case .deferredToData:
             // Must be called with a surrounding with(pushedKey:) call.
@@ -889,7 +886,7 @@ private extension _AnyEncoder {
         case .base64:
             return NSString(string: data.base64EncodedString())
 
-        case let .custom(closure):
+        case .custom(let closure):
             let depth = storage.count
             do {
                 try closure(data, self)
@@ -910,7 +907,7 @@ private extension _AnyEncoder {
         }
     }
 
-    func box(_ dict: [String: Encodable]) throws -> NSObject? {
+    fileprivate func box(_ dict: [String: Encodable]) throws -> NSObject? {
         let depth = storage.count
         let result = storage.pushKeyedContainer()
         do {
@@ -936,12 +933,12 @@ private extension _AnyEncoder {
         return storage.popContainer()
     }
 
-    func box(_ value: Encodable) throws -> NSObject {
+    fileprivate func box(_ value: Encodable) throws -> NSObject {
         return try box_(value) ?? NSDictionary()
     }
 
     // This method is called "box_" instead of "box" to disambiguate it from the overloads. Because the return type here is different from all of the "box" overloads (and is more general), any "box" calls in here would call back into "box" recursively instead of calling the appropriate overload, which is not what we want.
-    func box_(_ value: Encodable) throws -> NSObject? {
+    fileprivate func box_(_ value: Encodable) throws -> NSObject? {
         let type = Swift.type(of: value)
         #if DEPLOYMENT_RUNTIME_SWIFT
             if type == Date.self {
@@ -1072,10 +1069,10 @@ private class _AnyReferencingEncoder: _AnyEncoder {
         }
 
         switch self.reference {
-        case let .array(array, index):
+        case .array(let array, let index):
             array.insert(value, at: index)
 
-        case let .dictionary(dictionary, key):
+        case .dictionary(let dictionary, let key):
             dictionary[NSString(string: key)] = value
         }
     }
@@ -1169,9 +1166,12 @@ open class AnyDecoder {
                 stringKey.formIndex(before: &lastNonUnderscore)
             }
 
-            let keyRange = firstNonUnderscore ... lastNonUnderscore
-            let leadingUnderscoreRange = stringKey.startIndex ..< firstNonUnderscore
-            let trailingUnderscoreRange = stringKey.index(after: lastNonUnderscore) ..< stringKey
+            let keyRange = firstNonUnderscore...lastNonUnderscore
+            let leadingUnderscoreRange = stringKey.startIndex..<firstNonUnderscore
+            let trailingUnderscoreRange =
+                stringKey.index(
+                    after: lastNonUnderscore
+                )..<stringKey
                 .endIndex
 
             let components = stringKey[keyRange].split(separator: "_")
@@ -1180,10 +1180,10 @@ open class AnyDecoder {
                 // No underscores in key, leave the word as is - maybe already camel cased
                 joinedString = String(stringKey[keyRange])
             } else {
-                joinedString = (
-                    [components[0].lowercased()] + components[1...]
-                        .map { $0.capitalized }
-                ).joined()
+                joinedString =
+                    ([components[0].lowercased()]
+                    + components[1...]
+                    .map { $0.capitalized }).joined()
             }
 
             // Do a cheap isEmpty check before creating and appending potentially empty strings
@@ -1192,8 +1192,9 @@ open class AnyDecoder {
                 result = joinedString
             } else if !leadingUnderscoreRange.isEmpty, !trailingUnderscoreRange.isEmpty {
                 // Both leading and trailing underscores
-                result = String(stringKey[leadingUnderscoreRange]) + joinedString +
-                    String(stringKey[trailingUnderscoreRange])
+                result =
+                    String(stringKey[leadingUnderscoreRange]) + joinedString
+                    + String(stringKey[trailingUnderscoreRange])
             } else if !leadingUnderscoreRange.isEmpty {
                 // Just leading
                 result = String(stringKey[leadingUnderscoreRange]) + joinedString
@@ -1313,7 +1314,8 @@ private class _AnyDecoder: Decoder {
                 KeyedDecodingContainer<Key>.self,
                 DecodingError.Context(
                     codingPath: codingPath,
-                    debugDescription: "Cannot get keyed decoding container -- found null value instead."
+                    debugDescription:
+                        "Cannot get keyed decoding container -- found null value instead."
                 )
             )
         }
@@ -1336,7 +1338,8 @@ private class _AnyDecoder: Decoder {
                 UnkeyedDecodingContainer.self,
                 DecodingError.Context(
                     codingPath: codingPath,
-                    debugDescription: "Cannot get unkeyed decoding container -- found null value instead."
+                    debugDescription:
+                        "Cannot get unkeyed decoding container -- found null value instead."
                 )
             )
         }
@@ -1419,17 +1422,26 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
         case .convertFromSnakeCase:
             // Convert the snake case keys in the container to camel case.
             // If we hit a duplicate key after conversion, then we'll use the first one we saw. Effectively an undefined behavior with Any dictionaries.
-            self.container = Dictionary(container.map {
-                key, value in (AnyDecoder.KeyDecodingStrategy._convertFromSnakeCase(key), value)
-            }, uniquingKeysWith: { first, _ in first })
-        case let .custom(converter):
-            self.container = Dictionary(container.map {
-                key, value in (
-                    converter(decoder.codingPath + [_AnyKey(stringValue: key, intValue: nil)])
-                        .stringValue,
-                    value
-                )
-            }, uniquingKeysWith: { first, _ in first })
+            self.container = Dictionary(
+                container.map {
+                    key,
+                    value in (AnyDecoder.KeyDecodingStrategy._convertFromSnakeCase(key), value)
+                },
+                uniquingKeysWith: { first, _ in first }
+            )
+        case .custom(let converter):
+            self.container = Dictionary(
+                container.map {
+                    key,
+                    value in
+                    (
+                        converter(decoder.codingPath + [_AnyKey(stringValue: key, intValue: nil)])
+                            .stringValue,
+                        value
+                    )
+                },
+                uniquingKeysWith: { first, _ in first }
+            )
         }
         codingPath = decoder.codingPath
     }
@@ -1468,7 +1480,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1483,7 +1496,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1512,7 +1526,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1541,7 +1556,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1570,7 +1586,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1599,7 +1616,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1628,7 +1646,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1657,7 +1676,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1686,7 +1706,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1715,7 +1736,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1744,7 +1766,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1773,7 +1796,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1802,7 +1826,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1831,7 +1856,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1860,7 +1886,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1889,7 +1916,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 DecodingError
                     .Context(
                         codingPath: decoder.codingPath,
-                        debugDescription: "No value associated with key \(_errorDescription(of: key))."
+                        debugDescription:
+                            "No value associated with key \(_errorDescription(of: key))."
                     )
             )
         }
@@ -1925,7 +1953,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 key,
                 DecodingError.Context(
                     codingPath: codingPath,
-                    debugDescription: "Cannot get \(KeyedDecodingContainer<NestedKey>.self) -- no value found for key \(_errorDescription(of: key))"
+                    debugDescription:
+                        "Cannot get \(KeyedDecodingContainer<NestedKey>.self) -- no value found for key \(_errorDescription(of: key))"
                 )
             )
         }
@@ -1954,7 +1983,8 @@ private struct _AnyKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
                 key,
                 DecodingError.Context(
                     codingPath: codingPath,
-                    debugDescription: "Cannot get UnkeyedDecodingContainer -- no value found for key \(_errorDescription(of: key))"
+                    debugDescription:
+                        "Cannot get UnkeyedDecodingContainer -- no value found for key \(_errorDescription(of: key))"
                 )
             )
         }
@@ -2493,8 +2523,7 @@ private struct _AnyUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     }
 
     public mutating func nestedContainer<NestedKey>(
-        keyedBy _: NestedKey
-            .Type
+        keyedBy _: NestedKey.Type
     ) throws -> KeyedDecodingContainer<NestedKey> {
         decoder.codingPath.append(_AnyKey(index: currentIndex))
         defer { self.decoder.codingPath.removeLast() }
@@ -2504,7 +2533,8 @@ private struct _AnyUnkeyedDecodingContainer: UnkeyedDecodingContainer {
                 KeyedDecodingContainer<NestedKey>.self,
                 DecodingError.Context(
                     codingPath: codingPath,
-                    debugDescription: "Cannot get nested keyed container -- unkeyed container is at end."
+                    debugDescription:
+                        "Cannot get nested keyed container -- unkeyed container is at end."
                 )
             )
         }
@@ -2515,7 +2545,8 @@ private struct _AnyUnkeyedDecodingContainer: UnkeyedDecodingContainer {
                 KeyedDecodingContainer<NestedKey>.self,
                 DecodingError.Context(
                     codingPath: codingPath,
-                    debugDescription: "Cannot get keyed decoding container -- found null value instead."
+                    debugDescription:
+                        "Cannot get keyed decoding container -- found null value instead."
                 )
             )
         }
@@ -2545,7 +2576,8 @@ private struct _AnyUnkeyedDecodingContainer: UnkeyedDecodingContainer {
                 UnkeyedDecodingContainer.self,
                 DecodingError.Context(
                     codingPath: codingPath,
-                    debugDescription: "Cannot get nested keyed container -- unkeyed container is at end."
+                    debugDescription:
+                        "Cannot get nested keyed container -- unkeyed container is at end."
                 )
             )
         }
@@ -2556,7 +2588,8 @@ private struct _AnyUnkeyedDecodingContainer: UnkeyedDecodingContainer {
                 UnkeyedDecodingContainer.self,
                 DecodingError.Context(
                     codingPath: codingPath,
-                    debugDescription: "Cannot get keyed decoding container -- found null value instead."
+                    debugDescription:
+                        "Cannot get keyed decoding container -- found null value instead."
                 )
             )
         }
@@ -2691,9 +2724,9 @@ extension _AnyDecoder: SingleValueDecodingContainer {
 
 // MARK: - Concrete Value Representations
 
-private extension _AnyDecoder {
+extension _AnyDecoder {
     /// Returns the given value unboxed from a container.
-    func unbox(_ value: Any, as type: Bool.Type) throws -> Bool? {
+    fileprivate func unbox(_ value: Any, as type: Bool.Type) throws -> Bool? {
         guard !(value is NSNull) else { return nil }
 
         #if DEPLOYMENT_RUNTIME_SWIFT || os(Linux) || os(Android)
@@ -2727,7 +2760,7 @@ private extension _AnyDecoder {
         #endif
     }
 
-    func unbox(_ value: Any, as type: Int.Type) throws -> Int? {
+    fileprivate func unbox(_ value: Any, as type: Int.Type) throws -> Int? {
         guard !(value is NSNull) else { return nil }
 
         guard
@@ -2739,16 +2772,18 @@ private extension _AnyDecoder {
 
         let int = number.intValue
         guard NSNumber(value: int) == number else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(
-                codingPath: codingPath,
-                debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
-            ))
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
+                )
+            )
         }
 
         return int
     }
 
-    func unbox(_ value: Any, as type: Int8.Type) throws -> Int8? {
+    fileprivate func unbox(_ value: Any, as type: Int8.Type) throws -> Int8? {
         guard !(value is NSNull) else { return nil }
 
         guard
@@ -2760,16 +2795,18 @@ private extension _AnyDecoder {
 
         let int8 = number.int8Value
         guard NSNumber(value: int8) == number else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(
-                codingPath: codingPath,
-                debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
-            ))
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
+                )
+            )
         }
 
         return int8
     }
 
-    func unbox(_ value: Any, as type: Int16.Type) throws -> Int16? {
+    fileprivate func unbox(_ value: Any, as type: Int16.Type) throws -> Int16? {
         guard !(value is NSNull) else { return nil }
 
         guard
@@ -2781,16 +2818,18 @@ private extension _AnyDecoder {
 
         let int16 = number.int16Value
         guard NSNumber(value: int16) == number else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(
-                codingPath: codingPath,
-                debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
-            ))
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
+                )
+            )
         }
 
         return int16
     }
 
-    func unbox(_ value: Any, as type: Int32.Type) throws -> Int32? {
+    fileprivate func unbox(_ value: Any, as type: Int32.Type) throws -> Int32? {
         guard !(value is NSNull) else { return nil }
 
         guard
@@ -2802,16 +2841,18 @@ private extension _AnyDecoder {
 
         let int32 = number.int32Value
         guard NSNumber(value: int32) == number else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(
-                codingPath: codingPath,
-                debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
-            ))
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
+                )
+            )
         }
 
         return int32
     }
 
-    func unbox(_ value: Any, as type: Int64.Type) throws -> Int64? {
+    fileprivate func unbox(_ value: Any, as type: Int64.Type) throws -> Int64? {
         guard !(value is NSNull) else { return nil }
 
         guard
@@ -2823,16 +2864,18 @@ private extension _AnyDecoder {
 
         let int64 = number.int64Value
         guard NSNumber(value: int64) == number else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(
-                codingPath: codingPath,
-                debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
-            ))
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
+                )
+            )
         }
 
         return int64
     }
 
-    func unbox(_ value: Any, as type: UInt.Type) throws -> UInt? {
+    fileprivate func unbox(_ value: Any, as type: UInt.Type) throws -> UInt? {
         guard !(value is NSNull) else { return nil }
 
         guard
@@ -2844,16 +2887,18 @@ private extension _AnyDecoder {
 
         let uint = number.uintValue
         guard NSNumber(value: uint) == number else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(
-                codingPath: codingPath,
-                debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
-            ))
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
+                )
+            )
         }
 
         return uint
     }
 
-    func unbox(_ value: Any, as type: UInt8.Type) throws -> UInt8? {
+    fileprivate func unbox(_ value: Any, as type: UInt8.Type) throws -> UInt8? {
         guard !(value is NSNull) else { return nil }
 
         guard
@@ -2865,16 +2910,18 @@ private extension _AnyDecoder {
 
         let uint8 = number.uint8Value
         guard NSNumber(value: uint8) == number else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(
-                codingPath: codingPath,
-                debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
-            ))
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
+                )
+            )
         }
 
         return uint8
     }
 
-    func unbox(_ value: Any, as type: UInt16.Type) throws -> UInt16? {
+    fileprivate func unbox(_ value: Any, as type: UInt16.Type) throws -> UInt16? {
         guard !(value is NSNull) else { return nil }
 
         guard
@@ -2886,16 +2933,18 @@ private extension _AnyDecoder {
 
         let uint16 = number.uint16Value
         guard NSNumber(value: uint16) == number else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(
-                codingPath: codingPath,
-                debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
-            ))
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
+                )
+            )
         }
 
         return uint16
     }
 
-    func unbox(_ value: Any, as type: UInt32.Type) throws -> UInt32? {
+    fileprivate func unbox(_ value: Any, as type: UInt32.Type) throws -> UInt32? {
         guard !(value is NSNull) else { return nil }
 
         guard
@@ -2907,16 +2956,18 @@ private extension _AnyDecoder {
 
         let uint32 = number.uint32Value
         guard NSNumber(value: uint32) == number else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(
-                codingPath: codingPath,
-                debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
-            ))
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
+                )
+            )
         }
 
         return uint32
     }
 
-    func unbox(_ value: Any, as type: UInt64.Type) throws -> UInt64? {
+    fileprivate func unbox(_ value: Any, as type: UInt64.Type) throws -> UInt64? {
         guard !(value is NSNull) else { return nil }
 
         guard
@@ -2928,20 +2979,21 @@ private extension _AnyDecoder {
 
         let uint64 = number.uint64Value
         guard NSNumber(value: uint64) == number else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(
-                codingPath: codingPath,
-                debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
-            ))
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Parsed Any number <\(number)> does not fit in \(type)."
+                )
+            )
         }
 
         return uint64
     }
 
-    func unbox(_ value: Any, as type: Float.Type) throws -> Float? {
+    fileprivate func unbox(_ value: Any, as type: Float.Type) throws -> Float? {
         guard !(value is NSNull) else { return nil }
 
-        if
-            let number = __SwiftValue.store(value) as? NSNumber, number !== kCFBooleanTrue,
+        if let number = __SwiftValue.store(value) as? NSNumber, number !== kCFBooleanTrue,
             number !== kCFBooleanFalse
         {
             // We are willing to return a Float by losing precision:
@@ -2952,10 +3004,12 @@ private extension _AnyDecoder {
             // * If it was a Double or Decimal, you will get back the nearest approximation if it will fit
             let double = number.doubleValue
             guard abs(double) <= Double(Float.greatestFiniteMagnitude) else {
-                throw DecodingError.dataCorrupted(DecodingError.Context(
-                    codingPath: codingPath,
-                    debugDescription: "Parsed Any number \(number) does not fit in \(type)."
-                ))
+                throw DecodingError.dataCorrupted(
+                    DecodingError.Context(
+                        codingPath: codingPath,
+                        debugDescription: "Parsed Any number \(number) does not fit in \(type)."
+                    )
+                )
             }
 
             return Float(double)
@@ -2970,13 +3024,12 @@ private extension _AnyDecoder {
                  if let float = Float(exactly: int) {
                      return float
                  }
-
+            
                   overflow = true
                   */
 
-        } else if
-            let string = value as? String,
-            case let .convertFromString(posInfString, negInfString, nanString) = options
+        } else if let string = value as? String,
+            case .convertFromString(let posInfString, let negInfString, let nanString) = options
                 .nonConformingFloatDecodingStrategy
         {
             if string == posInfString {
@@ -2991,11 +3044,10 @@ private extension _AnyDecoder {
         throw DecodingError._typeMismatch(at: codingPath, expectation: type, reality: value)
     }
 
-    func unbox(_ value: Any, as type: Double.Type) throws -> Double? {
+    fileprivate func unbox(_ value: Any, as type: Double.Type) throws -> Double? {
         guard !(value is NSNull) else { return nil }
 
-        if
-            let number = __SwiftValue.store(value) as? NSNumber, number !== kCFBooleanTrue,
+        if let number = __SwiftValue.store(value) as? NSNumber, number !== kCFBooleanTrue,
             number !== kCFBooleanFalse
         {
             // We are always willing to return the number as a Double:
@@ -3011,13 +3063,12 @@ private extension _AnyDecoder {
                  if let double = Double(exactly: int) {
                      return double
                   }
-
+            
               overflow = true
               */
 
-        } else if
-            let string = value as? String,
-            case let .convertFromString(posInfString, negInfString, nanString) = options
+        } else if let string = value as? String,
+            case .convertFromString(let posInfString, let negInfString, let nanString) = options
                 .nonConformingFloatDecodingStrategy
         {
             if string == posInfString {
@@ -3032,7 +3083,7 @@ private extension _AnyDecoder {
         throw DecodingError._typeMismatch(at: codingPath, expectation: type, reality: value)
     }
 
-    func unbox(_ value: Any, as type: String.Type) throws -> String? {
+    fileprivate func unbox(_ value: Any, as type: String.Type) throws -> String? {
         guard !(value is NSNull) else { return nil }
 
         guard let string = value as? String else {
@@ -3042,7 +3093,7 @@ private extension _AnyDecoder {
         return string
     }
 
-    func unbox(_ value: Any, as _: Date.Type) throws -> Date? {
+    fileprivate func unbox(_ value: Any, as _: Date.Type) throws -> Date? {
         guard !(value is NSNull) else { return nil }
 
         switch options.dateDecodingStrategy {
@@ -3063,10 +3114,12 @@ private extension _AnyDecoder {
             if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
                 let string = try self.unbox(value, as: String.self)!
                 guard let date = _iso8601Formatter().date(from: string) else {
-                    throw DecodingError.dataCorrupted(DecodingError.Context(
-                        codingPath: self.codingPath,
-                        debugDescription: "Expected date string to be ISO8601-formatted."
-                    ))
+                    throw DecodingError.dataCorrupted(
+                        DecodingError.Context(
+                            codingPath: self.codingPath,
+                            debugDescription: "Expected date string to be ISO8601-formatted."
+                        )
+                    )
                 }
 
                 return date
@@ -3074,25 +3127,27 @@ private extension _AnyDecoder {
                 fatalError("ISO8601DateFormatter is unavailable on this platform.")
             }
 
-        case let .formatted(formatter):
+        case .formatted(let formatter):
             let string = try unbox(value, as: String.self)!
             guard let date = formatter.date(from: string) else {
-                throw DecodingError.dataCorrupted(DecodingError.Context(
-                    codingPath: codingPath,
-                    debugDescription: "Date string does not match format expected by formatter."
-                ))
+                throw DecodingError.dataCorrupted(
+                    DecodingError.Context(
+                        codingPath: codingPath,
+                        debugDescription: "Date string does not match format expected by formatter."
+                    )
+                )
             }
 
             return date
 
-        case let .custom(closure):
+        case .custom(let closure):
             storage.push(container: value)
             defer { self.storage.popContainer() }
             return try closure(self)
         }
     }
 
-    func unbox(_ value: Any, as type: Data.Type) throws -> Data? {
+    fileprivate func unbox(_ value: Any, as type: Data.Type) throws -> Data? {
         guard !(value is NSNull) else { return nil }
 
         switch options.dataDecodingStrategy {
@@ -3107,22 +3162,24 @@ private extension _AnyDecoder {
             }
 
             guard let data = Data(base64Encoded: string) else {
-                throw DecodingError.dataCorrupted(DecodingError.Context(
-                    codingPath: codingPath,
-                    debugDescription: "Encountered Data is not valid Base64."
-                ))
+                throw DecodingError.dataCorrupted(
+                    DecodingError.Context(
+                        codingPath: codingPath,
+                        debugDescription: "Encountered Data is not valid Base64."
+                    )
+                )
             }
 
             return data
 
-        case let .custom(closure):
+        case .custom(let closure):
             storage.push(container: value)
             defer { self.storage.popContainer() }
             return try closure(self)
         }
     }
 
-    func unbox(_ value: Any, as _: Decimal.Type) throws -> Decimal? {
+    fileprivate func unbox(_ value: Any, as _: Decimal.Type) throws -> Decimal? {
         guard !(value is NSNull) else { return nil }
 
         // Attempt to bridge from NSDecimalNumber.
@@ -3134,7 +3191,10 @@ private extension _AnyDecoder {
         }
     }
 
-    func unbox<T>(_ value: Any, as type: _AnyStringDictionaryDecodableMarker.Type) throws -> T? {
+    fileprivate func unbox<T>(_ value: Any, as type: _AnyStringDictionaryDecodableMarker.Type)
+        throws
+        -> T?
+    {
         guard !(value is NSNull) else { return nil }
 
         var result = [String: Any]()
@@ -3153,11 +3213,11 @@ private extension _AnyDecoder {
         return result as? T
     }
 
-    func unbox<T: Decodable>(_ value: Any, as type: T.Type) throws -> T? {
+    fileprivate func unbox<T: Decodable>(_ value: Any, as type: T.Type) throws -> T? {
         return try unbox_(value, as: type) as? T
     }
 
-    func unbox_(_ value: Any, as type: Decodable.Type) throws -> Any? {
+    fileprivate func unbox_(_ value: Any, as type: Decodable.Type) throws -> Any? {
         #if DEPLOYMENT_RUNTIME_SWIFT
             // Bridging differences require us to split implementations here
             if type == Date.self {
@@ -3172,10 +3232,12 @@ private extension _AnyDecoder {
                 }
 
                 guard let url = URL(string: urlString) else {
-                    throw DecodingError.dataCorrupted(DecodingError.Context(
-                        codingPath: codingPath,
-                        debugDescription: "Invalid URL string."
-                    ))
+                    throw DecodingError.dataCorrupted(
+                        DecodingError.Context(
+                            codingPath: codingPath,
+                            debugDescription: "Invalid URL string."
+                        )
+                    )
                 }
                 return url
             } else if type == Decimal.self {
@@ -3199,10 +3261,12 @@ private extension _AnyDecoder {
                 }
 
                 guard let url = URL(string: urlString) else {
-                    throw DecodingError.dataCorrupted(DecodingError.Context(
-                        codingPath: codingPath,
-                        debugDescription: "Invalid URL string."
-                    ))
+                    throw DecodingError.dataCorrupted(
+                        DecodingError.Context(
+                            codingPath: codingPath,
+                            debugDescription: "Invalid URL string."
+                        )
+                    )
                 }
 
                 return url
@@ -3265,14 +3329,14 @@ private func _iso8601Formatter() -> ISO8601DateFormatter {
 // Error Utilities
 //===----------------------------------------------------------------------===//
 
-private extension EncodingError {
+extension EncodingError {
     /// Returns a `.invalidValue` error describing the given invalid floating-point value.
     ///
     ///
     /// - parameter value: The value that was invalid to encode.
     /// - parameter path: The path of `CodingKey`s taken to encode this value.
     /// - returns: An `EncodingError` with the appropriate path and debug description.
-    static func _invalidFloatingPointValue<T: FloatingPoint>(
+    fileprivate static func _invalidFloatingPointValue<T: FloatingPoint>(
         _ value: T,
         at codingPath: [CodingKey]
     ) -> EncodingError {
