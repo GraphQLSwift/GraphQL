@@ -1,9 +1,7 @@
 import Foundation
 import OrderedCollections
 
-/**
- * These are all of the possible kinds of types.
- */
+/// These are all of the possible kinds of types.
 public protocol GraphQLType: CustomDebugStringConvertible, Sendable {}
 extension GraphQLScalarType: GraphQLType {}
 extension GraphQLObjectType: GraphQLType {}
@@ -14,9 +12,7 @@ extension GraphQLInputObjectType: GraphQLType {}
 extension GraphQLList: GraphQLType {}
 extension GraphQLNonNull: GraphQLType {}
 
-/**
- * These types may be used as input types for arguments and directives.
- */
+/// These types may be used as input types for arguments and directives.
 public protocol GraphQLInputType: GraphQLType {}
 extension GraphQLScalarType: GraphQLInputType {}
 extension GraphQLEnumType: GraphQLInputType {}
@@ -33,9 +29,7 @@ func isInputType(type: GraphQLType?) -> Bool {
     return namedType is GraphQLInputType
 }
 
-/**
- * These types may be used as output types as the result of fields.
- */
+/// These types may be used as output types as the result of fields.
 public protocol GraphQLOutputType: GraphQLType {}
 extension GraphQLScalarType: GraphQLOutputType {}
 extension GraphQLObjectType: GraphQLOutputType {}
@@ -50,9 +44,7 @@ extension GraphQLNonNull: GraphQLOutputType {}
 // GraphQLObjectType | GraphQLInterfaceType | GraphQLUnionType | GraphQLEnumType |
 // GraphQLList<GraphQLOutputType>) {}
 
-/**
- * These types may describe types which may be leaf values.
- */
+/// These types may describe types which may be leaf values.
 public protocol GraphQLLeafType: GraphQLNamedType {
     func serialize(value: Any) throws -> Map
     func parseValue(value: Map) throws -> Map
@@ -64,21 +56,16 @@ extension GraphQLEnumType: GraphQLLeafType {}
 
 func isLeafType(type: GraphQLType?) -> Bool {
     let namedType = getNamedType(type: type)
-    return namedType is GraphQLScalarType ||
-        namedType is GraphQLEnumType
+    return namedType is GraphQLScalarType || namedType is GraphQLEnumType
 }
 
-/**
- * These types may describe the parent context of a selection set.
- */
+/// These types may describe the parent context of a selection set.
 public protocol GraphQLCompositeType: GraphQLNamedType, GraphQLOutputType {}
 extension GraphQLObjectType: GraphQLCompositeType {}
 extension GraphQLInterfaceType: GraphQLCompositeType {}
 extension GraphQLUnionType: GraphQLCompositeType {}
 
-/**
- * These types may describe the parent context of a selection set.
- */
+/// These types may describe the parent context of a selection set.
 public protocol GraphQLAbstractType: GraphQLNamedType {
     var resolveType: GraphQLTypeResolve? { get }
 }
@@ -86,9 +73,7 @@ public protocol GraphQLAbstractType: GraphQLNamedType {
 extension GraphQLInterfaceType: GraphQLAbstractType {}
 extension GraphQLUnionType: GraphQLAbstractType {}
 
-/**
- * These types can all accept null as a value.
- */
+/// These types can all accept null as a value.
 public protocol GraphQLNullableType: GraphQLType {}
 extension GraphQLScalarType: GraphQLNullableType {}
 extension GraphQLObjectType: GraphQLNullableType {}
@@ -106,9 +91,7 @@ func getNullableType(type: GraphQLType?) -> GraphQLNullableType? {
     return type as? GraphQLNullableType
 }
 
-/**
- * These named types do not include modifiers like List or NonNull.
- */
+/// These named types do not include modifiers like List or NonNull.
 public protocol GraphQLNamedType: GraphQLNullableType {
     var name: String { get }
 }
@@ -130,9 +113,7 @@ public func getNamedType(type: GraphQLType?) -> GraphQLNamedType? {
     return unmodifiedType as? GraphQLNamedType
 }
 
-/**
- * These types wrap other types.
- */
+/// These types wrap other types.
 protocol GraphQLWrapperType: GraphQLType {
     var wrappedType: GraphQLType { get }
 }
@@ -140,23 +121,20 @@ protocol GraphQLWrapperType: GraphQLType {
 extension GraphQLList: GraphQLWrapperType {}
 extension GraphQLNonNull: GraphQLWrapperType {}
 
-/**
- * Scalar Type Definition
- *
- * The leaf values of any request and input values to arguments are
- * Scalars (or Enums) and are defined with a name and a series of functions
- * used to parse input from ast or variables and to ensure validity.
- *
- * Example:
- *
- *     let oddType = try ScalarType(
- *         name: "Bool",
- *         serialize: {
- *             try $0.map.asBool(converting: true)
- *         }
- *     )
- *
- */
+/// Scalar Type Definition
+///
+/// The leaf values of any request and input values to arguments are
+/// Scalars (or Enums) and are defined with a name and a series of functions
+/// used to parse input from ast or variables and to ensure validity.
+///
+/// Example:
+///
+///     let oddType = try ScalarType(
+///         name: "Bool",
+///         serialize: {
+///             try $0.map.asBool(converting: true)
+///         }
+///     )
 public final class GraphQLScalarType: Sendable {
     public let name: String
     public let description: String?
@@ -230,48 +208,45 @@ extension GraphQLScalarType: Hashable {
     }
 }
 
-/**
- * Object Type Definition
- *
- * Almost all of the GraphQL types you define will be object types. Object types
- * have a name, but most importantly describe their fields.
- *
- * Example:
- *
- *     let AddressType = GraphQLObjectType(
- *         name: "Address",
- *         fields: [
- *             "street": GraphQLField(type: GraphQLString),
- *             "number": GraphQLField(type: GraphQLInt),
- *             "formatted": GraphQLField(
- *                 type: GraphQLString,
- *                 resolve: { address, _, _, _ in
- *                     guard let address = address as? Address {
- *                         return Map.null
- *                     }
- *
- *                     return "\(address.number) \(address.street)"
- *                 }
- *             )
- *         ]
- *     )
- *
- * When two types need to refer to each other, or a type needs to refer to
- * itself in a field, you can use a closure to supply the fields lazily.
- *
- * Example:
- *
- *     let PersonType = GraphQLObjectType(
- *         name: "Person",
- *         fields: {
- *         [
- *             "name": GraphQLField(type: GraphQLString),
- *             "bestFriend": GraphQLField(type: PersonType),
- *         ]
- *         }
- *     )
- *
- */
+/// Object Type Definition
+///
+/// Almost all of the GraphQL types you define will be object types. Object types
+/// have a name, but most importantly describe their fields.
+///
+/// Example:
+///
+///     let AddressType = GraphQLObjectType(
+///         name: "Address",
+///         fields: [
+///             "street": GraphQLField(type: GraphQLString),
+///             "number": GraphQLField(type: GraphQLInt),
+///             "formatted": GraphQLField(
+///                 type: GraphQLString,
+///                 resolve: { address, _, _, _ in
+///                     guard let address = address as? Address {
+///                         return Map.null
+///                     }
+///
+///                     return "\(address.number) \(address.street)"
+///                 }
+///             )
+///         ]
+///     )
+///
+/// When two types need to refer to each other, or a type needs to refer to
+/// itself in a field, you can use a closure to supply the fields lazily.
+///
+/// Example:
+///
+///     let PersonType = GraphQLObjectType(
+///         name: "Person",
+///         fields: {
+///         [
+///             "name": GraphQLField(type: GraphQLString),
+///             "bestFriend": GraphQLField(type: PersonType),
+///         ]
+///         }
+///     )
 public final class GraphQLObjectType: @unchecked Sendable {
     public let name: String
     public let description: String?
@@ -468,29 +443,33 @@ public enum TypeResolveResult: Sendable {
     case name(String)
 }
 
-public typealias GraphQLTypeResolve = @Sendable (
-    _ value: any Sendable,
-    _ info: GraphQLResolveInfo
-) throws -> TypeResolveResultRepresentable
+public typealias GraphQLTypeResolve =
+    @Sendable (
+        _ value: any Sendable,
+        _ info: GraphQLResolveInfo
+    ) throws -> TypeResolveResultRepresentable
 
-public typealias GraphQLIsTypeOf = @Sendable (
-    _ source: any Sendable,
-    _ info: GraphQLResolveInfo
-) throws -> Bool
+public typealias GraphQLIsTypeOf =
+    @Sendable (
+        _ source: any Sendable,
+        _ info: GraphQLResolveInfo
+    ) throws -> Bool
 
-public typealias GraphQLFieldResolve = @Sendable (
-    _ source: any Sendable,
-    _ args: Map,
-    _ context: any Sendable,
-    _ info: GraphQLResolveInfo
-) async throws -> (any Sendable)?
+public typealias GraphQLFieldResolve =
+    @Sendable (
+        _ source: any Sendable,
+        _ args: Map,
+        _ context: any Sendable,
+        _ info: GraphQLResolveInfo
+    ) async throws -> (any Sendable)?
 
-public typealias GraphQLFieldResolveInput = @Sendable (
-    _ source: any Sendable,
-    _ args: Map,
-    _ context: any Sendable,
-    _ info: GraphQLResolveInfo
-) throws -> (any Sendable)?
+public typealias GraphQLFieldResolveInput =
+    @Sendable (
+        _ source: any Sendable,
+        _ args: Map,
+        _ context: any Sendable,
+        _ info: GraphQLResolveInfo
+    ) throws -> (any Sendable)?
 
 public struct GraphQLResolveInfo: Sendable {
     public let fieldName: String
@@ -710,24 +689,21 @@ public func isRequiredArgument(_ arg: GraphQLArgumentDefinition) -> Bool {
     return arg.type is GraphQLNonNull && arg.defaultValue == nil
 }
 
-/**
- * Interface Type Definition
- *
- * When a field can return one of a heterogeneous set of types, a Interface type
- * is used to describe what types are possible, what fields are in common across
- * all types, as well as a function to determine which type is actually used
- * when the field is resolved.
- *
- * Example:
- *
- *     let EntityType = GraphQLInterfaceType(
- *         name: "Entity",
- *         fields: {
- *             "name": GraphQLField(type: GraphQLString)
- *         }
- *     )
- *
- */
+/// Interface Type Definition
+///
+/// When a field can return one of a heterogeneous set of types, a Interface type
+/// is used to describe what types are possible, what fields are in common across
+/// all types, as well as a function to determine which type is actually used
+/// when the field is resolved.
+///
+/// Example:
+///
+///     let EntityType = GraphQLInterfaceType(
+///         name: "Entity",
+///         fields: {
+///             "name": GraphQLField(type: GraphQLString)
+///         }
+///     )
 public final class GraphQLInterfaceType: @unchecked Sendable {
     public let name: String
     public let description: String?
@@ -863,31 +839,28 @@ extension GraphQLInterfaceType: Hashable {
 
 public typealias GraphQLUnionTypeExtensions = [String: String]?
 
-/**
- * Union Type Definition
- *
- * When a field can return one of a heterogeneous set of types, a Union type
- * is used to describe what types are possible as well as providing a function
- * to determine which type is actually used when the field is resolved.
- *
- * Example:
- *
- *     let PetType = try GraphQLUnionType(
- *         name: "Pet",
- *         types: [DogType, CatType],
- *         resolveType: { value, context, info in
- *             switch value {
- *             case is Dog:
- *                 return DogType
- *             case is Cat:
- *                 return CatType
- *             default:
- *                 return Map.null
- *             }
- *         }
- *     )
- *
- */
+/// Union Type Definition
+///
+/// When a field can return one of a heterogeneous set of types, a Union type
+/// is used to describe what types are possible as well as providing a function
+/// to determine which type is actually used when the field is resolved.
+///
+/// Example:
+///
+///     let PetType = try GraphQLUnionType(
+///         name: "Pet",
+///         types: [DogType, CatType],
+///         resolveType: { value, context, info in
+///             switch value {
+///             case is Dog:
+///                 return DogType
+///             case is Cat:
+///                 return CatType
+///             default:
+///                 return Map.null
+///             }
+///         }
+///     )
 public final class GraphQLUnionType: @unchecked Sendable {
     public let kind: TypeKind = .union
     public let name: String
@@ -969,27 +942,25 @@ extension GraphQLUnionType: Hashable {
     }
 }
 
-/**
- * Enum Type Definition
- *
- * Some leaf values of requests and input values are Enums. GraphQL serializes
- * Enum values as strings, however internally Enums can be represented by any
- * kind of type, often integers.
- *
- * Example:
- *
- *     let RGBType = GraphQLEnumType(
- *         name: "RGB",
- *         values: {
- *             "RED": GraphQLEnumValue(value: 0),
- *             "GREEN": GraphQLEnumValue(value: 1),
- *             "BLUE": GraphQLEnumValue(value: 2)
- *       }
- *     )
- *
- * Note: If a value is not provided in a definition, the name of the enum value
- * will be used as its internal value.
- */
+/// Enum Type Definition
+///
+/// Some leaf values of requests and input values are Enums. GraphQL serializes
+/// Enum values as strings, however internally Enums can be represented by any
+/// kind of type, often integers.
+///
+/// Example:
+///
+///     let RGBType = GraphQLEnumType(
+///         name: "RGB",
+///         values: {
+///             "RED": GraphQLEnumValue(value: 0),
+///             "GREEN": GraphQLEnumValue(value: 1),
+///             "BLUE": GraphQLEnumValue(value: 2)
+///       }
+///     )
+///
+/// Note: If a value is not provided in a definition, the name of the enum value
+/// will be used as its internal value.
 public final class GraphQLEnumType: Sendable {
     public let name: String
     public let description: String?
@@ -1044,14 +1015,14 @@ public final class GraphQLEnumType: Sendable {
     public func parseValue(value: Map) throws -> Map {
         guard let valueStr = value.string else {
             throw GraphQLError(
-                message: "Enum \"\(name)\" cannot represent non-string value: \(value)." +
-                    didYouMeanEnumValue(unknownValueStr: value.description)
+                message: "Enum \"\(name)\" cannot represent non-string value: \(value)."
+                    + didYouMeanEnumValue(unknownValueStr: value.description)
             )
         }
         guard let enumValue = nameLookup[valueStr] else {
             throw GraphQLError(
-                message: "Value \"\(valueStr)\" does not exist in \"\(name)\" enum." +
-                    didYouMeanEnumValue(unknownValueStr: valueStr)
+                message: "Value \"\(valueStr)\" does not exist in \"\(name)\" enum."
+                    + didYouMeanEnumValue(unknownValueStr: valueStr)
             )
         }
         return enumValue.value
@@ -1060,15 +1031,16 @@ public final class GraphQLEnumType: Sendable {
     public func parseLiteral(valueAST: Value) throws -> Map {
         guard let enumNode = valueAST as? EnumValue else {
             throw GraphQLError(
-                message: "Enum \"\(name)\" cannot represent non-enum value: \(print(ast: valueAST))." +
-                    didYouMeanEnumValue(unknownValueStr: print(ast: valueAST)),
+                message:
+                    "Enum \"\(name)\" cannot represent non-enum value: \(print(ast: valueAST))."
+                    + didYouMeanEnumValue(unknownValueStr: print(ast: valueAST)),
                 nodes: [valueAST]
             )
         }
         guard let enumValue = nameLookup[enumNode.value] else {
             throw GraphQLError(
-                message: "Value \"\(enumNode.value)\" does not exist in \"\(name)\" enum." +
-                    didYouMeanEnumValue(unknownValueStr: enumNode.value),
+                message: "Value \"\(enumNode.value)\" does not exist in \"\(name)\" enum."
+                    + didYouMeanEnumValue(unknownValueStr: enumNode.value),
                 nodes: [valueAST]
             )
         }
@@ -1167,26 +1139,23 @@ public struct GraphQLEnumValueDefinition: Sendable {
     }
 }
 
-/**
- * Input Object Type Definition
- *
- * An input object defines a structured collection of fields which may be
- * supplied to a field argument.
- *
- * Using `GraphQLNonNull` will ensure that a value must be provided by the query
- *
- * Example:
- *
- *     let GeoPoint = GraphQLInputObjectType(
- *         name: "GeoPoint",
- *         fields: [
- *             "lat": InputObjectField(type: GraphQLNonNull(GraphQLFloat)),
- *             "lon": InputObjectField(type: GraphQLNonNull(GraphQLFloat)),
- *             "alt": InputObjectField(type: GraphQLFloat, defaultValue: 0),
- *         ]
- *     )
- *
- */
+/// Input Object Type Definition
+///
+/// An input object defines a structured collection of fields which may be
+/// supplied to a field argument.
+///
+/// Using `GraphQLNonNull` will ensure that a value must be provided by the query
+///
+/// Example:
+///
+///     let GeoPoint = GraphQLInputObjectType(
+///         name: "GeoPoint",
+///         fields: [
+///             "lat": InputObjectField(type: GraphQLNonNull(GraphQLFloat)),
+///             "lon": InputObjectField(type: GraphQLNonNull(GraphQLFloat)),
+///             "alt": InputObjectField(type: GraphQLFloat, defaultValue: 0),
+///         ]
+///     )
 public final class GraphQLInputObjectType: @unchecked Sendable {
     public let name: String
     public let description: String?
@@ -1341,24 +1310,21 @@ public typealias InputObjectFieldDefinitionMap = OrderedDictionary<
     InputObjectFieldDefinition
 >
 
-/**
- * List Modifier
- *
- * A list is a kind of type marker, a wrapping type which points to another
- * type. Lists are often created within the context of defining the fields of
- * an object type.
- *
- * Example:
- *
- *     let PersonType = GraphQLObjectType(
- *         name: "Person",
- *         fields: [
- *             "parents": GraphQLField(type: GraphQLList("Person")),
- *             "children": GraphQLField(type: GraphQLList("Person")),
- *         ]
- *     )
- *
- */
+/// List Modifier
+///
+/// A list is a kind of type marker, a wrapping type which points to another
+/// type. Lists are often created within the context of defining the fields of
+/// an object type.
+///
+/// Example:
+///
+///     let PersonType = GraphQLObjectType(
+///         name: "Person",
+///         fields: [
+///             "parents": GraphQLField(type: GraphQLList("Person")),
+///             "children": GraphQLField(type: GraphQLList("Person")),
+///         ]
+///     )
 public final class GraphQLList {
     public let ofType: GraphQLType
     public let kind: TypeKind = .list
@@ -1388,26 +1354,24 @@ extension GraphQLList: Hashable {
     }
 }
 
-/**
- * Non-Null Modifier
- *
- * A non-null is a kind of type marker, a wrapping type which points to another
- * type. Non-null types enforce that their values are never null and can ensure
- * an error is raised if this ever occurs during a request. It is useful for
- * fields which you can make a strong guarantee on non-nullability, for example
- * usually the id field of a database row will never be null.
- *
- * Example:
- *
- *     let RowType = GraphQLObjectType(
- *         name: "Row",
- *         fields: [
- *             "id": GraphQLField(type: GraphQLNonNull(GraphQLString)),
- *         ]
- *     )
- *
- * Note: the enforcement of non-nullability occurs within the executor.
- */
+/// Non-Null Modifier
+///
+/// A non-null is a kind of type marker, a wrapping type which points to another
+/// type. Non-null types enforce that their values are never null and can ensure
+/// an error is raised if this ever occurs during a request. It is useful for
+/// fields which you can make a strong guarantee on non-nullability, for example
+/// usually the id field of a database row will never be null.
+///
+/// Example:
+///
+///     let RowType = GraphQLObjectType(
+///         name: "Row",
+///         fields: [
+///             "id": GraphQLField(type: GraphQLNonNull(GraphQLString)),
+///         ]
+///     )
+///
+/// Note: the enforcement of non-nullability occurs within the executor.
 public final class GraphQLNonNull {
     public let ofType: GraphQLNullableType
     public let kind: TypeKind = .nonNull

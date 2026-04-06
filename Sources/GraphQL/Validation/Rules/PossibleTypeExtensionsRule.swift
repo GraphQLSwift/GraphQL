@@ -1,9 +1,6 @@
-
-/**
- * Possible type extension
- *
- * A type extension is only valid if the type is defined and has the same kind.
- */
+/// Possible type extension
+///
+/// A type extension is only valid if the type is defined and has the same kind.
 func PossibleTypeExtensionsRule(
     context: SDLValidationContext
 ) -> Visitor {
@@ -82,11 +79,13 @@ func PossibleTypeExtensionsRule(
 
             context.report(
                 error: GraphQLError(
-                    message: "Cannot extend type \"\(typeName)\" because it is not defined." +
-                        didYouMean(suggestions: suggestionList(
-                            input: typeName,
-                            options: allTypeNames
-                        )),
+                    message: "Cannot extend type \"\(typeName)\" because it is not defined."
+                        + didYouMean(
+                            suggestions: suggestionList(
+                                input: typeName,
+                                options: allTypeNames
+                            )
+                        ),
                     nodes: [node.name]
                 )
             )

@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct MapTests {
     @Test func throwableConversion() throws {
@@ -66,7 +67,7 @@ import Testing
                 "first": .number(1),
                 "second": .null,
                 "third": .undefined,
-                // fourth not included
+                    // fourth not included
             ]
         )
 
@@ -124,7 +125,7 @@ import Testing
                 "first": .number(1),
                 "second": .null,
                 "third": .undefined,
-                // fourth not included
+                    // fourth not included
             ]
         )
 
@@ -145,8 +146,8 @@ import Testing
         let json = String(data: data, encoding: .utf8)
         #expect(
             json == """
-            {"first":1,"second":null}
-            """
+                {"first":1,"second":null}
+                """
         )
     }
 
@@ -169,8 +170,8 @@ import Testing
                 ),
                 encoding: .utf8
             ) == """
-            {"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8}
-            """
+                {"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8}
+                """
         )
 
         // Test embedded
@@ -187,13 +188,13 @@ import Testing
                             "6": .number(6),
                             "7": .number(7),
                             "8": .number(8),
-                        ]),
+                        ])
                     ])
                 ),
                 encoding: .utf8
             ) == """
-            [{"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8}]
-            """
+                [{"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8}]
+                """
         )
     }
 }

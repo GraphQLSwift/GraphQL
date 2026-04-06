@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct ScalarTests {
     @Test func intParseValue() throws {
@@ -20,12 +21,12 @@ import Testing
             try GraphQLInt.parseValue(-9_876_504_321)
         }
         // TODO: Avoid rounding these
-//        #expect(
-//            throws: (any Error).self,
-//            "Int cannot represent non-integer value: 0.1"
-//        ) {
-//            try GraphQLInt.parseValue(0.1)
-//        }
+        //        #expect(
+        //            throws: (any Error).self,
+        //            "Int cannot represent non-integer value: 0.1"
+        //        ) {
+        //            try GraphQLInt.parseValue(0.1)
+        //        }
         #expect(
             throws: (any Error).self,
             "Int cannot represent non-integer value: NaN"
@@ -101,24 +102,24 @@ import Testing
         // The GraphQL specification does not allow serializing non-integer values
         // as Int to avoid accidental data loss.
         // TODO: Avoid rounding these
-//        #expect(
-//            throws: (any Error).self,
-//            "Int cannot represent non-integer value: 0.1"
-//        ) {
-//            try GraphQLInt.serialize(0.1)
-//        }
-//        #expect(
-//            throws: (any Error).self,
-//            "Int cannot represent non-integer value: 1.1"
-//        ) {
-//            try GraphQLInt.serialize(1.1)
-//        }
-//        #expect(
-//            throws: (any Error).self,
-//            "Int cannot represent non-integer value: -1.1"
-//        ) {
-//            try GraphQLInt.serialize(-1.1)
-//        }
+        //        #expect(
+        //            throws: (any Error).self,
+        //            "Int cannot represent non-integer value: 0.1"
+        //        ) {
+        //            try GraphQLInt.serialize(0.1)
+        //        }
+        //        #expect(
+        //            throws: (any Error).self,
+        //            "Int cannot represent non-integer value: 1.1"
+        //        ) {
+        //            try GraphQLInt.serialize(1.1)
+        //        }
+        //        #expect(
+        //            throws: (any Error).self,
+        //            "Int cannot represent non-integer value: -1.1"
+        //        ) {
+        //            try GraphQLInt.serialize(-1.1)
+        //        }
         #expect(
             throws: (any Error).self,
             #"Int cannot represent non-integer value: "-1.1""#
@@ -555,7 +556,7 @@ import Testing
         try #expect(GraphQLID.serialize(-1) == "-1")
 
         let badObjValue: Map = [
-            "_id": false,
+            "_id": false
         ]
         #expect(
             throws: (any Error).self,

@@ -1,9 +1,6 @@
-
-/**
- * Unique field definition names
- *
- * A GraphQL complex type is only valid if all its fields are uniquely named.
- */
+/// Unique field definition names
+///
+/// A GraphQL complex type is only valid if all its fields are uniquely named.
 func UniqueFieldDefinitionNamesRule(
     context: SDLValidationContext
 ) -> Visitor {
@@ -53,13 +50,13 @@ func UniqueFieldDefinitionNamesRule(
         let fieldNodes = fields
         for fieldDef in fieldNodes {
             let fieldName = fieldDef.name.value
-            if
-                let existingType = existingTypeMap[typeName],
+            if let existingType = existingTypeMap[typeName],
                 hasField(type: existingType, fieldName: fieldName)
             {
                 context.report(
                     error: GraphQLError(
-                        message: "Field \"\(typeName).\(fieldName)\" already exists in the schema. It cannot also be defined in this type extension.",
+                        message:
+                            "Field \"\(typeName).\(fieldName)\" already exists in the schema. It cannot also be defined in this type extension.",
                         nodes: [fieldDef.name]
                     )
                 )
@@ -88,13 +85,13 @@ func UniqueFieldDefinitionNamesRule(
         let fieldNodes = fields
         for fieldDef in fieldNodes {
             let fieldName = fieldDef.name.value
-            if
-                let existingType = existingTypeMap[typeName],
+            if let existingType = existingTypeMap[typeName],
                 hasField(type: existingType, fieldName: fieldName)
             {
                 context.report(
                     error: GraphQLError(
-                        message: "Field \"\(typeName).\(fieldName)\" already exists in the schema. It cannot also be defined in this type extension.",
+                        message:
+                            "Field \"\(typeName).\(fieldName)\" already exists in the schema. It cannot also be defined in this type extension.",
                         nodes: [fieldDef.name]
                     )
                 )

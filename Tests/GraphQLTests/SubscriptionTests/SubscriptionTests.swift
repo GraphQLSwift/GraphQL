@@ -3,7 +3,7 @@ import Testing
 
 /// This follows the graphql-js testing, with deviations where noted.
 @Suite struct SubscriptionTests {
-    let timeoutDuration = 0.5 // in seconds
+    let timeoutDuration = 0.5  // in seconds
 
     // MARK: Test primary graphqlSubscribe function
 
@@ -12,19 +12,19 @@ import Testing
         let db = EmailDb()
         let schema = try await db.defaultSchema()
         let query = """
-            subscription ($priority: Int = 0) {
-                importantEmail(priority: $priority) {
-                  email {
-                    from
-                    subject
+                subscription ($priority: Int = 0) {
+                    importantEmail(priority: $priority) {
+                      email {
+                        from
+                        subject
+                      }
+                      inbox {
+                        unread
+                        total
+                      }
+                    }
                   }
-                  inbox {
-                    unread
-                    total
-                  }
-                }
-              }
-        """
+            """
 
         let subscriptionResult = try await GraphQL.graphqlSubscribe(
             schema: schema,
@@ -33,27 +33,32 @@ import Testing
         let stream = try subscriptionResult.get()
         var iterator = stream.makeAsyncIterator()
 
-        await db.trigger(email: Email(
-            from: "yuzhi@graphql.org",
-            subject: "Alright",
-            message: "Tests are good",
-            unread: true
-        ))
+        await db.trigger(
+            email: Email(
+                from: "yuzhi@graphql.org",
+                subject: "Alright",
+                message: "Tests are good",
+                unread: true
+            )
+        )
         await db.stop()
         let result = try await iterator.next()
         #expect(
-            result == GraphQLResult(
-                data: ["importantEmail": [
-                    "email": [
-                        "from": "yuzhi@graphql.org",
-                        "subject": "Alright",
-                    ],
-                    "inbox": [
-                        "unread": 1,
-                        "total": 2,
-                    ],
-                ]]
-            )
+            result
+                == GraphQLResult(
+                    data: [
+                        "importantEmail": [
+                            "email": [
+                                "from": "yuzhi@graphql.org",
+                                "subject": "Alright",
+                            ],
+                            "inbox": [
+                                "unread": 1,
+                                "total": 2,
+                            ],
+                        ]
+                    ]
+                )
         )
     }
 
@@ -72,7 +77,7 @@ import Testing
                         args: [
                             "priority": GraphQLArgument(
                                 type: GraphQLInt
-                            ),
+                            )
                         ],
                         resolve: { emailAny, _, _, _ throws in
                             guard let email = emailAny as? Email else {
@@ -94,7 +99,7 @@ import Testing
                         args: [
                             "priority": GraphQLArgument(
                                 type: GraphQLInt
-                            ),
+                            )
                         ],
                         resolve: { emailAny, _, _, _ throws in
                             guard let email = emailAny as? Email else {
@@ -114,43 +119,51 @@ import Testing
                 ]
             )
         )
-        let stream = try await createSubscription(schema: schema, query: """
-            subscription ($priority: Int = 0) {
-                importantEmail(priority: $priority) {
-                  email {
-                    from
-                    subject
-                  }
-                  inbox {
-                    unread
-                    total
-                  }
-                }
-              }
-        """)
+        let stream = try await createSubscription(
+            schema: schema,
+            query: """
+                    subscription ($priority: Int = 0) {
+                        importantEmail(priority: $priority) {
+                          email {
+                            from
+                            subject
+                          }
+                          inbox {
+                            unread
+                            total
+                          }
+                        }
+                      }
+                """
+        )
         var iterator = stream.makeAsyncIterator()
 
-        await db.trigger(email: Email(
-            from: "yuzhi@graphql.org",
-            subject: "Alright",
-            message: "Tests are good",
-            unread: true
-        ))
+        await db.trigger(
+            email: Email(
+                from: "yuzhi@graphql.org",
+                subject: "Alright",
+                message: "Tests are good",
+                unread: true
+            )
+        )
 
         let result = try await iterator.next()
         #expect(
-            result == GraphQLResult(
-                data: ["importantEmail": [
-                    "email": [
-                        "from": "yuzhi@graphql.org",
-                        "subject": "Alright",
-                    ],
-                    "inbox": [
-                        "unread": 1,
-                        "total": 2,
-                    ],
-                ]]
-            )
+            result
+                == GraphQLResult(
+                    data: [
+                        "importantEmail": [
+                            "email": [
+                                "from": "yuzhi@graphql.org",
+                                "subject": "Alright",
+                            ],
+                            "inbox": [
+                                "unread": 1,
+                                "total": 2,
+                            ],
+                        ]
+                    ]
+                )
         )
     }
 
@@ -202,28 +215,33 @@ import Testing
                 ]
             )
         )
-        let subscriptionResult = try await createSubscription(schema: schema, query: """
-            subscription {
-                importantEmail {
-                    email {
-                        from
+        let subscriptionResult = try await createSubscription(
+            schema: schema,
+            query: """
+                    subscription {
+                        importantEmail {
+                            email {
+                                from
+                            }
+                        }
+                        notImportantEmail {
+                            email {
+                                from
+                            }
+                        }
                     }
-                }
-                notImportantEmail {
-                    email {
-                        from
-                    }
-                }
-            }
-        """)
+                """
+        )
         var iterator = subscriptionResult.makeAsyncIterator()
 
-        await db.trigger(email: Email(
-            from: "yuzhi@graphql.org",
-            subject: "Alright",
-            message: "Tests are good",
-            unread: true
-        ))
+        await db.trigger(
+            email: Email(
+                from: "yuzhi@graphql.org",
+                subject: "Alright",
+                message: "Tests are good",
+                unread: true
+            )
+        )
 
         _ = try await iterator.next()
 
@@ -244,11 +262,13 @@ import Testing
     @Test func errorUnknownSubscriptionField() async throws {
         let db = EmailDb()
         do {
-            _ = try await db.subscription(query: """
-            subscription {
-                unknownField
-            }
-            """)
+            _ = try await db.subscription(
+                query: """
+                    subscription {
+                        unknownField
+                    }
+                    """
+            )
             Issue.record("Error should have been thrown")
         } catch {
             guard let graphQLErrors = error as? GraphQLErrors else {
@@ -260,7 +280,7 @@ import Testing
                     GraphQLError(
                         message: "Cannot query field \"unknownField\" on type \"Subscription\".",
                         locations: [SourceLocation(line: 2, column: 5)]
-                    ),
+                    )
                 ]
             )
         }
@@ -286,15 +306,18 @@ import Testing
             }
         )
         do {
-            _ = try await createSubscription(schema: schema, query: """
-                subscription {
-                    importantEmail {
-                        email {
-                            from
+            _ = try await createSubscription(
+                schema: schema,
+                query: """
+                        subscription {
+                            importantEmail {
+                                email {
+                                    from
+                                }
+                            }
                         }
-                    }
-                }
-            """)
+                    """
+            )
             Issue.record("Error should have been thrown")
         } catch {
             guard let graphQLErrors = error as? GraphQLErrors else {
@@ -304,8 +327,9 @@ import Testing
             #expect(
                 graphQLErrors.errors == [
                     GraphQLError(
-                        message: "Subscription field resolver must return an AsyncSequence. Received: 'test'"
-                    ),
+                        message:
+                            "Subscription field resolver must return an AsyncSequence. Received: 'test'"
+                    )
                 ]
             )
         }
@@ -315,15 +339,18 @@ import Testing
     @Test func errorForSubscriptionResolverErrors() async throws {
         func verifyError(schema: GraphQLSchema) async throws {
             do {
-                _ = try await createSubscription(schema: schema, query: """
-                    subscription {
-                        importantEmail {
-                            email {
-                                from
+                _ = try await createSubscription(
+                    schema: schema,
+                    query: """
+                            subscription {
+                                importantEmail {
+                                    email {
+                                        from
+                                    }
+                                }
                             }
-                        }
-                    }
-                """)
+                        """
+                )
                 Issue.record("Error should have been thrown")
             } catch {
                 guard let graphQLErrors = error as? GraphQLErrors else {
@@ -335,25 +362,31 @@ import Testing
         }
 
         // Throwing an error
-        try await verifyError(schema: emailSchemaWithResolvers(
-            subscribe: { _, _, _, _ throws in
-                throw GraphQLError(message: "test error")
-            }
-        ))
+        try await verifyError(
+            schema: emailSchemaWithResolvers(
+                subscribe: { _, _, _, _ throws in
+                    throw GraphQLError(message: "test error")
+                }
+            )
+        )
 
         // Resolving to an error
-        try await verifyError(schema: emailSchemaWithResolvers(
-            subscribe: { _, _, _, _ throws in
-                GraphQLError(message: "test error")
-            }
-        ))
+        try await verifyError(
+            schema: emailSchemaWithResolvers(
+                subscribe: { _, _, _, _ throws in
+                    GraphQLError(message: "test error")
+                }
+            )
+        )
 
         // Rejecting with an error
-        try await verifyError(schema: emailSchemaWithResolvers(
-            subscribe: { _, _, _, _ throws in
-                GraphQLError(message: "test error")
-            }
-        ))
+        try await verifyError(
+            schema: emailSchemaWithResolvers(
+                subscribe: { _, _, _, _ throws in
+                    GraphQLError(message: "test error")
+                }
+            )
+        )
     }
 
     // 'resolves to an error for source event stream resolver errors'
@@ -363,25 +396,25 @@ import Testing
     @Test func errorVariablesWrongType() async throws {
         let db = EmailDb()
         let query = """
-            subscription ($priority: Int) {
-                importantEmail(priority: $priority) {
-                  email {
-                    from
-                    subject
+                subscription ($priority: Int) {
+                    importantEmail(priority: $priority) {
+                      email {
+                        from
+                        subject
+                      }
+                      inbox {
+                        unread
+                        total
+                      }
+                    }
                   }
-                  inbox {
-                    unread
-                    total
-                  }
-                }
-              }
-        """
+            """
 
         do {
             _ = try await db.subscription(
                 query: query,
                 variableValues: [
-                    "priority": "meow",
+                    "priority": "meow"
                 ]
             )
             Issue.record("Should have thrown error")
@@ -391,8 +424,8 @@ import Testing
                 return
             }
             #expect(
-                graphQLError.message ==
-                    "Variable \"$priority\" got invalid value \"\"meow\"\".\nExpected type \"Int\", found \"meow\"."
+                graphQLError.message
+                    == "Variable \"$priority\" got invalid value \"\"meow\"\".\nExpected type \"Int\", found \"meow\"."
             )
         }
     }
@@ -402,34 +435,109 @@ import Testing
     /// 'produces a payload for a single subscriber'
     @Test func singleSubscriber() async throws {
         let db = EmailDb()
-        let stream = try await db.subscription(query: """
-            subscription ($priority: Int = 0) {
-                importantEmail(priority: $priority) {
-                  email {
-                    from
-                    subject
-                  }
-                  inbox {
-                    unread
-                    total
-                  }
-                }
-              }
-        """)
+        let stream = try await db.subscription(
+            query: """
+                    subscription ($priority: Int = 0) {
+                        importantEmail(priority: $priority) {
+                          email {
+                            from
+                            subject
+                          }
+                          inbox {
+                            unread
+                            total
+                          }
+                        }
+                      }
+                """
+        )
         var iterator = stream.makeAsyncIterator()
 
-        await db.trigger(email: Email(
-            from: "yuzhi@graphql.org",
-            subject: "Alright",
-            message: "Tests are good",
-            unread: true
-        ))
+        await db.trigger(
+            email: Email(
+                from: "yuzhi@graphql.org",
+                subject: "Alright",
+                message: "Tests are good",
+                unread: true
+            )
+        )
         await db.stop()
 
         let result = try await iterator.next()
         #expect(
-            result == GraphQLResult(
-                data: ["importantEmail": [
+            result
+                == GraphQLResult(
+                    data: [
+                        "importantEmail": [
+                            "email": [
+                                "from": "yuzhi@graphql.org",
+                                "subject": "Alright",
+                            ],
+                            "inbox": [
+                                "unread": 1,
+                                "total": 2,
+                            ],
+                        ]
+                    ]
+                )
+        )
+    }
+
+    /// 'produces a payload for multiple subscribe in same subscription'
+    @Test func multipleSubscribers() async throws {
+        let db = EmailDb()
+        let stream1 = try await db.subscription(
+            query: """
+                    subscription ($priority: Int = 0) {
+                        importantEmail(priority: $priority) {
+                          email {
+                            from
+                            subject
+                          }
+                          inbox {
+                            unread
+                            total
+                          }
+                        }
+                      }
+                """
+        )
+
+        let stream2 = try await db.subscription(
+            query: """
+                    subscription ($priority: Int = 0) {
+                        importantEmail(priority: $priority) {
+                          email {
+                            from
+                            subject
+                          }
+                          inbox {
+                            unread
+                            total
+                          }
+                        }
+                      }
+                """
+        )
+
+        var iterator1 = stream1.makeAsyncIterator()
+        var iterator2 = stream2.makeAsyncIterator()
+
+        await db.trigger(
+            email: Email(
+                from: "yuzhi@graphql.org",
+                subject: "Alright",
+                message: "Tests are good",
+                unread: true
+            )
+        )
+
+        let result1 = try await iterator1.next()
+        let result2 = try await iterator2.next()
+
+        let expected = GraphQLResult(
+            data: [
+                "importantEmail": [
                     "email": [
                         "from": "yuzhi@graphql.org",
                         "subject": "Alright",
@@ -438,68 +546,8 @@ import Testing
                         "unread": 1,
                         "total": 2,
                     ],
-                ]]
-            )
-        )
-    }
-
-    /// 'produces a payload for multiple subscribe in same subscription'
-    @Test func multipleSubscribers() async throws {
-        let db = EmailDb()
-        let stream1 = try await db.subscription(query: """
-            subscription ($priority: Int = 0) {
-                importantEmail(priority: $priority) {
-                  email {
-                    from
-                    subject
-                  }
-                  inbox {
-                    unread
-                    total
-                  }
-                }
-              }
-        """)
-
-        let stream2 = try await db.subscription(query: """
-            subscription ($priority: Int = 0) {
-                importantEmail(priority: $priority) {
-                  email {
-                    from
-                    subject
-                  }
-                  inbox {
-                    unread
-                    total
-                  }
-                }
-              }
-        """)
-
-        var iterator1 = stream1.makeAsyncIterator()
-        var iterator2 = stream2.makeAsyncIterator()
-
-        await db.trigger(email: Email(
-            from: "yuzhi@graphql.org",
-            subject: "Alright",
-            message: "Tests are good",
-            unread: true
-        ))
-
-        let result1 = try await iterator1.next()
-        let result2 = try await iterator2.next()
-
-        let expected = GraphQLResult(
-            data: ["importantEmail": [
-                "email": [
-                    "from": "yuzhi@graphql.org",
-                    "subject": "Alright",
-                ],
-                "inbox": [
-                    "unread": 1,
-                    "total": 2,
-                ],
-            ]]
+                ]
+            ]
         )
 
         #expect(result1 == expected)
@@ -509,66 +557,78 @@ import Testing
     /// 'produces a payload per subscription event'
     @Test func payloadPerEvent() async throws {
         let db = EmailDb()
-        let stream = try await db.subscription(query: """
-            subscription ($priority: Int = 0) {
-                importantEmail(priority: $priority) {
-                  email {
-                    from
-                    subject
-                  }
-                  inbox {
-                    unread
-                    total
-                  }
-                }
-              }
-        """)
+        let stream = try await db.subscription(
+            query: """
+                    subscription ($priority: Int = 0) {
+                        importantEmail(priority: $priority) {
+                          email {
+                            from
+                            subject
+                          }
+                          inbox {
+                            unread
+                            total
+                          }
+                        }
+                      }
+                """
+        )
         var iterator = stream.makeAsyncIterator()
 
         // A new email arrives!
-        await db.trigger(email: Email(
-            from: "yuzhi@graphql.org",
-            subject: "Alright",
-            message: "Tests are good",
-            unread: true
-        ))
+        await db.trigger(
+            email: Email(
+                from: "yuzhi@graphql.org",
+                subject: "Alright",
+                message: "Tests are good",
+                unread: true
+            )
+        )
         let result1 = try await iterator.next()
         #expect(
-            result1 == GraphQLResult(
-                data: ["importantEmail": [
-                    "email": [
-                        "from": "yuzhi@graphql.org",
-                        "subject": "Alright",
-                    ],
-                    "inbox": [
-                        "unread": 1,
-                        "total": 2,
-                    ],
-                ]]
-            )
+            result1
+                == GraphQLResult(
+                    data: [
+                        "importantEmail": [
+                            "email": [
+                                "from": "yuzhi@graphql.org",
+                                "subject": "Alright",
+                            ],
+                            "inbox": [
+                                "unread": 1,
+                                "total": 2,
+                            ],
+                        ]
+                    ]
+                )
         )
 
         // Another new email arrives
-        await db.trigger(email: Email(
-            from: "hyo@graphql.org",
-            subject: "Tools",
-            message: "I <3 making things",
-            unread: true
-        ))
+        await db.trigger(
+            email: Email(
+                from: "hyo@graphql.org",
+                subject: "Tools",
+                message: "I <3 making things",
+                unread: true
+            )
+        )
         let result2 = try await iterator.next()
         #expect(
-            result2 == GraphQLResult(
-                data: ["importantEmail": [
-                    "email": [
-                        "from": "hyo@graphql.org",
-                        "subject": "Tools",
-                    ],
-                    "inbox": [
-                        "unread": 2,
-                        "total": 3,
-                    ],
-                ]]
-            )
+            result2
+                == GraphQLResult(
+                    data: [
+                        "importantEmail": [
+                            "email": [
+                                "from": "hyo@graphql.org",
+                                "subject": "Tools",
+                            ],
+                            "inbox": [
+                                "unread": 2,
+                                "total": 3,
+                            ],
+                        ]
+                    ]
+                )
         )
     }
 
@@ -576,78 +636,90 @@ import Testing
     /// This is not in the graphql-js tests.
     @Test func arguments() async throws {
         let db = EmailDb()
-        let stream = try await db.subscription(query: """
-            subscription ($priority: Int = 5) {
-                importantEmail(priority: $priority) {
-                  email {
-                    from
-                    subject
-                  }
-                  inbox {
-                    unread
-                    total
-                  }
-                }
-              }
-        """)
+        let stream = try await db.subscription(
+            query: """
+                    subscription ($priority: Int = 5) {
+                        importantEmail(priority: $priority) {
+                          email {
+                            from
+                            subject
+                          }
+                          inbox {
+                            unread
+                            total
+                          }
+                        }
+                      }
+                """
+        )
         var iterator = stream.makeAsyncIterator()
         var results = [GraphQLResult?]()
         var expected = [GraphQLResult]()
 
-        await db.trigger(email: Email(
-            from: "yuzhi@graphql.org",
-            subject: "Alright",
-            message: "Tests are good",
-            unread: true,
-            priority: 7
-        ))
+        await db.trigger(
+            email: Email(
+                from: "yuzhi@graphql.org",
+                subject: "Alright",
+                message: "Tests are good",
+                unread: true,
+                priority: 7
+            )
+        )
         expected.append(
             GraphQLResult(
-                data: ["importantEmail": [
-                    "email": [
-                        "from": "yuzhi@graphql.org",
-                        "subject": "Alright",
-                    ],
-                    "inbox": [
-                        "unread": 1,
-                        "total": 2,
-                    ],
-                ]]
+                data: [
+                    "importantEmail": [
+                        "email": [
+                            "from": "yuzhi@graphql.org",
+                            "subject": "Alright",
+                        ],
+                        "inbox": [
+                            "unread": 1,
+                            "total": 2,
+                        ],
+                    ]
+                ]
             )
         )
         try await results.append(iterator.next())
         #expect(results == expected)
 
         // Low priority email shouldn't trigger an event
-        await db.trigger(email: Email(
-            from: "hyo@graphql.org",
-            subject: "Not Important",
-            message: "Ignore this email",
-            unread: true,
-            priority: 2
-        ))
+        await db.trigger(
+            email: Email(
+                from: "hyo@graphql.org",
+                subject: "Not Important",
+                message: "Ignore this email",
+                unread: true,
+                priority: 2
+            )
+        )
         #expect(results == expected)
 
         // Higher priority one should trigger again
-        await db.trigger(email: Email(
-            from: "hyo@graphql.org",
-            subject: "Tools",
-            message: "I <3 making things",
-            unread: true,
-            priority: 5
-        ))
+        await db.trigger(
+            email: Email(
+                from: "hyo@graphql.org",
+                subject: "Tools",
+                message: "I <3 making things",
+                unread: true,
+                priority: 5
+            )
+        )
         expected.append(
             GraphQLResult(
-                data: ["importantEmail": [
-                    "email": [
-                        "from": "hyo@graphql.org",
-                        "subject": "Tools",
-                    ],
-                    "inbox": [
-                        "unread": 3,
-                        "total": 4,
-                    ],
-                ]]
+                data: [
+                    "importantEmail": [
+                        "email": [
+                            "from": "hyo@graphql.org",
+                            "subject": "Tools",
+                        ],
+                        "inbox": [
+                            "unread": 3,
+                            "total": 4,
+                        ],
+                    ]
+                ]
             )
         )
         try await results.append(iterator.next())
@@ -657,42 +729,48 @@ import Testing
     /// 'should not trigger when subscription is already done'
     @Test func noTriggerAfterDone() async throws {
         let db = EmailDb()
-        let stream = try await db.subscription(query: """
-            subscription ($priority: Int = 0) {
-                importantEmail(priority: $priority) {
-                  email {
-                    from
-                    subject
-                  }
-                  inbox {
-                    unread
-                    total
-                  }
-                }
-              }
-        """)
+        let stream = try await db.subscription(
+            query: """
+                    subscription ($priority: Int = 0) {
+                        importantEmail(priority: $priority) {
+                          email {
+                            from
+                            subject
+                          }
+                          inbox {
+                            unread
+                            total
+                          }
+                        }
+                      }
+                """
+        )
         var iterator = stream.makeAsyncIterator()
         var results = [GraphQLResult?]()
         var expected = [GraphQLResult]()
 
-        await db.trigger(email: Email(
-            from: "yuzhi@graphql.org",
-            subject: "Alright",
-            message: "Tests are good",
-            unread: true
-        ))
+        await db.trigger(
+            email: Email(
+                from: "yuzhi@graphql.org",
+                subject: "Alright",
+                message: "Tests are good",
+                unread: true
+            )
+        )
         expected.append(
             GraphQLResult(
-                data: ["importantEmail": [
-                    "email": [
-                        "from": "yuzhi@graphql.org",
-                        "subject": "Alright",
-                    ],
-                    "inbox": [
-                        "unread": 1,
-                        "total": 2,
-                    ],
-                ]]
+                data: [
+                    "importantEmail": [
+                        "email": [
+                            "from": "yuzhi@graphql.org",
+                            "subject": "Alright",
+                        ],
+                        "inbox": [
+                            "unread": 1,
+                            "total": 2,
+                        ],
+                    ]
+                ]
             )
         )
         try await results.append(iterator.next())
@@ -701,12 +779,14 @@ import Testing
         await db.stop()
 
         // This should not trigger an event.
-        await db.trigger(email: Email(
-            from: "hyo@graphql.org",
-            subject: "Tools",
-            message: "I <3 making things",
-            unread: true
-        ))
+        await db.trigger(
+            email: Email(
+                from: "hyo@graphql.org",
+                subject: "Tools",
+                message: "I <3 making things",
+                unread: true
+            )
+        )
         // Ensure that the current result was the one before the db was stopped
         #expect(results == expected)
     }
@@ -717,53 +797,65 @@ import Testing
     /// 'event order is correct for multiple publishes'
     @Test func orderCorrectForMultiplePublishes() async throws {
         let db = EmailDb()
-        let stream = try await db.subscription(query: """
-            subscription ($priority: Int = 0) {
-                importantEmail(priority: $priority) {
-                  email {
-                    from
-                    subject
-                  }
-                }
-              }
-        """)
+        let stream = try await db.subscription(
+            query: """
+                    subscription ($priority: Int = 0) {
+                        importantEmail(priority: $priority) {
+                          email {
+                            from
+                            subject
+                          }
+                        }
+                      }
+                """
+        )
         var iterator = stream.makeAsyncIterator()
 
-        await db.trigger(email: Email(
-            from: "yuzhi@graphql.org",
-            subject: "Alright",
-            message: "Tests are good",
-            unread: true
-        ))
-        await db.trigger(email: Email(
-            from: "yuzhi@graphql.org",
-            subject: "Message 2",
-            message: "Tests are good 2",
-            unread: true
-        ))
+        await db.trigger(
+            email: Email(
+                from: "yuzhi@graphql.org",
+                subject: "Alright",
+                message: "Tests are good",
+                unread: true
+            )
+        )
+        await db.trigger(
+            email: Email(
+                from: "yuzhi@graphql.org",
+                subject: "Message 2",
+                message: "Tests are good 2",
+                unread: true
+            )
+        )
 
         let result1 = try await iterator.next()
         let result2 = try await iterator.next()
 
         #expect(
-            result1 == GraphQLResult(
-                data: ["importantEmail": [
-                    "email": [
-                        "from": "yuzhi@graphql.org",
-                        "subject": "Alright",
-                    ],
-                ]]
-            )
+            result1
+                == GraphQLResult(
+                    data: [
+                        "importantEmail": [
+                            "email": [
+                                "from": "yuzhi@graphql.org",
+                                "subject": "Alright",
+                            ]
+                        ]
+                    ]
+                )
         )
         #expect(
-            result2 == GraphQLResult(
-                data: ["importantEmail": [
-                    "email": [
-                        "from": "yuzhi@graphql.org",
-                        "subject": "Message 2",
-                    ],
-                ]]
-            )
+            result2
+                == GraphQLResult(
+                    data: [
+                        "importantEmail": [
+                            "email": [
+                                "from": "yuzhi@graphql.org",
+                                "subject": "Message 2",
+                            ]
+                        ]
+                    ]
+                )
         )
     }
 
@@ -778,7 +870,7 @@ import Testing
                         message: "Source is not Email type: \(type(of: emailAny))"
                     )
                 }
-                if email.subject == "Goodbye" { // Force the system to fail here.
+                if email.subject == "Goodbye" {  // Force the system to fail here.
                     throw GraphQLError(message: "Never leave.")
                 }
                 return EmailEvent(
@@ -791,49 +883,58 @@ import Testing
             }
         )
 
-        let stream = try await createSubscription(schema: schema, query: """
-            subscription {
-                importantEmail {
-                    email {
-                        subject
+        let stream = try await createSubscription(
+            schema: schema,
+            query: """
+                    subscription {
+                        importantEmail {
+                            email {
+                                subject
+                            }
+                        }
                     }
-                }
-            }
-        """)
+                """
+        )
         var iterator = stream.makeAsyncIterator()
         var results = [GraphQLResult?]()
         var expected = [GraphQLResult]()
 
-        await db.trigger(email: Email(
-            from: "yuzhi@graphql.org",
-            subject: "Hello",
-            message: "Tests are good",
-            unread: true
-        ))
+        await db.trigger(
+            email: Email(
+                from: "yuzhi@graphql.org",
+                subject: "Hello",
+                message: "Tests are good",
+                unread: true
+            )
+        )
         expected.append(
             GraphQLResult(
-                data: ["importantEmail": [
-                    "email": [
-                        "subject": "Hello",
-                    ],
-                ]]
+                data: [
+                    "importantEmail": [
+                        "email": [
+                            "subject": "Hello"
+                        ]
+                    ]
+                ]
             )
         )
         try await results.append(iterator.next())
         #expect(results == expected)
 
         // An error in execution is presented as such.
-        await db.trigger(email: Email(
-            from: "yuzhi@graphql.org",
-            subject: "Goodbye",
-            message: "Tests are good",
-            unread: true
-        ))
+        await db.trigger(
+            email: Email(
+                from: "yuzhi@graphql.org",
+                subject: "Goodbye",
+                message: "Tests are good",
+                unread: true
+            )
+        )
         expected.append(
             GraphQLResult(
                 data: ["importantEmail": nil],
                 errors: [
-                    GraphQLError(message: "Never leave."),
+                    GraphQLError(message: "Never leave.")
                 ]
             )
         )
@@ -842,19 +943,23 @@ import Testing
 
         // However that does not close the response event stream. Subsequent events are still
         // executed.
-        await db.trigger(email: Email(
-            from: "yuzhi@graphql.org",
-            subject: "Bonjour",
-            message: "Tests are good",
-            unread: true
-        ))
+        await db.trigger(
+            email: Email(
+                from: "yuzhi@graphql.org",
+                subject: "Bonjour",
+                message: "Tests are good",
+                unread: true
+            )
+        )
         expected.append(
             GraphQLResult(
-                data: ["importantEmail": [
-                    "email": [
-                        "subject": "Bonjour",
-                    ],
-                ]]
+                data: [
+                    "importantEmail": [
+                        "email": [
+                            "subject": "Bonjour"
+                        ]
+                    ]
+                ]
             )
         )
         try await results.append(iterator.next())

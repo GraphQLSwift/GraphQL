@@ -1,22 +1,19 @@
 import OrderedCollections
 
-/**
- * Produces a JavaScript value given a GraphQL Value AST.
- *
- * Unlike `valueFromAST()`, no type is provided. The resulting map
- * will reflect the provided GraphQL value AST.
- *
- * | GraphQL Value        | Map Value |
- * | -------------------- | ---------------- |
- * | Input Object         | .dictionary           |
- * | List                 | .array            |
- * | Boolean              | .boolean          |
- * | String / Enum        | .string           |
- * | Int                  | .int          |
- * | Float                | .float        |
- * | Null                 | .null             |
- *
- */
+/// Produces a JavaScript value given a GraphQL Value AST.
+///
+/// Unlike `valueFromAST()`, no type is provided. The resulting map
+/// will reflect the provided GraphQL value AST.
+///
+/// | GraphQL Value        | Map Value |
+/// | -------------------- | ---------------- |
+/// | Input Object         | .dictionary           |
+/// | List                 | .array            |
+/// | Boolean              | .boolean          |
+/// | String / Enum        | .string           |
+/// | Int                  | .int          |
+/// | Float                | .float        |
+/// | Null                 | .null             |
 public func valueFromASTUntyped(
     valueAST: Value,
     variables: [String: Map] = [:]
@@ -41,10 +38,12 @@ public func valueFromASTUntyped(
     case let value as BooleanValue:
         return .bool(value.value)
     case let value as ListValue:
-        let array = try value.values.map { try valueFromASTUntyped(
-            valueAST: $0,
-            variables: variables
-        ) }
+        let array = try value.values.map {
+            try valueFromASTUntyped(
+                valueAST: $0,
+                variables: variables
+            )
+        }
         return .array(array)
     case let value as ObjectValue:
         var dictionary = OrderedDictionary<String, Map>()

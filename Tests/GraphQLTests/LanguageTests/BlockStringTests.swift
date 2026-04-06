@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct PrintBlockStringTests {
     @Test func doesNotEscapeCharacters() {
@@ -16,15 +17,14 @@ import Testing
         let str = "triple quotation \"\"\""
         #expect(printBlockString(str) == "\"\"\"\ntriple quotation \\\"\"\"\n\"\"\"")
         #expect(
-            printBlockString(str, minimize: true) ==
-                "\"\"\"triple quotation \\\"\"\"\"\"\""
+            printBlockString(str, minimize: true) == "\"\"\"triple quotation \\\"\"\"\"\"\""
         )
     }
 
     @Test func correctlyPrintsSingleLineWithLeadingSpace() {
         #expect(
-            printBlockString("    space-led value \"quoted string\"") ==
-                "\"\"\"    space-led value \"quoted string\"\n\"\"\""
+            printBlockString("    space-led value \"quoted string\"")
+                == "\"\"\"    space-led value \"quoted string\"\n\"\"\""
         )
     }
 
@@ -38,8 +38,7 @@ import Testing
         let str = "no indent\n with indent"
         #expect(printBlockString(str) == "\"\"\"\nno indent\n with indent\n\"\"\"")
         #expect(
-            printBlockString(str, minimize: true) ==
-                "\"\"\"\nno indent\n with indent\"\"\""
+            printBlockString(str, minimize: true) == "\"\"\"\nno indent\n with indent\"\"\""
         )
     }
 
@@ -52,22 +51,24 @@ import Testing
         ].joined(separator: "\n")
 
         #expect(
-            printBlockString(str) == [
-                "\"\"\"",
-                "    first  ",
-                "  line     ",
-                "indentation",
-                "     string",
-                "\"\"\"",
-            ].joined(separator: "\n")
+            printBlockString(str)
+                == [
+                    "\"\"\"",
+                    "    first  ",
+                    "  line     ",
+                    "indentation",
+                    "     string",
+                    "\"\"\"",
+                ].joined(separator: "\n")
         )
         #expect(
-            printBlockString(str, minimize: true) == [
-                "\"\"\"    first  ",
-                "  line     ",
-                "indentation",
-                "     string\"\"\"",
-            ].joined(separator: "\n")
+            printBlockString(str, minimize: true)
+                == [
+                    "\"\"\"    first  ",
+                    "  line     ",
+                    "indentation",
+                    "     string\"\"\"",
+                ].joined(separator: "\n")
         )
     }
 }

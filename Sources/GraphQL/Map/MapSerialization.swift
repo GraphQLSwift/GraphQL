@@ -26,14 +26,16 @@ public struct MapSerialization {
             return .array(array)
         case let dictionary as NSDictionary:
             // Extract from an unordered dictionary, using NSDictionary extraction order
-            let orderedDictionary: OrderedDictionary<String, Map> = try dictionary
+            let orderedDictionary: OrderedDictionary<String, Map> =
+                try dictionary
                 .reduce(into: [:]) { dictionary, pair in
                     guard let key = pair.key as? String else {
                         throw EncodingError.invalidValue(
                             dictionary,
                             EncodingError.Context(
                                 codingPath: [],
-                                debugDescription: "Dictionary key was not string: \(pair.key) in \(dictionary)"
+                                debugDescription:
+                                    "Dictionary key was not string: \(pair.key) in \(dictionary)"
                             )
                         )
                     }
@@ -42,7 +44,8 @@ public struct MapSerialization {
                             dictionary,
                             EncodingError.Context(
                                 codingPath: [],
-                                debugDescription: "Dictionary value was not an object: \(key) in \(dictionary)"
+                                debugDescription:
+                                    "Dictionary value was not an object: \(key) in \(dictionary)"
                             )
                         )
                     }
@@ -67,20 +70,21 @@ public struct MapSerialization {
                 self,
                 EncodingError.Context(
                     codingPath: [],
-                    debugDescription: "undefined values should have been excluded from serialization"
+                    debugDescription:
+                        "undefined values should have been excluded from serialization"
                 )
             )
         case .null:
             return NSNull()
-        case let .bool(value):
+        case .bool(let value):
             return value as NSObject
-        case var .number(number):
+        case .number(var number):
             return number.number
-        case let .string(string):
+        case .string(let string):
             return string as NSString
-        case let .array(array):
+        case .array(let array):
             return try array.map { try object(with: $0) } as NSArray
-        case let .dictionary(dictionary):
+        case .dictionary(let dictionary):
             // Coerce to an unordered dictionary
             var unorderedDictionary: [String: NSObject] = [:]
             for (key, value) in dictionary {

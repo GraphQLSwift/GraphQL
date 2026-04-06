@@ -1,4 +1,3 @@
-
 public struct GraphQLResult: Equatable, Codable, Sendable, CustomStringConvertible {
     public var data: Map?
     public var errors: [GraphQLError]
@@ -152,11 +151,11 @@ public func graphql<Retrieval: PersistedQueryRetrieval>(
     switch try queryRetrieval.lookup(queryId) {
     case .unknownId:
         throw GraphQLError(message: "Unknown query id")
-    case let .parseError(parseError):
+    case .parseError(let parseError):
         throw parseError
-    case let .validateErrors(_, validationErrors):
+    case .validateErrors(_, let validationErrors):
         return GraphQLResult(errors: validationErrors)
-    case let .result(schema, documentAST):
+    case .result(let schema, let documentAST):
         return try await execute(
             schema: schema,
             documentAST: documentAST,

@@ -1,6 +1,7 @@
 import Foundation
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct ParserTests {
     @Test func errorMessages() throws {
@@ -9,12 +10,12 @@ import Testing
         var error = try expectGraphQLError { try parse(source: "{") }
         #expect(
             error.message == """
-            Syntax Error GraphQL (1:2) Expected Name, found <EOF>
+                Syntax Error GraphQL (1:2) Expected Name, found <EOF>
 
-             1: {
-                 ^
+                 1: {
+                     ^
 
-            """
+                """
         )
         #expect(error.positions == [1])
         #expect(error.locations[0].line == 1)
@@ -23,71 +24,93 @@ import Testing
         error = try expectGraphQLError {
             try parse(source: "{ ...MissingOn }\nfragment MissingOn Type\n")
         }
-        #expect(error.message.contains(
-            "Syntax Error GraphQL (2:20) Expected \"on\", found Name \"Type\""
-        ))
+        #expect(
+            error.message.contains(
+                "Syntax Error GraphQL (2:20) Expected \"on\", found Name \"Type\""
+            )
+        )
 
         error = try expectGraphQLError { try parse(source: "{ field: {} }") }
-        #expect(error.message.contains(
-            "Syntax Error GraphQL (1:10) Expected Name, found {"
-        ))
+        #expect(
+            error.message.contains(
+                "Syntax Error GraphQL (1:10) Expected Name, found {"
+            )
+        )
 
         error = try expectGraphQLError {
             try parse(source: "notanoperation Foo { field }")
         }
-        #expect(error.message.contains(
-            "Syntax Error GraphQL (1:1) Unexpected Name \"notanoperation\""
-        ))
+        #expect(
+            error.message.contains(
+                "Syntax Error GraphQL (1:1) Unexpected Name \"notanoperation\""
+            )
+        )
 
         error = try expectGraphQLError { try parse(source: "...") }
-        #expect(error.message.contains(
-            "Syntax Error GraphQL (1:1) Unexpected ..."
-        ))
+        #expect(
+            error.message.contains(
+                "Syntax Error GraphQL (1:1) Unexpected ..."
+            )
+        )
 
         error = try expectGraphQLError {
-            try parse(source: Source(
-                body: "query",
-                name: "MyQuery.graphql"
-            ))
+            try parse(
+                source: Source(
+                    body: "query",
+                    name: "MyQuery.graphql"
+                )
+            )
         }
-        #expect(error.message.contains(
-            "Syntax Error MyQuery.graphql (1:6) Expected {, found <EOF>"
-        ))
+        #expect(
+            error.message.contains(
+                "Syntax Error MyQuery.graphql (1:6) Expected {, found <EOF>"
+            )
+        )
 
         source = "query Foo($x: Complex = { a: { b: [ $var ] } }) { field }"
 
         error = try expectGraphQLError { try parse(source: source) }
-        #expect(error.message.contains(
-            "Syntax Error GraphQL (1:37) Unexpected $"
-        ))
+        #expect(
+            error.message.contains(
+                "Syntax Error GraphQL (1:37) Unexpected $"
+            )
+        )
 
         error = try expectGraphQLError {
             try parse(source: "fragment on on on { on }")
         }
-        #expect(error.message.contains(
-            "Syntax Error GraphQL (1:10) Unexpected Name \"on\""
-        ))
+        #expect(
+            error.message.contains(
+                "Syntax Error GraphQL (1:10) Unexpected Name \"on\""
+            )
+        )
 
         error = try expectGraphQLError { try parse(source: "{ ...on }") }
-        #expect(error.message.contains(
-            "Syntax Error GraphQL (1:9) Expected Name, found }"
-        ))
+        #expect(
+            error.message.contains(
+                "Syntax Error GraphQL (1:9) Expected Name, found }"
+            )
+        )
 
         error = try expectGraphQLError {
             try parse(
                 source: "type WithImplementsButNoTypes implements {}"
             )
         }
-        #expect(error.message.contains(
-            "Syntax Error GraphQL (1:42) Expected Name, found {"
-        ))
+        #expect(
+            error.message.contains(
+                "Syntax Error GraphQL (1:42) Expected Name, found {"
+            )
+        )
 
         error = try expectGraphQLError {
             try parse(source: "type WithImplementsWithTrailingAmp implements AInterface & {}")
         }
-        #expect(error.message.contains(
-            "Syntax Error GraphQL (1:60) Expected Name, found {"
-        ))
+        #expect(
+            error.message.contains(
+                "Syntax Error GraphQL (1:60) Expected Name, found {"
+            )
+        )
     }
 
     @Test func variableInlineValues() throws {
@@ -96,17 +119,17 @@ import Testing
 
     @Test func fieldWithArguments() throws {
         let query = """
-        {
-          stringArgField(stringArg: "Hello World")
-          intArgField(intArg: 1)
-          floatArgField(floatArg: 3.14)
-          falseArgField(boolArg: false)
-          trueArgField(boolArg: true)
-          nullArgField(value: null)
-          enumArgField(enumArg: VALUE)
-          multipleArgs(arg1: 1, arg2: false, arg3: THIRD)
-        }
-        """
+            {
+              stringArgField(stringArg: "Hello World")
+              intArgField(intArg: 1)
+              floatArgField(floatArg: 3.14)
+              falseArgField(boolArg: false)
+              trueArgField(boolArg: true)
+              nullArgField(value: null)
+              enumArgField(enumArg: VALUE)
+              multipleArgs(arg1: 1, arg2: false, arg3: THIRD)
+            }
+            """
 
         let expected = Document(
             definitions: [
@@ -120,7 +143,7 @@ import Testing
                                     Argument(
                                         name: Name(value: "stringArg"),
                                         value: StringValue(value: "Hello World", block: false)
-                                    ),
+                                    )
                                 ]
                             ),
                             Field(
@@ -129,7 +152,7 @@ import Testing
                                     Argument(
                                         name: Name(value: "intArg"),
                                         value: IntValue(value: "1")
-                                    ),
+                                    )
                                 ]
                             ),
                             Field(
@@ -138,7 +161,7 @@ import Testing
                                     Argument(
                                         name: Name(value: "floatArg"),
                                         value: FloatValue(value: "3.14")
-                                    ),
+                                    )
                                 ]
                             ),
                             Field(
@@ -147,7 +170,7 @@ import Testing
                                     Argument(
                                         name: Name(value: "boolArg"),
                                         value: BooleanValue(value: false)
-                                    ),
+                                    )
                                 ]
                             ),
                             Field(
@@ -156,7 +179,7 @@ import Testing
                                     Argument(
                                         name: Name(value: "boolArg"),
                                         value: BooleanValue(value: true)
-                                    ),
+                                    )
                                 ]
                             ),
                             Field(
@@ -165,7 +188,7 @@ import Testing
                                     Argument(
                                         name: Name(value: "value"),
                                         value: NullValue()
-                                    ),
+                                    )
                                 ]
                             ),
                             Field(
@@ -174,7 +197,7 @@ import Testing
                                     Argument(
                                         name: Name(value: "enumArg"),
                                         value: EnumValue(value: "VALUE")
-                                    ),
+                                    )
                                 ]
                             ),
                             Field(
@@ -196,7 +219,7 @@ import Testing
                             ),
                         ]
                     )
-                ),
+                )
             ]
         )
 
@@ -204,27 +227,27 @@ import Testing
         #expect(document == expected)
     }
 
-//      it('parses multi-byte characters', async () => {
-//    // Note: \u0A0A could be naively interpretted as two line-feed chars.
-//    expect(
-//      parse(`
-//        # This comment has a \u0A0A multi-byte character.
-//        { field(arg: "Has a \u0A0A multi-byte character.") }
-//      `)
-//    ).to.containSubset({
-//      definitions: [ {
-//        selectionSet: {
-//          selections: [ {
-//            arguments: [ {
-//              value: {
-//                kind: Kind.STRING,
-//                value: 'Has a \u0A0A multi-byte character.'
-//              }
-//            } ]
-//          } ]
-//        }
-//      } ]
-//    });
+    //      it('parses multi-byte characters', async () => {
+    //    // Note: \u0A0A could be naively interpretted as two line-feed chars.
+    //    expect(
+    //      parse(`
+    //        # This comment has a \u0A0A multi-byte character.
+    //        { field(arg: "Has a \u0A0A multi-byte character.") }
+    //      `)
+    //    ).to.containSubset({
+    //      definitions: [ {
+    //        selectionSet: {
+    //          selections: [ {
+    //            arguments: [ {
+    //              value: {
+    //                kind: Kind.STRING,
+    //                value: 'Has a \u0A0A multi-byte character.'
+    //              }
+    //            } ]
+    //          } ]
+    //        }
+    //      } ]
+    //    });
     //  });
 
     enum ParserTestsError: Error {
@@ -262,56 +285,41 @@ import Testing
             }
 
             _ = try parse(
-                source: "query \(nonKeyword) {" +
-                    "... \(fragmentName)" +
-                    "... on \(nonKeyword) { field }" +
-                    "}" +
-                    "fragment \(fragmentName) on Type {" +
-                    "\(nonKeyword)(\(nonKeyword): $\(nonKeyword)) @\(nonKeyword)(\(nonKeyword): \(nonKeyword))" +
-                    "}"
+                source: "query \(nonKeyword) {" + "... \(fragmentName)"
+                    + "... on \(nonKeyword) { field }"
+                    + "}" + "fragment \(fragmentName) on Type {"
+                    + "\(nonKeyword)(\(nonKeyword): $\(nonKeyword)) @\(nonKeyword)(\(nonKeyword): \(nonKeyword))"
+                    + "}"
             )
         }
     }
 
     @Test func anonymousMutationOperation() throws {
         _ = try parse(
-            source: "mutation {" +
-                "  mutationField" +
-                "}"
+            source: "mutation {" + "  mutationField" + "}"
         )
     }
 
     @Test func anonymousSubscriptionOperation() throws {
         _ = try parse(
-            source: "subscription {" +
-                "  subscriptionField" +
-                "}"
+            source: "subscription {" + "  subscriptionField" + "}"
         )
     }
 
     @Test func namedMutationOperation() throws {
         _ = try parse(
-            source: "mutation Foo {" +
-                "  mutationField" +
-                "}"
+            source: "mutation Foo {" + "  mutationField" + "}"
         )
     }
 
     @Test func namedSubscriptionOperation() throws {
         _ = try parse(
-            source: "subscription Foo {" +
-                "  subscriptionField" +
-                "}"
+            source: "subscription Foo {" + "  subscriptionField" + "}"
         )
     }
 
     @Test func createAST() throws {
-        let query = "{" +
-            "  node(id: 4) {" +
-            "    id," +
-            "    name" +
-            "  }" +
-            "}"
+        let query = "{" + "  node(id: 4) {" + "    id," + "    name" + "  }" + "}"
 
         let expected = Document(
             definitions: [
@@ -325,7 +333,7 @@ import Testing
                                     Argument(
                                         name: Name(value: "id"),
                                         value: IntValue(value: "4")
-                                    ),
+                                    )
                                 ],
                                 selectionSet: SelectionSet(
                                     selections: [
@@ -333,10 +341,10 @@ import Testing
                                         Field(name: Name(value: "name")),
                                     ]
                                 )
-                            ),
+                            )
                         ]
                     )
-                ),
+                )
             ]
         )
 
@@ -429,11 +437,11 @@ import Testing
 
     @Test func parseDirective() throws {
         let source = #"""
-        directive @restricted(
-          """The reason for this restriction"""
-          reason: String = null
-        ) on FIELD_DEFINITION
-        """#
+            directive @restricted(
+              """The reason for this restriction"""
+              reason: String = null
+            ) on FIELD_DEFINITION
+            """#
 
         let expected = Document(definitions: [
             DirectiveDefinition(
@@ -448,12 +456,12 @@ import Testing
                         name: Name(value: "reason"),
                         type: NamedType(name: Name(value: "String")),
                         defaultValue: NullValue()
-                    ),
+                    )
                 ],
                 locations: [
-                    Name(value: "FIELD_DEFINITION"),
+                    Name(value: "FIELD_DEFINITION")
                 ]
-            ),
+            )
         ])
 
         let document = try parse(source: source)

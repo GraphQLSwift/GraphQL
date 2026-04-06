@@ -1,6 +1,7 @@
 import Foundation
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct PrinterTests {
     @Test func printMinimalAST() {
@@ -58,17 +59,17 @@ import Testing
 
     // Variable Directives are currently not support by this library
     // TODO: Add support for variable directives
-//    @Test func printsQueryWithVariableDirectives() throws {
-//        let document = try parse(source: "query ($foo: TestType = { a: 123 } @testDirective(if:
-//        true) @test) { id }")
-//        let expected =
-//        """
-//        query ($foo: TestType = { a: 123 } @testDirective(if: true) @test) {
-//          id
-//        }
-//        """
-//        #expect(print(ast: document) == expected)
-//    }
+    //    @Test func printsQueryWithVariableDirectives() throws {
+    //        let document = try parse(source: "query ($foo: TestType = { a: 123 } @testDirective(if:
+    //        true) @test) { id }")
+    //        let expected =
+    //        """
+    //        query ($foo: TestType = { a: 123 } @testDirective(if: true) @test) {
+    //          id
+    //        }
+    //        """
+    //        #expect(print(ast: document) == expected)
+    //    }
 
     @Test func keepsArgumentsOnOneLineIfLineIsShort() throws {
         let document = try parse(source: "{trip(wheelchair:false arriveBy:false){dateTime}}")
@@ -86,7 +87,8 @@ import Testing
     @Test func putsArgumentsOnMultipleLinesIfLineIsLong() throws {
         let document =
             try parse(
-                source: "{trip(wheelchair:false arriveBy:false includePlannedCancellations:true transitDistanceReluctance:2000){dateTime}}"
+                source:
+                    "{trip(wheelchair:false arriveBy:false includePlannedCancellations:true transitDistanceReluctance:2000){dateTime}}"
             )
         let expected =
             """
@@ -107,7 +109,8 @@ import Testing
     @Test func putsLargeObjectValuesOnMultipleLinesIfLineIsLong() throws {
         let document =
             try parse(
-                source: "{trip(obj:{wheelchair:false,smallObj:{a: 1},largeObj:{wheelchair:false,smallObj:{a: 1},arriveBy:false,includePlannedCancellations:true,transitDistanceReluctance:2000,anotherLongFieldName:\"Lots and lots and lots and lots of text\"},arriveBy:false,includePlannedCancellations:true,transitDistanceReluctance:2000,anotherLongFieldName:\"Lots and lots and lots and lots of text\"}){dateTime}}"
+                source:
+                    "{trip(obj:{wheelchair:false,smallObj:{a: 1},largeObj:{wheelchair:false,smallObj:{a: 1},arriveBy:false,includePlannedCancellations:true,transitDistanceReluctance:2000,anotherLongFieldName:\"Lots and lots and lots and lots of text\"},arriveBy:false,includePlannedCancellations:true,transitDistanceReluctance:2000,anotherLongFieldName:\"Lots and lots and lots and lots of text\"}){dateTime}}"
             )
         let expected =
             """
@@ -140,7 +143,8 @@ import Testing
     @Test func putsLargeListValuesOnMultipleLinesIfLineIsLong() throws {
         let document =
             try parse(
-                source: "{trip(list:[[\"small array\", \"small\", \"small\"], [\"Lots and lots and lots and lots of text\", \"Lots and lots and lots and lots of text\", \"Lots and lots and lots and lots of text\"]]){dateTime}}"
+                source:
+                    "{trip(list:[[\"small array\", \"small\", \"small\"], [\"Lots and lots and lots and lots of text\", \"Lots and lots and lots and lots of text\", \"Lots and lots and lots and lots of text\"]]){dateTime}}"
             )
         let expected =
             """

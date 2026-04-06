@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct GraphQLArgumentDefinitionTests {
     @Test func argumentWithNullableTypeIsNotARequiredArgument() {

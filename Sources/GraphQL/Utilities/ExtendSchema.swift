@@ -1,17 +1,15 @@
 import OrderedCollections
 
-/**
- * Produces a new schema given an existing schema and a document which may
- * contain GraphQL type extensions and definitions. The original schema will
- * remain unaltered.
- *
- * Because a schema represents a graph of references, a schema cannot be
- * extended without effectively making an entire copy. We do not know until it's
- * too late if subgraphs remain unchanged.
- *
- * This algorithm copies the provided schema, applying extensions while
- * producing the copy. The original schema remains unaltered.
- */
+/// Produces a new schema given an existing schema and a document which may
+/// contain GraphQL type extensions and definitions. The original schema will
+/// remain unaltered.
+///
+/// Because a schema represents a graph of references, a schema cannot be
+/// extended without effectively making an entire copy. We do not know until it's
+/// too late if subgraphs remain unchanged.
+///
+/// This algorithm copies the provided schema, applying extensions while
+/// producing the copy. The original schema remains unaltered.
 public func extendSchema(
     schema: GraphQLSchema,
     documentAST: Document,
@@ -63,14 +61,12 @@ func extendSchemaImpl(
         case .directiveDefinition:
             directiveDefs.append(def as! DirectiveDefinition)
         // Type Definitions
-        case
-            .scalarTypeDefinition,
+        case .scalarTypeDefinition,
             .objectTypeDefinition,
             .interfaceTypeDefinition,
             .unionTypeDefinition,
             .enumTypeDefinition,
-            .inputObjectTypeDefinition
-            :
+            .inputObjectTypeDefinition:
             typeDefs.append(def as! TypeDefinition)
         // Type System Extensions
         case .scalarExtensionDefinition:
@@ -608,7 +604,8 @@ func extendSchemaImpl(
         }
         guard let type = wrappedType as? GraphQLOutputType, checkType is GraphQLOutputType else {
             throw GraphQLError(
-                message: "The type of \(typeName.printed).\(field.name.printed) must be Output Type but got: \(field.type)."
+                message:
+                    "The type of \(typeName.printed).\(field.name.printed) must be Output Type but got: \(field.type)."
             )
         }
         return type
@@ -624,7 +621,8 @@ func extendSchemaImpl(
         for arg in argsNodes {
             guard let type = try getWrappedType(arg.type) as? GraphQLInputType else {
                 throw GraphQLError(
-                    message: "The type of \(methodFormat)(\(arg.name):) must be Input Type but got: \(print(ast: arg.type))."
+                    message:
+                        "The type of \(methodFormat)(\(arg.name):) must be Input Type but got: \(print(ast: arg.type))."
                 )
             }
 
@@ -648,7 +646,8 @@ func extendSchemaImpl(
                 let type = try getWrappedType(field.type)
                 guard let type = type as? GraphQLInputType else {
                     throw GraphQLError(
-                        message: "The type of \(node.name.printed).\(field.name.printed) must be Input Type but got: \(type)."
+                        message:
+                            "The type of \(node.name.printed).\(field.name.printed) must be Input Type but got: \(type)."
                     )
                 }
 
@@ -677,7 +676,8 @@ func extendSchemaImpl(
                 let type = try getWrappedType(field.type)
                 guard let type = type as? GraphQLInputType else {
                     throw GraphQLError(
-                        message: "The type of \(node.name.printed).\(field.name.printed) must be Input Type but got: \(type)."
+                        message:
+                            "The type of \(node.name.printed).\(field.name.printed) must be Input Type but got: \(type)."
                     )
                 }
 
@@ -695,7 +695,7 @@ func extendSchemaImpl(
     }
 
     func buildEnumValueMap(
-        nodes: [EnumTypeDefinition] // | EnumTypeExtension],
+        nodes: [EnumTypeDefinition]  // | EnumTypeExtension],
     ) throws -> GraphQLEnumValueMap {
         var enumValueMap = GraphQLEnumValueMap()
         for node in nodes {
@@ -766,7 +766,8 @@ func extendSchemaImpl(
             let namedType = try getNamedType(interface)
             guard let checkedInterface = namedType as? GraphQLInterfaceType else {
                 throw GraphQLError(
-                    message: "Type \(type.name.printed) must only implement Interface types, it cannot implement \(namedType.name)."
+                    message:
+                        "Type \(type.name.printed) must only implement Interface types, it cannot implement \(namedType.name)."
                 )
             }
             interfaces.append(checkedInterface)
@@ -780,7 +781,8 @@ func extendSchemaImpl(
             let namedType = try getNamedType(interface)
             guard let checkedInterface = namedType as? GraphQLInterfaceType else {
                 throw GraphQLError(
-                    message: "Type \(type.name.printed) must only implement Interface types, it cannot implement \(namedType.name)."
+                    message:
+                        "Type \(type.name.printed) must only implement Interface types, it cannot implement \(namedType.name)."
                 )
             }
             interfaces.append(checkedInterface)
@@ -810,7 +812,8 @@ func extendSchemaImpl(
             let namedType = try getNamedType(type)
             guard let checkedType = namedType as? GraphQLObjectType else {
                 throw GraphQLError(
-                    message: "Union type \(type.name.printed) can only include Object types, it cannot include \(namedType.name)."
+                    message:
+                        "Union type \(type.name.printed) can only include Object types, it cannot include \(namedType.name)."
                 )
             }
             types.append(checkedType)
@@ -939,7 +942,8 @@ func checkOperationType(
     let operationTypeStr = operationType.rawValue.capitalized
     let rootTypeStr = type.name
     guard let objectType = type as? GraphQLObjectType else {
-        let message = operationType == .query
+        let message =
+            operationType == .query
             ? "\(operationTypeStr) root type must be Object type, it cannot be \(rootTypeStr)."
             : "\(operationTypeStr) root type must be Object type, it cannot be \(rootTypeStr)."
         throw GraphQLError(message: message)
@@ -994,9 +998,7 @@ func getDeprecationReason(
     return deprecated?.dictionary?["reason"]?.string
 }
 
-/**
- * Given a scalar node, returns the string value for the specifiedByURL.
- */
+/// Given a scalar node, returns the string value for the specifiedByURL.
 func getSpecifiedByURL(
     node: ScalarTypeDefinition
 ) throws -> String? {
@@ -1017,9 +1019,7 @@ func getSpecifiedByURL(
     return specifiedBy?.dictionary?["url"]?.string
 }
 
-/**
- * Given an input object node, returns if the node should be OneOf.
- */
+/// Given an input object node, returns if the node should be OneOf.
 func isOneOf(node: InputObjectTypeDefinition) throws -> Bool {
     let isOneOf = try getDirectiveValues(
         directiveDef: GraphQLOneOfDirective,

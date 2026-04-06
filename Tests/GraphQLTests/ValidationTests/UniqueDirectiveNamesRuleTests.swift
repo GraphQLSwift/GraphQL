@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class UniqueDirectiveNamesRuleTests: SDLValidationTestCase {
     override init() {
@@ -63,7 +64,7 @@ class UniqueDirectiveNamesRuleTests: SDLValidationTestCase {
                         .init(line: 1, column: 12),
                         .init(line: 3, column: 12),
                     ]
-                ),
+                )
             ]
         )
     }
@@ -80,9 +81,10 @@ class UniqueDirectiveNamesRuleTests: SDLValidationTestCase {
             schema: schema,
             [
                 GraphQLError(
-                    message: #"Directive "@skip" already exists in the schema. It cannot be redefined."#,
+                    message:
+                        #"Directive "@skip" already exists in the schema. It cannot be redefined."#,
                     locations: [.init(line: 1, column: 12)]
-                ),
+                )
             ]
         )
     }
@@ -99,9 +101,10 @@ class UniqueDirectiveNamesRuleTests: SDLValidationTestCase {
             schema: schema,
             [
                 GraphQLError(
-                    message: #"Directive "@foo" already exists in the schema. It cannot be redefined."#,
+                    message:
+                        #"Directive "@foo" already exists in the schema. It cannot be redefined."#,
                     locations: [.init(line: 1, column: 12)]
-                ),
+                )
             ]
         )
     }

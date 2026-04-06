@@ -1,11 +1,8 @@
-
-/**
- * Unique fragment names
- *
- * A GraphQL document is only valid if all defined fragments have unique names.
- *
- * See https://spec.graphql.org/draft/#sec-Fragment-Name-Uniqueness
- */
+/// Unique fragment names
+///
+/// A GraphQL document is only valid if all defined fragments have unique names.
+///
+/// See https://spec.graphql.org/draft/#sec-Fragment-Name-Uniqueness
 func UniqueFragmentNamesRule(context: ValidationContext) -> Visitor {
     var knownFragmentNames = [String: Name]()
     return Visitor(
@@ -17,7 +14,8 @@ func UniqueFragmentNamesRule(context: ValidationContext) -> Visitor {
                 if let knownFragmentName = knownFragmentNames[fragmentName.value] {
                     context.report(
                         error: GraphQLError(
-                            message: "There can be only one fragment named \"\(fragmentName.value)\".",
+                            message:
+                                "There can be only one fragment named \"\(fragmentName.value)\".",
                             nodes: [knownFragmentName, fragmentName]
                         )
                     )

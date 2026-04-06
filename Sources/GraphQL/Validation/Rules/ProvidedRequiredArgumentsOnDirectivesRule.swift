@@ -1,4 +1,3 @@
-
 func ProvidedRequiredArgumentsOnDirectivesRule(
     context: SDLorNormalValidationContext
 ) -> Visitor {
@@ -40,7 +39,8 @@ func ProvidedRequiredArgumentsOnDirectivesRule(
                         if !argNodeMap.contains(argName) {
                             context.report(
                                 error: GraphQLError(
-                                    message: "Argument \"@\(directiveName)(\(argName):)\" of type \"\(argType)\" is required, but it was not provided.",
+                                    message:
+                                        "Argument \"@\(directiveName)(\(argName):)\" of type \"\(argType)\" is required, but it was not provided.",
                                     nodes: [directiveNode]
                                 )
                             )

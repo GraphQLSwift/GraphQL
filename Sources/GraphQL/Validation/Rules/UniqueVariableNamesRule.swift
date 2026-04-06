@@ -1,9 +1,6 @@
-
-/**
- * Unique variable names
- *
- * A GraphQL operation is only valid if all its variables are uniquely named.
- */
+/// Unique variable names
+///
+/// A GraphQL operation is only valid if all its variables are uniquely named.
 func UniqueVariableNamesRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
@@ -20,7 +17,8 @@ func UniqueVariableNamesRule(context: ValidationContext) -> Visitor {
                     if variableNodes.count > 1 {
                         context.report(
                             error: GraphQLError(
-                                message: "There can be only one variable named \"$\(variableName)\".",
+                                message:
+                                    "There can be only one variable named \"$\(variableName)\".",
                                 nodes: variableNodes.map { $0.variable.name }
                             )
                         )

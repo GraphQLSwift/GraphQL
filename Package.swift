@@ -5,16 +5,16 @@ let package = Package(
     name: "GraphQL",
     platforms: [.macOS(.v10_15), .iOS(.v13), .tvOS(.v13), .watchOS(.v6)],
     products: [
-        .library(name: "GraphQL", targets: ["GraphQL"]),
+        .library(name: "GraphQL", targets: ["GraphQL"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-collections", .upToNextMajor(from: "1.0.0")),
+        .package(url: "https://github.com/apple/swift-collections", .upToNextMajor(from: "1.0.0"))
     ],
     targets: [
         .target(
             name: "GraphQL",
             dependencies: [
-                .product(name: "OrderedCollections", package: "swift-collections"),
+                .product(name: "OrderedCollections", package: "swift-collections")
             ]
         ),
         .testTarget(

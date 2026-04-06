@@ -19,8 +19,7 @@ func undefinedArgumentMessage(
 func KnownArgumentNamesRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
-            if
-                let node = node as? Argument, context.argument == nil, let field = context.fieldDef,
+            if let node = node as? Argument, context.argument == nil, let field = context.fieldDef,
                 let type = context.parentType
             {
                 let argumentName = node.name.value
@@ -30,15 +29,17 @@ func KnownArgumentNamesRule(context: ValidationContext) -> Visitor {
                     argumentName: argumentName
                 )
 
-                context.report(error: GraphQLError(
-                    message: undefinedArgumentMessage(
-                        fieldName: field.name,
-                        type: type.name,
-                        argumentName: argumentName,
-                        suggestedArgumentNames: suggestedArgumentNames
-                    ),
-                    nodes: [node]
-                ))
+                context.report(
+                    error: GraphQLError(
+                        message: undefinedArgumentMessage(
+                            fieldName: field.name,
+                            type: type.name,
+                            argumentName: argumentName,
+                            suggestedArgumentNames: suggestedArgumentNames
+                        ),
+                        nodes: [node]
+                    )
+                )
             }
 
             return .continue

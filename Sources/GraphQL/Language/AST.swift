@@ -1,7 +1,5 @@
-/**
- * Contains a range of UTF-8 character offsets and token references that
- * identify the region of the source from which the AST derived.
- */
+/// Contains a range of UTF-8 character offsets and token references that
+/// identify the region of the source from which the AST derived.
 public struct Location: Equatable, Sendable {
     /**
      * The character offset at which this Node begins.
@@ -29,10 +27,8 @@ public struct Location: Equatable, Sendable {
     public let source: Source
 }
 
-/**
- * Represents a range of characters represented by a lexical token
- * within a Source.
- */
+/// Represents a range of characters represented by a lexical token
+/// within a Source.
 public final class Token: @unchecked Sendable {
     /// Token is sendable because it is not mutated after being Lexed, which is controlled
     /// internally.
@@ -121,12 +117,8 @@ public final class Token: @unchecked Sendable {
 
 extension Token: Equatable {
     public static func == (lhs: Token, rhs: Token) -> Bool {
-        return lhs.kind == rhs.kind &&
-            lhs.start == rhs.start &&
-            lhs.end == rhs.end &&
-            lhs.line == rhs.line &&
-            lhs.column == rhs.column &&
-            lhs.value == rhs.value
+        return lhs.kind == rhs.kind && lhs.start == rhs.start && lhs.end == rhs.end
+            && lhs.line == rhs.line && lhs.column == rhs.column && lhs.value == rhs.value
     }
 }
 
@@ -164,12 +156,12 @@ public enum NodeResult {
 
     func get(key: IndexPathElement) -> NodeResult? {
         switch self {
-        case let .node(node):
+        case .node(let node):
             guard let key = key.keyValue else {
                 return nil
             }
             return node.get(key: key)
-        case let .array(array):
+        case .array(let array):
             guard let key = key.indexValue else {
                 return nil
             }
@@ -179,29 +171,27 @@ public enum NodeResult {
 
     func set(value: NodeResult, key: IndexPathElement) -> Self? {
         switch self {
-        case let .node(node):
+        case .node(let node):
             guard let key = key.keyValue else {
                 return nil
             }
             return .node(node.set(value: value, key: key))
-        case var .array(array):
+        case .array(var array):
             switch value {
-            case let .node(value):
+            case .node(let value):
                 guard let key = key.indexValue else {
                     return nil
                 }
                 array[key] = value
                 return .array(array)
-            case let .array(value):
+            case .array(let value):
                 return .array(value)
             }
         }
     }
 }
 
-/**
- * The list of all possible AST node types.
- */
+/// The list of all possible AST node types.
 public protocol Node: Sendable {
     var kind: Kind { get }
     var loc: Location? { get }
@@ -209,12 +199,12 @@ public protocol Node: Sendable {
     func set(value: NodeResult?, key: String) -> Self
 }
 
-public extension Node {
-    func get(key _: String) -> NodeResult? {
+extension Node {
+    public func get(key _: String) -> NodeResult? {
         return nil
     }
 
-    func set(value _: NodeResult?, key _: String) -> Self {
+    public func set(value _: NodeResult?, key _: String) -> Self {
         // This should be overridden by each type on which it should do something
         return self
     }
@@ -305,7 +295,7 @@ public struct Document {
         switch key {
         case "definitions":
             guard
-                case let .array(values) = value,
+                case .array(let values) = value,
                 let definitions = values as? [Definition]
             else {
                 break
@@ -418,7 +408,7 @@ public final class OperationDefinition {
         switch key {
         case "name":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let name = node as? Name
             else {
                 return self
@@ -433,7 +423,7 @@ public final class OperationDefinition {
             )
         case "variableDefinitions":
             guard
-                case let .array(values) = value,
+                case .array(let values) = value,
                 let variableDefinitions = values as? [VariableDefinition]
             else {
                 return self
@@ -448,7 +438,7 @@ public final class OperationDefinition {
             )
         case "directives":
             guard
-                case let .array(values) = value,
+                case .array(let values) = value,
                 let directives = values as? [Directive]
             else {
                 return self
@@ -463,7 +453,7 @@ public final class OperationDefinition {
             )
         case "selectionSet":
             guard
-                case let .node(value) = value,
+                case .node(let value) = value,
                 let selectionSet = value as? SelectionSet
             else {
                 return self
@@ -488,11 +478,10 @@ extension OperationDefinition: Hashable {
     }
 
     public static func == (lhs: OperationDefinition, rhs: OperationDefinition) -> Bool {
-        return lhs.operation == rhs.operation &&
-            lhs.name == rhs.name &&
-            lhs.variableDefinitions == rhs.variableDefinitions &&
-            lhs.directives == rhs.directives &&
-            lhs.selectionSet == rhs.selectionSet
+        return lhs.operation == rhs.operation && lhs.name == rhs.name
+            && lhs.variableDefinitions == rhs.variableDefinitions
+            && lhs.directives == rhs.directives
+            && lhs.selectionSet == rhs.selectionSet
     }
 }
 
@@ -544,7 +533,7 @@ public struct VariableDefinition {
         switch key {
         case "variable":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let variable = node as? Variable
             else {
                 break
@@ -552,7 +541,7 @@ public struct VariableDefinition {
             new.variable = variable
         case "type":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let type = node as? Type
             else {
                 break
@@ -560,7 +549,7 @@ public struct VariableDefinition {
             new.type = type
         case "defaultValue":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let defaultValue = node as? Value?
             else {
                 break
@@ -568,7 +557,7 @@ public struct VariableDefinition {
             new.defaultValue = defaultValue
         case "directives":
             guard
-                case let .array(values) = value,
+                case .array(let values) = value,
                 let directives = values as? [Directive]
             else {
                 break
@@ -630,7 +619,7 @@ public struct Variable {
         switch key {
         case "name":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let name = node as? Name
             else {
                 break
@@ -678,7 +667,7 @@ public final class SelectionSet {
         switch key {
         case "selections":
             guard
-                case let .array(values) = value,
+                case .array(let values) = value,
                 let selections = values as? [Selection]
             else {
                 return self
@@ -795,7 +784,7 @@ public struct Field {
         switch key {
         case "alias":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let alias = node as? Name
             else {
                 break
@@ -803,7 +792,7 @@ public struct Field {
             new.alias = alias
         case "name":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let name = node as? Name
             else {
                 break
@@ -811,7 +800,7 @@ public struct Field {
             new.name = name
         case "arguments":
             guard
-                case let .array(values) = value,
+                case .array(let values) = value,
                 let arguments = values as? [Argument]
             else {
                 break
@@ -819,7 +808,7 @@ public struct Field {
             new.arguments = arguments
         case "directives":
             guard
-                case let .array(values) = value,
+                case .array(let values) = value,
                 let directives = values as? [Directive]
             else {
                 break
@@ -827,7 +816,7 @@ public struct Field {
             new.directives = directives
         case "selectionSet":
             guard
-                case let .node(value) = value,
+                case .node(let value) = value,
                 let selectionSet = value as? SelectionSet
             else {
                 break
@@ -842,11 +831,8 @@ public struct Field {
 
 extension Field: Equatable {
     public static func == (lhs: Field, rhs: Field) -> Bool {
-        return lhs.alias == rhs.alias &&
-            lhs.name == rhs.name &&
-            lhs.arguments == rhs.arguments &&
-            lhs.directives == rhs.directives &&
-            lhs.selectionSet == rhs.selectionSet
+        return lhs.alias == rhs.alias && lhs.name == rhs.name && lhs.arguments == rhs.arguments
+            && lhs.directives == rhs.directives && lhs.selectionSet == rhs.selectionSet
     }
 }
 
@@ -881,7 +867,7 @@ public struct Argument {
         switch key {
         case "name":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let name = node as? Name
             else {
                 break
@@ -889,7 +875,7 @@ public struct Argument {
             new.name = name
         case "value":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let value = node as? Value
             else {
                 break
@@ -904,8 +890,7 @@ public struct Argument {
 
 extension Argument: Equatable {
     public static func == (lhs: Argument, rhs: Argument) -> Bool {
-        return lhs.name == rhs.name &&
-            lhs.value == rhs.value
+        return lhs.name == rhs.name && lhs.value == rhs.value
     }
 }
 
@@ -947,7 +932,7 @@ public struct FragmentSpread {
         switch key {
         case "name":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let name = node as? Name
             else {
                 break
@@ -955,7 +940,7 @@ public struct FragmentSpread {
             new.name = name
         case "directives":
             guard
-                case let .array(values) = value,
+                case .array(let values) = value,
                 let directives = values as? [Directive]
             else {
                 break
@@ -970,8 +955,7 @@ public struct FragmentSpread {
 
 extension FragmentSpread: Equatable {
     public static func == (lhs: FragmentSpread, rhs: FragmentSpread) -> Bool {
-        return lhs.name == rhs.name &&
-            lhs.directives == rhs.directives
+        return lhs.name == rhs.name && lhs.directives == rhs.directives
     }
 }
 
@@ -1034,7 +1018,7 @@ public struct InlineFragment {
         switch key {
         case "typeCondition":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let typeCondition = node as? NamedType
             else {
                 break
@@ -1042,7 +1026,7 @@ public struct InlineFragment {
             new.typeCondition = typeCondition
         case "directives":
             guard
-                case let .array(values) = value,
+                case .array(let values) = value,
                 let directives = values as? [Directive]
             else {
                 break
@@ -1050,7 +1034,7 @@ public struct InlineFragment {
             new.directives = directives
         case "selectionSet":
             guard
-                case let .node(value) = value,
+                case .node(let value) = value,
                 let selectionSet = value as? SelectionSet
             else {
                 break
@@ -1065,9 +1049,8 @@ public struct InlineFragment {
 
 extension InlineFragment: Equatable {
     public static func == (lhs: InlineFragment, rhs: InlineFragment) -> Bool {
-        return lhs.typeCondition == rhs.typeCondition &&
-            lhs.directives == rhs.directives &&
-            lhs.selectionSet == rhs.selectionSet
+        return lhs.typeCondition == rhs.typeCondition && lhs.directives == rhs.directives
+            && lhs.selectionSet == rhs.selectionSet
     }
 }
 
@@ -1118,7 +1101,7 @@ public final class FragmentDefinition {
         switch key {
         case "name":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let name = node as? Name
             else {
                 return self
@@ -1132,7 +1115,7 @@ public final class FragmentDefinition {
             )
         case "typeCondition":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let typeCondition = node as? NamedType
             else {
                 return self
@@ -1146,7 +1129,7 @@ public final class FragmentDefinition {
             )
         case "directives":
             guard
-                case let .array(values) = value,
+                case .array(let values) = value,
                 let directives = values as? [Directive]
             else {
                 return self
@@ -1160,7 +1143,7 @@ public final class FragmentDefinition {
             )
         case "selectionSet":
             guard
-                case let .node(value) = value,
+                case .node(let value) = value,
                 let selectionSet = value as? SelectionSet
             else {
                 return self
@@ -1184,10 +1167,8 @@ extension FragmentDefinition: Hashable {
     }
 
     public static func == (lhs: FragmentDefinition, rhs: FragmentDefinition) -> Bool {
-        return lhs.name == rhs.name &&
-            lhs.typeCondition == rhs.typeCondition &&
-            lhs.directives == rhs.directives &&
-            lhs.selectionSet == rhs.selectionSet
+        return lhs.name == rhs.name && lhs.typeCondition == rhs.typeCondition
+            && lhs.directives == rhs.directives && lhs.selectionSet == rhs.selectionSet
     }
 }
 
@@ -1376,7 +1357,7 @@ public struct ListValue {
         switch key {
         case "values":
             guard
-                case let .array(values) = value,
+                case .array(let values) = value,
                 let values = values as? [Value]
             else {
                 break
@@ -1432,7 +1413,7 @@ public struct ObjectValue {
         switch key {
         case "fields":
             guard
-                case let .array(values) = value,
+                case .array(let values) = value,
                 let fields = values as? [ObjectField]
             else {
                 break
@@ -1482,7 +1463,7 @@ public struct ObjectField {
         switch key {
         case "name":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let name = node as? Name
             else {
                 break
@@ -1490,7 +1471,7 @@ public struct ObjectField {
             new.name = name
         case "value":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let value = node as? Value
             else {
                 break
@@ -1505,8 +1486,7 @@ public struct ObjectField {
 
 extension ObjectField: Equatable {
     public static func == (lhs: ObjectField, rhs: ObjectField) -> Bool {
-        return lhs.name == rhs.name &&
-            lhs.value == rhs.value
+        return lhs.name == rhs.name && lhs.value == rhs.value
     }
 }
 
@@ -1541,7 +1521,7 @@ public struct Directive: Sendable {
         switch key {
         case "name":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let name = node as? Name
             else {
                 break
@@ -1549,7 +1529,7 @@ public struct Directive: Sendable {
             new.name = name
         case "arguments":
             guard
-                case let .array(nodes) = value,
+                case .array(let nodes) = value,
                 let arguments = nodes as? [Argument]
             else {
                 break
@@ -1564,8 +1544,7 @@ public struct Directive: Sendable {
 
 extension Directive: Equatable {
     public static func == (lhs: Directive, rhs: Directive) -> Bool {
-        return lhs.name == rhs.name &&
-            lhs.arguments == rhs.arguments
+        return lhs.name == rhs.name && lhs.arguments == rhs.arguments
     }
 }
 
@@ -1622,7 +1601,7 @@ public struct NamedType {
         switch key {
         case "name":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let name = node as? Name
             else {
                 break
@@ -1668,7 +1647,7 @@ public struct ListType {
         switch key {
         case "type":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let type = node as? Type
             else {
                 break
@@ -1718,7 +1697,7 @@ public struct NonNullType {
         switch key {
         case "type":
             guard
-                case let .node(node) = value,
+                case .node(let node) = value,
                 let type = node as? NonNullableType
             else {
                 break
@@ -1834,9 +1813,8 @@ public struct SchemaDefinition {
 
 extension SchemaDefinition: Equatable {
     public static func == (lhs: SchemaDefinition, rhs: SchemaDefinition) -> Bool {
-        return lhs.description == rhs.description &&
-            lhs.directives == rhs.directives &&
-            lhs.operationTypes == rhs.operationTypes
+        return lhs.description == rhs.description && lhs.directives == rhs.directives
+            && lhs.operationTypes == rhs.operationTypes
     }
 }
 
@@ -1864,8 +1842,7 @@ public struct OperationTypeDefinition {
 
 extension OperationTypeDefinition: Equatable {
     public static func == (lhs: OperationTypeDefinition, rhs: OperationTypeDefinition) -> Bool {
-        return lhs.operation == rhs.operation &&
-            lhs.type == rhs.type
+        return lhs.operation == rhs.operation && lhs.type == rhs.type
     }
 }
 
@@ -1948,9 +1925,8 @@ public struct ScalarTypeDefinition: Sendable {
 
 extension ScalarTypeDefinition: Equatable {
     public static func == (lhs: ScalarTypeDefinition, rhs: ScalarTypeDefinition) -> Bool {
-        return lhs.description == rhs.description &&
-            lhs.name == rhs.name &&
-            lhs.directives == rhs.directives
+        return lhs.description == rhs.description && lhs.name == rhs.name
+            && lhs.directives == rhs.directives
     }
 }
 
@@ -1999,11 +1975,9 @@ public struct ObjectTypeDefinition {
 
 extension ObjectTypeDefinition: Equatable {
     public static func == (lhs: ObjectTypeDefinition, rhs: ObjectTypeDefinition) -> Bool {
-        return lhs.description == rhs.description &&
-            lhs.name == rhs.name &&
-            lhs.interfaces == rhs.interfaces &&
-            lhs.directives == rhs.directives &&
-            lhs.fields == rhs.fields
+        return lhs.description == rhs.description && lhs.name == rhs.name
+            && lhs.interfaces == rhs.interfaces && lhs.directives == rhs.directives
+            && lhs.fields == rhs.fields
     }
 }
 
@@ -2052,11 +2026,9 @@ public struct FieldDefinition {
 
 extension FieldDefinition: Equatable {
     public static func == (lhs: FieldDefinition, rhs: FieldDefinition) -> Bool {
-        return lhs.description == rhs.description &&
-            lhs.name == rhs.name &&
-            lhs.arguments == rhs.arguments &&
-            lhs.type == rhs.type &&
-            lhs.directives == rhs.directives
+        return lhs.description == rhs.description && lhs.name == rhs.name
+            && lhs.arguments == rhs.arguments && lhs.type == rhs.type
+            && lhs.directives == rhs.directives
     }
 }
 
@@ -2174,10 +2146,8 @@ public struct InterfaceTypeDefinition {
 
 extension InterfaceTypeDefinition: Equatable {
     public static func == (lhs: InterfaceTypeDefinition, rhs: InterfaceTypeDefinition) -> Bool {
-        return lhs.description == rhs.description &&
-            lhs.name == rhs.name &&
-            lhs.directives == rhs.directives &&
-            lhs.fields == rhs.fields
+        return lhs.description == rhs.description && lhs.name == rhs.name
+            && lhs.directives == rhs.directives && lhs.fields == rhs.fields
     }
 }
 
@@ -2221,10 +2191,8 @@ public struct UnionTypeDefinition {
 
 extension UnionTypeDefinition: Equatable {
     public static func == (lhs: UnionTypeDefinition, rhs: UnionTypeDefinition) -> Bool {
-        return lhs.description == rhs.description &&
-            lhs.name == rhs.name &&
-            lhs.directives == rhs.directives &&
-            lhs.types == rhs.types
+        return lhs.description == rhs.description && lhs.name == rhs.name
+            && lhs.directives == rhs.directives && lhs.types == rhs.types
     }
 }
 
@@ -2268,10 +2236,8 @@ public struct EnumTypeDefinition: Sendable {
 
 extension EnumTypeDefinition: Equatable {
     public static func == (lhs: EnumTypeDefinition, rhs: EnumTypeDefinition) -> Bool {
-        return lhs.description == rhs.description &&
-            lhs.name == rhs.name &&
-            lhs.directives == rhs.directives &&
-            lhs.values == rhs.values
+        return lhs.description == rhs.description && lhs.name == rhs.name
+            && lhs.directives == rhs.directives && lhs.values == rhs.values
     }
 }
 
@@ -2310,9 +2276,8 @@ public struct EnumValueDefinition: Sendable {
 
 extension EnumValueDefinition: Equatable {
     public static func == (lhs: EnumValueDefinition, rhs: EnumValueDefinition) -> Bool {
-        return lhs.description == rhs.description &&
-            lhs.name == rhs.name &&
-            lhs.directives == rhs.directives
+        return lhs.description == rhs.description && lhs.name == rhs.name
+            && lhs.directives == rhs.directives
     }
 }
 
@@ -2356,10 +2321,8 @@ public struct InputObjectTypeDefinition {
 
 extension InputObjectTypeDefinition: Equatable {
     public static func == (lhs: InputObjectTypeDefinition, rhs: InputObjectTypeDefinition) -> Bool {
-        return lhs.description == rhs.description &&
-            lhs.name == rhs.name &&
-            lhs.directives == rhs.directives &&
-            lhs.fields == rhs.fields
+        return lhs.description == rhs.description && lhs.name == rhs.name
+            && lhs.directives == rhs.directives && lhs.fields == rhs.fields
     }
 }
 
@@ -2596,9 +2559,7 @@ public struct DirectiveDefinition {
 
 extension DirectiveDefinition: Equatable {
     public static func == (lhs: DirectiveDefinition, rhs: DirectiveDefinition) -> Bool {
-        return lhs.description == rhs.description &&
-            lhs.name == rhs.name &&
-            lhs.arguments == rhs.arguments &&
-            lhs.locations == rhs.locations
+        return lhs.description == rhs.description && lhs.name == rhs.name
+            && lhs.arguments == rhs.arguments && lhs.locations == rhs.locations
     }
 }

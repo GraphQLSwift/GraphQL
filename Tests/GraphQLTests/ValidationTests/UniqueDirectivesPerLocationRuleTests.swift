@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
     override init() {
@@ -93,11 +94,11 @@ class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            fragment Test on Type {
-              field @directive @directive
-            }
-            """,
+                """
+                fragment Test on Type {
+                  field @directive @directive
+                }
+                """,
             schema: schema
         )
         try assertValidationError(
@@ -114,11 +115,11 @@ class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
-            """
-            fragment Test on Type {
-              field @directive @directive @directive
-            }
-            """,
+                """
+                fragment Test on Type {
+                  field @directive @directive @directive
+                }
+                """,
             schema: schema
         )
         try assertValidationError(
@@ -143,11 +144,11 @@ class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
-            """
-            fragment Test on Type {
-              field @directiveA @directiveB @directiveA @directiveB
-            }
-            """,
+                """
+                fragment Test on Type {
+                  field @directiveA @directiveB @directiveA @directiveB
+                }
+                """,
             schema: schema
         )
         try assertValidationError(
@@ -183,8 +184,14 @@ class UniqueDirectivesPerLocationRuleTests: ValidationTestCase {
             directives.append(contentsOf: [
                 ValidationFieldDirective,
                 try! GraphQLDirective(name: "directive", locations: [.field, .fragmentDefinition]),
-                try! GraphQLDirective(name: "directiveA", locations: [.field, .fragmentDefinition]),
-                try! GraphQLDirective(name: "directiveB", locations: [.field, .fragmentDefinition]),
+                try! GraphQLDirective(
+                    name: "directiveA",
+                    locations: [.field, .fragmentDefinition]
+                ),
+                try! GraphQLDirective(
+                    name: "directiveB",
+                    locations: [.field, .fragmentDefinition]
+                ),
                 try! GraphQLDirective(
                     name: "repeatable",
                     locations: [.field, .fragmentDefinition],

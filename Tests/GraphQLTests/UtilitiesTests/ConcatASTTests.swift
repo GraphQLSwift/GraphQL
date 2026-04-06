@@ -1,17 +1,22 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct ConcatASTTests {
     @Test func concatenatesTwoASTsTogether() throws {
-        let sourceA = Source(body: """
-        { a, b, ...Frag }
-        """)
+        let sourceA = Source(
+            body: """
+                { a, b, ...Frag }
+                """
+        )
 
-        let sourceB = Source(body: """
-        fragment Frag on T {
-          c
-        }
-        """)
+        let sourceB = Source(
+            body: """
+                fragment Frag on T {
+                  c
+                }
+                """
+        )
 
         let astA = try parse(source: sourceA)
         let astB = try parse(source: sourceB)
@@ -19,16 +24,16 @@ import Testing
 
         #expect(
             print(ast: astC) == """
-            {
-              a
-              b
-              ...Frag
-            }
+                {
+                  a
+                  b
+                  ...Frag
+                }
 
-            fragment Frag on T {
-              c
-            }
-            """
+                fragment Frag on T {
+                  c
+                }
+                """
         )
     }
 }

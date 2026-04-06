@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class KnownTypeNamesRuleTests: ValidationTestCase {
     override init() {
@@ -31,17 +32,17 @@ class KnownTypeNamesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 3,
             query:
-            """
-            query Foo($var: [JumbledUpLetters!]!) {
-              user(id: 4) {
-                name
-                pets { ... on Badger { name }, ...PetFields }
-              }
-            }
-            fragment PetFields on Peat {
-              name
-            }
-            """
+                """
+                query Foo($var: [JumbledUpLetters!]!) {
+                  user(id: 4) {
+                    name
+                    pets { ... on Badger { name }, ...PetFields }
+                  }
+                }
+                fragment PetFields on Peat {
+                  name
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],

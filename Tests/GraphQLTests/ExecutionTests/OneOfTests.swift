@@ -1,109 +1,113 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct OneOfTests {
     // MARK: OneOf Input Objects
 
     @Test func acceptsAGoodDefaultValue() async throws {
         let query = """
-        query ($input: TestInputObject! = {a: "abc"}) {
-          test(input: $input) {
-            a
-            b
-          }
-        }
-        """
+            query ($input: TestInputObject! = {a: "abc"}) {
+              test(input: $input) {
+                a
+                b
+              }
+            }
+            """
         let result = try await graphql(
             schema: getSchema(),
             request: query
         )
         #expect(
-            result == GraphQLResult(data: [
-                "test": [
-                    "a": "abc",
-                    "b": .null,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "test": [
+                        "a": "abc",
+                        "b": .null,
+                    ]
+                ])
         )
     }
 
     @Test func rejectsABadDefaultValue() async throws {
         let query = """
-        query ($input: TestInputObject! = {a: "abc", b: 123}) {
-          test(input: $input) {
-            a
-            b
-          }
-        }
-        """
+            query ($input: TestInputObject! = {a: "abc", b: 123}) {
+              test(input: $input) {
+                a
+                b
+              }
+            }
+            """
         let result = try await graphql(
             schema: getSchema(),
             request: query
         )
         #expect(result.errors.count == 1)
         #expect(
-            result.errors[0].message ==
-                "OneOf Input Object \"TestInputObject\" must specify exactly one key."
+            result.errors[0].message
+                == "OneOf Input Object \"TestInputObject\" must specify exactly one key."
         )
     }
 
     @Test func acceptsAGoodVariable() async throws {
         let query = """
-        query ($input: TestInputObject!) {
-          test(input: $input) {
-            a
-            b
-          }
-        }
-        """
+            query ($input: TestInputObject!) {
+              test(input: $input) {
+                a
+                b
+              }
+            }
+            """
         let result = try await graphql(
             schema: getSchema(),
             request: query,
             variableValues: ["input": ["a": "abc"]]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "test": [
-                    "a": "abc",
-                    "b": .null,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "test": [
+                        "a": "abc",
+                        "b": .null,
+                    ]
+                ])
         )
     }
 
     @Test func acceptsAGoodVariableWithAnUndefinedKey() async throws {
         let query = """
-        query ($input: TestInputObject!) {
-          test(input: $input) {
-            a
-            b
-          }
-        }
-        """
+            query ($input: TestInputObject!) {
+              test(input: $input) {
+                a
+                b
+              }
+            }
+            """
         let result = try await graphql(
             schema: getSchema(),
             request: query,
             variableValues: ["input": ["a": "abc", "b": .undefined]]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "test": [
-                    "a": "abc",
-                    "b": .null,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "test": [
+                        "a": "abc",
+                        "b": .null,
+                    ]
+                ])
         )
     }
 
     @Test func rejectsAVariableWithMultipleNonNullKeys() async throws {
         let query = """
-        query ($input: TestInputObject!) {
-          test(input: $input) {
-            a
-            b
-          }
-        }
-        """
+            query ($input: TestInputObject!) {
+              test(input: $input) {
+                a
+                b
+              }
+            }
+            """
         let result = try await graphql(
             schema: getSchema(),
             request: query,
@@ -112,21 +116,21 @@ import Testing
         #expect(result.errors.count == 1)
         #expect(
             result.errors[0].message == """
-            Variable "$input" got invalid value "{"a":"abc","b":123}".
-            Exactly one key must be specified for OneOf type "TestInputObject".
-            """
+                Variable "$input" got invalid value "{"a":"abc","b":123}".
+                Exactly one key must be specified for OneOf type "TestInputObject".
+                """
         )
     }
 
     @Test func rejectsAVariableWithMultipleNullableKeys() async throws {
         let query = """
-        query ($input: TestInputObject!) {
-          test(input: $input) {
-            a
-            b
-          }
-        }
-        """
+            query ($input: TestInputObject!) {
+              test(input: $input) {
+                a
+                b
+              }
+            }
+            """
         let result = try await graphql(
             schema: getSchema(),
             request: query,
@@ -135,9 +139,9 @@ import Testing
         #expect(result.errors.count == 1)
         #expect(
             result.errors[0].message == """
-            Variable "$input" got invalid value "{"a":"abc","b":null}".
-            Exactly one key must be specified for OneOf type "TestInputObject".
-            """
+                Variable "$input" got invalid value "{"a":"abc","b":null}".
+                Exactly one key must be specified for OneOf type "TestInputObject".
+                """
         )
     }
 }
@@ -168,12 +172,12 @@ func getSchema() throws -> GraphQLSchema {
                 "test": GraphQLField(
                     type: testObject,
                     args: [
-                        "input": GraphQLArgument(type: GraphQLNonNull(testInputObject)),
+                        "input": GraphQLArgument(type: GraphQLNonNull(testInputObject))
                     ],
                     resolve: { _, args, _, _ in
                         try MapDecoder().decode(TestObject.self, from: args["input"])
                     }
-                ),
+                )
             ]
         ),
         types: [

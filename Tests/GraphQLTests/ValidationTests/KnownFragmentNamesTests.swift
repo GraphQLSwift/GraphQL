@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class KnownFragmentNamesTests: ValidationTestCase {
     override init() {
@@ -39,20 +40,20 @@ class KnownFragmentNamesTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 3,
             query:
-            """
-            {
-              human(id: 4) {
-                ...UnknownFragment1
-                ... on Human {
-                  ...UnknownFragment2
+                """
+                {
+                  human(id: 4) {
+                    ...UnknownFragment1
+                    ... on Human {
+                      ...UnknownFragment2
+                    }
+                  }
                 }
-              }
-            }
-            fragment HumanFields on Human {
-              name
-              ...UnknownFragment3
-            }
-            """
+                fragment HumanFields on Human {
+                  name
+                  ...UnknownFragment3
+                }
+                """
         )
 
         try assertValidationError(

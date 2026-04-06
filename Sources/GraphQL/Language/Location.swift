@@ -10,10 +10,8 @@ public struct SourceLocation: Codable, Equatable, Sendable {
     }
 }
 
-/**
- * Takes a Source and a UTF-8 character offset, and returns the corresponding
- * line and column as a SourceLocation.
- */
+/// Takes a Source and a UTF-8 character offset, and returns the corresponding
+/// line and column as a SourceLocation.
 func getLocation(source: Source, position: Int) -> SourceLocation {
     var line = 1
     var column = position + 1
@@ -21,7 +19,7 @@ func getLocation(source: Source, position: Int) -> SourceLocation {
     let matches = newLineRegex.matches(
         in: source.body,
         options: [],
-        range: NSRange(0 ..< source.body.utf16.count)
+        range: NSRange(0..<source.body.utf16.count)
     )
     for match in matches where match.range.location < position {
         line += 1

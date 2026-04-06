@@ -1,19 +1,16 @@
-/**
- * Produces a GraphQL Value AST given a Map value.
- *
- * A GraphQL type must be provided, which will be used to interpret different
- * JavaScript values.
- *
- *     | Map Value     | GraphQL Value        |
- *     | ------------- | -------------------- |
- *     | .dictionary   | Input Object         |
- *     | .array        | List                 |
- *     | .bool         | Boolean              |
- *     | .string       | String / Enum Value  |
- *     | .int          | Int                  |
- *     | .double       | Float                |
- *
- */
+/// Produces a GraphQL Value AST given a Map value.
+///
+/// A GraphQL type must be provided, which will be used to interpret different
+/// JavaScript values.
+///
+///     | Map Value     | GraphQL Value        |
+///     | ------------- | -------------------- |
+///     | .dictionary   | Input Object         |
+///     | .array        | List                 |
+///     | .bool         | Boolean              |
+///     | .string       | String / Enum Value  |
+///     | .int          | Int                  |
+///     | .double       | Float                |
 func astFromValue(
     value: Map,
     type: GraphQLInputType
@@ -40,7 +37,7 @@ func astFromValue(
             )
         }
 
-        if case let .array(value) = value {
+        if case .array(let value) = value {
             var valuesASTs: [Value] = []
 
             for item in value {
@@ -58,7 +55,7 @@ func astFromValue(
     // Populate the fields of the input object by creating ASTs from each value
     // in the JavaScript object according to the fields in the input type.
     if let type = type as? GraphQLInputObjectType {
-        guard case let .dictionary(value) = value else {
+        guard case .dictionary(let value) = value else {
             return nil
         }
 
@@ -68,12 +65,10 @@ func astFromValue(
         for (fieldName, field) in fields {
             let fieldType = field.type
 
-            if
-                let fieldValue = try astFromValue(
-                    value: value[fieldName] ?? .null,
-                    type: fieldType
-                )
-            {
+            if let fieldValue = try astFromValue(
+                value: value[fieldName] ?? .null,
+                type: fieldType
+            ) {
                 let field = ObjectField(name: Name(value: fieldName), value: fieldValue)
                 fieldASTs.append(field)
             }
@@ -97,17 +92,17 @@ func astFromValue(
     }
 
     // Others serialize based on their corresponding JavaScript scalar types.
-    if case let .bool(bool) = serialized {
+    if case .bool(let bool) = serialized {
         return BooleanValue(value: bool)
     }
 
     // Others serialize based on their corresponding scalar types.
-    if case let .bool(bool) = serialized {
+    if case .bool(let bool) = serialized {
         return BooleanValue(value: bool)
     }
 
     // JavaScript numbers can be Int or Float values.
-    if case let .number(number) = serialized {
+    if case .number(let number) = serialized {
         switch number.storageType {
         case .bool:
             return BooleanValue(value: number.boolValue)
@@ -120,7 +115,7 @@ func astFromValue(
         }
     }
 
-    if case let .string(string) = serialized {
+    if case .string(let string) = serialized {
         // Enum types use Enum literals.
         if type is GraphQLEnumType {
             return EnumValue(value: string)

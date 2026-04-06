@@ -1,13 +1,10 @@
-
-/**
- * Fragments on composite type
- *
- * Fragments use a type condition to determine if they apply, since fragments
- * can only be spread into a composite type (object, interface, or union), the
- * type condition must also be a composite type.
- *
- * See https://spec.graphql.org/draft/#sec-Fragments-On-Composite-Types
- */
+/// Fragments on composite type
+///
+/// Fragments use a type condition to determine if they apply, since fragments
+/// can only be spread into a composite type (object, interface, or union), the
+/// type condition must also be a composite type.
+///
+/// See https://spec.graphql.org/draft/#sec-Fragments-On-Composite-Types
 func FragmentsOnCompositeTypesRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
@@ -23,7 +20,7 @@ func FragmentsOnCompositeTypesRule(context: ValidationContext) -> Visitor {
                         context.report(
                             error: GraphQLError(
                                 message:
-                                "Fragment cannot condition on non composite type \"\(typeStr)\".",
+                                    "Fragment cannot condition on non composite type \"\(typeStr)\".",
                                 nodes: [typeCondition]
                             )
                         )
@@ -41,7 +38,7 @@ func FragmentsOnCompositeTypesRule(context: ValidationContext) -> Visitor {
                     context.report(
                         error: GraphQLError(
                             message:
-                            "Fragment \"\(fragment.name.value)\" cannot condition on non composite type \"\(typeStr)\".",
+                                "Fragment \"\(fragment.name.value)\" cannot condition on non composite type \"\(typeStr)\".",
                             nodes: [typeCondition]
                         )
                     )

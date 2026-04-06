@@ -33,8 +33,9 @@ func KnownArgumentNamesOnDirectivesRule(
                             let suggestions = suggestionList(input: argName, options: knownArgs)
                             context.report(
                                 error: GraphQLError(
-                                    message: "Unknown argument \"\(argName)\" on directive \"@\(directiveName)\"." +
-                                        didYouMean(suggestions: suggestions),
+                                    message:
+                                        "Unknown argument \"\(argName)\" on directive \"@\(directiveName)\"."
+                                        + didYouMean(suggestions: suggestions),
                                     nodes: [argNode]
                                 )
                             )

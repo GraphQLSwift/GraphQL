@@ -1,10 +1,7 @@
-
-/**
- * Unique argument definition names
- *
- * A GraphQL Object or Interface type is only valid if all its fields have uniquely named arguments.
- * A GraphQL Directive is only valid if all its arguments are uniquely named.
- */
+/// Unique argument definition names
+///
+/// A GraphQL Object or Interface type is only valid if all its fields have uniquely named arguments.
+/// A GraphQL Directive is only valid if all its arguments are uniquely named.
 func UniqueArgumentDefinitionNamesRule(
     context: SDLValidationContext
 ) -> Visitor {
@@ -73,7 +70,8 @@ func UniqueArgumentDefinitionNamesRule(
             if argNodes.count > 1 {
                 context.report(
                     error: GraphQLError(
-                        message: "Argument \"\(parentName)(\(argName):)\" can only be defined once.",
+                        message:
+                            "Argument \"\(parentName)(\(argName):)\" can only be defined once.",
                         nodes: argNodes.map { node in node.name }
                     )
                 )

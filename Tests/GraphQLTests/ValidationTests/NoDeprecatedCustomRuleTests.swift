@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class NoDeprecatedCustomRuleTests: ValidationTestCase {
     override init() {
@@ -10,10 +11,16 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
     // MARK: no deprecated fields
 
     let deprecatedFieldSchema = try! GraphQLSchema(
-        query: .init(name: "Query", fields: [
-            "normalField": .init(type: GraphQLString),
-            "deprecatedField": .init(type: GraphQLString, deprecationReason: "Some field reason."),
-        ])
+        query: .init(
+            name: "Query",
+            fields: [
+                "normalField": .init(type: GraphQLString),
+                "deprecatedField": .init(
+                    type: GraphQLString,
+                    deprecationReason: "Some field reason."
+                ),
+            ]
+        )
     )
 
     @Test func ignoresFieldsThatAreNotDeprecated() throws {
@@ -46,14 +53,14 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
-            {
-              deprecatedField
-            }
+                {
+                  deprecatedField
+                }
 
-            fragment QueryFragment on Query {
-              deprecatedField
-            }
-            """,
+                fragment QueryFragment on Query {
+                  deprecatedField
+                }
+                """,
             schema: deprecatedFieldSchema
         )
         try assertValidationError(
@@ -71,12 +78,21 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
     // MARK: no deprecated arguments on fields
 
     let deprecatedFieldArgumentSchema = try! GraphQLSchema(
-        query: .init(name: "Query", fields: [
-            "someField": .init(type: GraphQLString, args: [
-                "normalArg": .init(type: GraphQLString),
-                "deprecatedArg": .init(type: GraphQLString, deprecationReason: "Some arg reason."),
-            ]),
-        ])
+        query: .init(
+            name: "Query",
+            fields: [
+                "someField": .init(
+                    type: GraphQLString,
+                    args: [
+                        "normalArg": .init(type: GraphQLString),
+                        "deprecatedArg": .init(
+                            type: GraphQLString,
+                            deprecationReason: "Some arg reason."
+                        ),
+                    ]
+                )
+            ]
+        )
     )
 
     @Test func ignoresFieldArgumentsThatAreNotDeprecated() throws {
@@ -106,30 +122,34 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
-            {
-              someField(deprecatedArg: "")
-            }
-            """,
+                {
+                  someField(deprecatedArg: "")
+                }
+                """,
             schema: deprecatedFieldArgumentSchema
         )
         try assertValidationError(
             error: errors[0],
             locations: [(line: 2, column: 13)],
-            message: #"Field "Query.someField" argument "deprecatedArg" is deprecated. Some arg reason."#
+            message:
+                #"Field "Query.someField" argument "deprecatedArg" is deprecated. Some arg reason."#
         )
     }
 
     // MARK: no deprecated arguments on directives
 
     let deprecatedDirectiveArgumentSchema = try! GraphQLSchema(
-        query: .init(name: "Query", fields: [
-            "someField": .init(type: GraphQLString),
-        ]),
+        query: .init(
+            name: "Query",
+            fields: [
+                "someField": .init(type: GraphQLString)
+            ]
+        ),
         directives: [
             .init(
                 name: "someDirective",
                 locations: [
-                    .field,
+                    .field
                 ],
                 args: [
                     "normalArg": .init(type: GraphQLString),
@@ -138,7 +158,7 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
                         deprecationReason: "Some arg reason."
                     ),
                 ]
-            ),
+            )
         ]
     )
 
@@ -169,48 +189,58 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query: """
-            {
-              someField @someDirective(deprecatedArg: "")
-            }
-            """,
+                {
+                  someField @someDirective(deprecatedArg: "")
+                }
+                """,
             schema: deprecatedDirectiveArgumentSchema
         )
         try assertValidationError(
             error: errors[0],
             locations: [(line: 2, column: 28)],
-            message: #"Directive "@someDirective" argument "deprecatedArg" is deprecated. Some arg reason."#
+            message:
+                #"Directive "@someDirective" argument "deprecatedArg" is deprecated. Some arg reason."#
         )
     }
 
     // MARK: no deprecated input fields
 
     let deprecatedInputFieldSchema: GraphQLSchema = {
-        let inputType = try! GraphQLInputObjectType(name: "InputType", fields: [
-            "normalField": .init(type: GraphQLString),
-            "deprecatedField": .init(
-                type: GraphQLString,
-                deprecationReason: "Some input field reason."
-            ),
-        ])
+        let inputType = try! GraphQLInputObjectType(
+            name: "InputType",
+            fields: [
+                "normalField": .init(type: GraphQLString),
+                "deprecatedField": .init(
+                    type: GraphQLString,
+                    deprecationReason: "Some input field reason."
+                ),
+            ]
+        )
         return try! GraphQLSchema(
-            query: .init(name: "Query", fields: [
-                "someField": .init(type: GraphQLString, args: [
-                    "someArg": .init(type: inputType),
-                ]),
-            ]),
+            query: .init(
+                name: "Query",
+                fields: [
+                    "someField": .init(
+                        type: GraphQLString,
+                        args: [
+                            "someArg": .init(type: inputType)
+                        ]
+                    )
+                ]
+            ),
             types: [
-                inputType,
+                inputType
             ],
             directives: [
                 .init(
                     name: "someDirective",
                     locations: [
-                        .field,
+                        .field
                     ],
                     args: [
-                        "someArg": .init(type: inputType),
+                        "someArg": .init(type: inputType)
                     ]
-                ),
+                )
             ]
         )
     }()
@@ -253,44 +283,55 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
-            {
-              someField(
-                someArg: { deprecatedField: "" }
-              ) @someDirective(someArg: { deprecatedField: "" })
-            }
-            """,
+                {
+                  someField(
+                    someArg: { deprecatedField: "" }
+                  ) @someDirective(someArg: { deprecatedField: "" })
+                }
+                """,
             schema: deprecatedInputFieldSchema
         )
         try assertValidationError(
             error: errors[0],
             locations: [(line: 3, column: 16)],
-            message: #"The input field InputType.deprecatedField is deprecated. Some input field reason."#
+            message:
+                #"The input field InputType.deprecatedField is deprecated. Some input field reason."#
         )
         try assertValidationError(
             error: errors[1],
             locations: [(line: 4, column: 31)],
-            message: #"The input field InputType.deprecatedField is deprecated. Some input field reason."#
+            message:
+                #"The input field InputType.deprecatedField is deprecated. Some input field reason."#
         )
     }
 
     // MARK: no deprecated enum values
 
     let deprecatedEnumValueSchema: GraphQLSchema = {
-        let enumType = try! GraphQLEnumType(name: "EnumType", values: [
-            "NORMAL_VALUE": .init(value: .string("NORMAL_VALUE")),
-            "DEPRECATED_VALUE": .init(
-                value: .string("DEPRECATED_VALUE"),
-                deprecationReason: "Some enum reason."
-            ),
-        ])
+        let enumType = try! GraphQLEnumType(
+            name: "EnumType",
+            values: [
+                "NORMAL_VALUE": .init(value: .string("NORMAL_VALUE")),
+                "DEPRECATED_VALUE": .init(
+                    value: .string("DEPRECATED_VALUE"),
+                    deprecationReason: "Some enum reason."
+                ),
+            ]
+        )
         return try! GraphQLSchema(
-            query: .init(name: "Query", fields: [
-                "someField": .init(type: GraphQLString, args: [
-                    "enumArg": .init(type: enumType),
-                ]),
-            ]),
+            query: .init(
+                name: "Query",
+                fields: [
+                    "someField": .init(
+                        type: GraphQLString,
+                        args: [
+                            "enumArg": .init(type: enumType)
+                        ]
+                    )
+                ]
+            ),
             types: [
-                enumType,
+                enumType
             ]
         )
     }()
@@ -330,12 +371,12 @@ class NoDeprecatedCustomRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
-            query (
-              $variable: EnumType = DEPRECATED_VALUE
-            ) {
-              someField(enumArg: DEPRECATED_VALUE)
-            }
-            """,
+                query (
+                  $variable: EnumType = DEPRECATED_VALUE
+                ) {
+                  someField(enumArg: DEPRECATED_VALUE)
+                }
+                """,
             schema: deprecatedEnumValueSchema
         )
         try assertValidationError(

@@ -1,9 +1,6 @@
-
-/**
- * Unique enum value names
- *
- * A GraphQL enum type is only valid if all its values are uniquely named.
- */
+/// Unique enum value names
+///
+/// A GraphQL enum type is only valid if all its values are uniquely named.
 func UniqueEnumValueNamesRule(
     context: SDLValidationContext
 ) -> Visitor {
@@ -36,13 +33,13 @@ func UniqueEnumValueNamesRule(
             let valueName = valueDef.name.value
 
             let existingType = existingTypeMap[typeName]
-            if
-                let existingType = existingType as? GraphQLEnumType,
+            if let existingType = existingType as? GraphQLEnumType,
                 existingType.nameLookup[valueName] != nil
             {
                 context.report(
                     error: GraphQLError(
-                        message: "Enum value \"\(typeName).\(valueName)\" already exists in the schema. It cannot also be defined in this type extension.",
+                        message:
+                            "Enum value \"\(typeName).\(valueName)\" already exists in the schema. It cannot also be defined in this type extension.",
                         nodes: [valueDef.name]
                     )
                 )
@@ -52,7 +49,8 @@ func UniqueEnumValueNamesRule(
             if let knownValueName = valueNames[valueName] {
                 context.report(
                     error: GraphQLError(
-                        message: "Enum value \"\(typeName).\(valueName)\" can only be defined once.",
+                        message:
+                            "Enum value \"\(typeName).\(valueName)\" can only be defined once.",
                         nodes: [knownValueName, valueDef.name]
                     )
                 )

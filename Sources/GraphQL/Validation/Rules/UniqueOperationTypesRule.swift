@@ -1,9 +1,6 @@
-
-/**
- * Unique operation types
- *
- * A GraphQL document is only valid if it has only one type per operation.
- */
+/// Unique operation types
+///
+/// A GraphQL document is only valid if it has only one type per operation.
 func UniqueOperationTypesRule(
     context: SDLValidationContext
 ) -> Visitor {
@@ -49,7 +46,8 @@ func UniqueOperationTypesRule(
             if existingOperationTypes[operation] != nil {
                 context.report(
                     error: GraphQLError(
-                        message: "Type for \(operation) already defined in the schema. It cannot be redefined.",
+                        message:
+                            "Type for \(operation) already defined in the schema. It cannot be redefined.",
                         nodes: [operationType]
                     )
                 )

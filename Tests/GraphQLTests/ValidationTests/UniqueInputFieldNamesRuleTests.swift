@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class UniqueInputFieldNamesRuleTests: ValidationTestCase {
     override init() {
@@ -59,11 +60,11 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              field(arg: { f1: "value", f1: "value" })
-            }
-            """
+                """
+                {
+                  field(arg: { f1: "value", f1: "value" })
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -79,11 +80,11 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query:
-            """
-            {
-              field(arg: { f1: "value", f1: "value", f1: "value" })
-            }
-            """
+                """
+                {
+                  field(arg: { f1: "value", f1: "value", f1: "value" })
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -107,11 +108,11 @@ class UniqueInputFieldNamesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            {
-              field(arg: { f1: {f2: "value", f2: "value" }})
-            }
-            """
+                """
+                {
+                  field(arg: { f1: {f2: "value", f2: "value" }})
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],

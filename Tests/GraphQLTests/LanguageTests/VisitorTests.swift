@@ -1,6 +1,7 @@
 import Foundation
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct VisitorTests {
     @Test func handlesEmptyVisitor() throws {
@@ -12,18 +13,21 @@ import Testing
         var visited = [VisitedPath]()
         let ast = try parse(source: "{ a }", noLocation: true)
 
-        visit(root: ast, visitor: .init(
-            enter: { node, key, parent, path, ancestors in
-                checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                visited.append(.init(.enter, path))
-                return .continue
-            },
-            leave: { node, key, parent, path, ancestors in
-                checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                visited.append(.init(.leave, path))
-                return .continue
-            }
-        ))
+        visit(
+            root: ast,
+            visitor: .init(
+                enter: { node, key, parent, path, ancestors in
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                    visited.append(.init(.enter, path))
+                    return .continue
+                },
+                leave: { node, key, parent, path, ancestors in
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                    visited.append(.init(.leave, path))
+                    return .continue
+                }
+            )
+        )
 
         #expect(
             visited == [
@@ -45,33 +49,42 @@ import Testing
         var visited = [NodeResult]()
         let ast = try parse(source: "{ a }", noLocation: true)
 
-        visit(root: ast, visitor: .init(
-            enter: { node, _, parent, _, ancestors in
-                if let parent = parent, parent.isArray {
-                    visited.append(parent)
-                }
-                visited.append(.node(node))
+        visit(
+            root: ast,
+            visitor: .init(
+                enter: { node, _, parent, _, ancestors in
+                    if let parent = parent, parent.isArray {
+                        visited.append(parent)
+                    }
+                    visited.append(.node(node))
 
-                let expectedAncestors = visited[0 ... max(visited.count - 2, 0)]
-                #expect(zip(ancestors, expectedAncestors).allSatisfy { lhs, rhs in
-                    nodeResultsEqual(lhs, rhs)
-                }, "actual: \(ancestors), expected: \(expectedAncestors)")
-                return .continue
-            },
-            leave: { _, _, parent, _, ancestors in
-                let expectedAncestors = visited[0 ... max(visited.count - 2, 0)]
-                #expect(zip(ancestors, expectedAncestors).allSatisfy { lhs, rhs in
-                    nodeResultsEqual(lhs, rhs)
-                }, "actual: \(ancestors), expected: \(expectedAncestors)")
+                    let expectedAncestors = visited[0...max(visited.count - 2, 0)]
+                    #expect(
+                        zip(ancestors, expectedAncestors).allSatisfy { lhs, rhs in
+                            nodeResultsEqual(lhs, rhs)
+                        },
+                        "actual: \(ancestors), expected: \(expectedAncestors)"
+                    )
+                    return .continue
+                },
+                leave: { _, _, parent, _, ancestors in
+                    let expectedAncestors = visited[0...max(visited.count - 2, 0)]
+                    #expect(
+                        zip(ancestors, expectedAncestors).allSatisfy { lhs, rhs in
+                            nodeResultsEqual(lhs, rhs)
+                        },
+                        "actual: \(ancestors), expected: \(expectedAncestors)"
+                    )
 
-                if let parent = parent, parent.isArray {
+                    if let parent = parent, parent.isArray {
+                        visited.removeLast()
+                    }
                     visited.removeLast()
-                }
-                visited.removeLast()
 
-                return .continue
-            }
-        ))
+                    return .continue
+                }
+            )
+        )
     }
 
     @Test func allowsEditingANodeBothOnEnterAndOnLeave() throws {
@@ -79,35 +92,42 @@ import Testing
 
         var selectionSet: SelectionSet?
 
-        let editedASTNode = visit(root: ast, visitor: .init(
-            enter: { node, key, parent, path, ancestors in
-                if let node = node as? OperationDefinition {
-                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                    selectionSet = node.selectionSet
-                    let newName = node.name
-                        .map { Name(loc: $0.loc, value: $0.value + ".enter") } ??
-                        Name(value: "enter")
-                    let newNode = node
-                        .set(value: .node(newName), key: "name")
-                        .set(value: .node(SelectionSet(selections: [])), key: "selectionSet")
-                    return .node(newNode)
+        let editedASTNode = visit(
+            root: ast,
+            visitor: .init(
+                enter: { node, key, parent, path, ancestors in
+                    if let node = node as? OperationDefinition {
+                        checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                        selectionSet = node.selectionSet
+                        let newName =
+                            node.name
+                            .map { Name(loc: $0.loc, value: $0.value + ".enter") }
+                            ?? Name(value: "enter")
+                        let newNode =
+                            node
+                            .set(value: .node(newName), key: "name")
+                            .set(value: .node(SelectionSet(selections: [])), key: "selectionSet")
+                        return .node(newNode)
+                    }
+                    return .continue
+                },
+                leave: { node, key, parent, path, ancestors in
+                    if let node = node as? OperationDefinition {
+                        checkVisitorFnArgs(ast, node, key, parent, path, ancestors, isEdited: true)
+                        let newName =
+                            node.name
+                            .map { Name(loc: $0.loc, value: $0.value + ".leave") }
+                            ?? Name(value: "leave")
+                        let newNode =
+                            node
+                            .set(value: .node(newName), key: "name")
+                            .set(value: .node(selectionSet!), key: "selectionSet")
+                        return .node(newNode)
+                    }
+                    return .continue
                 }
-                return .continue
-            },
-            leave: { node, key, parent, path, ancestors in
-                if let node = node as? OperationDefinition {
-                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors, isEdited: true)
-                    let newName = node.name
-                        .map { Name(loc: $0.loc, value: $0.value + ".leave") } ??
-                        Name(value: "leave")
-                    let newNode = node
-                        .set(value: .node(newName), key: "name")
-                        .set(value: .node(selectionSet!), key: "selectionSet")
-                    return .node(newNode)
-                }
-                return .continue
-            }
-        ))
+            )
+        )
 
         let editedAST = try #require(editedASTNode as? Document)
         let operations = try #require(editedAST.definitions as? [OperationDefinition])
@@ -120,44 +140,47 @@ import Testing
     @Test func allowsEditingTheRootNodeOnEnterAndOnLeave() throws {
         let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
 
-        let editedASTNode = visit(root: ast, visitor: .init(
-            enter: { node, key, parent, path, ancestors in
-                if let node = node as? Document {
-                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                    var newDefinitions = node.definitions
-                    newDefinitions.append(
-                        DirectiveDefinition(
-                            name: .init(value: "enter"),
-                            locations: [.init(value: "root")]
+        let editedASTNode = visit(
+            root: ast,
+            visitor: .init(
+                enter: { node, key, parent, path, ancestors in
+                    if let node = node as? Document {
+                        checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                        var newDefinitions = node.definitions
+                        newDefinitions.append(
+                            DirectiveDefinition(
+                                name: .init(value: "enter"),
+                                locations: [.init(value: "root")]
+                            )
                         )
-                    )
-                    let newNode = node.set(
-                        value: .array(newDefinitions),
-                        key: "definitions"
-                    )
-                    return .node(newNode)
-                }
-                return .continue
-            },
-            leave: { node, key, parent, path, ancestors in
-                if let node = node as? Document {
-                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors, isEdited: true)
-                    var newDefinitions = node.definitions
-                    newDefinitions.append(
-                        DirectiveDefinition(
-                            name: .init(value: "leave"),
-                            locations: [.init(value: "root")]
+                        let newNode = node.set(
+                            value: .array(newDefinitions),
+                            key: "definitions"
                         )
-                    )
-                    let newNode = node.set(
-                        value: .array(newDefinitions),
-                        key: "definitions"
-                    )
-                    return .node(newNode)
+                        return .node(newNode)
+                    }
+                    return .continue
+                },
+                leave: { node, key, parent, path, ancestors in
+                    if let node = node as? Document {
+                        checkVisitorFnArgs(ast, node, key, parent, path, ancestors, isEdited: true)
+                        var newDefinitions = node.definitions
+                        newDefinitions.append(
+                            DirectiveDefinition(
+                                name: .init(value: "leave"),
+                                locations: [.init(value: "root")]
+                            )
+                        )
+                        let newNode = node.set(
+                            value: .array(newDefinitions),
+                            key: "definitions"
+                        )
+                        return .node(newNode)
+                    }
+                    return .continue
                 }
-                return .continue
-            }
-        ))
+            )
+        )
 
         let editedAST = try #require(editedASTNode as? Document)
         #expect(editedAST.definitions.count == 3)
@@ -176,76 +199,84 @@ import Testing
     @Test func allowsForEditingOnEnter() throws {
         let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
 
-        let editedASTNode = visit(root: ast, visitor: .init(
-            enter: { node, key, parent, path, ancestors in
-                if let node = node as? Field {
-                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                    if node.name.value == "b" {
-                        return .node(nil)
+        let editedASTNode = visit(
+            root: ast,
+            visitor: .init(
+                enter: { node, key, parent, path, ancestors in
+                    if let node = node as? Field {
+                        checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                        if node.name.value == "b" {
+                            return .node(nil)
+                        }
                     }
+                    return .continue
                 }
-                return .continue
-            }
-        ))
+            )
+        )
 
         let editedAST = try #require(editedASTNode as? Document)
         let operation = try #require(editedAST.definitions[0] as? OperationDefinition)
         #expect(
-            operation.selectionSet.selections.count == 2 // "b" is ignored
+            operation.selectionSet.selections.count == 2  // "b" is ignored
         )
 
         let cField = try #require(operation.selectionSet.selections[1] as? Field)
         #expect(
-            cField.selectionSet?.selections.count == 2 // "b" is ignored
+            cField.selectionSet?.selections.count == 2  // "b" is ignored
         )
     }
 
     @Test func allowsForEditingOnLeave() throws {
         let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
 
-        let editedASTNode = visit(root: ast, visitor: .init(
-            leave: { node, key, parent, path, ancestors in
-                if let node = node as? Field {
-                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                    if node.name.value == "b" {
-                        return .node(nil)
+        let editedASTNode = visit(
+            root: ast,
+            visitor: .init(
+                leave: { node, key, parent, path, ancestors in
+                    if let node = node as? Field {
+                        checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                        if node.name.value == "b" {
+                            return .node(nil)
+                        }
                     }
+                    return .continue
                 }
-                return .continue
-            }
-        ))
+            )
+        )
 
         let editedAST = try #require(editedASTNode as? Document)
         let operation = try #require(editedAST.definitions[0] as? OperationDefinition)
         #expect(
-            operation.selectionSet.selections.count == 2 // "b" is removed
+            operation.selectionSet.selections.count == 2  // "b" is removed
         )
 
         let cField = try #require(operation.selectionSet.selections[1] as? Field)
         #expect(
-            cField.selectionSet?.selections.count == 2 // "b" is removed
+            cField.selectionSet?.selections.count == 2  // "b" is removed
         )
     }
 
     @Test func ignoresSkipReturnedOnLeave() throws {
         let ast = try parse(source: "{ a, b, c { a, b, c } }", noLocation: true)
 
-        let editedASTNode = visit(root: ast, visitor: .init(
-            leave: { _, _, _, _, _ in
-                .skip // graphql-js 'false' is Swift '.skip'
-            }
-        ))
+        let editedASTNode = visit(
+            root: ast,
+            visitor: .init(
+                leave: { _, _, _, _, _ in
+                    .skip  // graphql-js 'false' is Swift '.skip'
+                }
+            )
+        )
 
         let editedAST = try #require(editedASTNode as? Document)
         let operation = try #require(editedAST.definitions[0] as? OperationDefinition)
         #expect(
-            operation.selectionSet.selections.count ==
-                3 // "b" remains
+            operation.selectionSet.selections.count == 3  // "b" remains
         )
 
         let cField = try #require(operation.selectionSet.selections[2] as? Field)
         #expect(
-            cField.selectionSet?.selections.count == 3 // "b" remains
+            cField.selectionSet?.selections.count == 3  // "b" remains
         )
     }
 
@@ -257,30 +288,36 @@ import Testing
         var didVisitAddedField = false
 
         let ast = try parse(source: "{ a { x } }", noLocation: true)
-        visit(root: ast, visitor: .init(
-            enter: { node, key, parent, path, ancestors in
-                checkVisitorFnArgs(ast, node, key, parent, path, ancestors, isEdited: true)
-                if let node = node as? Field, node.name.value == "a" {
-                    if let selectionSet = node.selectionSet {
-                        var newSelections = selectionSet.selections
-                        newSelections.append(addedField)
+        visit(
+            root: ast,
+            visitor: .init(
+                enter: { node, key, parent, path, ancestors in
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors, isEdited: true)
+                    if let node = node as? Field, node.name.value == "a" {
+                        if let selectionSet = node.selectionSet {
+                            var newSelections = selectionSet.selections
+                            newSelections.append(addedField)
 
-                        var newSelectionSet = selectionSet
-                        newSelectionSet = newSelectionSet.set(
-                            value: .array(newSelections),
-                            key: "selections"
-                        )
+                            var newSelectionSet = selectionSet
+                            newSelectionSet = newSelectionSet.set(
+                                value: .array(newSelections),
+                                key: "selections"
+                            )
 
-                        let newNode = node.set(value: .node(newSelectionSet), key: "selectionSet")
-                        return .node(newNode)
+                            let newNode = node.set(
+                                value: .node(newSelectionSet),
+                                key: "selectionSet"
+                            )
+                            return .node(newNode)
+                        }
                     }
+                    if let node = node as? Field, node.name.value == "__typename" {
+                        didVisitAddedField = true
+                    }
+                    return .continue
                 }
-                if let node = node as? Field, node.name.value == "__typename" {
-                    didVisitAddedField = true
-                }
-                return .continue
-            }
-        ))
+            )
+        )
 
         #expect(didVisitAddedField)
     }
@@ -301,21 +338,24 @@ import Testing
         var visited = [VisitedElement]()
         let ast = try parse(source: "{ a, b { x }, c }", noLocation: true)
 
-        visit(root: ast, visitor: .init(
-            enter: { node, key, parent, path, ancestors in
-                checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                visited.append(.init(.enter, node.kind, getValue(node: node)))
-                if let node = node as? Field, node.name.value == "b" {
-                    return .skip
+        visit(
+            root: ast,
+            visitor: .init(
+                enter: { node, key, parent, path, ancestors in
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                    visited.append(.init(.enter, node.kind, getValue(node: node)))
+                    if let node = node as? Field, node.name.value == "b" {
+                        return .skip
+                    }
+                    return .continue
+                },
+                leave: { node, key, parent, path, ancestors in
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                    visited.append(.init(.leave, node.kind, getValue(node: node)))
+                    return .continue
                 }
-                return .continue
-            },
-            leave: { node, key, parent, path, ancestors in
-                checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                visited.append(.init(.leave, node.kind, getValue(node: node)))
-                return .continue
-            }
-        ))
+            )
+        )
 
         #expect(
             visited == [
@@ -354,21 +394,24 @@ import Testing
         var visited = [VisitedElement]()
         let ast = try parse(source: "{ a, b { x }, c }", noLocation: true)
 
-        visit(root: ast, visitor: .init(
-            enter: { node, key, parent, path, ancestors in
-                checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                visited.append(.init(.enter, node.kind, getValue(node: node)))
-                if let node = node as? Name, node.value == "x" {
-                    return .break
+        visit(
+            root: ast,
+            visitor: .init(
+                enter: { node, key, parent, path, ancestors in
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                    visited.append(.init(.enter, node.kind, getValue(node: node)))
+                    if let node = node as? Name, node.value == "x" {
+                        return .break
+                    }
+                    return .continue
+                },
+                leave: { node, key, parent, path, ancestors in
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                    visited.append(.init(.leave, node.kind, getValue(node: node)))
+                    return .continue
                 }
-                return .continue
-            },
-            leave: { node, key, parent, path, ancestors in
-                checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                visited.append(.init(.leave, node.kind, getValue(node: node)))
-                return .continue
-            }
-        ))
+            )
+        )
 
         #expect(
             visited == [
@@ -405,21 +448,24 @@ import Testing
         var visited = [VisitedElement]()
         let ast = try parse(source: "{ a, b { x }, c }", noLocation: true)
 
-        visit(root: ast, visitor: .init(
-            enter: { node, key, parent, path, ancestors in
-                checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                visited.append(.init(.enter, node.kind, getValue(node: node)))
-                return .continue
-            },
-            leave: { node, key, parent, path, ancestors in
-                checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                visited.append(.init(.leave, node.kind, getValue(node: node)))
-                if let node = node as? Name, node.value == "x" {
-                    return .break
+        visit(
+            root: ast,
+            visitor: .init(
+                enter: { node, key, parent, path, ancestors in
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                    visited.append(.init(.enter, node.kind, getValue(node: node)))
+                    return .continue
+                },
+                leave: { node, key, parent, path, ancestors in
+                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                    visited.append(.init(.leave, node.kind, getValue(node: node)))
+                    if let node = node as? Name, node.value == "x" {
+                        return .break
+                    }
+                    return .continue
                 }
-                return .continue
-            }
-        ))
+            )
+        )
 
         #expect(
             visited == [
@@ -457,26 +503,29 @@ import Testing
         var visited = [VisitedElement]()
         let ast = try parse(source: "{ a, b { x }, c }", noLocation: true)
 
-        visit(root: ast, visitor: .init(
-            enter: { node, key, parent, path, ancestors in
-                if let node = node as? Name {
-                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                    visited.append(.init(.enter, node.kind, getValue(node: node)))
+        visit(
+            root: ast,
+            visitor: .init(
+                enter: { node, key, parent, path, ancestors in
+                    if let node = node as? Name {
+                        checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                        visited.append(.init(.enter, node.kind, getValue(node: node)))
+                    }
+                    if let node = node as? SelectionSet {
+                        checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                        visited.append(.init(.enter, node.kind, getValue(node: node)))
+                    }
+                    return .continue
+                },
+                leave: { node, key, parent, path, ancestors in
+                    if let node = node as? SelectionSet {
+                        checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
+                        visited.append(.init(.leave, node.kind, getValue(node: node)))
+                    }
+                    return .continue
                 }
-                if let node = node as? SelectionSet {
-                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                    visited.append(.init(.enter, node.kind, getValue(node: node)))
-                }
-                return .continue
-            },
-            leave: { node, key, parent, path, ancestors in
-                if let node = node as? SelectionSet {
-                    checkVisitorFnArgs(ast, node, key, parent, path, ancestors)
-                    visited.append(.init(.leave, node.kind, getValue(node: node)))
-                }
-                return .continue
-            }
-        ))
+            )
+        )
 
         #expect(
             visited == [
@@ -504,25 +553,28 @@ import Testing
         }
         let ast = try parse(source: kitchenSink)
 
-        visit(root: ast, visitor: .init(
-            enter: { node, key, parent, _, _ in
-                var parentKind: Kind?
-                if case let .node(parent) = parent {
-                    parentKind = parent.kind
-                }
-                visited.append(.init(.enter, node.kind, key, parentKind))
-                return .continue
-            },
-            leave: { node, key, parent, _, _ in
-                var parentKind: Kind?
-                if case let .node(parent) = parent {
-                    parentKind = parent.kind
-                }
-                visited.append(.init(.leave, node.kind, key, parentKind))
+        visit(
+            root: ast,
+            visitor: .init(
+                enter: { node, key, parent, _, _ in
+                    var parentKind: Kind?
+                    if case .node(let parent) = parent {
+                        parentKind = parent.kind
+                    }
+                    visited.append(.init(.enter, node.kind, key, parentKind))
+                    return .continue
+                },
+                leave: { node, key, parent, _, _ in
+                    var parentKind: Kind?
+                    if case .node(let parent) = parent {
+                        parentKind = parent.kind
+                    }
+                    visited.append(.init(.leave, node.kind, key, parentKind))
 
-                return .continue
-            }
-        ))
+                    return .continue
+                }
+            )
+        )
 
         #expect(
             visited == [
@@ -846,8 +898,8 @@ struct VisitedPath {
 
 extension VisitedPath: Equatable {
     static func == (lhs: VisitedPath, rhs: VisitedPath) -> Bool {
-        return lhs.direction == rhs.direction &&
-            zip(lhs.path, rhs.path).allSatisfy { lhs, rhs in
+        return lhs.direction == rhs.direction
+            && zip(lhs.path, rhs.path).allSatisfy { lhs, rhs in
                 lhs.description == rhs.description
             }
     }
@@ -874,10 +926,8 @@ struct VisitedKindAndParent {
 
 extension VisitedKindAndParent: Equatable {
     static func == (lhs: VisitedKindAndParent, rhs: VisitedKindAndParent) -> Bool {
-        return lhs.direction == rhs.direction &&
-            lhs.kind == rhs.kind &&
-            lhs.key?.description == rhs.key?.description &&
-            lhs.parentKind == rhs.parentKind
+        return lhs.direction == rhs.direction && lhs.kind == rhs.kind
+            && lhs.key?.description == rhs.key?.description && lhs.parentKind == rhs.parentKind
     }
 }
 
@@ -937,16 +987,16 @@ func checkVisitorFnArgs(
 
 func nodeResultsEqual(_ n1: NodeResult, _ n2: NodeResult) -> Bool {
     switch n1 {
-    case let .node(n1):
+    case .node(let n1):
         switch n2 {
-        case let .node(n2):
+        case .node(let n2):
             return n1.kind == n2.kind && n1.loc == n2.loc
         default:
             return false
         }
-    case let .array(n1):
+    case .array(let n1):
         switch n2 {
-        case let .array(n2):
+        case .array(let n2):
             return zip(n1, n2).allSatisfy { n1, n2 in
                 nodesEqual(n1, n2)
             }

@@ -1,8 +1,6 @@
-/**
- * Given a `Map` value and a GraphQL type, determine if the value will be
- * accepted for that type. This is primarily useful for validating the
- * runtime values of query variables.
- */
+/// Given a `Map` value and a GraphQL type, determine if the value will be
+/// accepted for that type. This is primarily useful for validating the
+/// runtime values of query variables.
 func validate(value: Map, forType type: GraphQLInputType) throws -> [String] {
     // A value must be provided if the type is non-null.
     if let nonNullType = type as? GraphQLNonNull {
@@ -31,7 +29,7 @@ func validate(value: Map, forType type: GraphQLInputType) throws -> [String] {
             throw GraphQLError(message: "Input list type must wrap another input type")
         }
 
-        if case let .array(values) = value {
+        if case .array(let values) = value {
             var errors: [String] = []
 
             for (index, item) in values.enumerated() {
@@ -49,7 +47,7 @@ func validate(value: Map, forType type: GraphQLInputType) throws -> [String] {
 
     // Input objects check each defined field.
     if let objectType = type as? GraphQLInputObjectType {
-        guard case let .dictionary(dictionary) = value else {
+        guard case .dictionary(let dictionary) = value else {
             return ["Expected \"\(objectType.name)\", found not an object."]
         }
 

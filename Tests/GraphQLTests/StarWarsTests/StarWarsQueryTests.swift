@@ -1,21 +1,22 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct StarWarsQueryTests {
     @Test func heroNameQuery() async throws {
         let query = """
-        query HeroNameQuery {
-            hero {
-                name
+            query HeroNameQuery {
+                hero {
+                    name
+                }
             }
-        }
-        """
+            """
 
         let expected = GraphQLResult(
             data: [
                 "hero": [
-                    "name": "R2-D2",
-                ],
+                    "name": "R2-D2"
+                ]
             ]
         )
 
@@ -29,16 +30,16 @@ import Testing
 
     @Test func heroNameAndFriendsQuery() async throws {
         let query = """
-        query HeroNameAndFriendsQuery {
-            hero {
-                id
-                name
-                friends {
+            query HeroNameAndFriendsQuery {
+                hero {
+                    id
                     name
+                    friends {
+                        name
+                    }
                 }
             }
-        }
-        """
+            """
 
         let expected = GraphQLResult(
             data: [
@@ -50,7 +51,7 @@ import Testing
                         ["name": "Han Solo"],
                         ["name": "Leia Organa"],
                     ],
-                ],
+                ]
             ]
         )
 
@@ -64,19 +65,19 @@ import Testing
 
     @Test func nestedQuery() async throws {
         let query = """
-        query NestedQuery {
-            hero {
-                name
-                friends {
+            query NestedQuery {
+                hero {
                     name
-                    appearsIn
                     friends {
                         name
+                        appearsIn
+                        friends {
+                            name
+                        }
                     }
                 }
             }
-        }
-        """
+            """
 
         let expected = GraphQLResult(
             data: [
@@ -113,7 +114,7 @@ import Testing
                             ],
                         ],
                     ],
-                ],
+                ]
             ]
         )
 
@@ -137,8 +138,8 @@ import Testing
         let expected = GraphQLResult(
             data: [
                 "human": [
-                    "name": "Luke Skywalker",
-                ],
+                    "name": "Luke Skywalker"
+                ]
             ]
         )
 
@@ -169,8 +170,8 @@ import Testing
         expected = GraphQLResult(
             data: [
                 "hero": [
-                    "name": "R2-D2",
-                ],
+                    "name": "R2-D2"
+                ]
             ]
         )
 
@@ -183,14 +184,14 @@ import Testing
 
         // or we can pass "EMPIRE" and expect Luke
         params = [
-            "episode": "EMPIRE",
+            "episode": "EMPIRE"
         ]
 
         expected = GraphQLResult(
             data: [
                 "hero": [
-                    "name": "Luke Skywalker",
-                ],
+                    "name": "Luke Skywalker"
+                ]
             ]
         )
 
@@ -217,14 +218,14 @@ import Testing
         var result: GraphQLResult
 
         params = [
-            "someId": "1000",
+            "someId": "1000"
         ]
 
         expected = GraphQLResult(
             data: [
                 "human": [
-                    "name": "Luke Skywalker",
-                ],
+                    "name": "Luke Skywalker"
+                ]
             ]
         )
 
@@ -236,14 +237,14 @@ import Testing
         #expect(result == expected)
 
         params = [
-            "someId": "1002",
+            "someId": "1002"
         ]
 
         expected = GraphQLResult(
             data: [
                 "human": [
-                    "name": "Han Solo",
-                ],
+                    "name": "Han Solo"
+                ]
             ]
         )
 
@@ -255,12 +256,12 @@ import Testing
         #expect(result == expected)
 
         params = [
-            "someId": "not a valid id",
+            "someId": "not a valid id"
         ]
 
         expected = GraphQLResult(
             data: [
-                "human": nil,
+                "human": nil
             ]
         )
 
@@ -285,8 +286,8 @@ import Testing
         let expected = GraphQLResult(
             data: [
                 "luke": [
-                    "name": "Luke Skywalker",
-                ],
+                    "name": "Luke Skywalker"
+                ]
             ]
         )
 
@@ -313,10 +314,10 @@ import Testing
         let expected = GraphQLResult(
             data: [
                 "luke": [
-                    "name": "Luke Skywalker",
+                    "name": "Luke Skywalker"
                 ],
                 "leia": [
-                    "name": "Leia Organa",
+                    "name": "Leia Organa"
                 ],
             ]
         )
@@ -416,7 +417,7 @@ import Testing
                 "hero": [
                     "__typename": "Droid",
                     "name": "R2-D2",
-                ],
+                ]
             ]
         )
 
@@ -444,7 +445,7 @@ import Testing
                 "hero": [
                     "__typename": "Human",
                     "name": "Luke Skywalker",
-                ],
+                ]
             ]
         )
 
@@ -471,14 +472,14 @@ import Testing
                 "hero": [
                     "name": "R2-D2",
                     "secretBackstory": nil,
-                ],
+                ]
             ],
             errors: [
                 GraphQLError(
                     message: "secretBackstory is secret.",
                     locations: [SourceLocation(line: 4, column: 9)],
                     path: ["hero", "secretBackstory"]
-                ),
+                )
             ]
         )
 
@@ -521,7 +522,7 @@ import Testing
                             "secretBackstory": nil,
                         ],
                     ],
-                ],
+                ]
             ],
             errors: [
                 GraphQLError(
@@ -565,14 +566,14 @@ import Testing
                 "mainHero": [
                     "name": "R2-D2",
                     "story": nil,
-                ],
+                ]
             ],
             errors: [
                 GraphQLError(
                     message: "secretBackstory is secret.",
                     locations: [SourceLocation(line: 4, column: 9)],
                     path: ["mainHero", "story"]
-                ),
+                )
             ]
         )
 
@@ -588,30 +589,32 @@ import Testing
             name: "A",
             fields: [:]
         )
-        A.fields = { [
-            "nullableA": GraphQLField(
-                type: A,
-                resolve: { _, _, _, _ -> [String: String]? in
-                    [:] as [String: String]
-                }
-            ),
-            "nonNullA": GraphQLField(
-                type: GraphQLNonNull(A),
-                resolve: { _, _, _, _ -> [String: String]? in
-                    [:] as [String: String]
-                }
-            ),
-            "throws": GraphQLField(
-                type: GraphQLNonNull(GraphQLString),
-                resolve: { _, _, _, _ -> [String: String]? in
-                    struct 🏃: Error, CustomStringConvertible {
-                        let description: String
+        A.fields = {
+            [
+                "nullableA": GraphQLField(
+                    type: A,
+                    resolve: { _, _, _, _ -> [String: String]? in
+                        [:] as [String: String]
                     }
+                ),
+                "nonNullA": GraphQLField(
+                    type: GraphQLNonNull(A),
+                    resolve: { _, _, _, _ -> [String: String]? in
+                        [:] as [String: String]
+                    }
+                ),
+                "throws": GraphQLField(
+                    type: GraphQLNonNull(GraphQLString),
+                    resolve: { _, _, _, _ -> [String: String]? in
+                        struct 🏃: Error, CustomStringConvertible {
+                            let description: String
+                        }
 
-                    throw 🏃(description: "catch me if you can.")
-                }
-            ),
-        ] }
+                        throw 🏃(description: "catch me if you can.")
+                    }
+                ),
+            ]
+        }
 
         let queryType = try GraphQLObjectType(
             name: "query",
@@ -621,7 +624,7 @@ import Testing
                     resolve: { _, _, _, _ -> [String: String]? in
                         [:] as [String: String]
                     }
-                ),
+                )
             ]
         )
 
@@ -647,15 +650,15 @@ import Testing
         let expected = GraphQLResult(
             data: [
                 "nullableA": [
-                    "nullableA": nil,
-                ],
+                    "nullableA": nil
+                ]
             ],
             errors: [
                 GraphQLError(
                     message: "catch me if you can.",
                     locations: [SourceLocation(line: 6, column: 21)],
                     path: ["nullableA", "nullableA", "nonNullA", "nonNullA", "throws"]
-                ),
+                )
             ]
         )
 
@@ -668,41 +671,47 @@ import Testing
         var result = try await graphql(
             schema: starWarsSchema,
             request: """
-            query HeroNameQuery {
-                hero {
-                    id
-                    name
+                query HeroNameQuery {
+                    hero {
+                        id
+                        name
+                    }
                 }
-            }
-            """
+                """
         )
-        #expect(result == GraphQLResult(
-            data: [
-                "hero": [
-                    "id": "2001",
-                    "name": "R2-D2",
-                ],
-            ]
-        ))
+        #expect(
+            result
+                == GraphQLResult(
+                    data: [
+                        "hero": [
+                            "id": "2001",
+                            "name": "R2-D2",
+                        ]
+                    ]
+                )
+        )
 
         result = try await graphql(
             schema: starWarsSchema,
             request: """
-            query HeroNameQuery {
-                hero {
-                    id
-                    name
+                query HeroNameQuery {
+                    hero {
+                        id
+                        name
+                    }
                 }
-            }
-            """
+                """
         )
-        #expect(result != GraphQLResult(
-            data: [
-                "hero": [
-                    "name": "R2-D2",
-                    "id": "2001",
-                ],
-            ]
-        ))
+        #expect(
+            result
+                != GraphQLResult(
+                    data: [
+                        "hero": [
+                            "name": "R2-D2",
+                            "id": "2001",
+                        ]
+                    ]
+                )
+        )
     }
 }

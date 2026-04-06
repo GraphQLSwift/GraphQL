@@ -49,12 +49,10 @@ import GraphQL
  * We begin by setting up our schema.
  */
 
-/**
- * The original trilogy consists of three movies.
- *
- * This implements the following type system shorthand:
- *   enum Episode { NEWHOPE, EMPIRE, JEDI }
- */
+/// The original trilogy consists of three movies.
+///
+/// This implements the following type system shorthand:
+///   enum Episode { NEWHOPE, EMPIRE, JEDI }
 let EpisodeEnum = try! GraphQLEnumType(
     name: "Episode",
     description: "One of the films in the Star Wars Trilogy",
@@ -74,43 +72,43 @@ let EpisodeEnum = try! GraphQLEnumType(
     ]
 )
 
-/**
- * Characters in the Star Wars trilogy are either humans or droids.
- *
- * This implements the following type system shorthand:
- *   interface Character {
- *     id: String!
- *     name: String
- *     friends: [Character]
- *     appearsIn: [Episode]
- *     secretBackstory: String
- *   }
- */
+/// Characters in the Star Wars trilogy are either humans or droids.
+///
+/// This implements the following type system shorthand:
+///   interface Character {
+///     id: String!
+///     name: String
+///     friends: [Character]
+///     appearsIn: [Episode]
+///     secretBackstory: String
+///   }
 let CharacterInterface = try! GraphQLInterfaceType(
     name: "Character",
     description: "A character in the Star Wars Trilogy",
-    fields: { [
-        "id": GraphQLField(
-            type: GraphQLNonNull(GraphQLString),
-            description: "The id of the character."
-        ),
-        "name": GraphQLField(
-            type: GraphQLString,
-            description: "The name of the character."
-        ),
-        "friends": GraphQLField(
-            type: GraphQLList(CharacterInterface),
-            description: "The friends of the character, or an empty list if they have none."
-        ),
-        "appearsIn": GraphQLField(
-            type: GraphQLList(EpisodeEnum),
-            description: "Which movies they appear in."
-        ),
-        "secretBackstory": GraphQLField(
-            type: GraphQLString,
-            description: "All secrets about their past."
-        ),
-    ] },
+    fields: {
+        [
+            "id": GraphQLField(
+                type: GraphQLNonNull(GraphQLString),
+                description: "The id of the character."
+            ),
+            "name": GraphQLField(
+                type: GraphQLString,
+                description: "The name of the character."
+            ),
+            "friends": GraphQLField(
+                type: GraphQLList(CharacterInterface),
+                description: "The friends of the character, or an empty list if they have none."
+            ),
+            "appearsIn": GraphQLField(
+                type: GraphQLList(EpisodeEnum),
+                description: "Which movies they appear in."
+            ),
+            "secretBackstory": GraphQLField(
+                type: GraphQLString,
+                description: "All secrets about their past."
+            ),
+        ]
+    },
     resolveType: { character, _ in
         switch character {
         case is Human:
@@ -121,18 +119,16 @@ let CharacterInterface = try! GraphQLInterfaceType(
     }
 )
 
-/**
- * We define our human type, which implements the character interface.
- *
- * This implements the following type system shorthand:
- *   type Human : Character {
- *     id: String!
- *     name: String
- *     friends: [Character]
- *     appearsIn: [Episode]
- *     secretBackstory: String
- *   }
- */
+/// We define our human type, which implements the character interface.
+///
+/// This implements the following type system shorthand:
+///   type Human : Character {
+///     id: String!
+///     name: String
+///     friends: [Character]
+///     appearsIn: [Episode]
+///     secretBackstory: String
+///   }
 let HumanType = try! GraphQLObjectType(
     name: "Human",
     description: "A humanoid creature in the Star Wars universe.",
@@ -147,8 +143,7 @@ let HumanType = try! GraphQLObjectType(
         ),
         "friends": GraphQLField(
             type: GraphQLList(CharacterInterface),
-            description: "The friends of the human, or an empty list if they " +
-                "have none.",
+            description: "The friends of the human, or an empty list if they " + "have none.",
             resolve: { human, _, _, _ in
                 getFriends(character: human as! Human)
             }
@@ -179,19 +174,17 @@ let HumanType = try! GraphQLObjectType(
     }
 )
 
-/**
- * The other type of character in Star Wars is a droid.
- *
- * This implements the following type system shorthand:
- *   type Droid : Character {
- *     id: String!
- *     name: String
- *     friends: [Character]
- *     appearsIn: [Episode]
- *     secretBackstory: String
- *     primaryFunction: String
- *   }
- */
+/// The other type of character in Star Wars is a droid.
+///
+/// This implements the following type system shorthand:
+///   type Droid : Character {
+///     id: String!
+///     name: String
+///     friends: [Character]
+///     appearsIn: [Episode]
+///     secretBackstory: String
+///     primaryFunction: String
+///   }
 let DroidType = try! GraphQLObjectType(
     name: "Droid",
     description: "A mechanical creature in the Star Wars universe.",
@@ -237,20 +230,17 @@ let DroidType = try! GraphQLObjectType(
     }
 )
 
-/**
- * This is the type that will be the root of our query, and the
- * entry point into our schema. It gives us the ability to fetch
- * objects by their IDs, as well as to fetch the undisputed hero
- * of the Star Wars trilogy, R2-D2, directly.
- *
- * This implements the following type system shorthand:
- *   type Query {
- *     hero(episode: Episode): Character
- *     human(id: String!): Human
- *     droid(id: String!): Droid
- *   }
- *
- */
+/// This is the type that will be the root of our query, and the
+/// entry point into our schema. It gives us the ability to fetch
+/// objects by their IDs, as well as to fetch the undisputed hero
+/// of the Star Wars trilogy, R2-D2, directly.
+///
+/// This implements the following type system shorthand:
+///   type Query {
+///     hero(episode: Episode): Character
+///     human(id: String!): Human
+///     droid(id: String!): Droid
+///   }
 let QueryType = try! GraphQLObjectType(
     name: "Query",
     fields: [
@@ -260,9 +250,9 @@ let QueryType = try! GraphQLObjectType(
                 "episode": GraphQLArgument(
                     type: EpisodeEnum,
                     description:
-                    "If omitted, returns the hero of the whole saga. If " +
-                        "provided, returns the hero of that particular episode."
-                ),
+                        "If omitted, returns the hero of the whole saga. If "
+                        + "provided, returns the hero of that particular episode."
+                )
             ],
             resolve: { _, arguments, _, _ in
                 let episode = Episode(arguments["episode"].string)
@@ -275,7 +265,7 @@ let QueryType = try! GraphQLObjectType(
                 "id": GraphQLArgument(
                     type: GraphQLNonNull(GraphQLString),
                     description: "id of the human"
-                ),
+                )
             ],
             resolve: { _, arguments, _, _ in
                 getHuman(id: arguments["id"].string!)
@@ -287,7 +277,7 @@ let QueryType = try! GraphQLObjectType(
                 "id": GraphQLArgument(
                     type: GraphQLNonNull(GraphQLString),
                     description: "id of the droid"
-                ),
+                )
             ],
             resolve: { _, arguments, _, _ in
                 getDroid(id: arguments["id"].string!)
@@ -296,10 +286,8 @@ let QueryType = try! GraphQLObjectType(
     ]
 )
 
-/**
- * Finally, we construct our schema (whose starting query type is the query
- * type we defined above) and export it.
- */
+/// Finally, we construct our schema (whose starting query type is the query
+/// type we defined above) and export it.
 let starWarsSchema = try! GraphQLSchema(
     query: QueryType,
     types: [HumanType, DroidType]

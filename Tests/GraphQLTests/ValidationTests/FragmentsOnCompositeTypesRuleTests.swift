@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
     override init() {
@@ -77,16 +78,17 @@ class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            fragment scalarFragment on Boolean {
-              bad
-            }
-            """
+                """
+                fragment scalarFragment on Boolean {
+                  bad
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
             locations: [(line: 1, column: 28)],
-            message: "Fragment \"scalarFragment\" cannot condition on non composite type \"Boolean\"."
+            message:
+                "Fragment \"scalarFragment\" cannot condition on non composite type \"Boolean\"."
         )
     }
 
@@ -94,16 +96,17 @@ class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            fragment scalarFragment on FurColor {
-              bad
-            }
-            """
+                """
+                fragment scalarFragment on FurColor {
+                  bad
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
             locations: [(line: 1, column: 28)],
-            message: "Fragment \"scalarFragment\" cannot condition on non composite type \"FurColor\"."
+            message:
+                "Fragment \"scalarFragment\" cannot condition on non composite type \"FurColor\"."
         )
     }
 
@@ -111,16 +114,17 @@ class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            fragment inputFragment on ComplexInput {
-              stringField
-            }
-            """
+                """
+                fragment inputFragment on ComplexInput {
+                  stringField
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
             locations: [(line: 1, column: 27)],
-            message: "Fragment \"inputFragment\" cannot condition on non composite type \"ComplexInput\"."
+            message:
+                "Fragment \"inputFragment\" cannot condition on non composite type \"ComplexInput\"."
         )
     }
 
@@ -128,13 +132,13 @@ class FragmentsOnCompositeTypesRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            fragment invalidFragment on Pet {
-              ... on String {
-                barks
-              }
-            }
-            """
+                """
+                fragment invalidFragment on Pet {
+                  ... on String {
+                    barks
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],

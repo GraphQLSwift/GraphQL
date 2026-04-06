@@ -1,12 +1,9 @@
-
-/**
- * Variables are input types
- *
- * A GraphQL operation is only valid if all the variables it defines are of
- * input types (scalar, enum, or input object).
- *
- * See https://spec.graphql.org/draft/#sec-Variables-Are-Input-Types
- */
+/// Variables are input types
+///
+/// A GraphQL operation is only valid if all the variables it defines are of
+/// input types (scalar, enum, or input object).
+///
+/// See https://spec.graphql.org/draft/#sec-Variables-Are-Input-Types
 func VariablesAreInputTypesRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
@@ -23,7 +20,8 @@ func VariablesAreInputTypesRule(context: ValidationContext) -> Visitor {
                     let typeName = print(ast: variableType)
                     context.report(
                         error: GraphQLError(
-                            message: "Variable \"$\(variableName)\" cannot be non-input type \"\(typeName)\".",
+                            message:
+                                "Variable \"$\(variableName)\" cannot be non-input type \"\(typeName)\".",
                             nodes: [variableType]
                         )
                     )

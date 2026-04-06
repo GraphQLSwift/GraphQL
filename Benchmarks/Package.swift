@@ -20,9 +20,9 @@ let package = Package(
             ],
             path: "Benchmarks",
             plugins: [
-                .plugin(name: "BenchmarkPlugin", package: "package-benchmark"),
+                .plugin(name: "BenchmarkPlugin", package: "package-benchmark")
             ]
-        ),
+        )
     ],
     swiftLanguageVersions: [.v5, .version("6")]
 )

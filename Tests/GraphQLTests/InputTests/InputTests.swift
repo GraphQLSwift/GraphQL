@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 @Suite struct InputTests {
     @Test func argsNonNullNoDefault() async throws {
@@ -17,7 +18,7 @@ import Testing
             fields: [
                 "field1": GraphQLField(
                     type: GraphQLNonNull(GraphQLString)
-                ),
+                )
             ],
             isTypeOf: { source, _ in
                 source is Echo
@@ -33,7 +34,7 @@ import Testing
                         args: [
                             "field1": GraphQLArgument(
                                 type: GraphQLNonNull(GraphQLString)
-                            ),
+                            )
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -41,7 +42,7 @@ import Testing
                                 field1: args.field1
                             )
                         }
-                    ),
+                    )
                 ]
             ),
             types: [EchoOutputType]
@@ -51,57 +52,59 @@ import Testing
         var result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo(
-                    field1: "value1"
-                ) {
-                    field1
+                {
+                    echo(
+                        field1: "value1"
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1"
+                    ]
+                ])
         )
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($field1: String!) {
-                echo(
-                    field1: $field1
-                ) {
-                    field1
+                query echo($field1: String!) {
+                    echo(
+                        field1: $field1
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [
-                "field1": "value1",
+                "field1": "value1"
             ]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1"
+                    ]
+                ])
         )
 
         // Test providing null results in an error
         result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo(
-                    field1: null
-                ) {
-                    field1
+                {
+                    echo(
+                        field1: null
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
             result.errors.count > 0
@@ -109,16 +112,16 @@ import Testing
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($field1: String!) {
-                echo(
-                    field1: $field1
-                ) {
-                    field1
+                query echo($field1: String!) {
+                    echo(
+                        field1: $field1
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [
-                "field1": .null,
+                "field1": .null
             ]
         )
         #expect(
@@ -129,12 +132,12 @@ import Testing
         result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo {
-                    field1
+                {
+                    echo {
+                        field1
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
             result.errors.count > 0
@@ -142,14 +145,14 @@ import Testing
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($field1: String!) {
-                echo(
-                    field1: $field1
-                ) {
-                    field1
+                query echo($field1: String!) {
+                    echo(
+                        field1: $field1
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [:]
         )
         #expect(
@@ -172,7 +175,7 @@ import Testing
             fields: [
                 "field1": GraphQLField(
                     type: GraphQLString
-                ),
+                )
             ],
             isTypeOf: { source, _ in
                 source is Echo
@@ -188,7 +191,7 @@ import Testing
                         args: [
                             "field1": GraphQLArgument(
                                 type: GraphQLString
-                            ),
+                            )
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -196,7 +199,7 @@ import Testing
                                 field1: args.field1
                             )
                         }
-                    ),
+                    )
                 ]
             ),
             types: [EchoOutputType]
@@ -206,125 +209,131 @@ import Testing
         var result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo(
-                    field1: "value1"
-                ) {
-                    field1
+                {
+                    echo(
+                        field1: "value1"
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1"
+                    ]
+                ])
         )
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($field1: String) {
-                echo(
-                    field1: $field1
-                ) {
-                    field1
+                query echo($field1: String) {
+                    echo(
+                        field1: $field1
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [
-                "field1": "value1",
+                "field1": "value1"
             ]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1"
+                    ]
+                ])
         )
 
         // Test providing null is accepted
         result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo(
-                    field1: null
-                ) {
-                    field1
+                {
+                    echo(
+                        field1: null
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": .null,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": .null
+                    ]
+                ])
         )
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($field1: String) {
-                echo(
-                    field1: $field1
-                ) {
-                    field1
+                query echo($field1: String) {
+                    echo(
+                        field1: $field1
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [
-                "field1": .null,
+                "field1": .null
             ]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": .null,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": .null
+                    ]
+                ])
         )
 
         // Test not providing parameter is accepted
         result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo {
-                    field1
+                {
+                    echo {
+                        field1
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": .null,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": .null
+                    ]
+                ])
         )
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($field1: String) {
-                echo(
-                    field1: $field1
-                ) {
-                    field1
+                query echo($field1: String) {
+                    echo(
+                        field1: $field1
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [:]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": .null,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": .null
+                    ]
+                ])
         )
     }
 
@@ -343,7 +352,7 @@ import Testing
             fields: [
                 "field1": GraphQLField(
                     type: GraphQLNonNull(GraphQLString)
-                ),
+                )
             ],
             isTypeOf: { source, _ in
                 source is Echo
@@ -360,7 +369,7 @@ import Testing
                             "field1": GraphQLArgument(
                                 type: GraphQLNonNull(GraphQLString),
                                 defaultValue: .string("defaultValue1")
-                            ),
+                            )
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -368,7 +377,7 @@ import Testing
                                 field1: args.field1
                             )
                         }
-                    ),
+                    )
                 ]
             ),
             types: [EchoOutputType]
@@ -378,57 +387,59 @@ import Testing
         var result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo(
-                    field1: "value1"
-                ) {
-                    field1
+                {
+                    echo(
+                        field1: "value1"
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1"
+                    ]
+                ])
         )
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($field1: String!) {
-                echo(
-                    field1: $field1
-                ) {
-                    field1
+                query echo($field1: String!) {
+                    echo(
+                        field1: $field1
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [
-                "field1": "value1",
+                "field1": "value1"
             ]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1"
+                    ]
+                ])
         )
 
         // Test providing null results in an error
         result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo(
-                    field1: null
-                ) {
-                    field1
+                {
+                    echo(
+                        field1: null
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
             result.errors.count > 0
@@ -436,16 +447,16 @@ import Testing
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($field1: String!) {
-                echo(
-                    field1: $field1
-                ) {
-                    field1
+                query echo($field1: String!) {
+                    echo(
+                        field1: $field1
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [
-                "field1": .null,
+                "field1": .null
             ]
         )
         #expect(
@@ -456,53 +467,55 @@ import Testing
         result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo {
-                    field1
+                {
+                    echo {
+                        field1
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "defaultValue1",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "defaultValue1"
+                    ]
+                ])
         )
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($field1: String! = "defaultValue1") {
-                echo (
-                    field1: $field1
-                ) {
-                    field1
+                query echo($field1: String! = "defaultValue1") {
+                    echo (
+                        field1: $field1
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [:]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "defaultValue1",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "defaultValue1"
+                    ]
+                ])
         )
 
         // Test variable doesn't get argument default
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($field1: String!) {
-                echo (
-                    field1: $field1
-                ) {
-                    field1
+                query echo($field1: String!) {
+                    echo (
+                        field1: $field1
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [:]
         )
         #expect(
@@ -525,7 +538,7 @@ import Testing
             fields: [
                 "field1": GraphQLField(
                     type: GraphQLString
-                ),
+                )
             ],
             isTypeOf: { source, _ in
                 source is Echo
@@ -542,7 +555,7 @@ import Testing
                             "field1": GraphQLArgument(
                                 type: GraphQLString,
                                 defaultValue: .string("defaultValue1")
-                            ),
+                            )
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -550,7 +563,7 @@ import Testing
                                 field1: args.field1
                             )
                         }
-                    ),
+                    )
                 ]
             ),
             types: [EchoOutputType]
@@ -560,147 +573,154 @@ import Testing
         var result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo(
-                    field1: "value1"
-                ) {
-                    field1
+                {
+                    echo(
+                        field1: "value1"
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1"
+                    ]
+                ])
         )
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($field1: String!) {
-                echo(
-                    field1: $field1
-                ) {
-                    field1
+                query echo($field1: String!) {
+                    echo(
+                        field1: $field1
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [
-                "field1": "value1",
+                "field1": "value1"
             ]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1"
+                    ]
+                ])
         )
 
         // Test providing null results in a null output
         result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo(
-                    field1: null
-                ) {
-                    field1
+                {
+                    echo(
+                        field1: null
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": .null,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": .null
+                    ]
+                ])
         )
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($field1: String) {
-                echo(
-                    field1: $field1
-                ) {
-                    field1
+                query echo($field1: String) {
+                    echo(
+                        field1: $field1
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [
-                "field1": .null,
+                "field1": .null
             ]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": .null,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": .null
+                    ]
+                ])
         )
 
         // Test not providing parameter results in default
         result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo {
-                    field1
+                {
+                    echo {
+                        field1
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "defaultValue1",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "defaultValue1"
+                    ]
+                ])
         )
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($field1: String = "defaultValue1") {
-                echo (
-                    field1: $field1
-                ) {
-                    field1
+                query echo($field1: String = "defaultValue1") {
+                    echo (
+                        field1: $field1
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [:]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "defaultValue1",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "defaultValue1"
+                    ]
+                ])
         )
 
         // Test that nullable unprovided variables are coerced to null
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($field1: String) {
-                echo (
-                    field1: $field1
-                ) {
-                    field1
+                query echo($field1: String) {
+                    echo (
+                        field1: $field1
+                    ) {
+                        field1
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [:]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": .null,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": .null
+                    ]
+                ])
         )
     }
 
@@ -765,7 +785,7 @@ import Testing
                         args: [
                             "input": GraphQLArgument(
                                 type: EchoInputType
-                            ),
+                            )
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -774,7 +794,7 @@ import Testing
                                 field2: args.input.field2
                             )
                         }
-                    ),
+                    )
                 ]
             ),
             types: [EchoInputType, EchoOutputType]
@@ -784,51 +804,53 @@ import Testing
         var result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo(input:{
-                    field1: "value1",
-                    field2: "value2",
-                }) {
-                    field1
-                    field2
+                {
+                    echo(input:{
+                        field1: "value1",
+                        field2: "value2",
+                    }) {
+                        field1
+                        field2
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                    "field2": "value2",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1",
+                        "field2": "value2",
+                    ]
+                ])
         )
 
         // Test in variables
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($input: EchoInput) {
-                echo(input: $input) {
-                    field1
-                    field2
+                query echo($input: EchoInput) {
+                    echo(input: $input) {
+                        field1
+                        field2
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [
                 "input": [
                     "field1": "value1",
                     "field2": "value2",
-                ],
+                ]
             ]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                    "field2": "value2",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1",
+                        "field2": "value2",
+                    ]
+                ])
         )
     }
 
@@ -893,7 +915,7 @@ import Testing
                         args: [
                             "input": GraphQLArgument(
                                 type: EchoInputType
-                            ),
+                            )
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -902,7 +924,7 @@ import Testing
                                 field2: args.input.field2
                             )
                         }
-                    ),
+                    )
                 ]
             ),
             types: [EchoInputType, EchoOutputType]
@@ -912,51 +934,53 @@ import Testing
         var result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo(input:{
-                    field1: "value1",
-                    field2: null,
-                }) {
-                    field1
-                    field2
+                {
+                    echo(input:{
+                        field1: "value1",
+                        field2: null,
+                    }) {
+                        field1
+                        field2
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                    "field2": nil,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1",
+                        "field2": nil,
+                    ]
+                ])
         )
 
         // Test in variables
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($input: EchoInput) {
-                echo(input: $input) {
-                    field1
-                    field2
+                query echo($input: EchoInput) {
+                    echo(input: $input) {
+                        field1
+                        field2
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [
                 "input": [
                     "field1": "value1",
                     "field2": .null,
-                ],
+                ]
             ]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                    "field2": nil,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1",
+                        "field2": nil,
+                    ]
+                ])
         )
     }
 
@@ -1022,7 +1046,7 @@ import Testing
                         args: [
                             "input": GraphQLArgument(
                                 type: EchoInputType
-                            ),
+                            )
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -1031,7 +1055,7 @@ import Testing
                                 field2: args.input.field2
                             )
                         }
-                    ),
+                    )
                 ]
             ),
             types: [EchoInputType, EchoOutputType]
@@ -1041,49 +1065,51 @@ import Testing
         var result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo(input:{
-                    field1: "value1"
-                }) {
-                    field1
-                    field2
+                {
+                    echo(input:{
+                        field1: "value1"
+                    }) {
+                        field1
+                        field2
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                    "field2": nil,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1",
+                        "field2": nil,
+                    ]
+                ])
         )
 
         // Test in variables
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($input: EchoInput) {
-                echo(input: $input) {
-                    field1
-                    field2
+                query echo($input: EchoInput) {
+                    echo(input: $input) {
+                        field1
+                        field2
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [
                 "input": [
-                    "field1": "value1",
-                ],
+                    "field1": "value1"
+                ]
             ]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                    "field2": nil,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1",
+                        "field2": nil,
+                    ]
+                ])
         )
     }
 
@@ -1102,7 +1128,7 @@ import Testing
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 #expect(container.contains(.field1))
                 field1 = try container.decodeIfPresent(String.self, forKey: .field1)
-                #expect(container.contains(.field2)) // default value should be used
+                #expect(container.contains(.field2))  // default value should be used
                 field2 = try container.decodeIfPresent(String.self, forKey: .field2)
             }
         }
@@ -1149,7 +1175,7 @@ import Testing
                         args: [
                             "input": GraphQLArgument(
                                 type: EchoInputType
-                            ),
+                            )
                         ],
                         resolve: { _, arguments, _, _ in
                             let args = try MapDecoder().decode(EchoArgs.self, from: arguments)
@@ -1158,7 +1184,7 @@ import Testing
                                 field2: args.input.field2
                             )
                         }
-                    ),
+                    )
                 ]
             ),
             types: [EchoInputType, EchoOutputType]
@@ -1168,46 +1194,48 @@ import Testing
         var result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo(input:{
-                    field1: "value1"
-                }) {
-                    field1
-                    field2
+                {
+                    echo(input:{
+                        field1: "value1"
+                    }) {
+                        field1
+                        field2
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                    "field2": "value2",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1",
+                        "field2": "value2",
+                    ]
+                ])
         )
         // Null literal with default gets null
         result = try await graphql(
             schema: schema,
             request: """
-            {
-                echo(input:{
-                    field1: "value1"
-                    field2: null
-                }) {
-                    field1
-                    field2
+                {
+                    echo(input:{
+                        field1: "value1"
+                        field2: null
+                    }) {
+                        field1
+                        field2
+                    }
                 }
-            }
-            """
+                """
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                    "field2": nil,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1",
+                        "field2": nil,
+                    ]
+                ])
         )
 
         // Test in variable
@@ -1215,52 +1243,54 @@ import Testing
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($input: EchoInput) {
-                echo(input: $input) {
-                    field1
-                    field2
+                query echo($input: EchoInput) {
+                    echo(input: $input) {
+                        field1
+                        field2
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [
                 "input": [
-                    "field1": "value1",
-                ],
+                    "field1": "value1"
+                ]
             ]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                    "field2": "value2",
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1",
+                        "field2": "value2",
+                    ]
+                ])
         )
         // Null literal with default gets null
         result = try await graphql(
             schema: schema,
             request: """
-            query echo($input: EchoInput) {
-                echo(input: $input) {
-                    field1
-                    field2
+                query echo($input: EchoInput) {
+                    echo(input: $input) {
+                        field1
+                        field2
+                    }
                 }
-            }
-            """,
+                """,
             variableValues: [
                 "input": [
                     "field1": "value1",
                     "field2": .null,
-                ],
+                ]
             ]
         )
         #expect(
-            result == GraphQLResult(data: [
-                "echo": [
-                    "field1": "value1",
-                    "field2": nil,
-                ],
-            ])
+            result
+                == GraphQLResult(data: [
+                    "echo": [
+                        "field1": "value1",
+                        "field2": nil,
+                    ]
+                ])
         )
     }
 }

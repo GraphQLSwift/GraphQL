@@ -124,11 +124,11 @@ Those contributing to this package are expected to follow the [Swift Code of Con
 [Swift API Design Guidelines](https://swift.org/documentation/api-design-guidelines/), and the
 [SSWG Technical Best Practices](https://github.com/swift-server/sswg/blob/main/process/incubation.md#technical-best-practices).
 
-This repo uses [SwiftFormat](https://github.com/nicklockwood/SwiftFormat), and includes lint checks to enforce these formatting standards.
-To format your code, install `swiftformat` and run:
+This repo uses the standard [swift format](https://github.com/swiftlang/swift-format), and includes lint checks to enforce these formatting standards.
+To format your code, run:
 
 ```bash
-swiftformat .
+swift format --parallel --in-place --recursive ./
 ```
 
 Most of this repo mirrors the structure of

@@ -1,16 +1,11 @@
-
-/**
- * Lone Schema definition
- *
- * A GraphQL document is only valid if it contains only one schema definition.
- */
+/// Lone Schema definition
+///
+/// A GraphQL document is only valid if it contains only one schema definition.
 func LoneSchemaDefinitionRule(context: SDLValidationContext) -> Visitor {
     let oldSchema = context.getSchema()
     let alreadyDefined =
-        oldSchema?.astNode != nil ||
-        oldSchema?.queryType != nil ||
-        oldSchema?.mutationType != nil ||
-        oldSchema?.subscriptionType != nil
+        oldSchema?.astNode != nil || oldSchema?.queryType != nil || oldSchema?.mutationType != nil
+        || oldSchema?.subscriptionType != nil
 
     var schemaDefinitionsCount = 0
     return Visitor(

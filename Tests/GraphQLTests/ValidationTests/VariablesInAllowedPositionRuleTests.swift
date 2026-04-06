@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class VariablesInAllowedPositionRuleTests: ValidationTestCase {
     override init() {
@@ -173,13 +174,13 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            query Query($intArg: Int) {
-              complicatedArgs {
-                nonNullIntArgField(nonNullIntArg: $intArg)
-              }
-            }
-            """
+                """
+                query Query($intArg: Int) {
+                  complicatedArgs {
+                    nonNullIntArgField(nonNullIntArg: $intArg)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -195,17 +196,17 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            fragment nonNullIntArgFieldFrag on ComplicatedArgs {
-              nonNullIntArgField(nonNullIntArg: $intArg)
-            }
+                """
+                fragment nonNullIntArgFieldFrag on ComplicatedArgs {
+                  nonNullIntArgField(nonNullIntArg: $intArg)
+                }
 
-            query Query($intArg: Int) {
-              complicatedArgs {
-                ...nonNullIntArgFieldFrag
-              }
-            }
-            """
+                query Query($intArg: Int) {
+                  complicatedArgs {
+                    ...nonNullIntArgFieldFrag
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -221,21 +222,21 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            fragment outerFrag on ComplicatedArgs {
-              ...nonNullIntArgFieldFrag
-            }
+                """
+                fragment outerFrag on ComplicatedArgs {
+                  ...nonNullIntArgFieldFrag
+                }
 
-            fragment nonNullIntArgFieldFrag on ComplicatedArgs {
-              nonNullIntArgField(nonNullIntArg: $intArg)
-            }
+                fragment nonNullIntArgFieldFrag on ComplicatedArgs {
+                  nonNullIntArgField(nonNullIntArg: $intArg)
+                }
 
-            query Query($intArg: Int) {
-              complicatedArgs {
-                ...outerFrag
-              }
-            }
-            """
+                query Query($intArg: Int) {
+                  complicatedArgs {
+                    ...outerFrag
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -251,13 +252,13 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            query Query($stringVar: String) {
-              complicatedArgs {
-                booleanArgField(booleanArg: $stringVar)
-              }
-            }
-            """
+                """
+                query Query($stringVar: String) {
+                  complicatedArgs {
+                    booleanArgField(booleanArg: $stringVar)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -265,7 +266,8 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
                 (line: 1, column: 13),
                 (line: 3, column: 33),
             ],
-            message: #"Variable "$stringVar" of type "String" used in position expecting type "Boolean"."#
+            message:
+                #"Variable "$stringVar" of type "String" used in position expecting type "Boolean"."#
         )
     }
 
@@ -273,13 +275,13 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            query Query($stringVar: String) {
-              complicatedArgs {
-                stringListArgField(stringListArg: $stringVar)
-              }
-            }
-            """
+                """
+                query Query($stringVar: String) {
+                  complicatedArgs {
+                    stringListArgField(stringListArg: $stringVar)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -287,7 +289,8 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
                 (line: 1, column: 13),
                 (line: 3, column: 39),
             ],
-            message: #"Variable "$stringVar" of type "String" used in position expecting type "[String]"."#
+            message:
+                #"Variable "$stringVar" of type "String" used in position expecting type "[String]"."#
         )
     }
 
@@ -295,11 +298,11 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            query Query($boolVar: Boolean) {
-              dog @include(if: $boolVar)
-            }
-            """
+                """
+                query Query($boolVar: Boolean) {
+                  dog @include(if: $boolVar)
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -307,7 +310,8 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
                 (line: 1, column: 13),
                 (line: 2, column: 20),
             ],
-            message: #"Variable "$boolVar" of type "Boolean" used in position expecting type "Boolean!"."#
+            message:
+                #"Variable "$boolVar" of type "Boolean" used in position expecting type "Boolean!"."#
         )
     }
 
@@ -315,11 +319,11 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            query Query($stringVar: String) {
-              dog @include(if: $stringVar)
-            }
-            """
+                """
+                query Query($stringVar: String) {
+                  dog @include(if: $stringVar)
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -327,7 +331,8 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
                 (line: 1, column: 13),
                 (line: 2, column: 20),
             ],
-            message: #"Variable "$stringVar" of type "String" used in position expecting type "Boolean!"."#
+            message:
+                #"Variable "$stringVar" of type "String" used in position expecting type "Boolean!"."#
         )
     }
 
@@ -335,13 +340,13 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            query Query($stringListVar: [String]) {
-              complicatedArgs {
-                stringListNonNullArgField(stringListNonNullArg: $stringListVar)
-              }
-            }
-            """
+                """
+                query Query($stringListVar: [String]) {
+                  complicatedArgs {
+                    stringListNonNullArgField(stringListNonNullArg: $stringListVar)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -349,7 +354,8 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
                 (line: 1, column: 13),
                 (line: 3, column: 53),
             ],
-            message: #"Variable "$stringListVar" of type "[String]" used in position expecting type "[String!]"."#
+            message:
+                #"Variable "$stringListVar" of type "[String]" used in position expecting type "[String!]"."#
         )
     }
 
@@ -357,13 +363,13 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 1,
             query:
-            """
-            query Query($intVar: Int = null) {
-              complicatedArgs {
-                nonNullIntArgField(nonNullIntArg: $intVar)
-              }
-            }
-            """
+                """
+                query Query($intVar: Int = null) {
+                  complicatedArgs {
+                    nonNullIntArgField(nonNullIntArg: $intVar)
+                  }
+                }
+                """
         )
         try assertValidationError(
             error: errors[0],
@@ -376,30 +382,36 @@ class VariablesInAllowedPositionRuleTests: ValidationTestCase {
     }
 
     @Test func intOptionalWithNonNullDefaultValue() throws {
-        try assertValid("""
-        query Query($intVar: Int = 1) {
-          complicatedArgs {
-            nonNullIntArgField(nonNullIntArg: $intVar)
-          }
-        }
-        """)
+        try assertValid(
+            """
+            query Query($intVar: Int = 1) {
+              complicatedArgs {
+                nonNullIntArgField(nonNullIntArg: $intVar)
+              }
+            }
+            """
+        )
     }
 
     @Test func optionalVariableWithDefaultValueAndNonNullField() throws {
-        try assertValid("""
-        query Query($intVar: Int) {
-          complicatedArgs {
-            nonNullFieldWithDefault(nonNullIntArg: $intVar)
-          }
-        }
-        """)
+        try assertValid(
+            """
+            query Query($intVar: Int) {
+              complicatedArgs {
+                nonNullFieldWithDefault(nonNullIntArg: $intVar)
+              }
+            }
+            """
+        )
     }
 
     @Test func booleanWithDefaultValueInDirective() throws {
-        try assertValid("""
-        query Query($boolVar: Boolean = false) {
-          dog @include(if: $boolVar)
-        }
-        """)
+        try assertValid(
+            """
+            query Query($boolVar: Boolean = false) {
+              dog @include(if: $boolVar)
+            }
+            """
+        )
     }
 }

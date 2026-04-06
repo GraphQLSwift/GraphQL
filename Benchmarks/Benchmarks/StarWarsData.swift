@@ -126,16 +126,12 @@ let droidData: [String: Droid] = [
     "2001": r2d2,
 ]
 
-/**
- * Helper function to get a character by ID.
- */
+/// Helper function to get a character by ID.
 @Sendable func getCharacter(id: String) -> Character? {
     return humanData[id] ?? droidData[id]
 }
 
-/**
- * Allows us to query for a character"s friends.
- */
+/// Allows us to query for a character"s friends.
 @Sendable func getFriends(character: Character) -> [Character] {
     return character.friends.reduce(into: []) { friends, friendID in
         if let friend = getCharacter(id: friendID) {
@@ -144,9 +140,7 @@ let droidData: [String: Droid] = [
     }
 }
 
-/**
- * Allows us to fetch the undisputed hero of the Star Wars trilogy, R2-D2.
- */
+/// Allows us to fetch the undisputed hero of the Star Wars trilogy, R2-D2.
 @Sendable func getHero(episode: Episode?) -> Character {
     if episode == .empire {
         // Luke is the hero of Episode V.
@@ -156,16 +150,12 @@ let droidData: [String: Droid] = [
     return r2d2
 }
 
-/**
- * Allows us to query for the human with the given id.
- */
+/// Allows us to query for the human with the given id.
 @Sendable func getHuman(id: String) -> Human? {
     return humanData[id]
 }
 
-/**
- * Allows us to query for the droid with the given id.
- */
+/// Allows us to query for the droid with the given id.
 @Sendable func getDroid(id: String) -> Droid? {
     return droidData[id]
 }

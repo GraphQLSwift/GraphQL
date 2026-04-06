@@ -1,16 +1,14 @@
-/**
- * Implements the "Validation" section of the spec.
- *
- * Validation runs synchronously, returning an array of encountered errors, or
- * an empty array if no errors were encountered and the document is valid.
- *
- * A list of specific validation rules may be provided. If not provided, the
- * default list of rules defined by the GraphQL specification will be used.
- *
- * Each validation rules is a function which returns a visitor
- * (see the language/visitor API). Visitor methods are expected to return
- * GraphQLErrors, or Arrays of GraphQLErrors when invalid.
- */
+/// Implements the "Validation" section of the spec.
+///
+/// Validation runs synchronously, returning an array of encountered errors, or
+/// an empty array if no errors were encountered and the document is valid.
+///
+/// A list of specific validation rules may be provided. If not provided, the
+/// default list of rules defined by the GraphQL specification will be used.
+///
+/// Each validation rules is a function which returns a visitor
+/// (see the language/visitor API). Visitor methods are expected to return
+/// GraphQLErrors, or Arrays of GraphQLErrors when invalid.
 public func validate(
     schema: GraphQLSchema,
     ast: Document,
@@ -21,9 +19,7 @@ public func validate(
     return visit(usingRules: rules, schema: schema, typeInfo: typeInfo, documentAST: ast)
 }
 
-/**
- * @internal
- */
+/// @internal
 func validateSDL(
     documentAST: Document,
     schemaToExtend: GraphQLSchema? = nil,
@@ -44,12 +40,10 @@ func validateSDL(
     return errors
 }
 
-/**
- * This uses a specialized visitor which runs multiple visitors in parallel,
- * while maintaining the visitor skip and break API.
- *
- * @internal
- */
+/// This uses a specialized visitor which runs multiple visitors in parallel,
+/// while maintaining the visitor skip and break API.
+///
+/// @internal
 func visit(
     usingRules rules: [@Sendable (ValidationContext) -> Visitor],
     schema: GraphQLSchema,
@@ -66,12 +60,10 @@ func visit(
     return context.errors
 }
 
-/**
- * Utility function which asserts a SDL document is valid by throwing an error
- * if it is invalid.
- *
- * @internal
- */
+/// Utility function which asserts a SDL document is valid by throwing an error
+/// if it is invalid.
+///
+/// @internal
 func assertValidSDL(documentAST: Document) throws {
     let errors = validateSDL(documentAST: documentAST)
     if !errors.isEmpty {
@@ -82,12 +74,10 @@ func assertValidSDL(documentAST: Document) throws {
     }
 }
 
-/**
- * Utility function which asserts a SDL document is valid by throwing an error
- * if it is invalid.
- *
- * @internal
- */
+/// Utility function which asserts a SDL document is valid by throwing an error
+/// if it is invalid.
+///
+/// @internal
 func assertValidSDLExtension(
     documentAST: Document,
     schema: GraphQLSchema

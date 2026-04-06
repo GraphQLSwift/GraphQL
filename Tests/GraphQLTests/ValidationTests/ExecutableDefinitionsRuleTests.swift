@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class ExecutableDefinitionsRuleTests: ValidationTestCase {
     override init() {
@@ -40,20 +41,20 @@ class ExecutableDefinitionsRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
-            query Foo {
-              dog {
-                name
-              }
-            }
+                query Foo {
+                  dog {
+                    name
+                  }
+                }
 
-            type Cow {
-              name: String
-            }
+                type Cow {
+                  name: String
+                }
 
-            extend type Dog {
-              color: String
-            }
-            """
+                extend type Dog {
+                  color: String
+                }
+                """
         )
 
         try assertValidationError(
@@ -72,16 +73,16 @@ class ExecutableDefinitionsRuleTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 3,
             query: """
-            schema {
-              query: Query
-            }
+                schema {
+                  query: Query
+                }
 
-            type Query {
-              test: String
-            }
+                type Query {
+                  test: String
+                }
 
-            extend schema @directive
-            """
+                extend schema @directive
+                """
         )
 
         try assertValidationError(

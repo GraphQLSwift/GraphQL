@@ -1,11 +1,9 @@
 import Foundation
 
-/**
- * Provided required arguments
- *
- * A field or directive is only valid if all required (non-null without a
- * default value) field arguments have been provided.
- */
+/// Provided required arguments
+///
+/// A field or directive is only valid if all required (non-null without a
+/// default value) field arguments have been provided.
 func ProvidedRequiredArgumentsRule(context: ValidationContext) -> Visitor {
     var requiredArgsMap = [String: [String: String]]()
 
@@ -48,10 +46,13 @@ func ProvidedRequiredArgumentsRule(context: ValidationContext) -> Visitor {
 
                 for argDef in fieldDef.args {
                     if !providedArguments.contains(argDef.name), isRequiredArgument(argDef) {
-                        context.report(error: GraphQLError(
-                            message: "Field \"\(fieldDef.name)\" argument \"\(argDef.name)\" of type \"\(argDef.type)\" is required, but it was not provided.",
-                            nodes: [fieldNode]
-                        ))
+                        context.report(
+                            error: GraphQLError(
+                                message:
+                                    "Field \"\(fieldDef.name)\" argument \"\(argDef.name)\" of type \"\(argDef.type)\" is required, but it was not provided.",
+                                nodes: [fieldNode]
+                            )
+                        )
                     }
                 }
                 return .continue
@@ -64,10 +65,13 @@ func ProvidedRequiredArgumentsRule(context: ValidationContext) -> Visitor {
                     let argNodeMap = Set(argNodes.map { $0.name.value })
                     for (argName, argType) in requiredArgs {
                         if !argNodeMap.contains(argName) {
-                            context.report(error: GraphQLError(
-                                message: "Directive \"@\(directiveName)\" argument \"\(argName)\" of type \"\(argType)\" is required, but it was not provided.",
-                                nodes: [directiveNode]
-                            ))
+                            context.report(
+                                error: GraphQLError(
+                                    message:
+                                        "Directive \"@\(directiveName)\" argument \"\(argName)\" of type \"\(argType)\" is required, but it was not provided.",
+                                    nodes: [directiveNode]
+                                )
+                            )
                         }
                     }
                 }

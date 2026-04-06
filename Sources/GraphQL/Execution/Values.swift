@@ -1,11 +1,9 @@
 import Foundation
 import OrderedCollections
 
-/**
- * Prepares an object map of variableValues of the correct type based on the
- * provided variable definitions and arbitrary input. If the input cannot be
- * parsed to match the variable definitions, a GraphQLError will be thrown.
- */
+/// Prepares an object map of variableValues of the correct type based on the
+/// provided variable definitions and arbitrary input. If the input cannot be
+/// parsed to match the variable definitions, a GraphQLError will be thrown.
 func getVariableValues(
     schema: GraphQLSchema,
     definitionASTs: [VariableDefinition],
@@ -31,10 +29,8 @@ func getVariableValues(
     return vars
 }
 
-/**
- * Prepares an object map of argument values given a list of argument
- * definitions and list of argument AST nodes.
- */
+/// Prepares an object map of argument values given a list of argument
+/// definitions and list of argument AST nodes.
 func getArgumentValues(
     argDefs: [GraphQLArgumentDefinition],
     argASTs: [Argument]?,
@@ -71,7 +67,7 @@ func getArgumentValues(
             let message = "\n" + errors.joined(separator: "\n")
             throw GraphQLError(
                 message:
-                "Argument \"\(argName)\" got invalid value \(argValue).\(message)" // TODO: "\(JSON.stringify(input)).\(message)",
+                    "Argument \"\(argName)\" got invalid value \(argValue).\(message)"  // TODO: "\(JSON.stringify(input)).\(message)",
             )
         }
         args[argName] = argValue
@@ -79,10 +75,8 @@ func getArgumentValues(
     return .dictionary(args)
 }
 
-/**
- * Given a variable definition, and any value of input, return a value which
- * adheres to the variable definition, or throw an error.
- */
+/// Given a variable definition, and any value of input, return a value which
+/// adheres to the variable definition, or throw an error.
 func getVariableValue(
     schema: GraphQLSchema,
     definitionAST: VariableDefinition,
@@ -94,8 +88,8 @@ func getVariableValue(
     guard let inputType = type as? GraphQLInputType else {
         throw GraphQLError(
             message:
-            "Variable \"$\(variable.name.value)\" expected value of type " +
-                "\"\(definitionAST.type)\" which cannot be used as an input type.",
+                "Variable \"$\(variable.name.value)\" expected value of type "
+                + "\"\(definitionAST.type)\" which cannot be used as an input type.",
             nodes: [definitionAST]
         )
     }
@@ -110,7 +104,7 @@ func getVariableValue(
         let message = !errors.isEmpty ? "\n" + errors.joined(separator: "\n") : ""
         throw GraphQLError(
             message:
-            "Variable \"$\(variable.name.value)\" got invalid value \"\(toCoerce)\".\(message)",
+                "Variable \"$\(variable.name.value)\" got invalid value \"\(toCoerce)\".\(message)",
             // TODO: "\(JSON.stringify(input)).\(message)",
             nodes: [definitionAST]
         )
@@ -119,9 +113,7 @@ func getVariableValue(
     return try coerceValue(value: toCoerce, type: inputType)
 }
 
-/**
- * Given a type and any value, return a runtime value coerced to match the type.
- */
+/// Given a type and any value, return a runtime value coerced to match the type.
 func coerceValue(value: Map, type: GraphQLInputType) throws -> Map {
     if let nonNull = type as? GraphQLNonNull {
         // Note: we're not checking that the result of coerceValue is non-null.
@@ -141,7 +133,7 @@ func coerceValue(value: Map, type: GraphQLInputType) throws -> Map {
             throw GraphQLError(message: "Input list must wrap an input type")
         }
 
-        if case let .array(value) = value {
+        if case .array(let value) = value {
             let coercedValues = try value.map { item in
                 try coerceValue(value: item, type: itemType)
             }
@@ -153,7 +145,7 @@ func coerceValue(value: Map, type: GraphQLInputType) throws -> Map {
     }
 
     if let objectType = type as? GraphQLInputObjectType {
-        guard case let .dictionary(value) = value else {
+        guard case .dictionary(let value) = value else {
             throw GraphQLError(message: "Must be dictionary to extract to an input type")
         }
 
@@ -185,17 +177,15 @@ func coerceValue(value: Map, type: GraphQLInputType) throws -> Map {
     throw GraphQLError(message: "Provided type is not an input type")
 }
 
-/**
- * Prepares an object map of argument values given a directive definition
- * and a AST node which may contain directives. Optionally also accepts a map
- * of variable values.
- *
- * If the directive does not exist on the node, returns undefined.
- *
- * Note: The returned value is a plain Object with a prototype, since it is
- * exposed to user code. Care should be taken to not pull values from the
- * Object prototype.
- */
+/// Prepares an object map of argument values given a directive definition
+/// and a AST node which may contain directives. Optionally also accepts a map
+/// of variable values.
+///
+/// If the directive does not exist on the node, returns undefined.
+///
+/// Note: The returned value is a plain Object with a prototype, since it is
+/// exposed to user code. Care should be taken to not pull values from the
+/// Object prototype.
 func getDirectiveValues(
     directiveDef: GraphQLDirective,
     directives: [Directive],

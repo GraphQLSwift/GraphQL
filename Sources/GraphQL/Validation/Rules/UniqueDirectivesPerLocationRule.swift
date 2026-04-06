@@ -1,12 +1,9 @@
-
-/**
- * Unique directive names per location
- *
- * A GraphQL document is only valid if all non-repeatable directives at
- * a given location are uniquely named.
- *
- * See https://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
- */
+/// Unique directive names per location
+///
+/// A GraphQL document is only valid if all non-repeatable directives at
+/// a given location are uniquely named.
+///
+/// See https://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
 func UniqueDirectivesPerLocationRule(context: SDLorNormalValidationContext) -> Visitor {
     var uniqueDirectiveMap = [String: Bool]()
 
@@ -28,13 +25,12 @@ func UniqueDirectivesPerLocationRule(context: SDLorNormalValidationContext) -> V
 
     return Visitor(
         enter: { node, _, _, _, _ in
-//            if let operation = node as? OperationDefinition {
+            //            if let operation = node as? OperationDefinition {
             // Many different AST nodes may contain directives. Rather than listing
             // them all, just listen for entering any node, and check to see if it
             // defines any directives.
-            if
-                let directiveNodeResult = node.get(key: "directives"),
-                case let .array(directiveNodes) = directiveNodeResult,
+            if let directiveNodeResult = node.get(key: "directives"),
+                case .array(let directiveNodes) = directiveNodeResult,
                 let directives = directiveNodes as? [Directive]
             {
                 var seenDirectives = [String: Directive]()
@@ -42,8 +38,8 @@ func UniqueDirectivesPerLocationRule(context: SDLorNormalValidationContext) -> V
                 case .schemaDefinition, .schemaExtensionDefinition:
                     seenDirectives = schemaDirectives
                 case .enumTypeDefinition, .unionTypeDefinition, .objectTypeDefinition,
-                     .scalarTypeDefinition, .interfaceTypeDefinition, .operationTypeDefinition,
-                     .inputObjectTypeDefinition:
+                    .scalarTypeDefinition, .interfaceTypeDefinition, .operationTypeDefinition,
+                    .inputObjectTypeDefinition:
                     let node = node as! TypeDefinition
                     let typeName = node.name.value
                     seenDirectives = typeDirectivesMap[typeName] ?? [:]
@@ -65,7 +61,8 @@ func UniqueDirectivesPerLocationRule(context: SDLorNormalValidationContext) -> V
                         if let seenDirective = seenDirectives[directiveName] {
                             context.report(
                                 error: GraphQLError(
-                                    message: "The directive \"@\(directiveName)\" can only be used once at this location.",
+                                    message:
+                                        "The directive \"@\(directiveName)\" can only be used once at this location.",
                                     nodes: [seenDirective, directive]
                                 )
                             )

@@ -82,7 +82,7 @@ let EmailQueryType = try! GraphQLObjectType(
     fields: [
         "inbox": GraphQLField(
             type: InboxType
-        ),
+        )
     ]
 )
 
@@ -99,7 +99,7 @@ actor EmailDb {
                 subject: "Hello",
                 message: "Hello World",
                 unread: false
-            ),
+            )
         ]
         publisher = SimplePubSub<Email>()
     }
@@ -164,11 +164,11 @@ func emailSchemaWithResolvers(
                     args: [
                         "priority": GraphQLArgument(
                             type: GraphQLInt
-                        ),
+                        )
                     ],
                     resolve: resolve,
                     subscribe: subscribe
-                ),
+                )
             ]
         )
     )

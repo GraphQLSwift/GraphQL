@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
     override init() {
@@ -31,9 +32,10 @@ class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
             """,
             [
                 GraphQLError(
-                    message: #"Argument "@test(arg:)" of type "String!" is required, but it was not provided."#,
+                    message:
+                        #"Argument "@test(arg:)" of type "String!" is required, but it was not provided."#,
                     locations: [.init(line: 2, column: 15)]
-                ),
+                )
             ]
         )
     }
@@ -47,9 +49,10 @@ class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
             """,
             [
                 GraphQLError(
-                    message: #"Argument "@include(if:)" of type "Boolean!" is required, but it was not provided."#,
+                    message:
+                        #"Argument "@include(if:)" of type "Boolean!" is required, but it was not provided."#,
                     locations: [.init(line: 2, column: 15)]
-                ),
+                )
             ]
         )
     }
@@ -64,55 +67,62 @@ class ProvidedRequiredArgumentsOnDirectivesRuleTests: SDLValidationTestCase {
             """,
             [
                 GraphQLError(
-                    message: #"Argument "@deprecated(reason:)" of type "String!" is required, but it was not provided."#,
+                    message:
+                        #"Argument "@deprecated(reason:)" of type "String!" is required, but it was not provided."#,
                     locations: [.init(line: 2, column: 15)]
-                ),
+                )
             ]
         )
     }
 
     @Test func missingArgOnDirectiveDefinedInSchemaExtension() throws {
-        let schema = try buildSchema(source: """
-        type Query {
-          foo: String
-        }
-        """)
+        let schema = try buildSchema(
+            source: """
+                type Query {
+                  foo: String
+                }
+                """
+        )
         let sdl = """
-        directive @test(arg: String!) on OBJECT
+            directive @test(arg: String!) on OBJECT
 
-        extend type Query  @test
-        """
+            extend type Query  @test
+            """
         try assertValidationErrors(
             sdl,
             schema: schema,
             [
                 GraphQLError(
-                    message: #"Argument "@test(arg:)" of type "String!" is required, but it was not provided."#,
+                    message:
+                        #"Argument "@test(arg:)" of type "String!" is required, but it was not provided."#,
                     locations: [.init(line: 3, column: 20)]
-                ),
+                )
             ]
         )
     }
 
     @Test func missingArgOnDirectiveUsedInSchemaExtension() throws {
-        let schema = try buildSchema(source: """
-        directive @test(arg: String!) on OBJECT
+        let schema = try buildSchema(
+            source: """
+                directive @test(arg: String!) on OBJECT
 
-        type Query {
-          foo: String
-        }
-        """)
+                type Query {
+                  foo: String
+                }
+                """
+        )
         let sdl = """
-        extend type Query @test
-        """
+            extend type Query @test
+            """
         try assertValidationErrors(
             sdl,
             schema: schema,
             [
                 GraphQLError(
-                    message: #"Argument "@test(arg:)" of type "String!" is required, but it was not provided."#,
+                    message:
+                        #"Argument "@test(arg:)" of type "String!" is required, but it was not provided."#,
                     locations: [.init(line: 1, column: 19)]
-                ),
+                )
             ]
         )
     }

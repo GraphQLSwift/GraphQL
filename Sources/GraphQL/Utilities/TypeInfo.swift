@@ -1,8 +1,6 @@
-/**
- * TypeInfo is a utility class which, given a GraphQL schema, can keep track
- * of the current field and type definitions at any point in a GraphQL document
- * AST during a recursive descent by calling `enter(node: node)` and `leave(node: node)`.
- */
+/// TypeInfo is a utility class which, given a GraphQL schema, can keep track
+/// of the current field and type definitions at any point in a GraphQL document
+/// AST during a recursive descent by calling `enter(node: node)` and `leave(node: node)`.
 final class TypeInfo {
     let schema: GraphQLSchema
     var typeStack: [GraphQLOutputType?]
@@ -226,11 +224,9 @@ final class TypeInfo {
     }
 }
 
-/**
- * Not exactly the same as the executor's definition of getFieldDef, in this
- * statically evaluated environment we do not always have an Object type,
- * and need to handle Interface and Union types.
- */
+/// Not exactly the same as the executor's definition of getFieldDef, in this
+/// statically evaluated environment we do not always have an Object type,
+/// and need to handle Interface and Union types.
 func getFieldDef(
     schema: GraphQLSchema,
     parentType: GraphQLType,
@@ -248,10 +244,9 @@ func getFieldDef(
         }
     }
 
-    if
-        name == TypeNameMetaFieldDef.name, parentType is GraphQLObjectType ||
-        parentType is GraphQLInterfaceType ||
-        parentType is GraphQLUnionType
+    if name == TypeNameMetaFieldDef.name,
+        parentType is GraphQLObjectType || parentType is GraphQLInterfaceType
+            || parentType is GraphQLUnionType
     {
         return TypeNameMetaFieldDef
     }

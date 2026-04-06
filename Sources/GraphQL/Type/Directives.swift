@@ -25,10 +25,8 @@ public enum DirectiveLocation: String, Encodable, Sendable {
     case inputFieldDefinition = "INPUT_FIELD_DEFINITION"
 }
 
-/**
- * Directives are used by the GraphQL runtime as a way of modifying execution
- * behavior. Type system creators will usually not create these directly.
- */
+/// Directives are used by the GraphQL runtime as a way of modifying execution
+/// behavior. Type system creators will usually not create these directly.
 public final class GraphQLDirective: Sendable {
     public let name: String
     public let description: String?
@@ -63,14 +61,12 @@ public final class GraphQLDirective: Sendable {
     }
 }
 
-/**
- * Used to conditionally include fields or fragments.
- */
+/// Used to conditionally include fields or fragments.
 public let GraphQLIncludeDirective = try! GraphQLDirective(
     name: "include",
     description:
-    "Directs the executor to include this field or fragment only when " +
-        "the \\`if\\` argument is true.",
+        "Directs the executor to include this field or fragment only when "
+        + "the \\`if\\` argument is true.",
     locations: [
         .field,
         .fragmentSpread,
@@ -80,18 +76,16 @@ public let GraphQLIncludeDirective = try! GraphQLDirective(
         "if": GraphQLArgument(
             type: GraphQLNonNull(GraphQLBoolean),
             description: "Included when true."
-        ),
+        )
     ]
 )
 
-/**
- * Used to conditionally skip (exclude) fields or fragments.
- */
+/// Used to conditionally skip (exclude) fields or fragments.
 public let GraphQLSkipDirective = try! GraphQLDirective(
     name: "skip",
     description:
-    "Directs the executor to skip this field or fragment when the \\`if\\` " +
-        "argument is true.",
+        "Directs the executor to skip this field or fragment when the \\`if\\` "
+        + "argument is true.",
     locations: [
         .field,
         .fragmentSpread,
@@ -101,22 +95,18 @@ public let GraphQLSkipDirective = try! GraphQLDirective(
         "if": GraphQLArgument(
             type: GraphQLNonNull(GraphQLBoolean),
             description: "Skipped when true."
-        ),
+        )
     ]
 )
 
-/**
- * Constant string used for default reason for a deprecation.
- */
+/// Constant string used for default reason for a deprecation.
 let defaultDeprecationReason = "No longer supported"
 
-/**
- * Used to declare element of a GraphQL schema as deprecated.
- */
+/// Used to declare element of a GraphQL schema as deprecated.
 public let GraphQLDeprecatedDirective = try! GraphQLDirective(
     name: "deprecated",
     description:
-    "Marks an element of a GraphQL schema as no longer supported.",
+        "Marks an element of a GraphQL schema as no longer supported.",
     locations: [
         .fieldDefinition,
         .argumentDefinition,
@@ -127,18 +117,16 @@ public let GraphQLDeprecatedDirective = try! GraphQLDirective(
         "reason": GraphQLArgument(
             type: GraphQLString,
             description:
-            "Explains why this element was deprecated, usually also including a " +
-                "suggestion for how to access supported similar data. Formatted " +
-                "using the Markdown syntax, as specified by [CommonMark]" +
-                "(https://commonmark.org/).",
+                "Explains why this element was deprecated, usually also including a "
+                + "suggestion for how to access supported similar data. Formatted "
+                + "using the Markdown syntax, as specified by [CommonMark]"
+                + "(https://commonmark.org/).",
             defaultValue: Map.string(defaultDeprecationReason)
-        ),
+        )
     ]
 )
 
-/**
- * Used to provide a URL for specifying the behavior of custom scalar definitions.
- */
+/// Used to provide a URL for specifying the behavior of custom scalar definitions.
 public let GraphQLSpecifiedByDirective = try! GraphQLDirective(
     name: "specifiedBy",
     description: "Exposes a URL that specifies the behavior of this scalar.",
@@ -147,23 +135,20 @@ public let GraphQLSpecifiedByDirective = try! GraphQLDirective(
         "url": GraphQLArgument(
             type: GraphQLNonNull(GraphQLString),
             description: "The URL that specifies the behavior of this scalar."
-        ),
+        )
     ]
 )
 
-/**
- * Used to indicate an Input Object is a OneOf Input Object.
- */
+/// Used to indicate an Input Object is a OneOf Input Object.
 public let GraphQLOneOfDirective = try! GraphQLDirective(
     name: "oneOf",
-    description: "Indicates exactly one field must be supplied and this field must not be \\`null\\`.",
+    description:
+        "Indicates exactly one field must be supplied and this field must not be \\`null\\`.",
     locations: [.inputObject],
     args: [:]
 )
 
-/**
- * The full list of specified directives.
- */
+/// The full list of specified directives.
 let specifiedDirectives: [GraphQLDirective] = [
     GraphQLIncludeDirective,
     GraphQLSkipDirective,
