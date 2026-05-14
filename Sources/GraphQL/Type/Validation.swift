@@ -690,55 +690,7 @@ func validateOneOfInputObjectField(
 func createInputObjectCircularRefsValidator(
     context: SchemaValidationContext
 ) throws -> (GraphQLInputObjectType) throws -> Void {
-    // Modified copy of algorithm from 'src/validation/rules/NoFragmentCycles.js'.
-    // Tracks already visited types to maintain O(N) and to ensure that cycles
-    // are not redundantly reported.
-    var visitedTypes = Set<GraphQLInputObjectType>()
-
-    // Array of types nodes used to produce meaningful errors
-    var fieldPath: [InputObjectFieldDefinition] = []
-
-    // Position in the type path
-    var fieldPathIndexByTypeName: [String: Int] = [:]
-
-    return detectCycleRecursive
-
-    /// This does a straight-forward DFS to find cycles.
-    /// It does not terminate when a cycle is found but continues to explore
-    /// the graph to find all possible cycles.
-    func detectCycleRecursive(inputObj: GraphQLInputObjectType) throws {
-        if visitedTypes.contains(inputObj) {
-            return
-        }
-
-        visitedTypes.insert(inputObj)
-        fieldPathIndexByTypeName[inputObj.name] = fieldPath.count
-
-        let fields = try inputObj.getFields().values
-        for field in fields {
-            if let nonNullType = field.type as? GraphQLNonNull,
-                let fieldType = nonNullType.ofType as? GraphQLInputObjectType
-            {
-                let cycleIndex = fieldPathIndexByTypeName[fieldType.name]
-
-                fieldPath.append(field)
-                if let cycleIndex = cycleIndex {
-                    let cyclePath = fieldPath[cycleIndex..<fieldPath.count]
-                    let pathStr = cyclePath.map { fieldObj in fieldObj.name }.joined(separator: ".")
-                    context.reportError(
-                        message:
-                            "Cannot reference Input Object \"\(fieldType)\" within itself through a series of non-null fields: \"\(pathStr)\".",
-                        nodes: cyclePath.map { fieldObj in fieldObj.astNode }
-                    )
-                } else {
-                    try detectCycleRecursive(inputObj: fieldType)
-                }
-                fieldPath.removeLast()
-            }
-        }
-
-        fieldPathIndexByTypeName[inputObj.name] = nil
-    }
+    return CircularRefsValidator(context: context).validate
 }
 
 func getAllImplementsInterfaceNodes(
@@ -779,5 +731,50 @@ func getDeprecatedDirectiveNode(
 ) -> Directive? {
     return directives?.find { node in
         node.name.value == GraphQLDeprecatedDirective.name
+    }
+}
+
+private final class CircularRefsValidator {
+    private let context: SchemaValidationContext
+    private var visitedTypes: Set<GraphQLInputObjectType> = []
+    private var fieldPath: [InputObjectFieldDefinition] = []
+    private var fieldPathIndexByTypeName: [String: Int] = [:]
+
+    init(context: SchemaValidationContext) {
+        self.context = context
+    }
+
+    func validate(inputObj: GraphQLInputObjectType) throws {
+        if visitedTypes.contains(inputObj) {
+            return
+        }
+
+        visitedTypes.insert(inputObj)
+        fieldPathIndexByTypeName[inputObj.name] = fieldPath.count
+
+        let fields = try inputObj.getFields().values
+        for field in fields {
+            if
+                let nonNullType = field.type as? GraphQLNonNull,
+                let fieldType = nonNullType.ofType as? GraphQLInputObjectType
+            {
+                let cycleIndex = fieldPathIndexByTypeName[fieldType.name]
+
+                fieldPath.append(field)
+                if let cycleIndex = cycleIndex {
+                    let cyclePath = fieldPath[cycleIndex ..< fieldPath.count]
+                    let pathStr = cyclePath.map { fieldObj in fieldObj.name }.joined(separator: ".")
+                    context.reportError(
+                        message: "Cannot reference Input Object \"\(fieldType)\" within itself through a series of non-null fields: \"\(pathStr)\".",
+                        nodes: cyclePath.map { fieldObj in fieldObj.astNode }
+                    )
+                } else {
+                    try validate(inputObj: fieldType)
+                }
+                fieldPath.removeLast()
+            }
+        }
+
+        fieldPathIndexByTypeName[inputObj.name] = nil
     }
 }
