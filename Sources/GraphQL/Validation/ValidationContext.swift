@@ -176,9 +176,10 @@ public final class ValidationContext: ASTValidationContext {
         recursiveVariableUsages = [:]
 
         super.init(ast: ast) { _ in }
-        onError = { error in
-            self.errors.append(error)
-        }
+    }
+
+    public override func report(error: GraphQLError) {
+        errors.append(error)
     }
 
     func getSchema() -> GraphQLSchema? {

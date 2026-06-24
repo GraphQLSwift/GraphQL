@@ -91,7 +91,7 @@ public final class Token: @unchecked Sendable {
      * including ignored tokens. <SOF> is always the first node and <EOF>
      * the last.
      */
-    public let prev: Token?
+    public private(set) weak var prev: Token?
     public internal(set) var next: Token?
 
     init(
