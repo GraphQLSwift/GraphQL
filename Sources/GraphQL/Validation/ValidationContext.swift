@@ -164,22 +164,16 @@ public typealias SDLValidationRule = @Sendable (SDLValidationContext) -> Visitor
 public final class ValidationContext: ASTValidationContext {
     public let schema: GraphQLSchema
     let typeInfo: TypeInfo
-    var errors: [GraphQLError]
     var variableUsages: [HasSelectionSet: [VariableUsage]]
     var recursiveVariableUsages: [OperationDefinition: [VariableUsage]]
 
-    init(schema: GraphQLSchema, ast: Document, typeInfo: TypeInfo) {
+    init(schema: GraphQLSchema, ast: Document, typeInfo: TypeInfo, onError: @escaping (GraphQLError) -> Void) {
         self.schema = schema
         self.typeInfo = typeInfo
-        errors = []
         variableUsages = [:]
         recursiveVariableUsages = [:]
 
-        super.init(ast: ast) { _ in }
-    }
-
-    public override func report(error: GraphQLError) {
-        errors.append(error)
+        super.init(ast: ast, onError: onError) 
     }
 
     func getSchema() -> GraphQLSchema? {
