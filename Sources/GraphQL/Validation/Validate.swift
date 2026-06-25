@@ -50,14 +50,15 @@ func visit(
     typeInfo: TypeInfo,
     documentAST: Document
 ) -> [GraphQLError] {
-    let context = ValidationContext(schema: schema, ast: documentAST, typeInfo: typeInfo)
+    var errors = [GraphQLError]()
+    let context = ValidationContext(schema: schema, ast: documentAST, typeInfo: typeInfo, onError: { errors.append($0) })
     let visitors = rules.map { rule in rule(context) }
     // Visit the whole document with each instance of all provided rules.
     visit(
         root: documentAST,
         visitor: visitWithTypeInfo(typeInfo: typeInfo, visitor: visitInParallel(visitors: visitors))
     )
-    return context.errors
+    return errors
 }
 
 /// Utility function which asserts a SDL document is valid by throwing an error
