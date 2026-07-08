@@ -183,26 +183,13 @@ public func execute(
     }
 
     do {
-        //        var executeErrors: [GraphQLError] = []
         let data = try await executeOperation(
             exeContext: buildContext,
             operation: buildContext.operation,
             rootValue: rootValue
         )
-        var dataMap: Map = [:]
-
-        for (key, value) in data {
-            dataMap[key] = try map(from: value)
-        }
-
-        var result: GraphQLResult = .init(data: dataMap)
-
-        if !buildContext.errors.isEmpty {
-            result.errors = buildContext.errors
-        }
-
-        //            executeErrors = buildContext.errors
-        return result
+        let dataMap = try Map(data.mapValues { try map(from: $0) })
+        return GraphQLResult(data: dataMap, errors: buildContext.errors)
     } catch let error as GraphQLError {
         return GraphQLResult(errors: [error])
     } catch {
