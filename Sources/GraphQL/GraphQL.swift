@@ -36,7 +36,7 @@ public func graphql(
     validationRules: [@Sendable (ValidationContext) -> Visitor] = specifiedRules
 ) async throws -> GraphQLResult {
     // Validate schema
-    let schemaValidationErrors = try validateSchema(schema: schema)
+    let schemaValidationErrors = validateSchema(schema: schema)
     guard schemaValidationErrors.isEmpty else {
         return GraphQLResult(errors: schemaValidationErrors)
     }

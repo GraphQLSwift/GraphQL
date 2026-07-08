@@ -35,14 +35,13 @@ func VariablesInAllowedPositionRule(context: ValidationContext) -> Visitor {
                         // the variable type is non-null when the expected type is nullable.
                         // If both are list types, the variable item type can be more strict
                         // than the expected item type (contravariant).
-                        let isAllowed =
-                            (try? allowedVariableUsage(
-                                schema: schema,
-                                varType: varType,
-                                varDefaultValue: varDef.defaultValue,
-                                locationType: type,
-                                locationDefaultValue: usage.defaultValue
-                            )) ?? false
+                        let isAllowed = allowedVariableUsage(
+                            schema: schema,
+                            varType: varType,
+                            varDefaultValue: varDef.defaultValue,
+                            locationType: type,
+                            locationDefaultValue: usage.defaultValue
+                        )
                         if !isAllowed {
                             context.report(
                                 error: GraphQLError(
@@ -71,7 +70,7 @@ func allowedVariableUsage(
     varDefaultValue: Value?,
     locationType: GraphQLType,
     locationDefaultValue: Map?
-) throws -> Bool {
+) -> Bool {
     if let locationType = locationType as? GraphQLNonNull, !(varType is GraphQLNonNull) {
         let hasNonNullVariableDefaultValue =
             varDefaultValue != nil
@@ -82,7 +81,7 @@ func allowedVariableUsage(
             return false
         }
         let nullableLocationType = locationType.ofType
-        return try isTypeSubTypeOf(schema, varType, nullableLocationType)
+        return isTypeSubTypeOf(schema, varType, nullableLocationType)
     }
-    return try isTypeSubTypeOf(schema, varType, locationType)
+    return isTypeSubTypeOf(schema, varType, locationType)
 }

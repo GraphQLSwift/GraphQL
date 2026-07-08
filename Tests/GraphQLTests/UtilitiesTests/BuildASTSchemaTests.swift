@@ -1105,7 +1105,7 @@ import Testing
 
     @Test func canBuildInvalidSchema() throws {
         let schema = try buildSchema(source: "type Mutation")
-        let errors = try validateSchema(schema: schema)
+        let errors = validateSchema(schema: schema)
         #expect(errors.count > 0)
     }
 

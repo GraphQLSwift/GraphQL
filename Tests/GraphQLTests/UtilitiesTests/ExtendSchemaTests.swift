@@ -158,7 +158,7 @@ import Testing
             documentAST: parse(source: extensionSDL)
         )
 
-        try #expect(validateSchema(schema: extendedSchema) == [])
+        #expect(validateSchema(schema: extendedSchema) == [])
         try #expect(
             schemaChanges(schema, extendedSchema) == #"""
                 type SomeObject implements AnotherInterface & SomeInterface {
@@ -199,7 +199,7 @@ import Testing
         let someScalar =
             try #require((extendedSchema.getType(name: "SomeScalar") as? GraphQLScalarType))
 
-        try #expect(validateSchema(schema: extendedSchema) == [])
+        #expect(validateSchema(schema: extendedSchema) == [])
         #expect(extensionASTNodes(someScalar.extensionASTNodes) == extensionSDL)
     }
 
@@ -229,7 +229,7 @@ import Testing
 
         #expect(foo.specifiedByURL == "https://example.com/foo_spec")
 
-        try #expect(validateSchema(schema: extendedSchema) == [])
+        #expect(validateSchema(schema: extendedSchema) == [])
         #expect(extensionASTNodes(foo.extensionASTNodes) == extensionSDL)
     }
 
@@ -545,7 +545,7 @@ import Testing
             documentAST: parse(source: extensionSDL)
         )
 
-        try #expect(validateSchema(schema: extendedSchema) == [])
+        #expect(validateSchema(schema: extendedSchema) == [])
         try #expect(
             schemaChanges(schema, extendedSchema) == extensionSDL
         )
@@ -576,7 +576,7 @@ import Testing
         )
         let extendedSchema = try extendSchema(schema: schema, documentAST: extendAST)
 
-        try #expect(validateSchema(schema: extendedSchema) == [])
+        #expect(validateSchema(schema: extendedSchema) == [])
         try #expect(
             schemaChanges(schema, extendedSchema) == """
                 type SomeObject {
@@ -612,7 +612,7 @@ import Testing
         )
         let extendedSchema = try extendSchema(schema: schema, documentAST: extendAST)
 
-        try #expect(validateSchema(schema: extendedSchema) == [])
+        #expect(validateSchema(schema: extendedSchema) == [])
         try #expect(
             schemaChanges(schema, extendedSchema) == """
                 type SomeObject {
@@ -645,7 +645,7 @@ import Testing
         )
         let extendedSchema = try extendSchema(schema: schema, documentAST: extendAST)
 
-        try #expect(validateSchema(schema: extendedSchema) == [])
+        #expect(validateSchema(schema: extendedSchema) == [])
         try #expect(
             schemaChanges(schema, extendedSchema) == """
                 type SomeObject implements SomeInterface {
@@ -699,7 +699,7 @@ import Testing
         )
         let extendedSchema = try extendSchema(schema: schema, documentAST: extendAST)
 
-        try #expect(validateSchema(schema: extendedSchema) == [])
+        #expect(validateSchema(schema: extendedSchema) == [])
         try #expect(
             schemaChanges(schema, extendedSchema) == """
                 type SomeObject {
@@ -746,7 +746,7 @@ import Testing
         )
         let extendedSchema = try extendSchema(schema: schema, documentAST: extendAST)
 
-        try #expect(validateSchema(schema: extendedSchema) == [])
+        #expect(validateSchema(schema: extendedSchema) == [])
         try #expect(
             schemaChanges(schema, extendedSchema) == """
                 type SomeObject implements OldInterface & NewInterface {
@@ -857,7 +857,7 @@ import Testing
         )
         let extendedSchema = try extendSchema(schema: schemaWithNewTypes, documentAST: extendAST)
 
-        try #expect(validateSchema(schema: extendedSchema) == [])
+        #expect(validateSchema(schema: extendedSchema) == [])
         try #expect(
             schemaChanges(schema, extendedSchema) == """
                 scalar SomeScalar @specifiedBy(url: "http://example.com/foo_spec")
@@ -924,7 +924,7 @@ import Testing
         )
         let extendedSchema = try extendSchema(schema: schema, documentAST: extendAST)
 
-        try #expect(validateSchema(schema: extendedSchema) == [])
+        #expect(validateSchema(schema: extendedSchema) == [])
         try #expect(
             schemaChanges(schema, extendedSchema) == """
                 interface SomeInterface {
@@ -982,7 +982,7 @@ import Testing
         )
         let extendedSchema = try extendSchema(schema: schema, documentAST: extendAST)
 
-        try #expect(validateSchema(schema: extendedSchema) == [])
+        #expect(validateSchema(schema: extendedSchema) == [])
         try #expect(
             schemaChanges(schema, extendedSchema) == """
                 interface AnotherInterface implements SomeInterface & NewInterface {
@@ -1027,7 +1027,7 @@ import Testing
         )
         let extendedSchema = try extendSchema(schema: schema, documentAST: extendAST)
 
-        try #expect(validateSchema(schema: extendedSchema).count > 0)
+        #expect(validateSchema(schema: extendedSchema).count > 0)
         try #expect(
             schemaChanges(schema, extendedSchema) == """
                 interface SomeInterface {
@@ -1063,7 +1063,7 @@ import Testing
         )
         let extendedSchema = try extendSchema(schema: schema, documentAST: extendAST)
 
-        try #expect(validateSchema(schema: extendedSchema) == [])
+        #expect(validateSchema(schema: extendedSchema) == [])
         try #expect(
             schemaChanges(schema, extendedSchema) == """
                 interface SomeInterface {
@@ -1147,7 +1147,7 @@ import Testing
             documentAST: parse(source: extensionSDL)
         )
 
-        try #expect(validateSchema(schema: extendedSchema) == [])
+        #expect(validateSchema(schema: extendedSchema) == [])
         try #expect(
             schemaChanges(schema, extendedSchema) == extensionSDL
         )
