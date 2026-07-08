@@ -26,10 +26,6 @@ import OrderedCollections
 /// Namely, schema of the type system that is currently executing,
 /// and the fragments defined in the query document
 public final class ExecutionContext: @unchecked Sendable {
-    let queryStrategy: QueryFieldExecutionStrategy = ConcurrentFieldExecutionStrategy()
-    let mutationStrategy: MutationFieldExecutionStrategy = SerialFieldExecutionStrategy()
-    let subscriptionStrategy: SubscriptionFieldExecutionStrategy =
-        ConcurrentFieldExecutionStrategy()
     public let schema: GraphQLSchema
     public let fragments: [String: FragmentDefinition]
     public let rootValue: any Sendable
@@ -84,6 +80,7 @@ public final class ExecutionContext: @unchecked Sendable {
     }
 }
 
+@available(*, deprecated, message: "FieldExecutionStrategy type no longer supported")
 public protocol FieldExecutionStrategy: Sendable {
     func executeFields(
         exeContext: ExecutionContext,
@@ -94,16 +91,24 @@ public protocol FieldExecutionStrategy: Sendable {
     ) async throws -> OrderedDictionary<String, any Sendable>
 }
 
+@available(*, deprecated, message: "FieldExecutionStrategy type no longer supported")
 public protocol MutationFieldExecutionStrategy: FieldExecutionStrategy {}
+
+@available(*, deprecated, message: "FieldExecutionStrategy type no longer supported")
 public protocol QueryFieldExecutionStrategy: FieldExecutionStrategy {}
+
+@available(*, deprecated, message: "FieldExecutionStrategy type no longer supported")
 public protocol SubscriptionFieldExecutionStrategy: FieldExecutionStrategy {}
 
 /// Serial field execution strategy that's suitable for the "Evaluating selection sets" section of the spec for "write" mode.
+@available(*, deprecated, message: "FieldExecutionStrategy type no longer supported")
 public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy,
     MutationFieldExecutionStrategy, SubscriptionFieldExecutionStrategy
 {
+    @available(*, deprecated, message: "FieldExecutionStrategy type no longer supported")
     public init() {}
 
+    @available(*, deprecated, message: "FieldExecutionStrategy type no longer supported")
     public func executeFields(
         exeContext: ExecutionContext,
         parentType: GraphQLObjectType,
@@ -111,29 +116,24 @@ public struct SerialFieldExecutionStrategy: QueryFieldExecutionStrategy,
         path: IndexPath,
         fields: OrderedDictionary<String, [Field]>
     ) async throws -> OrderedDictionary<String, any Sendable> {
-        var results = OrderedDictionary<String, any Sendable>()
-        for field in fields {
-            let fieldASTs = field.value
-            let fieldPath = path.appending(field.key)
-            results[field.key] =
-                try await resolveField(
-                    exeContext: exeContext,
-                    parentType: parentType,
-                    source: sourceValue,
-                    fieldASTs: fieldASTs,
-                    path: fieldPath
-                ) ?? Map.null
-        }
-        return results
+        return try await GraphQL.executeFieldsSerially(
+            exeContext: exeContext,
+            parentType: parentType,
+            sourceValue: sourceValue,
+            path: path,
+            fields: fields
+        )
     }
 }
 
 /// Serial field execution strategy that's suitable for the "Evaluating selection sets" section of the spec for "read" mode.
 ///
 /// Each field is resolved as an individual task on a concurrent dispatch queue.
+@available(*, deprecated, message: "FieldExecutionStrategy type no longer supported")
 public struct ConcurrentFieldExecutionStrategy: QueryFieldExecutionStrategy,
     SubscriptionFieldExecutionStrategy
 {
+    @available(*, deprecated, message: "FieldExecutionStrategy type no longer supported")
     public func executeFields(
         exeContext: ExecutionContext,
         parentType: GraphQLObjectType,
@@ -141,31 +141,13 @@ public struct ConcurrentFieldExecutionStrategy: QueryFieldExecutionStrategy,
         path: IndexPath,
         fields: OrderedDictionary<String, [Field]>
     ) async throws -> OrderedDictionary<String, any Sendable> {
-        return try await withThrowingTaskGroup(of: (String, (any Sendable)?).self) { group in
-            // preserve field order by assigning to null and filtering later
-            var results: OrderedDictionary<String, (any Sendable)?> =
-                fields
-                .mapValues { _ -> Any? in nil }
-            for field in fields {
-                group.addTask {
-                    let fieldASTs = field.value
-                    let fieldPath = path.appending(field.key)
-                    let result =
-                        try await resolveField(
-                            exeContext: exeContext,
-                            parentType: parentType,
-                            source: sourceValue,
-                            fieldASTs: fieldASTs,
-                            path: fieldPath
-                        ) ?? Map.null
-                    return (field.key, result)
-                }
-            }
-            for try await result in group {
-                results[result.0] = result.1
-            }
-            return results.compactMapValues { $0 }
-        }
+        return try await GraphQL.executeFields(
+            exeContext: exeContext,
+            parentType: parentType,
+            sourceValue: sourceValue,
+            path: path,
+            fields: fields
+        )
     }
 }
 
@@ -311,24 +293,91 @@ func executeOperation(
         visitedFragmentNames: &visitedFragmentNames
     )
 
-    let fieldExecutionStrategy: FieldExecutionStrategy
-
     switch operation.operation {
     case .query:
-        fieldExecutionStrategy = exeContext.queryStrategy
+        return try await executeFields(
+            exeContext: exeContext,
+            parentType: type,
+            sourceValue: rootValue,
+            path: [],
+            fields: fields
+        )
     case .mutation:
-        fieldExecutionStrategy = exeContext.mutationStrategy
+        return try await executeFieldsSerially(
+            exeContext: exeContext,
+            parentType: type,
+            sourceValue: rootValue,
+            path: [],
+            fields: fields
+        )
     case .subscription:
-        fieldExecutionStrategy = exeContext.subscriptionStrategy
+        return try await executeFields(
+            exeContext: exeContext,
+            parentType: type,
+            sourceValue: rootValue,
+            path: [],
+            fields: fields
+        )
     }
+}
 
-    return try await fieldExecutionStrategy.executeFields(
-        exeContext: exeContext,
-        parentType: type,
-        sourceValue: rootValue,
-        path: [],
-        fields: fields
-    )
+/// Implements the "Executing selection sets" section of the spec for fields that must be executed serially.
+func executeFieldsSerially(
+    exeContext: ExecutionContext,
+    parentType: GraphQLObjectType,
+    sourceValue: any Sendable,
+    path: IndexPath,
+    fields: OrderedDictionary<String, [Field]>
+) async throws -> OrderedDictionary<String, any Sendable> {
+    var results = OrderedDictionary<String, any Sendable>()
+    for field in fields {
+        let fieldASTs = field.value
+        let fieldPath = path.appending(field.key)
+        results[field.key] =
+            try await resolveField(
+                exeContext: exeContext,
+                parentType: parentType,
+                source: sourceValue,
+                fieldASTs: fieldASTs,
+                path: fieldPath
+            ) ?? Map.null
+    }
+    return results
+}
+
+/// Implements the "Executing selection sets" section of the spec for fields that may be executed in parallel.
+func executeFields(
+    exeContext: ExecutionContext,
+    parentType: GraphQLObjectType,
+    sourceValue: any Sendable,
+    path: IndexPath,
+    fields: OrderedDictionary<String, [Field]>
+) async throws -> OrderedDictionary<String, any Sendable> {
+    return try await withThrowingTaskGroup(of: (String, (any Sendable)?).self) { group in
+        // preserve field order by assigning to null and filtering later
+        var results: OrderedDictionary<String, (any Sendable)?> =
+            fields
+            .mapValues { _ -> Any? in nil }
+        for field in fields {
+            group.addTask {
+                let fieldASTs = field.value
+                let fieldPath = path.appending(field.key)
+                let result =
+                    try await resolveField(
+                        exeContext: exeContext,
+                        parentType: parentType,
+                        source: sourceValue,
+                        fieldASTs: fieldASTs,
+                        path: fieldPath
+                    ) ?? Map.null
+                return (field.key, result)
+            }
+        }
+        for try await result in group {
+            results[result.0] = result.1
+        }
+        return results.compactMapValues { $0 }
+    }
 }
 
 /// Extracts the root type of the operation from the schema.
@@ -969,7 +1018,7 @@ func completeObjectValue(
         }
     }
 
-    return try await exeContext.queryStrategy.executeFields(
+    return try await executeFields(
         exeContext: exeContext,
         parentType: returnType,
         sourceValue: result,
