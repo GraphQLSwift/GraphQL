@@ -26,15 +26,17 @@ public struct GraphQLRequest: Equatable, Codable, Sendable {
     ///
     /// - Returns: True if request is a subscription, false if it is an atomic operation (like
     /// `query` or `mutation`)
+    @available(*, deprecated, message: "Use `parse` and extract operation manually instead")
     public func isSubscription() throws -> Bool {
         return try operationType() == .subscription
     }
 
-    /// The type of operation perfomed by the request.
+    /// The type of operation performed by the request.
     /// This operation performs an entire AST parse on the GraphQL request, so consider
     /// performance when calling multiple times.
     ///
     /// - Returns: The operation type performed by the request
+    @available(*, deprecated, message: "Use `parse` and extract operation manually instead")
     public func operationType() throws -> OperationType {
         let documentAST = try GraphQL.parse(
             source: Source(body: query, name: "GraphQL request")
