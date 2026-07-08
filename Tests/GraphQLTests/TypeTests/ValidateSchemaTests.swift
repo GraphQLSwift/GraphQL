@@ -86,7 +86,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
 
         let schemaWithDef = try buildSchema(
             source: """
@@ -99,7 +99,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schemaWithDef) == [])
+        #expect(validateSchema(schema: schemaWithDef) == [])
     }
 
     @Test func acceptsASchemaWhoseQueryAndMutationTypesAreObjectTypes() throws {
@@ -114,7 +114,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
 
         let schemaWithDef = try buildSchema(
             source: """
@@ -132,7 +132,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schemaWithDef) == [])
+        #expect(validateSchema(schema: schemaWithDef) == [])
     }
 
     @Test func acceptsASchemaWhoseQueryAndSubscriptionTypesAreObjectTypes() throws {
@@ -147,7 +147,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
 
         let schemaWithDef = try buildSchema(
             source: """
@@ -165,7 +165,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schemaWithDef) == [])
+        #expect(validateSchema(schema: schemaWithDef) == [])
     }
 
     @Test func rejectsASchemaWithoutAQueryType() throws {
@@ -176,7 +176,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(message: "Query root type must be provided.")
             ]
@@ -193,7 +193,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schemaWithDef) == [
                 GraphQLError(
                     message: "Query root type must be provided.",
@@ -391,7 +391,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
             query: SomeObjectType,
             directives: [badDirective]
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(message: "Directive @BadDirective must include 1 or more locations.")
             ]
@@ -422,7 +422,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func rejectsASchemaWhereTheSameTypeIsUsedForMultipleRootTypes() throws {
@@ -444,7 +444,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                 """
         )
 
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -473,7 +473,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                 """
         )
 
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -502,7 +502,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func rejectsAnObjectTypeWithMissingFields() throws {
@@ -515,7 +515,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   type IncompleteObject
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message: "Type IncompleteObject must define one or more fields.",
@@ -530,7 +530,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                 fields: [:]
             )
         )
-        try #expect(
+        #expect(
             validateSchema(schema: manualSchema) == [
                 GraphQLError(message: "Type IncompleteObject must define one or more fields.")
             ]
@@ -545,7 +545,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                     }
                 )
         )
-        try #expect(
+        #expect(
             validateSchema(schema: manualSchema2) == [
                 GraphQLError(message: "Type IncompleteObject must define one or more fields.")
             ]
@@ -562,7 +562,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                     }
                 )
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -589,7 +589,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                     ]
                 )
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func rejectsFieldArgWithInvalidNames() throws {
@@ -608,7 +608,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                 )
         )
 
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -640,7 +640,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                     | TypeB
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func rejectsAUnionTypeWithEmptyTypes() throws {
@@ -665,7 +665,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
             )
         )
 
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message: "Union type BadUnion must define one or more member types.",
@@ -700,7 +700,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                 """
         )
 
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message: "Union type BadUnion can only include type TypeA once.",
@@ -717,7 +717,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
             documentAST: parse(source: "extend union BadUnion = TypeB")
         )
 
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message: "Union type BadUnion can only include type TypeA once.",
@@ -751,7 +751,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func rejectsAnInputObjectTypeWithMissingFields() throws {
@@ -776,7 +776,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
             )
         )
 
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -811,7 +811,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                 """
         )
 
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func rejectsAnInputObjectWithNonBreakableCircularReference() throws {
@@ -827,7 +827,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                 """
         )
 
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -859,7 +859,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                 """
         )
 
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -897,7 +897,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                 """
         )
 
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -965,7 +965,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -1003,7 +1003,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
             )
         )
 
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message: "Enum type SomeEnum must define one or more values.",
@@ -1027,7 +1027,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                 )
         )
 
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -1120,7 +1120,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message: "Type AnotherObject can only implement AnotherInterface once.",
@@ -1153,7 +1153,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
             schema: schema,
             documentAST: parse(source: "extend type AnotherObject implements AnotherInterface")
         )
-        try #expect(
+        #expect(
             validateSchema(schema: extendedSchema) == [
                 GraphQLError(
                     message: "Type AnotherObject can only implement AnotherInterface once.",
@@ -1198,7 +1198,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                     """
             )
         )
-        try #expect(
+        #expect(
             validateSchema(schema: extendedSchema) == [
                 GraphQLError(
                     message:
@@ -1243,7 +1243,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                     """
             )
         )
-        try #expect(
+        #expect(
             validateSchema(schema: extendedSchema) == [
                 GraphQLError(
                     message:
@@ -1301,7 +1301,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                     """
             )
         )
-        try #expect(
+        #expect(
             validateSchema(schema: extendedSchema) == [
                 GraphQLError(
                     message:
@@ -1345,7 +1345,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
     @Test func acceptsAnOutputTypeAsAnInterfaceFieldType() throws {
         for type in outputTypes {
             let schema = try schemaWithInterfaceField(fieldConfig: .init(type: type))
-            try #expect(validateSchema(schema: schema) == [])
+            #expect(validateSchema(schema: schema) == [])
         }
     }
 
@@ -1388,7 +1388,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     // MARK: Type System: Arguments must have input types
@@ -1428,7 +1428,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
     @Test func acceptsAnInputTypeAsAFieldArgType() throws {
         for type in inputTypes {
             let schema = try schemaWithArg(argConfig: .init(type: type))
-            try #expect(validateSchema(schema: schema) == [])
+            #expect(validateSchema(schema: schema) == [])
         }
     }
 
@@ -1450,7 +1450,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -1520,7 +1520,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
     @Test func acceptsAnInputTypeAsAnInputFieldType() throws {
         for type in inputTypes {
             let schema = try schemaWithInputField(inputFieldConfig: .init(type: type))
-            try #expect(validateSchema(schema: schema) == [])
+            #expect(validateSchema(schema: schema) == [])
         }
     }
 
@@ -1562,7 +1562,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message: "OneOf input field SomeInputObject.b must be nullable.",
@@ -1585,7 +1585,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message: "OneOf input field SomeInputObject.b cannot have a default value.",
@@ -1613,7 +1613,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func acceptsAnObjectWhichImplementsAnInterfaceAlongWithMoreFields() throws {
@@ -1633,7 +1633,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func acceptsAnObjectWhichImplementsAnInterfaceFieldAlongWithAdditionalOptionalArguments()
@@ -1654,7 +1654,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func rejectsAnObjectMissingAnInterfaceField() throws {
@@ -1673,7 +1673,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -1703,7 +1703,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -1736,7 +1736,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -1766,7 +1766,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func acceptsAnObjectWithASubtypedInterfaceField_Union() throws {
@@ -1791,7 +1791,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func rejectsAnObjectMissingAnInterfaceArgument() throws {
@@ -1810,7 +1810,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -1840,7 +1840,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -1870,7 +1870,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -1915,7 +1915,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -1945,7 +1945,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func rejectsAnObjectWithANonlistInterfaceFieldListType() throws {
@@ -1964,7 +1964,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -1994,7 +1994,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2024,7 +2024,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func rejectsAnObjectWithASupersetNullableInterfaceFieldType() throws {
@@ -2043,7 +2043,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2077,7 +2077,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2109,7 +2109,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func acceptsAnInterfaceWhichImplementsAnInterfaceAlongWithMoreFields() throws {
@@ -2129,7 +2129,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test
@@ -2151,7 +2151,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func rejectsAnInterfaceMissingAnInterfaceField() throws {
@@ -2170,7 +2170,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2200,7 +2200,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2233,7 +2233,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2263,7 +2263,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func acceptsAnInterfaceWithASubtypedInterfaceField_Union() throws {
@@ -2288,7 +2288,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func rejectsAnInterfaceImplementingANoninterfaceType() throws {
@@ -2330,7 +2330,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2360,7 +2360,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2390,7 +2390,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2436,7 +2436,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2466,7 +2466,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func rejectsAnInterfaceWithANonlistInterfaceFieldListType() throws {
@@ -2485,7 +2485,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2515,7 +2515,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2545,7 +2545,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(validateSchema(schema: schema) == [])
+        #expect(validateSchema(schema: schema) == [])
     }
 
     @Test func rejectsAnInterfaceWithASupersetNullableInterfaceFieldType() throws {
@@ -2564,7 +2564,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2598,7 +2598,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                   }
                 """
         )
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2625,7 +2625,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                 """
         )
 
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:
@@ -2653,7 +2653,7 @@ func schemaWithFieldType(type: GraphQLOutputType) throws -> GraphQLSchema {
                 """
         )
 
-        try #expect(
+        #expect(
             validateSchema(schema: schema) == [
                 GraphQLError(
                     message:

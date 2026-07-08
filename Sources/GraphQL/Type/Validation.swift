@@ -1,3 +1,5 @@
+import OrderedCollections
+
 /// Implements the "Type Validation" sub-sections of the specification's
 /// "Type System" section.
 ///
@@ -5,7 +7,7 @@
 /// an empty array if no errors were encountered and the Schema is valid.
 public func validateSchema(
     schema: GraphQLSchema
-) throws -> [GraphQLError] {
+) -> [GraphQLError] {
     // If this Schema has already been validated, return the previous results.
     if let validationErrors = schema.validationErrors {
         return validationErrors
@@ -15,7 +17,7 @@ public func validateSchema(
     let context = SchemaValidationContext(schema: schema)
     validateRootTypes(context: context)
     validateDirectives(context: context)
-    try validateTypes(context: context)
+    validateTypes(context: context)
 
     // Persist the results of validation before returning to ensure validation
     // does not run multiple times for this schema.
@@ -27,7 +29,7 @@ public func validateSchema(
 /// Utility function which asserts a schema is valid by throwing an error if
 /// it is invalid.
 func assertValidSchema(schema: GraphQLSchema) throws {
-    let errors = try validateSchema(schema: schema)
+    let errors = validateSchema(schema: schema)
     if !errors.isEmpty {
         throw GraphQLError(message: errors.map { error in error.message }.joined(separator: "\n\n"))
     }
@@ -166,9 +168,9 @@ func validateName(
     }
 }
 
-func validateTypes(context: SchemaValidationContext) throws {
+func validateTypes(context: SchemaValidationContext) {
     let validateInputObjectCircularRefs =
-        try createInputObjectCircularRefsValidator(context: context)
+        createInputObjectCircularRefsValidator(context: context)
     let typeMap = context.schema.typeMap
     for type in typeMap.values {
         var astNode: Node?
@@ -177,23 +179,23 @@ func validateTypes(context: SchemaValidationContext) throws {
             astNode = type.astNode
 
             // Ensure fields are valid
-            try validateFields(context: context, type: type)
+            validateFields(context: context, type: type)
 
             // Ensure objects implement the interfaces they claim to.
-            try validateInterfaces(context: context, type: type)
+            validateInterfaces(context: context, type: type)
         } else if let type = type as? GraphQLInterfaceType {
             astNode = type.astNode
 
             // Ensure fields are valid.
-            try validateFields(context: context, type: type)
+            validateFields(context: context, type: type)
 
             // Ensure interfaces implement the interfaces they claim to.
-            try validateInterfaces(context: context, type: type)
+            validateInterfaces(context: context, type: type)
         } else if let type = type as? GraphQLUnionType {
             astNode = type.astNode
 
             // Ensure Unions include valid member types.
-            try validateUnionMembers(context: context, union: type)
+            validateUnionMembers(context: context, union: type)
         } else if let type = type as? GraphQLEnumType {
             astNode = type.astNode
 
@@ -203,10 +205,10 @@ func validateTypes(context: SchemaValidationContext) throws {
             astNode = type.astNode
 
             // Ensure Input Object fields are valid.
-            try validateInputFields(context: context, inputObj: type)
+            validateInputFields(context: context, inputObj: type)
 
             // Ensure Input Objects do not contain non-nullable circular references
-            try validateInputObjectCircularRefs(type)
+            validateInputObjectCircularRefs(type)
         } else if let type = type as? GraphQLScalarType {
             astNode = type.astNode
         }
@@ -221,8 +223,14 @@ func validateTypes(context: SchemaValidationContext) throws {
 func validateFields(
     context: SchemaValidationContext,
     type: GraphQLObjectType
-) throws {
-    let fields = try type.getFields()
+) {
+    let fields: GraphQLFieldDefinitionMap
+    do {
+        fields = try type.getFields()
+    } catch {
+        context.reportError(message: "Unable to get fields: \(error)", node: type.astNode)
+        return
+    }
 
     // Objects and Interfaces both must define one or more fields.
     if fields.count == 0 {
@@ -268,8 +276,14 @@ func validateFields(
 func validateFields(
     context: SchemaValidationContext,
     type: GraphQLInterfaceType
-) throws {
-    let fields = try type.getFields()
+) {
+    let fields: GraphQLFieldDefinitionMap
+    do {
+        fields = try type.getFields()
+    } catch {
+        context.reportError(message: "Unable to get fields: \(error)", node: type.astNode)
+        return
+    }
 
     // Objects and Interfaces both must define one or more fields.
     if fields.count == 0 {
@@ -315,9 +329,16 @@ func validateFields(
 func validateInterfaces(
     context: SchemaValidationContext,
     type: GraphQLObjectType
-) throws {
+) {
     var ifaceTypeNames = Set<String>()
-    for iface in try type.getInterfaces() {
+    let interfaces: [GraphQLInterfaceType]
+    do {
+        interfaces = try type.getInterfaces()
+    } catch {
+        context.reportError(message: "Unable to get interfaces: \(error)", node: type.astNode)
+        return
+    }
+    for iface in interfaces {
         if type == iface {
             context.reportError(
                 message:
@@ -337,17 +358,24 @@ func validateInterfaces(
 
         ifaceTypeNames.insert(iface.name)
 
-        try validateTypeImplementsAncestors(context: context, type: type, iface: iface)
-        try validateTypeImplementsInterface(context: context, type: type, iface: iface)
+        validateTypeImplementsAncestors(context: context, type: type, iface: iface)
+        validateTypeImplementsInterface(context: context, type: type, iface: iface)
     }
 }
 
 func validateInterfaces(
     context: SchemaValidationContext,
     type: GraphQLInterfaceType
-) throws {
+) {
     var ifaceTypeNames = Set<String>()
-    for iface in try type.getInterfaces() {
+    let interfaces: [GraphQLInterfaceType]
+    do {
+        interfaces = try type.getInterfaces()
+    } catch {
+        context.reportError(message: "Unable to get interfaces: \(error)", node: type.astNode)
+        return
+    }
+    for iface in interfaces {
         if type == iface {
             context.reportError(
                 message:
@@ -367,8 +395,8 @@ func validateInterfaces(
 
         ifaceTypeNames.insert(iface.name)
 
-        try validateTypeImplementsAncestors(context: context, type: type, iface: iface)
-        try validateTypeImplementsInterface(context: context, type: type, iface: iface)
+        validateTypeImplementsAncestors(context: context, type: type, iface: iface)
+        validateTypeImplementsInterface(context: context, type: type, iface: iface)
     }
 }
 
@@ -376,11 +404,24 @@ func validateTypeImplementsInterface(
     context: SchemaValidationContext,
     type: GraphQLObjectType,
     iface: GraphQLInterfaceType
-) throws {
-    let typeFieldMap = try type.getFields()
+) {
+    let typeFieldMap: GraphQLFieldDefinitionMap
+    do {
+        typeFieldMap = try type.getFields()
+    } catch {
+        context.reportError(message: "Unable to get fields: \(error)", node: type.astNode)
+        return
+    }
+    let ifaceFields: OrderedDictionary<String, GraphQLFieldDefinition>
+    do {
+        ifaceFields = try iface.getFields()
+    } catch {
+        context.reportError(message: "Unable to get fields: \(error)", node: iface.astNode)
+        return
+    }
 
     // Assert each interface field is implemented.
-    for ifaceField in try iface.getFields().values {
+    for ifaceField in ifaceFields.values {
         let fieldName = ifaceField.name
         let typeField = typeFieldMap[fieldName]
 
@@ -398,7 +439,7 @@ func validateTypeImplementsInterface(
 
         // Assert interface field type is satisfied by type field type, by being
         // a valid subtype. (covariant)
-        if try !isTypeSubTypeOf(context.schema, typeField.type, ifaceField.type) {
+        if !isTypeSubTypeOf(context.schema, typeField.type, ifaceField.type) {
             context.reportError(
                 message: "Interface field \(iface.name).\(fieldName) expects type "
                     + "\(ifaceField.type) but \(type).\(fieldName) " + "is type \(typeField.type).",
@@ -456,11 +497,24 @@ func validateTypeImplementsInterface(
     context: SchemaValidationContext,
     type: GraphQLInterfaceType,
     iface: GraphQLInterfaceType
-) throws {
-    let typeFieldMap = try type.getFields()
+) {
+    let typeFieldMap: GraphQLFieldDefinitionMap
+    do {
+        typeFieldMap = try type.getFields()
+    } catch {
+        context.reportError(message: "Unable to get fields: \(error)", node: type.astNode)
+        return
+    }
+    let ifaceFields: OrderedDictionary<String, GraphQLFieldDefinition>
+    do {
+        ifaceFields = try iface.getFields()
+    } catch {
+        context.reportError(message: "Unable to get fields: \(error)", node: iface.astNode)
+        return
+    }
 
     // Assert each interface field is implemented.
-    for ifaceField in try iface.getFields().values {
+    for ifaceField in ifaceFields.values {
         let fieldName = ifaceField.name
         let typeField = typeFieldMap[fieldName]
 
@@ -478,7 +532,7 @@ func validateTypeImplementsInterface(
 
         // Assert interface field type is satisfied by type field type, by being
         // a valid subtype. (covariant)
-        if try !isTypeSubTypeOf(context.schema, typeField.type, ifaceField.type) {
+        if !isTypeSubTypeOf(context.schema, typeField.type, ifaceField.type) {
             context.reportError(
                 message: "Interface field \(iface.name).\(fieldName) expects type "
                     + "\(ifaceField.type) but \(type).\(fieldName) " + "is type \(typeField.type).",
@@ -536,9 +590,17 @@ func validateTypeImplementsAncestors(
     context: SchemaValidationContext,
     type: GraphQLObjectType,
     iface: GraphQLInterfaceType
-) throws {
-    let ifaceInterfaces = try type.getInterfaces()
-    for transitive in try iface.getInterfaces() {
+) {
+    let ifaceInterfaces: [GraphQLInterfaceType]
+    let transitives: [GraphQLInterfaceType]
+    do {
+        ifaceInterfaces = try type.getInterfaces()
+        transitives = try iface.getInterfaces()
+    } catch {
+        context.reportError(message: "Unable to get interfaces: \(error)", node: type.astNode)
+        return
+    }
+    for transitive in transitives {
         if !ifaceInterfaces.contains(transitive) {
             var nodes: [Node?] = getAllImplementsInterfaceNodes(type: iface, iface: transitive)
             nodes.append(contentsOf: getAllImplementsInterfaceNodes(type: type, iface: iface))
@@ -556,9 +618,17 @@ func validateTypeImplementsAncestors(
     context: SchemaValidationContext,
     type: GraphQLInterfaceType,
     iface: GraphQLInterfaceType
-) throws {
-    let ifaceInterfaces = try type.getInterfaces()
-    for transitive in try iface.getInterfaces() {
+) {
+    let ifaceInterfaces: [GraphQLInterfaceType]
+    let transitives: [GraphQLInterfaceType]
+    do {
+        ifaceInterfaces = try type.getInterfaces()
+        transitives = try iface.getInterfaces()
+    } catch {
+        context.reportError(message: "Unable to get interfaces: \(error)", node: type.astNode)
+        return
+    }
+    for transitive in transitives {
         if !ifaceInterfaces.contains(transitive) {
             var nodes: [Node?] = getAllImplementsInterfaceNodes(type: iface, iface: transitive)
             nodes.append(contentsOf: getAllImplementsInterfaceNodes(type: type, iface: iface))
@@ -575,8 +645,14 @@ func validateTypeImplementsAncestors(
 func validateUnionMembers(
     context: SchemaValidationContext,
     union: GraphQLUnionType
-) throws {
-    let memberTypes = try union.getTypes()
+) {
+    let memberTypes: [GraphQLObjectType]
+    do {
+        memberTypes = try union.getTypes()
+    } catch {
+        context.reportError(message: "Unable to get types: \(error)", node: union.astNode)
+        return
+    }
 
     if memberTypes.count == 0 {
         var nodes: [Node?] = [union.astNode]
@@ -624,8 +700,14 @@ func validateEnumValues(
 func validateInputFields(
     context: SchemaValidationContext,
     inputObj: GraphQLInputObjectType
-) throws {
-    let fields = try inputObj.getFields().values
+) {
+    let fields: OrderedDictionary<String, InputObjectFieldDefinition>
+    do {
+        fields = try inputObj.getFields()
+    } catch {
+        context.reportError(message: "Unable to get fields: \(error)", node: inputObj.astNode)
+        return
+    }
 
     if fields.count == 0 {
         var nodes: [Node?] = [inputObj.astNode]
@@ -637,7 +719,7 @@ func validateInputFields(
     }
 
     // Ensure the arguments are valid
-    for field in fields {
+    for field in fields.values {
         // Ensure they are named correctly.
         validateName(context: context, name: field.name, astNode: field.astNode)
 
@@ -689,7 +771,7 @@ func validateOneOfInputObjectField(
 
 func createInputObjectCircularRefsValidator(
     context: SchemaValidationContext
-) throws -> (GraphQLInputObjectType) throws -> Void {
+) -> (GraphQLInputObjectType) -> Void {
     return CircularRefsValidator(context: context).validate
 }
 
@@ -744,7 +826,7 @@ private final class CircularRefsValidator {
         self.context = context
     }
 
-    func validate(inputObj: GraphQLInputObjectType) throws {
+    func validate(inputObj: GraphQLInputObjectType) {
         if visitedTypes.contains(inputObj) {
             return
         }
@@ -752,24 +834,31 @@ private final class CircularRefsValidator {
         visitedTypes.insert(inputObj)
         fieldPathIndexByTypeName[inputObj.name] = fieldPath.count
 
-        let fields = try inputObj.getFields().values
-        for field in fields {
-            if
-                let nonNullType = field.type as? GraphQLNonNull,
+        let fields: OrderedDictionary<String, InputObjectFieldDefinition>
+        do {
+            fields = try inputObj.getFields()
+        } catch {
+            context.reportError(message: "Unable to get fields: \(error)", node: inputObj.astNode)
+            return
+        }
+
+        for field in fields.values {
+            if let nonNullType = field.type as? GraphQLNonNull,
                 let fieldType = nonNullType.ofType as? GraphQLInputObjectType
             {
                 let cycleIndex = fieldPathIndexByTypeName[fieldType.name]
 
                 fieldPath.append(field)
                 if let cycleIndex = cycleIndex {
-                    let cyclePath = fieldPath[cycleIndex ..< fieldPath.count]
+                    let cyclePath = fieldPath[cycleIndex..<fieldPath.count]
                     let pathStr = cyclePath.map { fieldObj in fieldObj.name }.joined(separator: ".")
                     context.reportError(
-                        message: "Cannot reference Input Object \"\(fieldType)\" within itself through a series of non-null fields: \"\(pathStr)\".",
+                        message:
+                            "Cannot reference Input Object \"\(fieldType)\" within itself through a series of non-null fields: \"\(pathStr)\".",
                         nodes: cyclePath.map { fieldObj in fieldObj.astNode }
                     )
                 } else {
-                    try validate(inputObj: fieldType)
+                    validate(inputObj: fieldType)
                 }
                 fieldPath.removeLast()
             }

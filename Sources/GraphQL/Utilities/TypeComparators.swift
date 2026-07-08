@@ -66,7 +66,7 @@ func isTypeSubTypeOf(
     _ schema: GraphQLSchema,
     _ maybeSubType: GraphQLType,
     _ superType: GraphQLType
-) throws -> Bool {
+) -> Bool {
     // Equivalent type is a valid subtype
     if maybeSubType == superType {
         return true
@@ -75,19 +75,19 @@ func isTypeSubTypeOf(
     // If superType is non-null, maybeSubType must also be non-null.
     if let superType = superType as? GraphQLNonNull {
         if let maybeSubType = maybeSubType as? GraphQLNonNull {
-            return try isTypeSubTypeOf(schema, maybeSubType.ofType, superType.ofType)
+            return isTypeSubTypeOf(schema, maybeSubType.ofType, superType.ofType)
         }
 
         return false
     } else if let maybeSubType = maybeSubType as? GraphQLNonNull {
         // If superType is nullable, maybeSubType may be non-null or nullable.
-        return try isTypeSubTypeOf(schema, maybeSubType.ofType, superType)
+        return isTypeSubTypeOf(schema, maybeSubType.ofType, superType)
     }
 
     // If superType type is a list, maybeSubType type must also be a list.
     if let superType = superType as? GraphQLList {
         if let maybeSubType = maybeSubType as? GraphQLList {
-            return try isTypeSubTypeOf(schema, maybeSubType.ofType, superType.ofType)
+            return isTypeSubTypeOf(schema, maybeSubType.ofType, superType.ofType)
         }
 
         return false
