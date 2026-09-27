@@ -42,6 +42,21 @@ let benchmarks: @Sendable () -> Void = {
         return collectionSchema(count: 10_000).schema
     }
 
+    // Benchmarks the large static array exposed as a custom scalar
+    // This avoids all the GraphQL resolution of each element item, and as such is way faster.
+    Benchmark("resolution:scalar") { _, schema in
+        let result = try await graphql(
+            schema: schema,
+            request: """
+                query {
+                    collection
+                }
+                """
+        )
+    } setup: {
+        return collectionScalarSchema(count: 10_000)
+    }
+
     // Benchmarks the time to encode a GraphQLResult
     Benchmark("encoding:GraphQLResult") { _, result in
         let result = try encoder.encode(result)
