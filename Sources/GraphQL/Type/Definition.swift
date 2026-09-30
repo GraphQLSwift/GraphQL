@@ -135,7 +135,7 @@ extension GraphQLNonNull: GraphQLWrapperType {}
 ///             try $0.map.asBool(converting: true)
 ///         }
 ///     )
-public final class GraphQLScalarType: Sendable {
+public final class GraphQLScalarType: @unchecked Sendable {
     public let name: String
     public let description: String?
     public let specifiedByURL: String?
@@ -143,9 +143,29 @@ public final class GraphQLScalarType: Sendable {
     public let extensionASTNodes: [ScalarExtensionDefinition]
     public let kind: TypeKind = .scalar
 
-    let serialize: @Sendable (Any) throws -> Map
-    let parseValue: @Sendable (Map) throws -> Map
-    let parseLiteral: @Sendable (Value) throws -> Map
+    /// The serialization of scalar values. This may be mutated during setup, but should not be
+    /// modified once the schema is being used for execution.
+    public var serialize: @Sendable (Any) throws -> Map {
+        get { scalarPropertyQueue.sync { _serialize } }
+        set { scalarPropertyQueue.sync(flags: .barrier) { _serialize = newValue } }
+    }
+    private var _serialize: @Sendable (Any) throws -> Map
+
+    /// The parsing of scalar values from the provided JSON Map. This may be mutated during setup, but should not be
+    /// modified once the schema is being used for execution.
+    public var parseValue: @Sendable (Map) throws -> Map {
+        get { scalarPropertyQueue.sync { _parseValue } }
+        set { scalarPropertyQueue.sync(flags: .barrier) { _parseValue = newValue } }
+    }
+    private var _parseValue: @Sendable (Map) throws -> Map
+
+    /// The parsing of scalar values from the provided Value literal. This may be mutated during setup, but should not be
+    /// modified once the schema is being used for execution.
+    public var parseLiteral: @Sendable (Value) throws -> Map {
+        get { scalarPropertyQueue.sync { _parseLiteral } }
+        set { scalarPropertyQueue.sync(flags: .barrier) { _parseLiteral = newValue } }
+    }
+    private var _parseLiteral: @Sendable (Value) throws -> Map
 
     public init(
         name: String,
@@ -163,9 +183,9 @@ public final class GraphQLScalarType: Sendable {
         self.specifiedByURL = specifiedByURL
         self.astNode = astNode
         self.extensionASTNodes = extensionASTNodes
-        self.serialize = serialize
-        self.parseValue = parseValue ?? defaultParseValue
-        self.parseLiteral = parseLiteral ?? defaultParseLiteral
+        _serialize = serialize
+        _parseValue = parseValue ?? defaultParseValue
+        _parseLiteral = parseLiteral ?? defaultParseLiteral
     }
 
     /// Serializes an internal value to include in a response.
@@ -1419,5 +1439,11 @@ private let cacheQueue = DispatchQueue(
 /// Uses reader/writer pattern for read-heavy workload
 private let fieldPropertyQueue = DispatchQueue(
     label: "graphql.field.properties",
+    attributes: .concurrent
+)
+
+/// Shared reader/writer queue for scalar callbacks.
+private let scalarPropertyQueue = DispatchQueue(
+    label: "graphql.scalar.properties",
     attributes: .concurrent
 )
