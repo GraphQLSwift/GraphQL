@@ -307,7 +307,18 @@ public final class GraphQLObjectType: @unchecked Sendable {
     private var interfaceFunc: () throws -> [GraphQLInterfaceType]
     private var interfaceCache: [GraphQLInterfaceType]?
 
-    public let isTypeOf: GraphQLIsTypeOf?
+    /// The type detection for the object. This may be mutated during setup, but should
+    /// not be modified once the schema is being used for execution.
+    public var isTypeOf: GraphQLIsTypeOf? {
+        get {
+            isTypeOfQueue.sync { _isTypeOf }
+        }
+        set {
+            isTypeOfQueue.sync(flags: .barrier) { _isTypeOf = newValue }
+        }
+    }
+    private var _isTypeOf: GraphQLIsTypeOf?
+
     public let astNode: ObjectTypeDefinition?
     public let extensionASTNodes: [TypeExtensionDefinition]
     public let kind: TypeKind = .object
@@ -326,7 +337,7 @@ public final class GraphQLObjectType: @unchecked Sendable {
         self.description = description
         fieldFunc = { fields }
         interfaceFunc = { interfaces }
-        self.isTypeOf = isTypeOf
+        _isTypeOf = isTypeOf
         self.astNode = astNode
         self.extensionASTNodes = extensionASTNodes
     }
@@ -345,7 +356,7 @@ public final class GraphQLObjectType: @unchecked Sendable {
         self.description = description
         fieldFunc = fields
         interfaceFunc = interfaces
-        self.isTypeOf = isTypeOf
+        _isTypeOf = isTypeOf
         self.astNode = astNode
         self.extensionASTNodes = extensionASTNodes
     }
@@ -1445,5 +1456,12 @@ private let fieldPropertyQueue = DispatchQueue(
 /// Shared reader/writer queue for scalar callbacks.
 private let scalarPropertyQueue = DispatchQueue(
     label: "graphql.scalar.properties",
+    attributes: .concurrent
+)
+
+/// Shared queue for isTypeOf property access
+/// Uses reader/writer pattern for read-heavy workload
+private let isTypeOfQueue = DispatchQueue(
+    label: "graphql.isTypeOf.properties",
     attributes: .concurrent
 )
